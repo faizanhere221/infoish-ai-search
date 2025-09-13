@@ -1,0 +1,15 @@
+{
+  "scraping_results": {
+    "total_processed": 0,
+    "successfully_added": 0,
+    "duplicates_skipped": 0,
+    "errors": 0,
+    "by_category": {},
+    "by_city": {},
+    "processing_time": 43.50178337097168
+  },
+  "database_summary": {
+    "error": "'Session' object has no attribute 'func'"
+  },
+  "timestamp": "2025-09-01T16:18:48.055306"
+}

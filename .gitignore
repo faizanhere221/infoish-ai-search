@@ -39,3 +39,60 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Python backend
+vector-backend/__pycache__/
+vector-backend/.pytest_cache/
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+influencer.db
+
+# CSV files with sensitive data
+*.csv
+!sample_data.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Uploads
+uploads/
+public/uploads/
+data/
+
+# OS specific
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary
+*.tmp
+*.temp
+temp/
+
+# API Keys backup
+api_keys_backup.json
+
+# Railway & deployment
+.railway/

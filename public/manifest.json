@@ -1,0 +1,16 @@
+{
+  "name": "Pakistani Influencer Search",
+  "short_name": "PK Influencers",
+  "description": "Find Pakistani influencers and content creators",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
