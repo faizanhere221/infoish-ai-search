@@ -175,14 +175,14 @@ class AuthService:
             search_limit = 999999 if subscription_tier == "premium" else 15
             
             auth_user = AuthUser(
-                id=user.id,
-                full_name=google_user_info.get("name", ""),
-                profile_picture=google_user_info.get("picture", ""),
-                google_id=google_id,
-                subscription_tier=subscription_tier,
-                search_limit=search_limit,
-                is_verified=google_user_info.get("email_verified", False)
-            )
+    id=user.id,
+    full_name=google_user_info.get("name", ""),
+    profile_picture=google_user_info.get("picture", ""),
+    google_id=google_id,
+    subscription_tier=subscription_tier,
+    search_limit=search_limit,
+    is_verified=bool(google_user_info.get("email_verified", False))  # Convert to boolean
+)
             db.add(auth_user)
         else:
             # Update existing user
@@ -207,7 +207,7 @@ class AuthService:
                 auth_user.google_id = google_id
                 auth_user.full_name = google_user_info.get("name", auth_user.full_name)
                 auth_user.profile_picture = google_user_info.get("picture", auth_user.profile_picture)
-                auth_user.is_verified = google_user_info.get("email_verified", False)
+                auth_user.is_verified = bool(google_user_info.get("email_verified", False))
                 
                 # Handle test user subscription tiers
                 if google_user_info.get("subscription_tier"):
