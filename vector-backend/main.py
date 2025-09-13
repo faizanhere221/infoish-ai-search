@@ -118,7 +118,10 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://localhost:3001",
         "https://infoish-ai-search.vercel.app",
-        "https://infoish.com"  # Your future custom domain
+        "https://infoish-ai-search-git-main-faizanhere221.vercel.app",  # Git branch deployments
+        "https://infoish-ai-search-faizanhere221.vercel.app",  # User-specific URL
+        "https://*.vercel.app",  # All Vercel preview deployments
+        "https://infoish.com"  # Future custom domain
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -126,6 +129,17 @@ app.add_middleware(
 )
 
 
+
+@app.options("/{path:path}")
+async def options_handler(request):
+    return JSONResponse(
+        content={},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
 
 # Add timeout middleware after CORS middleware:
 @app.middleware("http")
