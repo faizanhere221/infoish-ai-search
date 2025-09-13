@@ -117,7 +117,8 @@ app.add_middleware(
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:3001",
-        "https://your-frontend-domain.com"  # Replace with your actual domain
+        "https://infoish-ai-search.vercel.app",
+        "https://infoish.com"  # Your future custom domain
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
