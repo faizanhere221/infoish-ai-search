@@ -192,7 +192,7 @@ export default function LoginPage() {
       const response = await fetch(`${backendUrl}/health`)
       if (response.ok) {
         const data = await response.json()
-        setBackendStatus(data.backend === 'healthy' ? 'online' : 'offline')
+        setBackendStatus(data.status === 'healthy' ? 'online' : 'offline')
         setError('')
         
         const message = `
