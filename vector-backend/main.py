@@ -115,12 +115,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
         "https://infoish-ai-search.vercel.app",
-        "https://infoish-ai-search-git-main-faizanhere221.vercel.app",
-        "https://infoish-ai-search-faizanhere221.vercel.app",
-        "https://*.vercel.app"
+        "https://*.vercel.app",
+        # Add these for server-to-server calls from Vercel
+        "*"  # Temporarily allow all for server calls
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],

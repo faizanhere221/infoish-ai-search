@@ -42,7 +42,8 @@ export default function LoginPage() {
 
   const checkBackendStatus = async () => {
     try {
-      const response = await fetch('/api/health')
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+      const response = await fetch(`${backendUrl}/health`)
       if (response.ok) {
         const data = await response.json()
         setBackendStatus(data.backend === 'healthy' ? 'online' : 'offline')
