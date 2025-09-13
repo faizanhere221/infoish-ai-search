@@ -52,6 +52,9 @@ class AuthService:
             return email
         except JWTError:
             return None
+        
+
+    
     
     @staticmethod
     def get_current_user(
@@ -100,14 +103,14 @@ class AuthService:
         try:
             # Development test tokens - Enhanced with multiple users
             test_tokens = {
-                "test_development_token_free": {
-                    "sub": "test_user_free_123",
-                    "email": "free@test.com",
-                    "name": "Test Free User",
-                    "picture": "https://via.placeholder.com/150",
-                    "email_verified": True,
-                    "subscription_tier": "free"
-                },
+    "test_development_token_free": {
+        "sub": "test_user_free_123",
+        "email": "free@test.com",
+        "name": "Test Free User",
+        "picture": "https://via.placeholder.com/150",
+        "email_verified": True,  # Ensure this is boolean
+        "subscription_tier": "free"
+    },
                 "test_development_token_premium": {
                     "sub": "test_user_premium_456", 
                     "email": "premium@test.com",
@@ -145,6 +148,18 @@ class AuthService:
         except Exception as e:
             logger.error(f"Google token verification error: {e}")
             return None
+        
+    
+    def safe_bool_convert(value):
+        """Safely convert various boolean representations to actual boolean"""
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.lower() in ('true', '1', 'yes', 'on')
+        return bool(value)
+    
+
+
     
     @staticmethod
     def get_or_create_user(google_user_info: dict, db: Session):
@@ -181,7 +196,7 @@ class AuthService:
     google_id=google_id,
     subscription_tier=subscription_tier,
     search_limit=search_limit,
-    is_verified=bool(google_user_info.get("email_verified", False))  # Convert to boolean
+    is_verified=(google_user_info.get("email_verified") in [True, "true"])
 )
             db.add(auth_user)
         else:
