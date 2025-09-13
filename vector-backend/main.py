@@ -116,9 +116,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://infoish-ai-search.vercel.app",
-        "https://*.vercel.app",
-        # Add these for server-to-server calls from Vercel
-        "*"  # Temporarily allow all for server calls
+        "https://*.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],

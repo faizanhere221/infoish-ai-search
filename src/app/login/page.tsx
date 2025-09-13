@@ -101,7 +101,8 @@ export default function LoginPage() {
     
     try {
       // Use frontend API route instead of direct backend call
-      const authResponse = await fetch('/api/auth/google', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
+      const authResponse = await fetch(`${backendUrl}/auth/google`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -157,7 +158,8 @@ export default function LoginPage() {
     
     try {
       // Use frontend API route for test login too
-      const response = await fetch('/api/auth/google', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
+      const response = await fetch(`${backendUrl}/auth/google`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -186,7 +188,8 @@ export default function LoginPage() {
   const testBackendConnection = async () => {
     setError('')
     try {
-      const response = await fetch('/api/health')
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
+      const response = await fetch(`${backendUrl}/health`)
       if (response.ok) {
         const data = await response.json()
         setBackendStatus(data.backend === 'healthy' ? 'online' : 'offline')
