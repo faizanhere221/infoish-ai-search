@@ -116,7 +116,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://infoish-ai-search.vercel.app",
-        "https://*.vercel.app"
+        "https://infoish-ai-search-git-master-faizans-projects-e49cee22.vercel.app",
+        "https://infoish-ai-search-b9yjaksn0-faizans-projects-e49cee22.vercel.app",
+        "https://*.vercel.app",  # This should cover all Vercel subdomains
+        "https://infoish.com"  # Future custom domain
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
