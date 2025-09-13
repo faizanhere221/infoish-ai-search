@@ -239,13 +239,16 @@ class AuthService:
         """Reset monthly search count if it's a new month"""
         if not auth_user:
             return
-            
+        
         now = datetime.utcnow()
         last_reset = auth_user.created_at
-        
-        # If it's been more than 30 days, reset
-        if (now - last_reset).days >= 30:
+    
+        # Check if created_at exists before doing date arithmetic
+        if last_reset and (now - last_reset).days >= 30:
             auth_user.monthly_searches = 0
+        elif not last_reset:
+        # If no created_at, set it to now and don't reset searches yet
+            auth_user.created_at = now
     
     @staticmethod
     def check_search_limit(user) -> bool:
