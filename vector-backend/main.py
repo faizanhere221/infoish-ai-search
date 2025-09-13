@@ -118,10 +118,9 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://localhost:3001",
         "https://infoish-ai-search.vercel.app",
-        "https://infoish-ai-search-git-main-faizanhere221.vercel.app",  # Git branch deployments
-        "https://infoish-ai-search-faizanhere221.vercel.app",  # User-specific URL
-        "https://*.vercel.app",  # All Vercel preview deployments
-        "https://infoish.com"  # Future custom domain
+        "https://infoish-ai-search-git-main-faizanhere221.vercel.app",
+        "https://infoish-ai-search-faizanhere221.vercel.app",
+        "https://*.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
