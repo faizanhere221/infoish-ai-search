@@ -160,7 +160,7 @@ async def root():
         "message": "Pakistani Influencer Search API - WITH AUTHENTICATION",
         "version": "4.0.0",
         "status": "running",
-        "database_size": "300+ Pakistani influencers",
+        "database_size": "1800+ Pakistani influencers",
         "features": [
             "Google OAuth Login",
             "User Search Tracking",
