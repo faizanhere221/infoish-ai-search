@@ -41,19 +41,19 @@ export default function LoginPage() {
   }, [])
 
   const checkBackendStatus = async () => {
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
-      const response = await fetch(`${backendUrl}/health`)
-      if (response.ok) {
-        const data = await response.json()
-        setBackendStatus(data.backend === 'healthy' ? 'online' : 'offline')
-      } else {
-        setBackendStatus('error')
-      }
-    } catch (error) {
-      setBackendStatus('offline')
+  try {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+    const response = await fetch(`${backendUrl}/health`)
+    if (response.ok) {
+      const data = await response.json()
+      setBackendStatus(data.status === 'healthy' ? 'online' : 'offline')  // Changed 'backend' to 'status'
+    } else {
+      setBackendStatus('error')
     }
+  } catch (error) {
+    setBackendStatus('offline')
   }
+}
 
   const checkExistingAuth = async () => {
     const token = localStorage.getItem('auth_token')
