@@ -25,6 +25,14 @@ def generate_cuid():
     """Generate a CUID-like ID to match Prisma"""
     return f"c{secrets.token_urlsafe(20)}"
 
+def safe_bool_convert(value):
+    """Safely convert various boolean representations to actual boolean"""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.lower() in ('true', '1', 'yes', 'on')
+    return bool(value)
+
 # Authentication Service
 class AuthService:
     
@@ -52,9 +60,6 @@ class AuthService:
             return email
         except JWTError:
             return None
-        
-
-    
     
     @staticmethod
     def get_current_user(
@@ -103,14 +108,14 @@ class AuthService:
         try:
             # Development test tokens - Enhanced with multiple users
             test_tokens = {
-    "test_development_token_free": {
-        "sub": "test_user_free_123",
-        "email": "free@test.com",
-        "name": "Test Free User",
-        "picture": "https://via.placeholder.com/150",
-        "email_verified": True,  # Ensure this is boolean
-        "subscription_tier": "free"
-    },
+                "test_development_token_free": {
+                    "sub": "test_user_free_123",
+                    "email": "free@test.com",
+                    "name": "Test Free User",
+                    "picture": "https://via.placeholder.com/150",
+                    "email_verified": True,  # Ensure this is boolean
+                    "subscription_tier": "free"
+                },
                 "test_development_token_premium": {
                     "sub": "test_user_premium_456", 
                     "email": "premium@test.com",
@@ -148,18 +153,6 @@ class AuthService:
         except Exception as e:
             logger.error(f"Google token verification error: {e}")
             return None
-        
-    
-    def safe_bool_convert(value):
-        """Safely convert various boolean representations to actual boolean"""
-        if isinstance(value, bool):
-            return value
-        if isinstance(value, str):
-            return value.lower() in ('true', '1', 'yes', 'on')
-        return bool(value)
-    
-
-
     
     @staticmethod
     def get_or_create_user(google_user_info: dict, db: Session):
@@ -190,14 +183,18 @@ class AuthService:
             search_limit = 999999 if subscription_tier == "premium" else 15
             
             auth_user = AuthUser(
-    id=user.id,
-    full_name=google_user_info.get("name", ""),
-    profile_picture=google_user_info.get("picture", ""),
-    google_id=google_id,
-    subscription_tier=subscription_tier,
-    search_limit=search_limit,
-    is_verified=(google_user_info.get("email_verified") in [True, "true"])
-)
+                id=user.id,
+                full_name=google_user_info.get("name", ""),
+                profile_picture=google_user_info.get("picture", ""),
+                google_id=google_id,
+                subscription_tier=subscription_tier,
+                search_count=0,  # Explicit default
+                monthly_searches=0,  # Explicit default
+                search_limit=search_limit,
+                is_active=True,  # Explicit boolean default
+                is_verified=safe_bool_convert(google_user_info.get("email_verified", False)),  # Use safe conversion
+                created_at=datetime.utcnow()  # Explicit datetime
+            )
             db.add(auth_user)
         else:
             # Update existing user
@@ -213,8 +210,12 @@ class AuthService:
                     profile_picture=google_user_info.get("picture", ""),
                     google_id=google_id,
                     subscription_tier=subscription_tier,
+                    search_count=0,  # Explicit default
+                    monthly_searches=0,  # Explicit default
                     search_limit=search_limit,
-                    is_verified=google_user_info.get("email_verified", False)
+                    is_active=True,  # Explicit boolean default
+                    is_verified=safe_bool_convert(google_user_info.get("email_verified", False)),  # Use safe conversion
+                    created_at=datetime.utcnow()  # Explicit datetime
                 )
                 db.add(auth_user)
             else:
@@ -222,7 +223,7 @@ class AuthService:
                 auth_user.google_id = google_id
                 auth_user.full_name = google_user_info.get("name", auth_user.full_name)
                 auth_user.profile_picture = google_user_info.get("picture", auth_user.profile_picture)
-                auth_user.is_verified = bool(google_user_info.get("email_verified", False))
+                auth_user.is_verified = safe_bool_convert(google_user_info.get("email_verified", False))
                 
                 # Handle test user subscription tiers
                 if google_user_info.get("subscription_tier"):
@@ -262,7 +263,7 @@ class AuthService:
         if last_reset and (now - last_reset).days >= 30:
             auth_user.monthly_searches = 0
         elif not last_reset:
-        # If no created_at, set it to now and don't reset searches yet
+            # If no created_at, set it to now and don't reset searches yet
             auth_user.created_at = now
     
     @staticmethod
