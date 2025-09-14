@@ -279,17 +279,46 @@ useEffect(() => {
     
     if (data.success !== false) {
       const searchResults = data.results || []
+
+
+      let displayTotal = data.total || data.total_found || 0
+      let displayPages = Math.ceil(displayTotal / RESULTS_PER_PAGE)
+      
+      // If user is free and we got exactly 5 results, adjust display
+      {user?.subscription_tier === 'free' && results.length >= 5 && !showSaved && (
+  <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+    <div className="flex items-center justify-between">
+      <div>
+        <h3 className="font-bold text-blue-900 mb-2">Want to see all {totalResults}+ results?</h3>
+        <p className="text-blue-700 text-sm mb-3">
+          Free accounts are limited to 5 results per search. Upgrade to see unlimited results and export data.
+        </p>
+        <div className="flex items-center gap-4 text-sm">
+          <span className="text-blue-600">✓ Unlimited search results</span>
+          <span className="text-blue-600">✓ Export to CSV</span>
+          <span className="text-blue-600">✓ Advanced filters</span>
+        </div>
+      </div>
+      <button 
+        onClick={() => router.push('/pricing')}
+        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all"
+      >
+        Upgrade Now
+      </button>
+    </div>
+  </div>
+)}
       
       setResults(searchResults)
-      setTotalResults(data.total || data.total_found || 0)
-      setTotalPages(Math.ceil((data.total || data.total_found || 0) / RESULTS_PER_PAGE))
+      setTotalResults(displayTotal)  // Use adjusted total
+      setTotalPages(displayPages)    // Use adjusted pages
       setSearchInsights(data.search_insights || null)
       
-      // CRITICAL: Update user state immediately after successful search
+      // Update user state immediately after successful search
       if (data.user_info && user) {
         const updatedUser = {
           ...user,
-          monthly_searches: user.monthly_searches + 1, // Increment locally
+          monthly_searches: data.user_info.monthly_searches || user.monthly_searches + 1,
         }
         setUser(updatedUser)
         
@@ -310,7 +339,7 @@ useEffect(() => {
         setError(data.upgrade_message)
       }
       
-      console.log(`Page ${page}: Got ${searchResults.length} results, Total: ${data.total || data.total_found || 0}`)
+      console.log(`Page ${page}: Got ${searchResults.length} results, Displaying total: ${displayTotal}`)
     } else {
       throw new Error(data.message || 'Search failed')
     }
@@ -790,6 +819,11 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
                   </select>
                 </div>
 
+
+
+
+                
+
                 {/* YouTube Filters Row */}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                   <select
@@ -860,7 +894,9 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
             <h2 className="text-xl font-bold text-gray-900">
               {showSaved 
                 ? `Saved Influencers (${savedInfluencers.length})`
-                : `Found ${totalResults.toLocaleString()} Pakistani influencers`
+        : user?.subscription_tier === 'free' && results.length >= 5
+          ? `Showing ${results.length} of ${totalResults}+ Pakistani influencers (Free Account - Upgrade for more)`
+          : `Found ${totalResults.toLocaleString()} Pakistani influencers`
               }
             </h2>
             <div className="flex items-center gap-4">
@@ -1123,7 +1159,7 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
 
 
             {/* Pagination */}
-            {!showSaved && totalPages > 1 && (
+            {!showSaved && totalPages > 1 && !(user?.subscription_tier === 'free' && results.length >= 5) && (
               <div className="flex justify-center items-center gap-4">
                 <button
                   onClick={() => handleSearch(currentPage - 1)}
