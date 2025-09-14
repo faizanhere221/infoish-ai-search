@@ -1,24 +1,35 @@
-// src/app/page.tsx - Updated with authentication
+// src/app/page.tsx - REPLACE your current page.tsx with this updated version
+
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import Header from '@/components/header'
 
-// Your existing components
+// Your existing search component
 const EnhancedInfluencerSearch = dynamic(
   () => import('@/app/search/page'),
   {
     loading: () => <LoadingFallback />,
-    ssr: false, // Changed to false for client-side auth check
+    ssr: false,
   }
 )
+
+interface User {
+  id: string
+  email: string
+  full_name?: string
+  profile_picture?: string
+  subscription_tier: 'free' | 'starter' | 'pro' | 'developer'
+  monthly_searches: number
+  search_limit: number
+}
 
 function LoadingFallback() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
       <div className="text-center">
-        {/* Animated logo/spinner */}
         <div className="relative mb-8">
           <div className="w-20 h-20 border-4 border-blue-200 rounded-full animate-spin mx-auto">
             <div className="w-4 h-4 bg-blue-600 rounded-full absolute top-0 left-1/2 transform -translate-x-1/2"></div>
@@ -29,8 +40,6 @@ function LoadingFallback() {
             </div>
           </div>
         </div>
-
-        {/* Loading text */}
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-gray-900">
             Loading Pakistani Influencer Search
@@ -38,8 +47,6 @@ function LoadingFallback() {
           <p className="text-gray-600 max-w-md mx-auto">
             Preparing your personalized dashboard...
           </p>
-          
-          {/* Loading progress indicators */}
           <div className="flex justify-center gap-2 mt-6">
             <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
             <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
@@ -51,24 +58,28 @@ function LoadingFallback() {
   )
 }
 
-// Updated Hero Section with authentication
-function HeroSection() {
+// Updated Hero Section with user-specific content
+function HeroSection({ user }: { user: User | null }) {
   const router = useRouter()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    const token = localStorage.getItem('auth_token')
-    setIsAuthenticated(!!token)
-    setIsLoading(false)
-  }, [])
+  const getSearchesRemaining = () => {
+    if (!user) return 0
+    if (user.subscription_tier === 'pro' || user.subscription_tier === 'developer') return 'unlimited'
+    return Math.max(0, user.search_limit - user.monthly_searches)
+  }
 
-  const handleGetStarted = () => {
-    if (isAuthenticated) {
-      router.push('/dashboard')
-    } else {
-      router.push('/login')
+  const getUpgradeMessage = () => {
+    if (!user) return null
+    
+    if (user.subscription_tier === 'free') {
+      const remaining = getSearchesRemaining()
+      if (remaining === 0) {
+        return "You've used all your free searches this month. Upgrade to continue searching!"
+      }
+      return `You have ${remaining} free searches left this month.`
     }
+    
+    return null
   }
 
   return (
@@ -81,18 +92,91 @@ function HeroSection() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="space-y-8">
+          {/* User-specific greeting */}
+          {user && (
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto border border-white/40">
+              <div className="flex items-center justify-center gap-4 mb-4">
+                {user.profile_picture ? (
+                  <img
+                    src={user.profile_picture}
+                    alt={user.full_name || 'User'}
+                    className="w-16 h-16 rounded-full border-4 border-green-200"
+                  />
+                ) : (
+                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                    {(user.full_name || user.email).charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="text-left">
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Welcome back, {user.full_name?.split(' ')[0] || user.email.split('@')[0]}!
+                  </h2>
+                  <p className="text-gray-600">
+                    {user.subscription_tier === 'developer' ? 'Developer Account' : 
+                     user.subscription_tier === 'pro' ? 'Pro Account' :
+                     `${user.subscription_tier.charAt(0).toUpperCase()}${user.subscription_tier.slice(1)} Account`}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Search Usage Display */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-4">
+                <div className="text-sm text-gray-600 mb-2">This Month's Usage</div>
+                <div className="flex items-center justify-center gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {user.subscription_tier === 'pro' || user.subscription_tier === 'developer' ? 
+                        user.monthly_searches : 
+                        `${user.monthly_searches}/${user.search_limit}`
+                      }
+                    </div>
+                    <div className="text-xs text-gray-600">Searches Used</div>
+                  </div>
+                  {(user.subscription_tier === 'free' || user.subscription_tier === 'starter') && (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        {getSearchesRemaining()}
+                      </div>
+                      <div className="text-xs text-gray-600">Remaining</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Upgrade Message */}
+              {getUpgradeMessage() && (
+                <div className={`p-3 rounded-lg text-sm ${
+                  getSearchesRemaining() === 0 ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                }`}>
+                  {getUpgradeMessage()}
+                  {user.subscription_tier === 'free' && (
+                    <button
+                      onClick={() => router.push('/pricing')}
+                      className="ml-2 text-blue-600 hover:text-blue-700 font-medium underline"
+                    >
+                      Upgrade Now
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Main headline - Updated for Pakistani focus */}
           <div className="space-y-4">
             <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 text-balance">
-              Find Pakistani{' '}
+              {user ? 'Your Pakistani' : 'Find Pakistani'}{' '}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Influencers
               </span>
               <br />
-              Made Simple
+              {user ? 'Dashboard' : 'Made Simple'}
             </h1>
             <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto text-balance">
-              Discover and connect with 1800+ verified Pakistani content creators across Instagram, YouTube, and TikTok.
+              {user ? 
+                'Search through 1800+ verified Pakistani content creators with your personalized dashboard.' :
+                'Discover and connect with 1800+ verified Pakistani content creators across Instagram, YouTube, and TikTok.'
+              }
             </p>
           </div>
 
@@ -112,17 +196,36 @@ function HeroSection() {
             </div>
           </div>
 
-          {/* CTA section with auth-aware button */}
+          {/* CTA section - User-aware buttons */}
           <div className="pt-8">
             <div className="space-y-4">
-              {!isLoading && (
-                <button
-                  onClick={handleGetStarted}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-                >
-                  {isAuthenticated ? 'Go to Dashboard' : 'Sign In with Google'}
-                </button>
-              )}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                {user ? (
+                  <>
+                    <button
+                      onClick={() => router.push('/search')}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                    >
+                      Start Searching
+                    </button>
+                    {user.subscription_tier === 'free' && (
+                      <button
+                        onClick={() => router.push('/pricing')}
+                        className="bg-white hover:bg-gray-50 text-gray-900 font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all border-2 border-gray-200"
+                      >
+                        Upgrade to Pro
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <button
+                    onClick={() => router.push('/login')}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                  >
+                    Sign In with Google
+                  </button>
+                )}
+              </div>
               
               <div className="inline-flex flex-col sm:flex-row items-center gap-4 p-1 bg-white/50 backdrop-blur-sm rounded-2xl border border-white/20">
                 <div className="flex items-center gap-3 px-4 py-2">
@@ -134,7 +237,10 @@ function HeroSection() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  Free searches included
+                  {user ? 
+                    (user.subscription_tier === 'free' ? `${getSearchesRemaining()} searches left` : 'Unlimited searches') :
+                    'Free searches included'
+                  }
                 </div>
               </div>
             </div>
@@ -145,35 +251,90 @@ function HeroSection() {
   )
 }
 
-// Main page component
+// Main page component with authentication
 export default function HomePage() {
-  const [showLanding, setShowLanding] = useState(true)
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [requiresAuth, setRequiresAuth] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    // Check authentication status
-    const token = localStorage.getItem('auth_token')
-    if (token) {
-      // User is logged in, they can see the landing page but should be able to go to dashboard
-      setShowLanding(true)
-    } else {
-      // User not logged in, show landing page
-      setShowLanding(true)
-    }
+    checkAuthAndRedirect()
   }, [])
+
+  const checkAuthAndRedirect = async () => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      
+      if (!token) {
+        // No token - redirect to login
+        setIsLoading(false)
+        router.push('/login')
+        return
+      }
+
+      // Verify token with backend
+      const backendUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://infoish-ai-search-production.up.railway.app' 
+        : 'http://127.0.0.1:8000'
+
+      const response = await fetch(`${backendUrl}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        const userData = await response.json()
+        setUser({
+          id: userData.id,
+          email: userData.email,
+          full_name: userData.full_name,
+          profile_picture: userData.profile_picture,
+          subscription_tier: userData.subscription_tier,
+          monthly_searches: userData.monthly_searches,
+          search_limit: userData.search_limit
+        })
+        setIsLoading(false)
+      } else {
+        // Invalid token - clear and redirect
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('user_data')
+        router.push('/login')
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error)
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('user_data')
+      router.push('/login')
+    }
+  }
+
+  if (isLoading) {
+    return <LoadingFallback />
+  }
+
+  if (!user) {
+    // This should not render due to redirect, but just in case
+    return null
+  }
 
   return (
     <>
-      {/* JSON-LD Structured Data - Updated for Pakistani focus */}
+      {/* Add Header Component */}
+      <Header />
+
+      {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebPage",
-            "name": "Pakistani Influencer Search - Home",
-            "description": "Find and connect with 300+ verified Pakistani influencers and content creators",
-            "url": "https://your-domain.com",
+            "name": "Pakistani Influencer Search - Dashboard",
+            "description": "Find and connect with 1800+ verified Pakistani influencers and content creators",
+            "url": "https://infoish-ai-search.vercel.app",
             "mainEntity": {
               "@type": "SoftwareApplication",
               "name": "Pakistani Influencer Search Platform",
@@ -187,22 +348,25 @@ export default function HomePage() {
         }}
       />
 
-      {/* Updated Hero Section */}
-      <HeroSection />
+      {/* User-aware Hero Section */}
+      <HeroSection user={user} />
 
-      {/* Your existing search component - but with auth awareness */}
+      {/* Your existing search component */}
       <Suspense fallback={<LoadingFallback />}>
         <div className="relative">
           <EnhancedInfluencerSearch />
         </div>
       </Suspense>
 
-      {/* Updated Features Section for Pakistani focus */}
+      {/* Updated Features Section */}
       <section className="py-16 sm:py-24 bg-white/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose Our Platform?
+              {user?.subscription_tier === 'pro' || user?.subscription_tier === 'developer' ? 
+                'Unlimited Access Features' : 
+                'Upgrade to Unlock More'
+              }
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               The most comprehensive database of Pakistani influencers with advanced search and filtering capabilities.
@@ -210,7 +374,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 - Updated for your hybrid search */}
+            {/* Feature 1 */}
             <div className="bg-white rounded-xl p-8 text-center shadow-sm">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,9 +382,14 @@ export default function HomePage() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Hybrid Search Technology</h3>
-              <p className="text-gray-600">
-                Advanced keyword matching combined with semantic search to find exactly the right Pakistani creators for your needs.
+              <p className="text-gray-600 mb-4">
+                Advanced keyword matching combined with semantic search to find exactly the right Pakistani creators.
               </p>
+              {user?.subscription_tier === 'free' && (
+                <div className="bg-yellow-50 text-yellow-700 text-sm p-3 rounded-lg">
+                  Limited to 5 results per search. <a href="/pricing" className="underline">Upgrade</a> for unlimited results.
+                </div>
+              )}
             </div>
 
             {/* Feature 2 */}
@@ -231,9 +400,14 @@ export default function HomePage() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Detailed Analytics</h3>
-              <p className="text-gray-600">
-                Complete follower counts, engagement rates, and performance metrics across Instagram, YouTube, and TikTok.
+              <p className="text-gray-600 mb-4">
+                Complete follower counts, engagement rates, and performance metrics across all platforms.
               </p>
+              {user?.subscription_tier === 'free' && (
+                <div className="bg-yellow-50 text-yellow-700 text-sm p-3 rounded-lg">
+                  {user.monthly_searches}/{user.search_limit} searches used this month
+                </div>
+              )}
             </div>
 
             {/* Feature 3 */}
@@ -245,39 +419,49 @@ export default function HomePage() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Pakistani Focus</h3>
-              <p className="text-gray-600">
-                Specialized database covering all major Pakistani cities - from Karachi and Lahore to Islamabad and beyond.
+              <p className="text-gray-600 mb-4">
+                Specialized database covering all major Pakistani cities with verified creator profiles.
               </p>
+              {user?.subscription_tier !== 'pro' && user?.subscription_tier !== 'developer' && (
+                <button
+                  onClick={() => router.push('/pricing')}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                >
+                  Upgrade for More
+                </button>
+              )}
             </div>
           </div>
         </div>
       </section>
 
       {/* Updated CTA Section */}
-      <section className="py-16 sm:py-24 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Ready to Find Your Perfect Pakistani Influencer?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join marketers and brands who trust our platform to discover authentic Pakistani content creators.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
-              onClick={() => router.push('/login')}
-              className="bg-white text-blue-600 font-semibold py-4 px-8 rounded-xl hover:bg-blue-50 transition-all transform hover:scale-105 shadow-lg"
-            >
-              Get Started Free
-            </button>
-            <button 
-              onClick={() => router.push('/dashboard')}
-              className="border-2 border-white text-white font-semibold py-4 px-8 rounded-xl hover:bg-white hover:text-blue-600 transition-all"
-            >
-              View Dashboard
-            </button>
+      {user?.subscription_tier === 'free' && (
+        <section className="py-16 sm:py-24 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600">
+          <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+              Ready to Unlock Unlimited Access?
+            </h2>
+            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+              Upgrade to Pro for unlimited searches, full results, and advanced features.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={() => router.push('/pricing')}
+                className="bg-white text-blue-600 font-semibold py-4 px-8 rounded-xl hover:bg-blue-50 transition-all transform hover:scale-105 shadow-lg"
+              >
+                View Pricing Plans
+              </button>
+              <button 
+                onClick={() => router.push('/search')}
+                className="border-2 border-white text-white font-semibold py-4 px-8 rounded-xl hover:bg-white hover:text-blue-600 transition-all"
+              >
+                Continue with Free Account
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </>
   )
 }

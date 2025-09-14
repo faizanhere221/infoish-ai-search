@@ -61,7 +61,7 @@ class AuthService:
     def get_search_limit_for_tier(subscription_tier: str) -> int:
         """Get search limit based on subscription tier"""
         limits = {
-            "free": 15,
+            "free": 10,
             "starter": 30,
             "pro": 999999,
             "developer": 999999,
