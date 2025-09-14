@@ -46,7 +46,7 @@ interface User {
   email: string
   full_name?: string
   profile_picture?: string
-  subscription_tier: "free" | "premium"
+  subscription_tier: "free" | "premium" | "developer" | "pro"  // ADD developer and pro
   monthly_searches: number
   search_limit: number
 }
@@ -258,8 +258,8 @@ useEffect(() => {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 25000)
 
-    // Use NextJS API route for consistency
-    const response = await fetch(`/api/search?${params.toString()}`, {
+    // FIXED: Call backend directly instead of NextJS API route
+    const response = await fetch(`${BACKEND_URL}/search/influencers?${params.toString()}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
@@ -285,7 +285,22 @@ useEffect(() => {
       setTotalPages(Math.ceil((data.total || data.total_found || 0) / RESULTS_PER_PAGE))
       setSearchInsights(data.search_insights || null)
       
+      // FIXED: Update user data after search to reflect new search count
+      if (data.user_info) {
+        setUser(prev => prev ? {
+          ...prev,
+          monthly_searches: prev.monthly_searches + 1, // Increment locally
+          search_limit: data.user_info.results_limit === 5 ? 15 : prev.search_limit // Update if needed
+        } : null)
+      }
+
+      // Show upgrade message if user hit limits
+      if (data.upgrade_message) {
+        setError(data.upgrade_message)
+      }
+      
       console.log(`Page ${page}: Got ${searchResults.length} results, Total: ${data.total || data.total_found || 0}`)
+      console.log(`User searches: ${data.user_info?.searches_remaining || 'unlimited'}`)
     } else {
       throw new Error(data.message || 'Search failed')
     }
@@ -297,6 +312,36 @@ useEffect(() => {
     setSearching(false)
   }
 }
+
+// ALSO ADD this function to refresh user data periodically
+const refreshUserData = async () => {
+  try {
+    const token = localStorage.getItem('auth_token')
+    if (!token) return
+
+    const response = await fetch(`${BACKEND_URL}/auth/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (response.ok) {
+      const userData = await response.json()
+      setUser(userData)
+    }
+  } catch (error) {
+    console.error('Failed to refresh user data:', error)
+  }
+}
+
+// ADD this useEffect to refresh user data after searches
+useEffect(() => {
+  // Refresh user data every time results change (after a search)
+  if (results.length > 0 && user) {
+    refreshUserData()
+  }
+}, [results])
 
   const handleSaveInfluencer = (influencer: InfluencerResult) => {
   const isCurrentlySaved = savedInfluencers.some(saved => saved.id === influencer.id)
