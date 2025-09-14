@@ -73,7 +73,7 @@ export default function SavedInfluencersPage() {
   const router = useRouter()
 
   const BACKEND_URL = process.env.NODE_ENV === 'production' 
-    ? 'https://your-production-url.com' 
+    ? 'https://infoish-ai-search-production.up.railway.app' 
     : 'http://127.0.0.1:8000'
 
   useEffect(() => {
