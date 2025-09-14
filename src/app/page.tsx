@@ -16,6 +16,11 @@ interface User {
   search_limit: number
 }
 
+
+
+
+
+
 function LoadingFallback() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
@@ -47,6 +52,11 @@ function LoadingFallback() {
     </div>
   )
 }
+
+
+
+
+
 
 // Updated Hero Section with user-specific content (NO SEARCH)
 function HeroSection({ user }: { user: User | null }) {
@@ -82,75 +92,177 @@ function HeroSection({ user }: { user: User | null }) {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="space-y-8">
-          {/* User-specific greeting */}
-          {user && (
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto border border-white/40">
-              <div className="flex items-center justify-center gap-4 mb-4">
-                {user.profile_picture ? (
-                  <img
-                    src={user.profile_picture}
-                    alt={user.full_name || 'User'}
-                    className="w-16 h-16 rounded-full border-4 border-green-200"
-                  />
-                ) : (
-                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                    {(user.full_name || user.email).charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="text-left">
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Welcome back, {user.full_name?.split(' ')[0] || user.email.split('@')[0]}!
-                  </h2>
-                  <p className="text-gray-600">
-                    {user.subscription_tier === 'developer' ? 'Developer Account' : 
-                     user.subscription_tier === 'pro' ? 'Pro Account' :
-                     `${user.subscription_tier.charAt(0).toUpperCase()}${user.subscription_tier.slice(1)} Account`}
-                  </p>
-                </div>
+          {/* User-specific greeting - Enhanced Design */}
+{user && (
+  <div className="relative bg-white/90 backdrop-blur-md rounded-3xl p-8 max-w-4xl mx-auto border border-white/50 shadow-xl">
+    {/* Decorative elements */}
+    <div className="absolute -top-2 -right-2 w-20 h-20 bg-gradient-to-br from-green-400/20 to-emerald-400/20 rounded-full blur-xl"></div>
+    <div className="absolute -bottom-2 -left-2 w-16 h-16 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl"></div>
+    
+    <div className="relative">
+      {/* User Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          {user.profile_picture ? (
+            <div className="relative">
+              <img
+                src={user.profile_picture}
+                alt={user.full_name || 'User'}
+                className="w-20 h-20 rounded-2xl border-4 border-gradient-to-r from-green-300 to-emerald-300 object-cover shadow-lg"
+              />
+              {/* Tier badge on profile */}
+              <div className={`absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                user.subscription_tier === 'developer' ? 'bg-green-500 text-white' :
+                user.subscription_tier === 'pro' ? 'bg-purple-500 text-white' :
+                user.subscription_tier === 'starter' ? 'bg-blue-500 text-white' :
+                'bg-gray-400 text-white'
+              }`}>
+                {user.subscription_tier === 'developer' ? '🔧' :
+                 user.subscription_tier === 'pro' ? '👑' :
+                 user.subscription_tier === 'starter' ? '⚡' : '🆓'}
               </div>
-              
-              {/* Search Usage Display */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-4">
-                <div className="text-sm text-gray-600 mb-2">This Month's Usage</div>
-                <div className="flex items-center justify-center gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {user.subscription_tier === 'pro' || user.subscription_tier === 'developer' ? 
-                        user.monthly_searches : 
-                        `${user.monthly_searches}/${user.search_limit}`
-                      }
-                    </div>
-                    <div className="text-xs text-gray-600">Searches Used</div>
-                  </div>
-                  {(user.subscription_tier === 'free' || user.subscription_tier === 'starter') && (
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">
-                        {getSearchesRemaining()}
-                      </div>
-                      <div className="text-xs text-gray-600">Remaining</div>
-                    </div>
-                  )}
-                </div>
+            </div>
+          ) : (
+            <div className="relative w-20 h-20 bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+              {(user.full_name || user.email).charAt(0).toUpperCase()}
+              <div className={`absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                user.subscription_tier === 'developer' ? 'bg-green-600' :
+                user.subscription_tier === 'pro' ? 'bg-purple-600' :
+                user.subscription_tier === 'starter' ? 'bg-blue-600' :
+                'bg-gray-500'
+              }`}>
+                {user.subscription_tier === 'developer' ? '🔧' :
+                 user.subscription_tier === 'pro' ? '👑' :
+                 user.subscription_tier === 'starter' ? '⚡' : '🆓'}
               </div>
+            </div>
+          )}
+          <div className="text-left">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+              Welcome back, {user.full_name?.split(' ')[0] || user.email.split('@')[0]}!
+            </h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
+                user.subscription_tier === 'developer' ? 'bg-green-100 text-green-800' :
+                user.subscription_tier === 'pro' ? 'bg-purple-100 text-purple-800' :
+                user.subscription_tier === 'starter' ? 'bg-blue-100 text-blue-800' :
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {user.subscription_tier === 'developer' ? 'Developer Account' :
+                 user.subscription_tier === 'pro' ? 'Pro Account' :
+                 user.subscription_tier === 'starter' ? 'Starter Account' :
+                 'Free Account'}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Quick action button */}
+        <button
+          onClick={() => router.push('/search')}
+          disabled={getSearchesRemaining() === 0 && user.subscription_tier === 'free'}
+          className={`px-6 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
+            getSearchesRemaining() === 0 && user.subscription_tier === 'free'
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl'
+          }`}
+        >
+          {getSearchesRemaining() === 0 && user.subscription_tier === 'free' ? 'Limit Reached' : 'Start Searching'}
+        </button>
+      </div>
 
-              {/* Upgrade Message */}
-              {getUpgradeMessage() && (
-                <div className={`p-3 rounded-lg text-sm ${
-                  getSearchesRemaining() === 0 ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-                }`}>
-                  {getUpgradeMessage()}
-                  {user.subscription_tier === 'free' && (
+      {/* Usage Statistics - Enhanced Design */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Searches Used */}
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 text-center border border-blue-200/50">
+          <div className="text-3xl font-bold text-blue-600 mb-2">
+            {user.subscription_tier === 'pro' || user.subscription_tier === 'developer' ? 
+              user.monthly_searches : 
+              `${user.monthly_searches}/${user.search_limit}`
+            }
+          </div>
+          <div className="text-sm text-blue-700 font-medium">Searches This Month</div>
+          <div className="text-xs text-blue-600 mt-1">
+            {user.subscription_tier === 'pro' || user.subscription_tier === 'developer' ? 
+              'Unlimited Plan' : 
+              'Free Plan Limit'
+            }
+          </div>
+        </div>
+
+        {/* Searches Remaining */}
+        {(user.subscription_tier === 'free' || user.subscription_tier === 'starter') && (
+          <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl p-6 text-center border border-green-200/50">
+            <div className="text-3xl font-bold text-green-600 mb-2">
+              {getSearchesRemaining()}
+            </div>
+            <div className="text-sm text-green-700 font-medium">Searches Remaining</div>
+            <div className="text-xs text-green-600 mt-1">
+              {getSearchesRemaining() === 0 ? 'Upgrade to continue' : 'Use them wisely!'}
+            </div>
+          </div>
+        )}
+
+        {/* Plan Status */}
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 text-center border border-purple-200/50">
+          <div className="text-3xl mb-2">
+            {user.subscription_tier === 'developer' ? '🔧' :
+             user.subscription_tier === 'pro' ? '👑' :
+             user.subscription_tier === 'starter' ? '⚡' : '🆓'}
+          </div>
+          <div className="text-sm text-purple-700 font-medium">
+            {user.subscription_tier.charAt(0).toUpperCase() + user.subscription_tier.slice(1)} Plan
+          </div>
+          <div className="text-xs text-purple-600 mt-1">
+            {user.subscription_tier === 'free' ? 'Basic Features' :
+             user.subscription_tier === 'starter' ? 'Enhanced Features' :
+             user.subscription_tier === 'pro' ? 'All Features' :
+             'Developer Access'}
+          </div>
+        </div>
+      </div>
+
+      {/* Upgrade Message - Enhanced */}
+      {getUpgradeMessage() && (
+        <div className={`relative overflow-hidden rounded-2xl p-4 ${
+          getSearchesRemaining() === 0 ? 
+            'bg-gradient-to-r from-red-50 to-pink-50 border border-red-200' : 
+            'bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200'
+        }`}>
+          <div className="relative z-10">
+            <div className={`flex items-center gap-3 ${
+              getSearchesRemaining() === 0 ? 'text-red-700' : 'text-yellow-700'
+            }`}>
+              <div className="text-2xl">
+                {getSearchesRemaining() === 0 ? '🚫' : '⚠️'}
+              </div>
+              <div className="flex-1">
+                <p className="font-medium">{getUpgradeMessage()}</p>
+                {user.subscription_tier === 'free' && (
+                  <div className="flex items-center gap-4 mt-3">
                     <button
                       onClick={() => router.push('/pricing')}
-                      className="ml-2 text-blue-600 hover:text-blue-700 font-medium underline"
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-2 rounded-xl font-medium transition-all transform hover:scale-105"
                     >
                       Upgrade Now
                     </button>
-                  )}
-                </div>
-              )}
+                    <span className="text-sm text-gray-600">
+                      Start from PKR 2,999/month
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          </div>
+          {/* Decorative background */}
+          <div className={`absolute inset-0 opacity-5 ${
+            getSearchesRemaining() === 0 ? 'bg-red-500' : 'bg-yellow-500'
+          }`}></div>
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
           {/* Main headline - Updated for Pakistani focus */}
           <div className="space-y-4">
@@ -259,6 +371,71 @@ export default function HomePage() {
     checkAuthAndRedirect()
   }, [])
 
+
+  useEffect(() => {
+  // Listen for search events from the search page
+  const handleSearchUpdate = (event: CustomEvent) => {
+    if (user && event.detail) {
+      setUser(prev => prev ? {
+        ...prev,
+        monthly_searches: event.detail.monthly_searches,
+        search_limit: event.detail.search_limit
+      } : null)
+    }
+  }
+
+  // Listen for custom search events
+  window.addEventListener('searchCompleted', handleSearchUpdate as EventListener)
+  
+  // Also refresh user data when returning to homepage
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && user) {
+      // Refresh user data by calling the auth check function
+      const refreshUserData = async () => {
+        try {
+          const token = localStorage.getItem('auth_token')
+          if (!token) return
+
+          const backendUrl = process.env.NODE_ENV === 'production' 
+            ? 'https://infoish-ai-search-production.up.railway.app' 
+            : 'http://127.0.0.1:8000'
+
+          const response = await fetch(`${backendUrl}/auth/me`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+
+          if (response.ok) {
+            const userData = await response.json()
+            setUser({
+              id: userData.id,
+              email: userData.email,
+              full_name: userData.full_name,
+              profile_picture: userData.profile_picture,
+              subscription_tier: userData.subscription_tier,
+              monthly_searches: userData.monthly_searches,
+              search_limit: userData.search_limit
+            })
+          }
+        } catch (error) {
+          console.error('Failed to refresh user data:', error)
+        }
+      }
+      
+      refreshUserData()
+    }
+  }
+  
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+
+  return () => {
+    window.removeEventListener('searchCompleted', handleSearchUpdate as EventListener)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }
+}, [user])
+
   const checkAuthAndRedirect = async () => {
     try {
       const token = localStorage.getItem('auth_token')
@@ -344,6 +521,9 @@ export default function HomePage() {
           })
         }}
       />
+
+  
+  
 
       {/* User-aware Hero Section (NO SEARCH COMPONENT) */}
       <HeroSection user={user} />

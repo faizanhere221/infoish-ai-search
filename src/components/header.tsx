@@ -15,6 +15,11 @@ interface UserProfile {
   search_limit: number
 }
 
+
+
+
+
+
 export default function Header() {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -33,6 +38,54 @@ export default function Header() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+
+  useEffect(() => {
+  // Listen for search completion events to refresh header data
+  const handleSearchUpdate = () => {
+    // Refresh user data when search completes
+    const refreshHeaderData = async () => {
+      try {
+        const token = localStorage.getItem('auth_token')
+        if (!token) return
+
+        const backendUrl = process.env.NODE_ENV === 'production' 
+          ? 'https://infoish-ai-search-production.up.railway.app' 
+          : 'http://127.0.0.1:8000'
+
+        const response = await fetch(`${backendUrl}/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (response.ok) {
+          const userData = await response.json()
+          setUser({
+            id: userData.id,
+            email: userData.email,
+            full_name: userData.full_name,
+            profile_picture: userData.profile_picture,
+            subscription_tier: userData.subscription_tier,
+            monthly_searches: userData.monthly_searches,
+            search_limit: userData.search_limit
+          })
+        }
+      } catch (error) {
+        console.error('Failed to refresh header data:', error)
+      }
+    }
+
+    refreshHeaderData()
+  }
+
+  window.addEventListener('searchCompleted', handleSearchUpdate)
+  
+  return () => {
+    window.removeEventListener('searchCompleted', handleSearchUpdate)
+  }
+}, [])
 
   const checkAuthStatus = async () => {
     try {

@@ -258,7 +258,7 @@ useEffect(() => {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 25000)
 
-    // FIXED: Call backend directly instead of NextJS API route
+    // Call backend directly to ensure search counting works
     const response = await fetch(`${BACKEND_URL}/search/influencers?${params.toString()}`, {
       method: 'GET',
       headers: {
@@ -285,13 +285,24 @@ useEffect(() => {
       setTotalPages(Math.ceil((data.total || data.total_found || 0) / RESULTS_PER_PAGE))
       setSearchInsights(data.search_insights || null)
       
-      // FIXED: Update user data after search to reflect new search count
-      if (data.user_info) {
-        setUser(prev => prev ? {
-          ...prev,
-          monthly_searches: prev.monthly_searches + 1, // Increment locally
-          search_limit: data.user_info.results_limit === 5 ? 15 : prev.search_limit // Update if needed
-        } : null)
+      // CRITICAL: Update user state immediately after successful search
+      if (data.user_info && user) {
+        const updatedUser = {
+          ...user,
+          monthly_searches: user.monthly_searches + 1, // Increment locally
+        }
+        setUser(updatedUser)
+        
+        // Emit custom event for other components to listen to
+        const searchEvent = new CustomEvent('searchCompleted', {
+          detail: {
+            monthly_searches: updatedUser.monthly_searches,
+            search_limit: updatedUser.search_limit
+          }
+        })
+        window.dispatchEvent(searchEvent)
+        
+        console.log(`Search completed. New count: ${updatedUser.monthly_searches}/${updatedUser.search_limit}`)
       }
 
       // Show upgrade message if user hit limits
@@ -300,7 +311,6 @@ useEffect(() => {
       }
       
       console.log(`Page ${page}: Got ${searchResults.length} results, Total: ${data.total || data.total_found || 0}`)
-      console.log(`User searches: ${data.user_info?.searches_remaining || 'unlimited'}`)
     } else {
       throw new Error(data.message || 'Search failed')
     }
