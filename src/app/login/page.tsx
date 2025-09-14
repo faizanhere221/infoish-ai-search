@@ -59,7 +59,8 @@ export default function LoginPage() {
     const token = localStorage.getItem('auth_token')
     if (token) {
       try {
-        const response = await fetch('/api/auth/me', {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
+        const response = await fetch(`${backendUrl}/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
