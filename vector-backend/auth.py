@@ -67,7 +67,7 @@ class AuthService:
             "developer": 999999,
             "premium": 999999  # Legacy support
         }
-        return limits.get(subscription_tier, 15)
+        return limits.get(subscription_tier, 10)
     
 
     @staticmethod

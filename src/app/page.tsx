@@ -1,20 +1,10 @@
-// src/app/page.tsx - REPLACE your current page.tsx with this updated version
+// src/app/page.tsx - UPDATED without search functionality
 
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import Header from '@/components/header'
-
-// Your existing search component
-const EnhancedInfluencerSearch = dynamic(
-  () => import('@/app/search/page'),
-  {
-    loading: () => <LoadingFallback />,
-    ssr: false,
-  }
-)
 
 interface User {
   id: string
@@ -58,7 +48,7 @@ function LoadingFallback() {
   )
 }
 
-// Updated Hero Section with user-specific content
+// Updated Hero Section with user-specific content (NO SEARCH)
 function HeroSection({ user }: { user: User | null }) {
   const router = useRouter()
 
@@ -204,9 +194,17 @@ function HeroSection({ user }: { user: User | null }) {
                   <>
                     <button
                       onClick={() => router.push('/search')}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                      disabled={getSearchesRemaining() === 0 && user.subscription_tier === 'free'}
+                      className={`font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 ${
+                        getSearchesRemaining() === 0 && user.subscription_tier === 'free'
+                          ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
+                      }`}
                     >
-                      Start Searching
+                      {getSearchesRemaining() === 0 && user.subscription_tier === 'free' 
+                        ? 'Search Limit Reached' 
+                        : 'Start Searching'
+                      }
                     </button>
                     {user.subscription_tier === 'free' && (
                       <button
@@ -255,7 +253,6 @@ function HeroSection({ user }: { user: User | null }) {
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [requiresAuth, setRequiresAuth] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -348,17 +345,10 @@ export default function HomePage() {
         }}
       />
 
-      {/* User-aware Hero Section */}
+      {/* User-aware Hero Section (NO SEARCH COMPONENT) */}
       <HeroSection user={user} />
 
-      {/* Your existing search component */}
-      <Suspense fallback={<LoadingFallback />}>
-        <div className="relative">
-          <EnhancedInfluencerSearch />
-        </div>
-      </Suspense>
-
-      {/* Updated Features Section */}
+      {/* Features Section */}
       <section className="py-16 sm:py-24 bg-white/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -454,7 +444,12 @@ export default function HomePage() {
               </button>
               <button 
                 onClick={() => router.push('/search')}
-                className="border-2 border-white text-white font-semibold py-4 px-8 rounded-xl hover:bg-white hover:text-blue-600 transition-all"
+                disabled={getSearchesRemaining() === 0}
+                className={`border-2 border-white font-semibold py-4 px-8 rounded-xl transition-all ${
+                  getSearchesRemaining() === 0 
+                    ? 'text-gray-400 border-gray-400 cursor-not-allowed' 
+                    : 'text-white hover:bg-white hover:text-blue-600'
+                }`}
               >
                 Continue with Free Account
               </button>
@@ -464,4 +459,9 @@ export default function HomePage() {
       )}
     </>
   )
+}
+
+function getSearchesRemaining() {
+  // This is just for the CTA section, we'll need to pass user data here
+  return 5 // placeholder
 }
