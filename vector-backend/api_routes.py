@@ -328,12 +328,13 @@ async def search_influencers(
     try:
         logger.info(f"Search request - Query: '{query}', Offset: {offset}, Limit: {limit}")
         
-        # Validate parameters
-        if max_followers and min_followers and max_followers < min_followers:
-            raise HTTPException(status_code=422, detail="max_followers must be greater than min_followers")
-        
-        if engagement_min and engagement_min > 100:
-            raise HTTPException(status_code=422, detail="engagement_min cannot exceed 100%")
+        # Check user limits if authenticated
+        if current_user:
+            if not AuthService.check_search_limit(current_user):
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Monthly search limit ({current_user.search_limit}) exceeded. Upgrade for unlimited searches."
+                )
 
         # Build filters dict
         filters = {}
@@ -359,39 +360,31 @@ async def search_influencers(
             offset=offset
         )
 
-        # CRITICAL: Add search count logging for authenticated users
+        # Get results
+        results = search_results.get('results', [])
+        
+        # ========================================
+        # CRITICAL: Apply subscription tier limits
+        # ========================================
+        if current_user and current_user.subscription_tier == 'free':
+            results = results[:5]  # Limit free users to 5 results
+            logger.info(f"Limited free user {current_user.email} to 5 results")
+
+        # Log search for authenticated users
         if current_user:
             try:
-                # Check if user can search (for limits)
-                if not AuthService.check_search_limit(current_user):
-                    raise HTTPException(
-                        status_code=429,
-                        detail=f"Monthly search limit ({current_user.search_limit}) exceeded. Upgrade for unlimited searches."
-                    )
-                
-                # Log the search and increment count
                 AuthService.log_user_search(
                     db=db,
                     user=current_user,
                     query=query,
                     filters=filters,
-                    results_count=len(search_results.get('results', [])),
+                    results_count=len(results),
                     search_time_ms=search_results.get('search_time_ms', 0)
                 )
-                
                 logger.info(f"Search logged for user: {current_user.email}")
-                
             except Exception as e:
-                logger.error(f"Error logging search for user {current_user.email if current_user else 'None'}: {e}")
+                logger.error(f"Error logging search: {e}")
 
-        logger.info(f"Search completed - Found: {search_results.get('total_found', 0)} total")
-
-        # Apply result limits based on subscription tier
-        results = search_results.get('results', [])
-        if current_user and current_user.subscription_tier == 'free':
-            # Limit free users to 5 results
-            results = results[:5]
-            
         return {
             "success": True,
             "results": results,
@@ -406,12 +399,13 @@ async def search_influencers(
                 "current_page": (offset // limit) + 1,
                 "total_pages": (search_results.get('total_found', 0) + limit - 1) // limit
             },
-            # Add user info for frontend updates
+            # Updated user info
             "user_info": {
                 "subscription_tier": current_user.subscription_tier if current_user else None,
                 "searches_remaining": (current_user.search_limit - current_user.monthly_searches) if current_user and current_user.subscription_tier == 'free' else "unlimited",
                 "results_shown": len(results),
-                "results_limit": 5 if (current_user and current_user.subscription_tier == 'free') else 50
+                "results_limit": 5 if (current_user and current_user.subscription_tier == 'free') else 50,
+                "monthly_searches": current_user.monthly_searches if current_user else 0
             } if current_user else None
         }
 

@@ -323,6 +323,11 @@ useEffect(() => {
   }
 }
 
+const canUserExport = (user: User | null): boolean => {
+  if (!user) return false;
+  return user.subscription_tier !== 'free';
+};
+
 // ALSO ADD this function to refresh user data periodically
 const refreshUserData = async () => {
   try {
@@ -416,6 +421,12 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
 }
 
   const handleExportResults = async (exportSaved: boolean = false) => {
+
+    // Block free users from exporting search results
+  if (!canUserExport(user) && !exportSaved) {
+    alert('Export feature is available for Starter, Pro, and Developer accounts. Please upgrade your plan.');
+    return;
+  }
   if (exportSaved) {
     // Export saved influencers (this works fine)
     const dataToExport = savedInfluencers
@@ -853,13 +864,28 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
               }
             </h2>
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => handleExportResults(showSaved)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                Export {showSaved ? 'Saved' : 'Results'}
-              </button>
+              {canUserExport(user) ? (
+  <button
+    onClick={() => handleExportResults(showSaved)}
+    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2"
+  >
+    <Download className="w-4 h-4" />
+    Export {showSaved ? 'Saved' : 'Results'}
+  </button>
+) : (
+  <div className="relative group">
+    <button
+      disabled
+      className="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 cursor-not-allowed"
+    >
+      <Download className="w-4 h-4" />
+      Export Disabled
+    </button>
+    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-black text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+      Upgrade to Starter plan to export results
+    </div>
+  </div>
+)}
               {!showSaved && (
                 <div className="text-sm text-gray-600">
                   Page {currentPage} of {totalPages}

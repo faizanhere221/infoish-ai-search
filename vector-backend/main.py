@@ -282,33 +282,16 @@ async def search_influencers_authenticated(
     min_followers: Optional[int] = Query(None, description="Minimum total followers"),
     max_followers: Optional[int] = Query(None, description="Maximum total followers"),
     engagement_min: Optional[float] = Query(None, description="Minimum engagement rate"),
-    # 🆕 NEW YOUTUBE FILTERS
     min_video_count: Optional[int] = Query(None, description="Minimum video count"),
     min_total_views: Optional[int] = Query(None, description="Minimum total views"),
     has_youtube_url: Optional[bool] = Query(None, description="Has YouTube URL"),
-    # 🗑️ REMOVED: gender and location parameters
     verified: Optional[str] = Query(None, description="Filter by verification status"),
     search_type: str = Query("hybrid", description="Search type: 'hybrid' or 'direct'"),
     limit: int = Query(12, ge=1, le=50, description="Results per page"),
     offset: int = Query(0, ge=0, description="Results to skip")
 ):
-    """
-    🚀 AUTHENTICATED Hybrid Pakistani Influencer Search
-
-    Requires Google OAuth login. Features:
-    - Enhanced keyword matching with synonyms
-    - Semantic vector similarity via Pinecone
-    - User search tracking & analytics
-    - Personalized recommendations
-    - Direct database search option
-
-    Examples:
-    - 'tech' → finds Technology, Mobile Reviews, Gadget Testing
-    - 'cooking' → matches Food, Recipe, Chef, Pakistani Cuisine
-    - 'fitness trainer' → discovers Gym, Workout, Health content
-    """
     try:
-        # Check search limits
+        # Check search limits FIRST
         if not AuthService.check_search_limit(current_user):
             raise HTTPException(
                 status_code=429,
@@ -322,17 +305,14 @@ async def search_influencers_authenticated(
             'min_followers': min_followers,
             'max_followers': max_followers,
             'engagement_min': engagement_min,
-            # 🆕 NEW YOUTUBE FILTERS
             'min_video_count': min_video_count,
             'min_total_views': min_total_views,
             'has_youtube_url': has_youtube_url,
-            # 🗑️ REMOVED: gender and location filters
             'verified': verified
         }
 
-        # Choose search method based on search_type parameter
+        # Perform search
         if search_type == "direct":
-            # Use direct database search
             search_service = HybridSearchService(db)
             search_results = await search_service.direct_database_search(
                 query=query or '',
@@ -341,7 +321,6 @@ async def search_influencers_authenticated(
                 offset=offset
             )
         else:
-            # Use hybrid search (default)
             search_service = HybridSearchService(db)
             await search_service.initialize()
             search_results = await search_service.hybrid_search(
@@ -353,28 +332,32 @@ async def search_influencers_authenticated(
 
         results = search_results['results']
 
-        # Apply pagination for hybrid search (direct search handles pagination internally)
+        # Apply pagination for hybrid search
         if search_type != "direct":
             paginated_results = results[offset:offset + limit]
             total_count = len(results)
-            total_pages = (total_count + limit - 1) // limit
-            current_page = (offset // limit) + 1
         else:
             paginated_results = results
             total_count = search_results.get('total_found', len(results))
-            total_pages = (total_count + limit - 1) // limit
-            current_page = (offset // limit) + 1
 
-        # Format for frontend with user-specific data
+        # ========================================
+        # CRITICAL FIX: Apply subscription limits BEFORE formatting
+        # ========================================
+        subscription_tier = getattr(current_user, 'subscription_tier', 'free')
+        
+        # Apply free tier limits
+        if subscription_tier == 'free':
+            paginated_results = paginated_results[:5]  # Limit to 5 results
+            logger.info(f"Free user {current_user.email} limited to 5 results")
+        
+        # Calculate pagination info AFTER limiting
+        total_pages = (total_count + limit - 1) // limit
+        current_page = (offset // limit) + 1
+
+        # Format results for frontend
         formatted_results = []
         user_favorites = [fav.influencer_id for fav in current_user.favorites] if hasattr(current_user, 'favorites') else []
         
-        # Enforce result limits based on subscription tier
-        subscription_tier = getattr(current_user, 'subscription_tier', 'free')
-        if subscription_tier == 'free':
-            # Free tier: limit to 5 results
-            paginated_results = paginated_results[:5]
-            
         for influencer in paginated_results:
             try:
                 db_influencer = db.query(Influencer).filter(Influencer.id == influencer['id']).first()
@@ -400,9 +383,7 @@ async def search_influencers_authenticated(
                         "video_count": db_influencer.video_count,
                         "total_views": db_influencer.total_views,
                         "youtube_url": db_influencer.youtube_url,
-                        # User-specific data
                         "is_favorited": str(db_influencer.id) in user_favorites,
-                        # Search metadata
                         "search_score": influencer.get('match_score', 0),
                         "search_type": influencer.get('search_type', search_type),
                         "similarity_score": influencer.get('similarity_score')
@@ -410,22 +391,22 @@ async def search_influencers_authenticated(
             except Exception as e:
                 logger.error(f"Error formatting result {influencer.get('id')}: {e}")
 
-        # Show upgrade message for free users
+        # Add upgrade message for free users
         upgrade_message = None
-        if subscription_tier == 'free' and len(paginated_results) == 5:
+        if subscription_tier == 'free' and len(formatted_results) == 5:
             upgrade_message = "Upgrade to see more results! Free accounts are limited to 5 results per search."
 
         # Log user search for analytics
         AuthService.log_user_search(
-    db=db,
-    user=current_user,
-    query=query or '',
-    filters=filters,
-    results_count=len(formatted_results),
-    search_time_ms=search_results['search_time_ms']
-)
+            db=db,
+            user=current_user,
+            query=query or '',
+            filters=filters,
+            results_count=len(formatted_results),
+            search_time_ms=search_results['search_time_ms']
+        )
 
-        logger.info(f"User {current_user.email} ({subscription_tier}) searched: '{query}' - {len(formatted_results)} results (type: {search_type})")
+        logger.info(f"User {current_user.email} ({subscription_tier}) searched: '{query}' - {len(formatted_results)} results returned")
 
         return {
             "success": True,
@@ -442,10 +423,11 @@ async def search_influencers_authenticated(
             "search_type": search_type,
             "upgrade_message": upgrade_message,
             "user_info": {
-                "searches_remaining": current_user.search_limit - current_user.monthly_searches if subscription_tier != 'developer' and subscription_tier != 'pro' else "unlimited",
+                "searches_remaining": current_user.search_limit - current_user.monthly_searches if subscription_tier not in ['developer', 'pro'] else "unlimited",
                 "subscription_tier": subscription_tier,
                 "results_shown": len(formatted_results),
-                "results_limit": 5 if subscription_tier == 'free' else 50
+                "results_limit": 5 if subscription_tier == 'free' else 180,
+                "monthly_searches": current_user.monthly_searches  # Add this for frontend updates
             }
         }
 
