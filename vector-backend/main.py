@@ -240,6 +240,29 @@ async def get_current_user_profile(current_user: User = Depends(AuthService.get_
         "created_at": current_user.created_at.isoformat()
     }
 
+
+@app.get("/auth/limits")
+async def get_user_limits(current_user: User = Depends(AuthService.get_current_user)):
+    """Get user's current search limits and usage"""
+    subscription_tier = getattr(current_user, 'subscription_tier', 'free')
+    monthly_searches = getattr(current_user, 'monthly_searches', 0)
+    search_limit = getattr(current_user, 'search_limit', 15)
+    
+    # Calculate limits based on tier
+    results_limit = 5 if subscription_tier == 'free' else 50
+    can_export = subscription_tier in ['starter', 'pro', 'developer']
+    can_use_api = subscription_tier in ['pro', 'developer']
+    
+    return {
+        "subscription_tier": subscription_tier,
+        "searches_used": monthly_searches,
+        "searches_limit": search_limit,
+        "results_limit": results_limit,
+        "can_export": can_export,
+        "can_use_api": can_use_api,
+        "is_unlimited": subscription_tier in ['pro', 'developer', 'premium']
+    }
+
 @app.get("/auth/analytics")
 async def get_user_analytics(
     current_user: User = Depends(AuthService.get_current_user),
@@ -344,8 +367,14 @@ async def search_influencers_authenticated(
 
         # Format for frontend with user-specific data
         formatted_results = []
-        user_favorites = [fav.influencer_id for fav in current_user.favorites]
-
+        user_favorites = [fav.influencer_id for fav in current_user.favorites] if hasattr(current_user, 'favorites') else []
+        
+        # Enforce result limits based on subscription tier
+        subscription_tier = getattr(current_user, 'subscription_tier', 'free')
+        if subscription_tier == 'free':
+            # Free tier: limit to 5 results
+            paginated_results = paginated_results[:5]
+            
         for influencer in paginated_results:
             try:
                 db_influencer = db.query(Influencer).filter(Influencer.id == influencer['id']).first()
@@ -355,21 +384,19 @@ async def search_influencers_authenticated(
                         "username": db_influencer.username,
                         "full_name": db_influencer.full_name,
                         "email": db_influencer.email,
-                        # 🗑️ REMOVED: gender and location_city
                         "instagram_handle": db_influencer.instagram_handle,
                         "youtube_channel": db_influencer.youtube_channel,
                         "tiktok_handle": db_influencer.tiktok_handle,
                         "instagram_followers": db_influencer.instagram_followers,
                         "youtube_subscribers": db_influencer.youtube_subscribers,
                         "tiktok_followers": db_influencer.tiktok_followers,
-                        "total_followers": db_influencer.total_followers,  # 🆕 Use generated column
+                        "total_followers": db_influencer.total_followers,
                         "engagement_rate": float(db_influencer.engagement_rate) if db_influencer.engagement_rate else 0.0,
                         "category": db_influencer.category,
                         "bio": db_influencer.bio,
                         "profile_image_url": db_influencer.profile_image_url,
                         "verified": db_influencer.verified,
                         "created_at": db_influencer.created_at.isoformat() if db_influencer.created_at else None,
-                        # 🆕 NEW YOUTUBE FIELDS
                         "video_count": db_influencer.video_count,
                         "total_views": db_influencer.total_views,
                         "youtube_url": db_influencer.youtube_url,
@@ -383,6 +410,11 @@ async def search_influencers_authenticated(
             except Exception as e:
                 logger.error(f"Error formatting result {influencer.get('id')}: {e}")
 
+        # Show upgrade message for free users
+        upgrade_message = None
+        if subscription_tier == 'free' and len(paginated_results) == 5:
+            upgrade_message = "Upgrade to see more results! Free accounts are limited to 5 results per search."
+
         # Log user search for analytics
         AuthService.log_user_search(
             db=db,
@@ -393,7 +425,7 @@ async def search_influencers_authenticated(
             search_time_ms=search_results['search_time_ms']
         )
 
-        logger.info(f"User {current_user.email} searched: '{query}' - {len(formatted_results)} results (type: {search_type})")
+        logger.info(f"User {current_user.email} ({subscription_tier}) searched: '{query}' - {len(formatted_results)} results (type: {search_type})")
 
         return {
             "success": True,
@@ -408,9 +440,12 @@ async def search_influencers_authenticated(
             "search_time_ms": search_results['search_time_ms'],
             "message": f"{search_type.title()} search found {total_count} Pakistani influencers",
             "search_type": search_type,
+            "upgrade_message": upgrade_message,
             "user_info": {
-                "searches_remaining": current_user.search_limit - current_user.monthly_searches,
-                "subscription_tier": current_user.subscription_tier
+                "searches_remaining": current_user.search_limit - current_user.monthly_searches if subscription_tier != 'developer' and subscription_tier != 'pro' else "unlimited",
+                "subscription_tier": subscription_tier,
+                "results_shown": len(formatted_results),
+                "results_limit": 5 if subscription_tier == 'free' else 50
             }
         }
 

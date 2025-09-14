@@ -608,14 +608,7 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Header Component */}
-      <Header 
-        // user={user}
-        showSaved={showSaved}
-        setShowSaved={setShowSaved}
-        savedInfluencers={savedInfluencers}
-        onLogout={handleLogout}
-        isSearchPage={true}
-      />
+      <Header />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">

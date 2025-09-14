@@ -21,6 +21,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 security = HTTPBearer()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# Developer account configuration
+DEVELOPER_EMAILS = [
+    "islam9039438@gmail.com",  # Replace with your actual email
+    "developer@test.com",    # Keep test email for development
+]
+
 def generate_cuid():
     """Generate a CUID-like ID to match Prisma"""
     return f"c{secrets.token_urlsafe(20)}"
@@ -35,7 +41,35 @@ def safe_bool_convert(value):
 
 # Authentication Service
 class AuthService:
+
+
+
+    @staticmethod
+    def is_developer_account(email: str) -> bool:
+        """Check if email belongs to a developer account"""
+        return email.lower() in [dev_email.lower() for dev_email in DEVELOPER_EMAILS]
     
+    @staticmethod
+    def get_subscription_tier_for_email(email: str, default_tier: str = "free") -> str:
+        """Get subscription tier based on email"""
+        if AuthService.is_developer_account(email):
+            return "developer"
+        return default_tier
+    
+
+    @staticmethod
+    def get_search_limit_for_tier(subscription_tier: str) -> int:
+        """Get search limit based on subscription tier"""
+        limits = {
+            "free": 15,
+            "starter": 30,
+            "pro": 999999,
+            "developer": 999999,
+            "premium": 999999  # Legacy support
+        }
+        return limits.get(subscription_tier, 15)
+    
+
     @staticmethod
     def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         """Create JWT access token"""
@@ -165,6 +199,13 @@ class AuthService:
         if not email:
             raise HTTPException(status_code=400, detail="Email not provided by Google")
         
+        # Determine subscription tier (developer override)
+        subscription_tier = AuthService.get_subscription_tier_for_email(
+            email, 
+            google_user_info.get("subscription_tier", "free")
+        )
+        search_limit = AuthService.get_search_limit_for_tier(subscription_tier)
+        
         # Check if user exists in basic table
         user = db.query(User).filter(User.email == email).first()
         
@@ -179,9 +220,6 @@ class AuthService:
             db.flush()  # Get the ID
             
             # Create auth user record
-            subscription_tier = google_user_info.get("subscription_tier", "free")
-            search_limit = 999999 if subscription_tier == "premium" else 15
-            
             auth_user = AuthUser(
                 id=user.id,
                 full_name=google_user_info.get("name", ""),
@@ -192,44 +230,43 @@ class AuthService:
                 monthly_searches=0,  # Explicit default
                 search_limit=search_limit,
                 is_active=True,  # Explicit boolean default
-                is_verified=safe_bool_convert(google_user_info.get("email_verified", False)),  # Use safe conversion
+                is_verified=safe_bool_convert(google_user_info.get("email_verified", False)),
                 created_at=datetime.utcnow()  # Explicit datetime
             )
             db.add(auth_user)
+            
+            logger.info(f"Created new {'DEVELOPER' if subscription_tier == 'developer' else subscription_tier.upper()} account: {email}")
         else:
             # Update existing user
             auth_user = db.query(AuthUser).filter(AuthUser.id == user.id).first()
             if not auth_user:
                 # Create auth record for existing user
-                subscription_tier = google_user_info.get("subscription_tier", "free")
-                search_limit = 999999 if subscription_tier == "premium" else 15
-                
                 auth_user = AuthUser(
                     id=user.id,
                     full_name=google_user_info.get("name", ""),
                     profile_picture=google_user_info.get("picture", ""),
                     google_id=google_id,
                     subscription_tier=subscription_tier,
-                    search_count=0,  # Explicit default
-                    monthly_searches=0,  # Explicit default
+                    search_count=0,
+                    monthly_searches=0,
                     search_limit=search_limit,
-                    is_active=True,  # Explicit boolean default
-                    is_verified=safe_bool_convert(google_user_info.get("email_verified", False)),  # Use safe conversion
-                    created_at=datetime.utcnow()  # Explicit datetime
+                    is_active=True,
+                    is_verified=safe_bool_convert(google_user_info.get("email_verified", False)),
+                    created_at=datetime.utcnow()
                 )
                 db.add(auth_user)
             else:
-                # Update existing auth user
+                # Update existing auth user - always check for developer status
+                current_tier = AuthService.get_subscription_tier_for_email(email, auth_user.subscription_tier)
+                if current_tier != auth_user.subscription_tier:
+                    auth_user.subscription_tier = current_tier
+                    auth_user.search_limit = AuthService.get_search_limit_for_tier(current_tier)
+                    logger.info(f"Updated {email} to {current_tier.upper()} tier")
+                
                 auth_user.google_id = google_id
                 auth_user.full_name = google_user_info.get("name", auth_user.full_name)
                 auth_user.profile_picture = google_user_info.get("picture", auth_user.profile_picture)
                 auth_user.is_verified = safe_bool_convert(google_user_info.get("email_verified", False))
-                
-                # Handle test user subscription tiers
-                if google_user_info.get("subscription_tier"):
-                    auth_user.subscription_tier = google_user_info["subscription_tier"]
-                    if google_user_info["subscription_tier"] == "premium":
-                        auth_user.search_limit = 999999
         
         # Reset monthly searches if needed
         AuthService.reset_monthly_searches_if_needed(auth_user)
@@ -266,10 +303,14 @@ class AuthService:
             # If no created_at, set it to now and don't reset searches yet
             auth_user.created_at = now
     
+    
     @staticmethod
     def check_search_limit(user) -> bool:
         """Check if user can perform another search"""
-        if hasattr(user, 'subscription_tier') and user.subscription_tier == "premium":
+        subscription_tier = getattr(user, 'subscription_tier', 'free')
+        
+        # Unlimited tiers
+        if subscription_tier in ["premium", "pro", "developer"]:
             return True
         
         monthly_searches = getattr(user, 'monthly_searches', 0)
