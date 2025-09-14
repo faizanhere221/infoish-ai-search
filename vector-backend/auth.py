@@ -56,6 +56,26 @@ class AuthService:
             return "developer"
         return default_tier
     
+    @staticmethod
+    def increment_search_count(user, db: Session):
+        """Increment user's search count"""
+        from database import AuthUser
+    
+        print(f"🔍 DEBUG: Attempting to increment search count for user {user.email}")
+    
+        auth_user = db.query(AuthUser).filter(AuthUser.id == user.id).first()
+        if auth_user:
+            print(f"🔍 DEBUG: Found auth_user. Current count: {auth_user.monthly_searches}")
+            auth_user.search_count += 1
+            auth_user.monthly_searches += 1
+            db.commit()
+            print(f"🔍 DEBUG: Updated count to: {auth_user.monthly_searches}")
+        else:
+            print(f"❌ DEBUG: No auth_user found for user.id {user.id}")
+
+
+    
+    
 
     @staticmethod
     def get_search_limit_for_tier(subscription_tier: str) -> int:
@@ -333,11 +353,13 @@ class AuthService:
     def log_user_search(db: Session, user, query: str, filters: dict, results_count: int, search_time_ms: int):
         """Log user search for analytics"""
         from database import SearchLog
-        
+    
+        print(f"🔍 DEBUG: log_user_search called for {user.email}")
+    
         try:
             # Increment search counts
             AuthService.increment_search_count(user, db)
-            
+        
             # Create search log
             search_log = SearchLog(
                 query=query,
@@ -347,10 +369,12 @@ class AuthService:
             )
             db.add(search_log)
             db.commit()
-            
+        
+            print(f"✅ DEBUG: Search logged successfully")
+        
         except Exception as e:
+            print(f"❌ DEBUG: Search logging error: {e}")
             logger.error(f"Search logging error: {e}")
-
 # Authentication Endpoints
 class AuthEndpoints:
     

@@ -417,13 +417,13 @@ async def search_influencers_authenticated(
 
         # Log user search for analytics
         AuthService.log_user_search(
-            db=db,
-            user=current_user,
-            query=query or '',
-            filters=filters,
-            results_count=len(formatted_results),
-            search_time_ms=search_results['search_time_ms']
-        )
+    db=db,
+    user=current_user,
+    query=query or '',
+    filters=filters,
+    results_count=len(formatted_results),
+    search_time_ms=search_results['search_time_ms']
+)
 
         logger.info(f"User {current_user.email} ({subscription_tier}) searched: '{query}' - {len(formatted_results)} results (type: {search_type})")
 
