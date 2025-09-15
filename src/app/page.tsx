@@ -109,18 +109,21 @@ function LandingHeroSection() {
             <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full border border-white/50 shadow-lg">
               <Sparkles className="w-5 h-5 text-yellow-500" />
               <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Pakistan's #1 Influencer Discovery Platform
+                Where AI meets influence
               </span>
             </div>
             
             <h1 className="text-5xl sm:text-7xl font-bold text-gray-900 text-balance leading-tight">
-              Find the Perfect{' '}
+              Find the {' '}
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                Pakistani
+                Influencers
               </span>
               <br />
+              Who Grow Your Brand
+              <br />
+              With {' '}
               <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                Influencers
+                 AI Search
               </span>
             </h1>
             
@@ -194,7 +197,7 @@ function LandingHeroSection() {
                   <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full border-2 border-white"></div>
                   <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full border-2 border-white"></div>
                 </div>
-                <span className="text-sm text-gray-600 ml-2">Trusted by 500+ brands</span>
+                <span className="text-sm text-gray-600 ml-2">AI-Powered Search</span>
               </div>
             </div>
           </div>
@@ -229,15 +232,15 @@ function FeaturesSection() {
     {
       icon: BarChart3,
       title: "Real-Time Analytics",
-      description: "Live follower counts, engagement rates, audience insights, and performance trends updated every 24 hours.",
+      description: "Follower counts, engagement rates, audience insights, and performance trends are updated.",
       color: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50",
-      stats: "24/7 monitoring"
+      stats: "Updated Data"
     },
     {
       icon: Shield,
       title: "Verified Creators",
-      description: "Every profile manually verified with authentic contact information, active social presence, and engagement validation.",
+      description: "Every profile verified with authentic contact information, active social presence, and engagement validation.",
       color: "from-green-500 to-green-600",
       bgColor: "bg-green-50",
       stats: "100% verified"
@@ -245,7 +248,7 @@ function FeaturesSection() {
     {
       icon: Target,
       title: "Precise Targeting",
-      description: "Filter by location, niche, audience size, engagement rate, content type, and collaboration history.",
+      description: "Filter by platforms, niche, followers, verified status, audience size and content type.",
       color: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-50",
       stats: "50+ filters"
@@ -261,7 +264,7 @@ function FeaturesSection() {
     {
       icon: Globe,
       title: "Pakistan Focus",
-      description: "Specialized database covering all major Pakistani cities with deep local market understanding and cultural context.",
+      description: "Specialized database covering all major Pakistani influencers with deep local market understanding and cultural context.",
       color: "from-indigo-500 to-indigo-600",
       bgColor: "bg-indigo-50",
       stats: "15+ cities"
@@ -287,7 +290,7 @@ function FeaturesSection() {
             Why Choose Our Platform?
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Built specifically for the Pakistani market with advanced technology and deep local insights
+            Built specifically for the Businesses to do influencer marketing with advanced AI Powered Search and deep local insights
           </p>
         </div>
 
@@ -314,10 +317,7 @@ function FeaturesSection() {
                 
                 <p className="text-gray-600 leading-relaxed mb-6">{feature.description}</p>
                 
-                <div className="flex items-center gap-2 text-sm text-blue-600 font-medium group-hover:gap-3 transition-all">
-                  <span>Learn more</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
+                
               </div>
             </div>
           ))}
@@ -328,107 +328,12 @@ function FeaturesSection() {
 }
 
 // Social Proof Section
-function SocialProofSection() {
-  const testimonials = [
-    {
-      name: "Sarah Ahmed",
-      role: "Marketing Director",
-      company: "BeautyBrand PK",
-      content: "Found 50+ micro-influencers in Karachi within minutes. The engagement data was spot-on and helped us increase our campaign ROI by 340%.",
-      rating: 5,
-      avatar: "👩‍💼"
-    },
-    {
-      name: "Ali Hassan",
-      role: "Social Media Manager", 
-      company: "TechStartup Lahore",
-      content: "The search filters are incredibly detailed. We discovered tech reviewers we never knew existed and built amazing partnerships.",
-      rating: 5,
-      avatar: "👨‍💻"
-    },
-    {
-      name: "Fatima Khan",
-      role: "Influencer Relations",
-      company: "FashionHouse",
-      content: "Best investment for our influencer marketing. The contact information is always accurate and the response rates are 3x higher.",
-      rating: 5,
-      avatar: "👩‍🎨"
-    }
-  ]
 
-  return (
-    <section className="py-24 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full border border-white/50 shadow-lg mb-6">
-            <Star className="w-5 h-5 text-yellow-500" />
-            <span className="text-sm font-semibold text-gray-800">Trusted by 500+ Pakistani Brands</span>
-          </div>
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-            Success Stories
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            See how brands are transforming their influencer marketing with our platform
-          </p>
-        </div>
-
-        {/* Statistics Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-          <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50">
-            <div className="text-3xl font-bold text-blue-600 mb-2">500+</div>
-            <div className="text-gray-600 font-medium">Active Brands</div>
-          </div>
-          <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50">
-            <div className="text-3xl font-bold text-green-600 mb-2">95%</div>
-            <div className="text-gray-600 font-medium">Success Rate</div>
-          </div>
-          <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50">
-            <div className="text-3xl font-bold text-purple-600 mb-2">2.5x</div>
-            <div className="text-gray-600 font-medium">ROI Increase</div>
-          </div>
-          <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50">
-            <div className="text-3xl font-bold text-orange-600 mb-2">48hrs</div>
-            <div className="text-gray-600 font-medium">Avg. Response</div>
-          </div>
-        </div>
-
-        {/* Testimonials */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
-            <div
-              key={index}
-              className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-white/50 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <div className="flex items-center gap-1 mb-4">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-500 fill-current" />
-                ))}
-              </div>
-              
-              <p className="text-gray-700 mb-6 leading-relaxed italic">
-                "{testimonial.content}"
-              </p>
-              
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center text-white text-xl">
-                  {testimonial.avatar}
-                </div>
-                <div>
-                  <div className="font-bold text-gray-900">{testimonial.name}</div>
-                  <div className="text-sm text-gray-600">{testimonial.role}</div>
-                  <div className="text-sm font-medium text-blue-600">{testimonial.company}</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
 
 // Demo Section
 function DemoSection() {
+  const [isPlaying, setIsPlaying] = useState(false)
+
   return (
     <section id="demo-section" className="py-24 bg-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -437,7 +342,7 @@ function DemoSection() {
             See It In Action
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Watch how easy it is to find and connect with Pakistani influencers
+            Watch how easy it is to find and connect with Pakistani influencers of any niche
           </p>
         </div>
 
@@ -450,17 +355,38 @@ function DemoSection() {
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               </div>
               <div className="flex-1 bg-gray-700 rounded-lg px-4 py-2 text-gray-300 text-sm">
-                infoish-ai-search.vercel.app
+                infoish.com
               </div>
             </div>
             
-            <div className="bg-gray-100 rounded-2xl aspect-video flex items-center justify-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20"></div>
-              <div className="relative text-center">
-                <PlayCircle className="w-24 h-24 text-blue-600 mx-auto mb-4 hover:scale-110 transition-transform cursor-pointer" />
-                <p className="text-gray-700 font-medium">Interactive Demo Coming Soon</p>
-                <p className="text-gray-500 text-sm">See the platform in action</p>
-              </div>
+            <div className="bg-gray-100 rounded-2xl aspect-video relative overflow-hidden">
+              {!isPlaying ? (
+                // Video Thumbnail with Play Button
+                <div 
+                  className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center cursor-pointer group"
+                  onClick={() => setIsPlaying(true)}
+                >
+                  <div className="relative text-center">
+                    <div className="w-24 h-24 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-2xl">
+                      <PlayCircle className="w-16 h-16 text-blue-600" />
+                    </div>
+                    <p className="text-gray-700 font-medium">Watch Platform Demo</p>
+                    <p className="text-gray-500 text-sm">2 minutes • See real search results</p>
+                  </div>
+                </div>
+              ) : (
+                // Actual Video
+                <video
+                  className="w-full h-full rounded-2xl"
+                  controls
+                  autoPlay
+                  poster="/demo-thumbnail.jpg" // Add your thumbnail image
+                >
+                  <source src="/demo-video.mp4" type="video/mp4" />
+                  <source src="/demo-video.webm" type="video/webm" />
+                  Your browser does not support the video tag.
+                </video>
+              )}
             </div>
           </div>
         </div>
@@ -533,7 +459,7 @@ function PricingPreviewSection() {
               <div className="space-y-3 mb-8 text-left">
                 <div className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Unlimited searches</span>
+                  <span className="text-gray-700">30 searches per month</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600" />
@@ -568,11 +494,15 @@ function PricingPreviewSection() {
               <div className="space-y-3 mb-8 text-left">
                 <div className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Everything in Starter</span>
+                  <span className="text-gray-700">Unlimited Searches</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Advanced analytics</span>
+                  <span className="text-gray-700">Unlimited Results</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-gray-700">Export to CSV/Excel</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600" />
@@ -580,7 +510,7 @@ function PricingPreviewSection() {
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Campaign tracking</span>
+                  <span className="text-gray-700">Direct Consultation</span>
                 </div>
               </div>
               
@@ -624,7 +554,7 @@ function FinalCTASection() {
         <div className="space-y-8">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full border border-white/30">
             <TrendingUp className="w-5 h-5 text-white" />
-            <span className="text-sm font-semibold text-white">Join 500+ Pakistani Brands</span>
+            <span className="text-sm font-semibold text-white">Grow with AI-Search</span>
           </div>
           
           <h2 className="text-4xl sm:text-6xl font-bold text-white mb-6 leading-tight">
@@ -771,12 +701,12 @@ function UserDashboardSection({ user }: { user: User }) {
           {/* Main headline for authenticated users */}
           <div className="space-y-4">
             <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 text-balance">
-              Your Pakistani{' '}
+              
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Influencer
+                Influencer Marketing 
               </span>
               <br />
-              Dashboard
+              Powered by AI
             </h1>
             <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto text-balance">
               Search through 1,800+ verified Pakistani content creators with your personalized dashboard.
@@ -899,7 +829,6 @@ export default function HomePage() {
         <>
           <LandingHeroSection />
           <FeaturesSection />
-          <SocialProofSection />
           <DemoSection />
           <PricingPreviewSection />
           <FinalCTASection />
