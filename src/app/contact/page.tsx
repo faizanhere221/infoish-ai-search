@@ -301,19 +301,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className="text-center mt-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-white">
-          <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Join 100+ Pakistani businesses already using our platform
-          </p>
-          <a 
-            href="/login" 
-            className="bg-white text-blue-600 py-3 px-8 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
-          >
-            Start Your Free Trial
-          </a>
-        </div>
+        
       </div>
     </div>
   )
