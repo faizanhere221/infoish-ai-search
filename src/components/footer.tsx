@@ -136,7 +136,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/blog/influencer-marketing-guide" className="text-gray-400 hover:text-green-400 transition-colors">
+                <Link href="/blog/complete-guide-influencer-marketing-pakistan-2025" className="text-gray-400 hover:text-green-400 transition-colors">
                   Marketing Guide
                 </Link>
               </li>

@@ -3,32 +3,7 @@
 import Header from '@/components/header'
 import { Search, MessageCircle, Book, Users } from 'lucide-react'
 
-const helpTopics = [
-  {
-    icon: Search,
-    title: 'How to Search',
-    description: 'Learn how to use our AI-powered search to find the perfect influencers',
-    link: '#search-help'
-  },
-  {
-    icon: Users,
-    title: 'Understanding Metrics',
-    description: 'What do engagement rates, follower counts, and other metrics mean?',
-    link: '#metrics-help'
-  },
-  {
-    icon: MessageCircle,
-    title: 'Contacting Influencers',
-    description: 'Best practices for reaching out and building relationships',
-    link: '#contact-help'
-  },
-  {
-    icon: Book,
-    title: 'Export & Save',
-    description: 'How to export results and manage your saved influencers',
-    link: '#export-help'
-  }
-]
+
 
 export default function HelpCenter() {
   return (
@@ -41,18 +16,7 @@ export default function HelpCenter() {
           <p className="text-xl text-gray-600">Get help with using Pakistani Influencer Search</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {helpTopics.map((topic) => (
-            <div key={topic.title} className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all">
-              <topic.icon className="w-8 h-8 text-blue-600 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">{topic.title}</h3>
-              <p className="text-gray-600 mb-4">{topic.description}</p>
-              <a href={topic.link} className="text-blue-600 hover:text-blue-700 font-medium">
-                Learn More →
-              </a>
-            </div>
-          ))}
-        </div>
+       
 
         {/* FAQ Section */}
         <div className="bg-white rounded-xl shadow-lg p-8">
