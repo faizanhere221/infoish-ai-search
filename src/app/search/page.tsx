@@ -640,7 +640,7 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
   const handleQuickSearch = (searchTerm: string) => {
     setQuery(searchTerm);
     setFilters(prev => ({ ...prev, category: '' }));
-    setTimeout(() => handleSearch(1), 100);
+    //setTimeout(() => handleSearch(1), 100);
   }
 
   const handleViewDetails = (influencer: InfluencerResult) => {
