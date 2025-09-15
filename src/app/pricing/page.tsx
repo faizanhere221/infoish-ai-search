@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Check, X, Key, Search, Zap, Crown, Shield, Users, CreditCard, Clock } from 'lucide-react';
+import { Check, X, Search, Zap, Crown, Shield, CreditCard, Clock } from 'lucide-react';
 
 interface User {
   subscription_tier?: 'free' | 'starter' | 'pro';
@@ -97,7 +97,7 @@ const PricingPage: React.FC = () => {
       icon: Search,
       color: 'gray',
       features: [
-        { name: '5 searches per month', included: true },
+        { name: '10 searches per month', included: true },
         { name: '5 results per search', included: true },
         { name: 'Basic influencer data', included: true },
         { name: 'Platform filters', included: true },
@@ -105,7 +105,6 @@ const PricingPage: React.FC = () => {
         { name: 'Advanced filters', included: false },
         { name: 'Export functionality', included: false },
         { name: 'Unlimited results', included: false },
-        { name: 'API access', included: false },
         { name: 'Priority support', included: false }
       ],
       cta: 'Current Plan',
@@ -119,7 +118,7 @@ const PricingPage: React.FC = () => {
       icon: Zap,
       color: 'blue',
       features: [
-        { name: '50 searches per month', included: true },
+        { name: '30 searches Per Month', included: true },
         { name: 'Unlimited results per search', included: true },
         { name: 'Complete influencer profiles', included: true },
         { name: 'All platform filters', included: true },
@@ -127,8 +126,7 @@ const PricingPage: React.FC = () => {
         { name: 'Advanced filters', included: true },
         { name: 'Export to CSV/Excel', included: true },
         { name: 'Email support', included: true },
-        { name: 'API access', included: false },
-        { name: 'Priority support', included: false }
+        { name: 'Contact information access', included: true }
       ],
       cta: 'Upgrade to Starter',
       popular: true
@@ -141,17 +139,16 @@ const PricingPage: React.FC = () => {
       icon: Crown,
       color: 'green',
       features: [
-        { name: 'Unlimited searches', included: true },
-        { name: 'Unlimited results', included: true },
+        { name: 'Unlimited Searches', included: true },
+        { name: 'Unlimited Results', included: true },
         { name: 'Complete influencer database', included: true },
-        { name: 'All filters and sorting', included: true },
-        { name: 'Advanced analytics', included: true },
-        { name: 'Export in all formats', included: true },
-        { name: 'API access', included: true },
-        { name: '50,000 API requests/month', included: true },
-        { name: 'Rate limit: 100 req/min', included: true },
+        { name: 'Advanced analytics dashboard', included: true },
+        { name: 'Export to CSV/Excel', included: true },
         { name: 'Priority support', included: true },
-        { name: 'Custom integrations', included: true }
+        { name: 'Advanced Filters', included: true },
+        { name: 'Email Support', included: true },
+        { name: 'Contact Information Access', included: true },
+        { name: 'Direct Consultation', included: true }
       ],
       cta: 'Upgrade to Pro',
       popular: false
@@ -333,12 +330,6 @@ const PricingPage: React.FC = () => {
                     {isLoading ? 'Creating Order...' : 
                      isActive ? 'Current Plan' : plan.cta}
                   </button>
-                  
-                  {plan.id === 'pro' && (
-                    <p className="text-xs text-gray-500 text-center mt-3">
-                      Includes API access for developers
-                    </p>
-                  )}
                 </div>
               </div>
             );
@@ -429,58 +420,6 @@ const PricingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* API Information Section */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-16">
-          <div className="text-center mb-8">
-            <Key className="w-12 h-12 mx-auto text-green-600 mb-4" />
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">API for Developers</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Integrate our influencer database directly into your applications with our RESTful API.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">1,800+ Influencers</h3>
-              <p className="text-gray-600 text-sm">
-                Access complete database of verified Pakistani content creators
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-8 h-8 text-blue-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">100 Req/Min</h3>
-              <p className="text-gray-600 text-sm">
-                High-performance API with generous rate limits
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-purple-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Secure & Reliable</h3>
-              <p className="text-gray-600 text-sm">
-                Enterprise-grade security with 99.9% uptime SLA
-              </p>
-            </div>
-          </div>
-          
-          <div className="mt-8 text-center">
-            <button 
-              onClick={() => window.location.href = '/docs'}
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
-            >
-              View API Documentation
-            </button>
-          </div>
-        </div>
-
         {/* FAQ Section */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-8">Frequently Asked Questions</h2>
@@ -510,10 +449,25 @@ const PricingPage: React.FC = () => {
             </div>
             
             <div className="bg-white rounded-lg p-6 text-left shadow-sm">
-              <h3 className="font-semibent text-gray-900 mb-2">Can I get a refund?</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Can I get a refund?</h3>
               <p className="text-gray-600">
                 We offer a 7-day money-back guarantee for new subscribers. Contact support for 
                 refund requests within this period.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg p-6 text-left shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-2">What's included in each plan?</h3>
+              <p className="text-gray-600">
+                Free includes basic search with limited results. Starter provides unlimited searches and exports. 
+                Pro adds advanced analytics, campaign tracking, and dedicated support.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg p-6 text-left shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-2">Can I change plans later?</h3>
+              <p className="text-gray-600">
+                Yes, you can upgrade or downgrade your plan at any time. Changes take effect at your next billing cycle.
               </p>
             </div>
           </div>

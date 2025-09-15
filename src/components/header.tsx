@@ -251,12 +251,6 @@ export default function Header() {
               Dashboard
             </Link>
 
-            {user?.subscription_tier === 'pro' && (
-              <Link href="/api-keys" className="text-gray-700 hover:text-green-600 font-medium transition-colors py-2 px-1 flex items-center gap-1">
-                <Key className="w-4 h-4" />
-                API Keys
-              </Link>
-            )}
             
             <Link href="/blog" className="text-gray-700 hover:text-green-600 font-medium transition-colors py-2 px-1">
               Blog
