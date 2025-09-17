@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/header'
-import { Search, Filter, Download, ChevronLeft, ChevronRight, Heart, ExternalLink, X, Bookmark, Share2 } from 'lucide-react'
+import {Mail, Youtube, Eye, Search, Filter, Download, ChevronLeft, ChevronRight, Heart, ExternalLink, X, Bookmark, Share2 } from 'lucide-react'
 
 import { exportToCSV } from '@/lib/utils'
 
@@ -644,6 +644,7 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
   }
 
   const handleViewDetails = (influencer: InfluencerResult) => {
+     console.log('View Details clicked for:', influencer.username)
     setSelectedInfluencer(influencer)
   }
 
@@ -700,106 +701,117 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
 
   const currentResults = showSaved ? savedInfluencers : results
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Header Component */}
-      <Header />
+ return (
+  <div className="min-h-screen bg-white">
+    {/* Header Component */}
+    <Header />
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Search Section - Only show when not viewing saved */}
-        {!showSaved && (
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            {/* Search Bar */}
-            <div className="flex gap-4 mb-6">
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  placeholder="Search Pakistani influencers (e.g., tech reviewers, beauty influencers, YouTube creators)"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch(1)}
-                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  disabled={searching}
-                />
-                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3.5" />
-              </div>
-              <button
-                onClick={() => handleSearch(1)}
+    {/* Main Content */}
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Search Section - Only show when not viewing saved */}
+      {!showSaved && (
+        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-black/10 p-8 mb-8">
+          {/* Search Bar */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="Search Pakistani influencers (e.g., tech reviewers, beauty influencers, YouTube creators)"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch(1)}
+                className="w-full px-5 py-4 pl-12 text-black placeholder-black/50 bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-2xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 text-base"
                 disabled={searching}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-8 py-3 rounded-lg font-medium min-w-[140px] transition-all"
-              >
-                {searching ? 'Searching...' : 'Search'}
-              </button>
+              />
+              <Search className="w-5 h-5 text-black/60 absolute left-4 top-4.5" />
             </div>
-
-            {/* Search insights */}
-            {searchInsights && (
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                <div className="text-xs text-blue-600 font-medium">
-                  Search Strategy: {searchInsights.search_strategy} • 
-                  Keyword matches: {searchInsights.keyword_matches || 0} • 
-                  {searchInsights.youtube_data_included && '🎥 YouTube Enhanced • '}
-                  Search time: {searchInsights.search_time_ms || 0}ms
-                </div>
-              </div>
-            )}
-
-            {/* Quick Search Tags */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {['Beauty Influencers', 'Tech Reviewers', 'Food Bloggers', 'Gaming Creators', 'YouTube Stars', 'Comedy Channels'].map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => handleQuickSearch(tag)}
-                  className="px-3 py-1 bg-gray-100 hover:bg-blue-100 text-gray-700 hover:text-blue-700 rounded-full text-sm transition-colors"
-                  disabled={searching}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-
-            {/* Filters Toggle */}
             <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="text-blue-600 hover:text-blue-700 font-medium mb-4 flex items-center gap-2"
+              onClick={() => handleSearch(1)}
+              disabled={searching}
+              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 disabled:from-black/30 disabled:to-black/40 text-white px-8 py-4 rounded-2xl font-semibold min-w-[140px] transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
-              {showFilters ? '− Hide Filters' : '+ Show Filters'}
-              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
-                {Object.values(filters).filter(v => v && v !== false).length} active
-              </span>
+              {searching ? 'Searching...' : 'Search'}
             </button>
+          </div>
 
-            {/* Filters Panel */}
-            {showFilters && (
-              <div className="bg-gray-50 rounded-lg p-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          {/* Search insights */}
+          {searchInsights && (
+            <div className="mb-6 p-4 bg-blue-500/10 backdrop-blur-lg rounded-2xl border border-blue-500/20">
+              <div className="text-sm text-blue-600 font-medium">
+                Search Strategy: {searchInsights.search_strategy} • 
+                Keyword matches: {searchInsights.keyword_matches || 0} • 
+                {searchInsights.youtube_data_included && '🎥 YouTube Enhanced • '}
+                Search time: {searchInsights.search_time_ms || 0}ms
+              </div>
+            </div>
+          )}
+
+          {/* Quick Search Tags */}
+          <div className="flex flex-wrap gap-3 mb-6">
+            {['Beauty Influencers', 'Tech Reviewers', 'Food Bloggers', 'Gaming Creators', 'YouTube Stars', 'Comedy Channels'].map((tag) => (
+              <button
+                key={tag}
+                onClick={() => handleQuickSearch(tag)}
+                className="px-4 py-2 bg-white/60 hover:bg-blue-500/10 border border-black/10 hover:border-blue-500/30 text-black hover:text-blue-600 rounded-xl text-sm font-medium transition-all duration-300 backdrop-blur-lg transform hover:scale-105"
+                disabled={searching}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+
+          {/* Filters Toggle */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="text-blue-500 hover:text-green-500 font-semibold mb-6 flex items-center gap-3 bg-white/60 backdrop-blur-lg px-4 py-3 rounded-xl border border-black/10 hover:border-blue-500/30 transition-all duration-300"
+          >
+            <span>{showFilters ? '− Hide Filters' : '+ Show Filters'}</span>
+            <span className="text-xs bg-blue-500/20 text-blue-600 px-3 py-1 rounded-full font-bold">
+              {Object.values(filters).filter(v => v && v !== false).length}
+            </span>
+          </button>
+
+          {/* Filters Panel */}
+          {showFilters && (
+            <div className="bg-white/50 backdrop-blur-xl rounded-3xl p-8 border border-black/10">
+              <h3 className="text-lg font-bold text-black mb-6">Filter Results</h3>
+              
+              {/* Main Filters Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-black">Platform</label>
                   <select
                     value={filters.platform}
                     onChange={(e) => setFilters({...filters, platform: e.target.value})}
-                    className="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
                   >
                     <option value="">All Platforms</option>
                     <option value="instagram">Instagram</option>
                     <option value="youtube">YouTube</option>
                     <option value="tiktok">TikTok</option>
                   </select>
+                </div>
 
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-black">Category</label>
                   <select
                     value={filters.category}
                     onChange={(e) => setFilters({...filters, category: e.target.value})}
-                    className="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
                   >
                     <option value="">All Categories</option>
                     {categoryOptions.map(cat => (
                       <option key={cat} value={cat.toLowerCase()}>{cat}</option>
                     ))}
                   </select>
+                </div>
 
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-black">Min Followers</label>
                   <select
                     value={filters.minFollowers}
                     onChange={(e) => setFilters({...filters, minFollowers: e.target.value})}
-                    className="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
                   >
                     <option value="">Min Followers</option>
                     <option value="1000">1K+</option>
@@ -807,29 +819,30 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
                     <option value="100000">100K+</option>
                     <option value="1000000">1M+</option>
                   </select>
+                </div>
 
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-black">Status</label>
                   <select
                     value={filters.verified}
                     onChange={(e) => setFilters({...filters, verified: e.target.value})}
-                    className="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
                   >
                     <option value="">All Status</option>
                     <option value="true">Verified Only</option>
                     <option value="false">Unverified Only</option>
                   </select>
                 </div>
+              </div>
 
-
-
-
-                
-
-                {/* YouTube Filters Row */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+              {/* YouTube Filters Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-black">Min Videos</label>
                   <select
                     value={filters.minVideoCount}
                     onChange={(e) => setFilters({...filters, minVideoCount: e.target.value})}
-                    className="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
                   >
                     <option value="">Min Videos</option>
                     <option value="10">10+ videos</option>
@@ -837,11 +850,14 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
                     <option value="100">100+ videos</option>
                     <option value="500">500+ videos</option>
                   </select>
+                </div>
 
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-black">Min Total Views</label>
                   <select
                     value={filters.minTotalViews}
                     onChange={(e) => setFilters({...filters, minTotalViews: e.target.value})}
-                    className="px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
                   >
                     <option value="">Min Total Views</option>
                     <option value="100000">100K+ views</option>
@@ -849,552 +865,588 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
                     <option value="10000000">10M+ views</option>
                     <option value="100000000">100M+ views</option>
                   </select>
+                </div>
 
-                  <label className="flex items-center gap-2 px-3 py-2 border rounded-lg bg-white">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-black">YouTube URL</label>
+                  <label className="flex items-center gap-3 px-4 py-3 border-2 border-black/20 rounded-xl bg-white/80 backdrop-blur-lg hover:border-blue-500/30 transition-all duration-300 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={filters.hasYouTubeUrl}
                       onChange={(e) => setFilters({...filters, hasYouTubeUrl: e.target.checked})}
-                      className="text-blue-600"
+                      className="w-4 h-4 text-blue-500 bg-white border-2 border-black/30 rounded focus:ring-blue-500 focus:ring-2"
                     />
-                    <span className="text-sm">Has YouTube URL</span>
+                    <span className="text-sm font-medium text-black">Has YouTube URL</span>
                   </label>
                 </div>
+              </div>
 
-                <div className="flex gap-4">
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+                <div className="text-sm text-black/70">
+                  {Object.values(filters).filter(v => v && v !== false).length} filters active
+                </div>
+                <div className="flex gap-3">
                   <button
                     onClick={() => handleSearch(1)}
                     disabled={searching}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg font-medium"
+                    className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 disabled:from-black/30 disabled:to-black/40 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
                   >
                     Apply Filters
                   </button>
                   <button
                     onClick={clearFilters}
-                    className="text-red-600 hover:text-red-700 px-4 py-2 border border-red-300 hover:border-red-400 rounded-lg"
+                    className="text-red-500 hover:text-red-600 font-medium px-6 py-3 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-all duration-300 border border-red-500/20"
                   >
                     Clear All
                   </button>
                 </div>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
-
-        {/* Results Header */}
-        {currentResults.length > 0 && (
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">
-              {showSaved 
-                ? `Saved Influencers (${savedInfluencers.length})`
-        : user?.subscription_tier === 'free' && results.length >= 5
-          ? `Showing ${results.length} of ${totalResults}+ Pakistani influencers (Free Account - Upgrade for more)`
-          : `Found ${totalResults.toLocaleString()} Pakistani influencers`
-              }
-            </h2>
-            <div className="flex items-center gap-4">
-              {canUserExport(user) ? (
-  <button
-    onClick={() => handleExportResults(showSaved)}
-    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2"
-  >
-    <Download className="w-4 h-4" />
-    Export {showSaved ? 'Saved' : 'Results'}
-  </button>
-) : (
-  <div className="relative group">
-    <button
-      disabled
-      className="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 cursor-not-allowed"
-    >
-      <Download className="w-4 h-4" />
-      Export Disabled
-    </button>
-    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-black text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-      Upgrade to Starter plan to export results
-    </div>
-  </div>
-)}
-              {!showSaved && (
-                <div className="text-sm text-gray-600">
-                  Page {currentPage} of {totalPages}
-                </div>
-              )}
+          {/* Search Tips - Mobile Friendly */}
+          <div className="bg-gradient-to-r from-blue-500/5 to-green-500/5 rounded-2xl p-6 border border-blue-500/10">
+            <h4 className="font-semibold text-black mb-3">💡 Search Tips</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-black/70">
+              <div>• Try specific niches: "tech reviewer", "cooking channel"</div>
+              <div>• Use platform names: "YouTube gaming creators"</div>
+              <div>• Search by location: "Lahore food bloggers"</div>
+              <div>• Try category + size: "beauty micro influencers"</div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* REPLACE your Results Grid section with this improved version */}
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-600 px-6 py-4 rounded-2xl mb-6 backdrop-blur-lg">
+          <div className="font-semibold mb-1">Search Error:</div>
+          <div>{error}</div>
+        </div>
+      )}
+
+      {/* Results Header */}
+      {currentResults.length > 0 && (
+        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/60 backdrop-blur-xl rounded-2xl p-6 border border-black/10">
+          <h2 className="text-xl font-bold text-black">
+            {showSaved 
+              ? `Saved Influencers (${savedInfluencers.length})`
+              : user?.subscription_tier === 'free' && results.length >= 5
+                ? `Showing ${results.length} of ${totalResults}+ Pakistani influencers (Free Account - Upgrade for more)`
+                : `Found ${totalResults.toLocaleString()} Pakistani influencers`
+            }
+          </h2>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            {canUserExport(user) ? (
+              <button
+                onClick={() => handleExportResults(showSaved)}
+                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                <Download className="w-4 h-4" />
+                Export {showSaved ? 'Saved' : 'Results'}
+              </button>
+            ) : (
+              <div className="relative group">
+                <button
+                  disabled
+                  className="bg-black/20 text-black/50 px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2 cursor-not-allowed"
+                >
+                  <Download className="w-4 h-4" />
+                  Export Disabled
+                </button>
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-2 bg-black text-white text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Upgrade to Starter plan to export results
+                </div>
+              </div>
+            )}
+            {!showSaved && (
+              <div className="text-sm text-black/60 bg-white/60 px-4 py-2 rounded-xl">
+                Page {currentPage} of {totalPages}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    
+
+
+
+
+
+{/* REPLACE your Results Grid section with this improved landscape version */}
 {currentResults.length > 0 && (
   <>
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-      {currentResults.map((influencer) => (
-        <div key={influencer.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100">
-          {/* Card Header */}
-          <div className="relative bg-gradient-to-br from-blue-50 to-purple-50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <ProfileImage influencer={influencer} />
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg text-gray-900 mb-1">
-                    {influencer.full_name || influencer.username}
-                  </h3>
-                  <p className="text-blue-600 text-sm mb-1">@{influencer.username}</p>
-                  {influencer.youtube_subscribers > influencer.instagram_followers && 
-                   influencer.youtube_subscribers > influencer.tiktok_followers && (
-                    <p className="text-red-600 text-xs flex items-center gap-1">
-                      🎥 {formatFollowers(influencer.youtube_subscribers)} YouTube subs
-                    </p>
+    <div className="space-y-6 mb-8">
+      {currentResults.map((influencer, index) => (
+        <div 
+          key={influencer.id} 
+          className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden border border-black/10 transform hover:scale-[1.02] animate-fade-in-up"
+          style={{ animationDelay: `${index * 100}ms` }}
+        >
+          {/* Landscape Layout */}
+          <div className="flex flex-col lg:flex-row">
+            
+            {/* Left Section - Profile & Main Info */}
+            <div className="lg:w-1/3 p-8 bg-gradient-to-br from-blue-500/5 to-green-500/5 border-r border-black/5">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="relative group">
+                  <ProfileImage influencer={influencer} />
+                  {influencer.verified && (
+                    <div className="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full p-1 animate-bounce">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
                   )}
                 </div>
-              </div>
-              
-              {/* Action Buttons - IMPROVED */}
-              <div className="flex items-center gap-2">
-                {/* Verified Badge */}
-                {influencer.verified && (
-                  <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
-                    ✓
+                <div className="flex-1">
+                  <h3 className="font-bold text-xl text-black mb-1">
+                    {influencer.full_name || influencer.username}
+                  </h3>
+                  <p className="text-blue-500 font-medium">@{influencer.username}</p>
+                  
+                  {/* Engagement Rate - Prominent */}
+                  <div className={`inline-flex items-center gap-2 mt-2 px-3 py-1 rounded-xl text-sm font-bold ${getEngagementColor(influencer.engagement_rate)}`}>
+                    <div className="w-2 h-2 bg-current rounded-full animate-pulse"></div>
+                    {influencer.engagement_rate.toFixed(1)}% Engagement
                   </div>
-                )}
-                
-                {/* Like Button (Heart - for favorites) */}
-                <button
-                  onClick={() => handleFavorite(influencer.id, influencer.is_favorited || false)}
-                  className={`p-2 rounded-full transition-all duration-200 ${
-                    influencer.is_favorited 
-                      ? 'bg-red-100 text-red-600 scale-110' 
-                      : 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500'
-                  }`}
-                  title={influencer.is_favorited ? "Remove from favorites" : "Add to favorites"}
-                >
-                  <Heart 
-                    className="w-4 h-4" 
-                    fill={influencer.is_favorited ? "currentColor" : "none"}
-                  />
-                </button>
-                
-                {/* Save Button (Bookmark - for saved list) */}
-                <button
-                  onClick={() => handleSaveInfluencer(influencer)}
-                  className={`p-2 rounded-full transition-all duration-200 ${
-                    savedInfluencers.some(saved => saved.id === influencer.id)
-                      ? 'bg-green-100 text-green-600 scale-110' 
-                      : 'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500'
-                  }`}
-                  title={savedInfluencers.some(saved => saved.id === influencer.id) ? "Remove from saved" : "Save for later"}
-                >
-                  <Bookmark 
-                    className="w-4 h-4" 
-                    fill={savedInfluencers.some(saved => saved.id === influencer.id) ? "currentColor" : "none"}
-                  />
-                </button>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Card Content */}
-          <div className="p-6">
-            {/* Bio */}
-            {influencer.bio && (
-              <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed">
-                {influencer.bio}
-              </p>
-            )}
-
-            {/* Key Metrics */}
-            <div className="space-y-4 mb-6">
-              <div className="text-center bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-purple-600 mb-1">
+              {/* Total Followers - Big Display */}
+              <div className="text-center bg-gradient-to-r from-blue-500/10 to-green-500/10 rounded-2xl p-4 mb-6">
+                <div className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">
                   {formatFollowers(influencer.total_followers)}
                 </div>
-                <div className="text-sm text-gray-600">Total Reach</div>
+                <div className="text-sm text-black/60 font-medium">Total Followers</div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="text-center">
-                  <div className={`text-sm font-bold px-3 py-2 rounded-lg ${getEngagementColor(influencer.engagement_rate)}`}>
-                    {influencer.engagement_rate.toFixed(1)}%
+              {/* Contact Info - If Available */}
+              {influencer.email && (
+                <div className="bg-green-500/10 backdrop-blur-lg rounded-2xl p-4 border border-green-500/20 mb-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Mail className="w-4 h-4 text-green-500" />
+                    <span className="text-sm font-semibold text-black">Contact Available</span>
                   </div>
-                  <div className="text-xs text-gray-600 mt-1">Engagement</div>
-                </div>
-                
-                {influencer.category && (
-                  <div className="text-center">
-                    <div className="bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg text-xs font-medium">
-                      <div className="truncate" title={influencer.category}>
-                        {influencer.category.length > 12 ? influencer.category.substring(0, 12) + '...' : influencer.category}
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-600 mt-1">Category</div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* YouTube Metrics */}
-            {influencer.video_count && influencer.total_views && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-red-600 text-sm">🎥</span>
-                  <span className="text-xs text-red-600 font-medium">YouTube Stats</span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="font-bold text-red-700">{influencer.video_count}</div>
-                    <div className="text-red-600 text-xs">Videos</div>
-                  </div>
-                  <div>
-                    <div className="font-bold text-red-700">{formatViews(influencer.total_views)}</div>
-                    <div className="text-red-600 text-xs">Total Views</div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Platform Stats */}
-            <div className="space-y-3 mb-6">
-              <h4 className="text-sm font-semibold text-gray-700">Social Platforms</h4>
-              {getPlatformStats(influencer).map((stat, idx) => (
-                <div key={idx} className={`flex items-center justify-between ${stat.color} rounded-lg px-4 py-3 hover:shadow-md transition-all`}>
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">{stat.icon}</span>
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">{stat.platform}</div>
-                      <a 
-                        href={stat.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-xs hover:underline font-medium transition-colors hover:opacity-80"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        @{stat.handle} →
-                      </a>
-                      {stat.extraInfo && (
-                        <div className="text-xs text-gray-500 mt-1">{stat.extraInfo}</div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-sm">{formatFollowers(stat.followers)}</div>
-                    <div className="text-xs opacity-75">followers</div>
-                  </div>
-                </div>
-              ))}
-              
-              {getPlatformStats(influencer).length === 0 && (
-                <div className="text-center text-gray-500 text-sm py-4">
-                  No social media data available
+                  <a 
+                    href={`mailto:${influencer.email}`}
+                    className="text-green-600 hover:text-green-700 font-medium text-sm transition-colors hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {influencer.email}
+                  </a>
                 </div>
               )}
+
+              {/* Action Buttons - Moved to left side */}
+              <div className="space-y-4">
+                {/* Primary Action Buttons Row */}
+                <div className="flex items-center gap-3">
+                  {/* Favorite Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFavorite(influencer.id, influencer.is_favorited || false);
+                    }}
+                    className={`flex-1 py-3 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 text-sm font-semibold ${
+                      influencer.is_favorited 
+                        ? 'bg-red-500/20 text-red-500' 
+                        : 'bg-black/10 text-black/70 hover:bg-red-500/10 hover:text-red-500'
+                    }`}
+                    title={influencer.is_favorited ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <Heart 
+                      className="w-4 h-4 mx-auto mb-1" 
+                      fill={influencer.is_favorited ? "currentColor" : "none"}
+                    />
+                    {influencer.is_favorited ? 'Liked' : 'Like'}
+                  </button>
+                  
+                  {/* Save Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSaveInfluencer(influencer);
+                    }}
+                    className={`flex-1 py-3 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 text-sm font-semibold ${
+                      savedInfluencers.some(saved => saved.id === influencer.id)
+                        ? 'bg-green-500/20 text-green-500' 
+                        : 'bg-black/10 text-black/70 hover:bg-green-500/10 hover:text-green-500'
+                    }`}
+                    title={savedInfluencers.some(saved => saved.id === influencer.id) ? "Remove from saved" : "Save for later"}
+                  >
+                    <Bookmark 
+                      className="w-4 h-4 mx-auto mb-1" 
+                      fill={savedInfluencers.some(saved => saved.id === influencer.id) ? "currentColor" : "none"}
+                    />
+                    {savedInfluencers.some(saved => saved.id === influencer.id) ? 'Saved' : 'Save'}
+                  </button>
+                  
+                  {/* Share Button */}
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const shareData = {
+                        title: `${influencer.full_name || influencer.username} - Pakistani Influencer`,
+                        text: `Check out ${influencer.full_name || influencer.username} - ${formatFollowers(influencer.total_followers)} followers, ${influencer.engagement_rate.toFixed(1)}% engagement`,
+                        url: window.location.href
+                      };
+                      
+                      if (navigator.share) {
+                        navigator.share(shareData).catch(() => {
+                          navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`)
+                            .then(() => alert('Profile details copied to clipboard!'))
+                            .catch(() => alert('Unable to share or copy'));
+                        });
+                      } else {
+                        const text = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+                        navigator.clipboard.writeText(text)
+                          .then(() => alert('Profile details copied to clipboard!'))
+                          .catch(() => alert(text));
+                      }
+                    }}
+                    className="flex-1 py-3 px-4 rounded-2xl bg-black/10 text-black/70 hover:bg-blue-500/10 hover:text-blue-500 transition-all duration-300 transform hover:scale-105 text-sm font-semibold"
+                    title="Share influencer profile"
+                  >
+                    <Share2 className="w-4 h-4 mx-auto mb-1" />
+                    Share
+                  </button>
+                </div>
+
+                {/* View Details Button - Full Width */}
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleViewDetails(influencer);
+                  }}
+                  className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white py-3 px-6 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  View Details
+                </button>
+              </div>
             </div>
 
-            {/* Contact Info */}
-            {influencer.email && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-green-600 text-sm">📧</span>
-                  <span className="text-xs text-green-600 font-medium">Contact Available</span>
-                </div>
-                <a 
-                  href={`mailto:${influencer.email}`}
-                  className="text-sm text-green-700 font-medium hover:underline"
-                >
-                  {influencer.email}
-                </a>
-              </div>
-            )}
-
-            {/* Action Buttons - IMPROVED */}
-            <div className="flex gap-3">
-              <button 
-                onClick={() => handleViewDetails(influencer)}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-4 rounded-lg font-medium text-sm transition-all"
-              >
-                View Details
-              </button>
+            {/* Right Section - Platform Details & Content - More compact */}
+            <div className="lg:w-3/4 p-6">{/* Reduced from p-8 */}
               
-              {/* Share Button - REPLACED the clipboard icon with useful functionality */}
-              <button 
-                onClick={() => {
-                  const shareData = {
-                    title: `${influencer.full_name || influencer.username} - Pakistani Influencer`,
-                    text: `Check out ${influencer.full_name || influencer.username} - ${formatFollowers(influencer.total_followers)} followers, ${influencer.engagement_rate.toFixed(1)}% engagement`,
-                    url: window.location.href
-                  }
-                  
-                  if (navigator.share) {
-                    navigator.share(shareData).catch(() => {
-                      // Fallback to clipboard
-                      navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`)
-                        .then(() => alert('Profile details copied to clipboard!'))
-                        .catch(() => alert('Unable to share or copy'))
-                    })
-                  } else {
-                    // Fallback to clipboard
-                    const text = `${shareData.title}\n${shareData.text}\n${shareData.url}`
-                    navigator.clipboard.writeText(text)
-                      .then(() => alert('Profile details copied to clipboard!'))
-                      .catch(() => alert(text))
-                  }
-                }}
-                className="px-4 py-3 border border-gray-300 hover:bg-gray-50 rounded-lg transition-all flex items-center justify-center"
-                title="Share influencer profile"
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
+              {/* Bio - If Available */}
+              {influencer.bio && (
+                <div className="mb-4">{/* Reduced margin */}
+                  <p className="text-black/70 line-clamp-2 leading-relaxed text-sm">{/* Reduced text size */}
+                    {influencer.bio}
+                  </p>
+                </div>
+              )}
+
+              {/* Platform Stats - Clickable Icons - More compact */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+                {getPlatformStats(influencer).map((stat, idx) => (
+                  <a
+                    key={idx}
+                    href={stat.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${stat.color} rounded-xl p-3 hover:shadow-md transition-all duration-300 transform hover:scale-105 group`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xl group-hover:scale-110 transition-transform duration-300">
+                        {stat.icon}
+                      </span>
+                      <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <div className="font-bold text-sm">{formatFollowers(stat.followers)}</div>
+                    <div className="text-xs opacity-80">{stat.platform}</div>
+                    <div className="text-xs opacity-60 truncate">@{stat.handle}</div>
+                  </a>
+                ))}
+              </div>
+
+              {/* YouTube Enhanced Metrics - More compact */}
+              {influencer.video_count && influencer.total_views && (
+                <div className="bg-red-500/10 backdrop-blur-lg rounded-xl p-3 border border-red-500/20 mb-4">{/* Reduced padding and margin */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <Youtube className="w-4 h-4 text-red-500" />
+                    <span className="text-sm font-semibold text-black">YouTube Analytics</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 text-sm">{/* Reduced gap */}
+                    <div className="text-center">
+                      <div className="font-bold text-red-600">{influencer.video_count}</div>
+                      <div className="text-xs text-red-600">Videos</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-red-600">{formatViews(influencer.total_views)}</div>
+                      <div className="text-xs text-red-600">Total Views</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-red-600">
+                        {Math.round(influencer.total_views / influencer.video_count / 1000)}K
+                      </div>
+                      <div className="text-xs text-red-600">Avg Views</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Category Badge */}
+              {influencer.category && (
+                <div>
+                  <span className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-600 px-3 py-1 rounded-lg text-sm font-semibold border border-blue-500/20">{/* Reduced padding */}
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>{/* Reduced size */}
+                    {influencer.category}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       ))}
     </div>
-  
+
+    {/* Pagination - Updated Design */}
+    {!showSaved && totalPages > 1 && !(user?.subscription_tier === 'free' && results.length >= 5) && (
+      <div className="flex justify-center items-center gap-4 bg-white/60 backdrop-blur-xl rounded-2xl p-6 border border-black/10">
+        <button
+          onClick={() => handleSearch(currentPage - 1)}
+          disabled={currentPage === 1 || searching}
+          className="flex items-center gap-2 px-6 py-3 bg-white/80 backdrop-blur-lg text-black rounded-xl hover:bg-blue-500/10 hover:text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-black/10"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Previous
+        </button>
+        
+        <div className="flex gap-2">
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => handleSearch(i + 1)}
+              disabled={searching}
+              className={`w-12 h-12 rounded-xl font-semibold transition-all duration-300 ${
+                i + 1 === currentPage 
+                  ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg scale-105' 
+                  : 'bg-white/80 backdrop-blur-lg text-black hover:bg-blue-500/10 hover:text-blue-500 border border-black/10'
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+        
+        <button
+          onClick={() => handleSearch(currentPage + 1)}
+          disabled={currentPage === totalPages || searching}
+          className="flex items-center gap-2 px-6 py-3 bg-white/80 backdrop-blur-lg text-black rounded-xl hover:bg-blue-500/10 hover:text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-black/10"
+        >
+          Next
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    )}
+  </>
+)}
+
+{/* Loading State - Updated */}
+{searching && (
+  <div className="flex flex-col items-center justify-center py-16">
+    <div className="relative">
+      <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+      <div className="w-16 h-16 border-4 border-green-500/30 border-t-green-500 rounded-full animate-spin absolute top-0 left-0" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+    </div>
+    <p className="text-black/70 font-semibold mt-6 animate-pulse">Searching Pakistani influencers...</p>
+  </div>
+)}
+
+{/* Empty State - Updated */}
+{!searching && currentResults.length === 0 && (showSaved || query) && (
+  <div className="text-center py-16 bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl border border-black/10">
+    <div className="w-20 h-20 bg-gradient-to-r from-blue-500/20 to-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+      <Search className="w-10 h-10 text-black/60" />
+    </div>
+    <h3 className="text-2xl font-bold text-black mb-3">
+      {showSaved ? 'No saved influencers' : 'No influencers found'}
+    </h3>
+    <p className="text-black/60 mb-6">
+      {showSaved 
+        ? 'Start saving influencers from your search results' 
+        : 'Try adjusting your search terms or filters'
+      }
+    </p>
+  </div>
+)}
+
+{/* Initial State - Updated */}
+{!searching && results.length === 0 && !query && !showSaved && (
+  <div className="text-center py-16 bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl border border-black/10">
+    <h2 className="text-3xl font-bold text-black mb-4">
+      Discover Pakistani Influencers
+    </h2>
+    <p className="text-black/70 mb-8 max-w-xl mx-auto">
+      Search through our database of 1,800+ Pakistani content creators with enhanced YouTube analytics
+    </p>
+    
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+      {[
+        { name: 'Beauty', icon: '💄' },
+        { name: 'Tech', icon: '📱' },
+        { name: 'Gaming', icon: '🎮' },
+        { name: 'YouTube', icon: '🎥' }
+      ].map((category, index) => (
+        <button
+          key={category.name}
+          onClick={() => handleQuickSearch(category.name)}
+          className="p-6 bg-gradient-to-r from-blue-500/5 to-green-500/5 hover:from-blue-500/10 hover:to-green-500/10 rounded-2xl transition-all duration-300 transform hover:scale-105 border border-black/5 animate-fade-in-up"
+          style={{ animationDelay: `${index * 100}ms` }}
+        >
+          <div className="text-3xl mb-3">{category.icon}</div>
+          <div className="font-semibold text-black">{category.name}</div>
+        </button>
+      ))}
+    </div>
+  </div>
+)}
 
 
-            {/* Pagination */}
-            {!showSaved && totalPages > 1 && !(user?.subscription_tier === 'free' && results.length >= 5) && (
-              <div className="flex justify-center items-center gap-4">
-                <button
-                  onClick={() => handleSearch(currentPage - 1)}
-                  disabled={currentPage === 1 || searching}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
-                </button>
-                
-                <div className="flex gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => (
-                    <button
-                      key={i + 1}
-                      onClick={() => handleSearch(i + 1)}
-                      disabled={searching}
-                      className={`w-10 h-10 rounded-lg font-medium ${
-                        i + 1 === currentPage 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-gray-100 hover:bg-gray-200'
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                </div>
-                
-                <button
-                  onClick={() => handleSearch(currentPage + 1)}
-                  disabled={currentPage === totalPages || searching}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-          </>
-        )}
+{/* Details Modal - Add this to your return statement */}
+{selectedInfluencer && (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="bg-white/95 backdrop-blur-xl rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-auto shadow-2xl border border-black/10">
+      <div className="p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-black">Influencer Details</h2>
+          <button
+            onClick={closeDetailsModal}
+            className="p-2 hover:bg-black/10 rounded-xl transition-colors"
+          >
+            <X className="w-6 h-6 text-black/60" />
+          </button>
+        </div>
 
-        {/* Loading State */}
-        {searching && (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-gray-600 font-medium">Searching Pakistani influencers...</p>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!searching && currentResults.length === 0 && (showSaved || query) && (
-          <div className="text-center py-16 bg-white rounded-xl shadow-lg">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-gray-400" />
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <ProfileImage influencer={selectedInfluencer} />
+            <div>
+              <h3 className="text-xl font-bold text-black">
+                {selectedInfluencer.full_name || selectedInfluencer.username}
+              </h3>
+              <p className="text-blue-500 font-medium">@{selectedInfluencer.username}</p>
+              {selectedInfluencer.verified && (
+                <p className="text-green-500 text-sm font-medium">✓ Verified</p>
+              )}
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              {showSaved ? 'No saved influencers' : 'No influencers found'}
-            </h3>
-            <p className="text-gray-600 mb-4">
-              {showSaved 
-                ? 'Start saving influencers from your search results' 
-                : 'Try adjusting your search terms or filters'
-              }
-            </p>
           </div>
-        )}
 
-        {/* Initial State */}
-        {!searching && results.length === 0 && !query && !showSaved && (
-          <div className="text-center py-16 bg-white rounded-xl shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Discover Pakistani Influencers
-            </h2>
-            <p className="text-gray-600 mb-8 max-w-xl mx-auto">
-              Search through our database of 1,800+ Pakistani content creators with enhanced YouTube analytics
-            </p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-              {[
-                { name: 'Beauty', icon: '💄' },
-                { name: 'Tech', icon: '📱' },
-                { name: 'Gaming', icon: '🎮' },
-                { name: 'YouTube', icon: '🎥' }
-              ].map((category) => (
-                <button
-                  key={category.name}
-                  onClick={() => handleQuickSearch(category.name)}
-                  className="p-4 bg-gray-50 hover:bg-blue-50 rounded-lg transition-all"
-                >
-                  <div className="text-2xl mb-2">{category.icon}</div>
-                  <div className="font-medium text-gray-900">{category.name}</div>
-                </button>
+          {selectedInfluencer.bio && (
+            <div>
+              <h4 className="font-semibold text-black mb-2">About</h4>
+              <p className="text-black/70">{selectedInfluencer.bio}</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-4 bg-blue-500/10 rounded-2xl">
+              <div className="text-2xl font-bold text-blue-600">
+                {formatFollowers(selectedInfluencer.total_followers)}
+              </div>
+              <div className="text-sm text-black/60">Total Followers</div>
+            </div>
+            <div className="text-center p-4 bg-green-500/10 rounded-2xl">
+              <div className="text-2xl font-bold text-green-600">
+                {selectedInfluencer.engagement_rate.toFixed(1)}%
+              </div>
+              <div className="text-sm text-black/60">Engagement Rate</div>
+            </div>
+          </div>
+
+          {/* YouTube Analytics Section */}
+          {selectedInfluencer.video_count && selectedInfluencer.total_views && (
+            <div>
+              <h4 className="font-semibold text-black mb-3">YouTube Analytics</h4>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-red-500/10 rounded-2xl">
+                  <div className="text-xl font-bold text-red-600">{selectedInfluencer.video_count}</div>
+                  <div className="text-sm text-black/60">Videos</div>
+                </div>
+                <div className="text-center p-4 bg-red-500/10 rounded-2xl">
+                  <div className="text-xl font-bold text-red-600">{formatViews(selectedInfluencer.total_views)}</div>
+                  <div className="text-sm text-black/60">Total Views</div>
+                </div>
+                <div className="text-center p-4 bg-red-500/10 rounded-2xl">
+                  <div className="text-xl font-bold text-red-600">
+                    {selectedInfluencer.video_count ? Math.round(selectedInfluencer.total_views / selectedInfluencer.video_count / 1000) + 'K' : 'N/A'}
+                  </div>
+                  <div className="text-sm text-black/60">Avg Views</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <h4 className="font-semibold text-black mb-3">Platform Breakdown</h4>
+            <div className="space-y-2">
+              {getPlatformStats(selectedInfluencer).map((stat, idx) => (
+                <div key={idx} className={`flex justify-between items-center p-3 rounded-xl ${stat.color}`}>
+                  <div className="flex items-center gap-2">
+                    <span>{stat.icon}</span>
+                    <span className="font-medium text-black">{stat.platform}</span>
+                    {stat.extraInfo && <span className="text-xs text-black/60">({stat.extraInfo})</span>}
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-black">{formatFollowers(stat.followers)}</div>
+                    <a 
+                      href={stat.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs hover:underline flex items-center gap-1 text-blue-500"
+                    >
+                      Visit <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Details Modal */}
-      {selectedInfluencer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Influencer Details</h2>
-                <button
-                  onClick={closeDetailsModal}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  <X className="w-5 h-5 text-gray-500" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <ProfileImage influencer={selectedInfluencer} />
-                  <div>
-                    <h3 className="text-xl font-bold">
-                      {selectedInfluencer.full_name || selectedInfluencer.username}
-                    </h3>
-                    <p className="text-blue-600">@{selectedInfluencer.username}</p>
-                    {selectedInfluencer.verified && (
-                      <p className="text-green-600 text-sm">✓ Verified</p>
-                    )}
-                  </div>
-                </div>
-
-                {selectedInfluencer.bio && (
-                  <div>
-                    <h4 className="font-semibold mb-2">About</h4>
-                    <p className="text-gray-600">{selectedInfluencer.bio}</p>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">
-                      {formatFollowers(selectedInfluencer.total_followers)}
-                    </div>
-                    <div className="text-sm text-gray-600">Total Followers</div>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {selectedInfluencer.engagement_rate.toFixed(1)}%
-                    </div>
-                    <div className="text-sm text-gray-600">Engagement Rate</div>
-                  </div>
-                </div>
-
-                {/* YouTube Analytics Section */}
-                {selectedInfluencer.video_count && selectedInfluencer.total_views && (
-                  <div>
-                    <h4 className="font-semibold mb-3">YouTube Analytics</h4>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="text-center p-4 bg-red-50 rounded-lg">
-                        <div className="text-xl font-bold text-red-600">{selectedInfluencer.video_count}</div>
-                        <div className="text-sm text-gray-600">Videos</div>
-                      </div>
-                      <div className="text-center p-4 bg-red-50 rounded-lg">
-                        <div className="text-xl font-bold text-red-600">{formatViews(selectedInfluencer.total_views)}</div>
-                        <div className="text-sm text-gray-600">Total Views</div>
-                      </div>
-                      <div className="text-center p-4 bg-red-50 rounded-lg">
-                        <div className="text-xl font-bold text-red-600">
-                          {selectedInfluencer.video_count ? Math.round(selectedInfluencer.total_views / selectedInfluencer.video_count / 1000) + 'K' : 'N/A'}
-                        </div>
-                        <div className="text-sm text-gray-600">Avg Views</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <h4 className="font-semibold mb-3">Platform Breakdown</h4>
-                  <div className="space-y-2">
-                    {getPlatformStats(selectedInfluencer).map((stat, idx) => (
-                      <div key={idx} className={`flex justify-between items-center p-3 rounded-lg ${stat.color}`}>
-                        <div className="flex items-center gap-2">
-                          <span>{stat.icon}</span>
-                          <span className="font-medium">{stat.platform}</span>
-                          {stat.extraInfo && <span className="text-xs text-gray-500">({stat.extraInfo})</span>}
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold">{formatFollowers(stat.followers)}</div>
-                          <a 
-                            href={stat.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-xs hover:underline flex items-center gap-1"
-                          >
-                            Visit <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {selectedInfluencer.email && (
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <h4 className="font-semibold text-green-800 mb-2">Contact</h4>
-                    <a 
-                      href={`mailto:${selectedInfluencer.email}`}
-                      className="text-green-700 hover:underline"
-                    >
-                      {selectedInfluencer.email}
-                    </a>
-                  </div>
-                )}
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleSaveInfluencer(selectedInfluencer)}
-                    className={`flex-1 py-2 px-4 rounded-lg font-medium ${
-                      savedInfluencers.some(saved => saved.id === selectedInfluencer.id)
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 hover:bg-green-100 hover:text-green-700'
-                    }`}
-                  >
-                    {savedInfluencers.some(saved => saved.id === selectedInfluencer.id) ? 'Saved ✓' : 'Save'}
-                  </button>
-                  <button
-                    onClick={() => {
-                      const text = `${selectedInfluencer.full_name || selectedInfluencer.username} - ${formatFollowers(selectedInfluencer.total_followers)} followers - ${selectedInfluencer.engagement_rate.toFixed(1)}% engagement`
-                      navigator.clipboard.writeText(text).catch(() => alert(`Copied: ${text}`))
-                    }}
-                    className="px-4 py-2 border hover:bg-gray-50 rounded-lg"
-                  >
-                    Copy Details
-                  </button>
-                </div>
-              </div>
+          {selectedInfluencer.email && (
+            <div className="p-4 bg-green-500/10 rounded-2xl">
+              <h4 className="font-semibold text-green-600 mb-2">Contact</h4>
+              <a 
+                href={`mailto:${selectedInfluencer.email}`}
+                className="text-green-600 hover:underline font-medium"
+              >
+                {selectedInfluencer.email}
+              </a>
             </div>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => handleSaveInfluencer(selectedInfluencer)}
+              className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all ${
+                savedInfluencers.some(saved => saved.id === selectedInfluencer.id)
+                  ? 'bg-green-500/20 text-green-600'
+                  : 'bg-black/10 hover:bg-green-500/10 hover:text-green-600 text-black'
+              }`}
+            >
+              {savedInfluencers.some(saved => saved.id === selectedInfluencer.id) ? 'Saved ✓' : 'Save'}
+            </button>
+            <button
+              onClick={() => {
+                const text = `${selectedInfluencer.full_name || selectedInfluencer.username} - ${formatFollowers(selectedInfluencer.total_followers)} followers - ${selectedInfluencer.engagement_rate.toFixed(1)}% engagement`
+                navigator.clipboard.writeText(text).then(() => alert('Profile details copied to clipboard!')).catch(() => alert(`Copied: ${text}`))
+              }}
+              className="px-4 py-3 border border-black/20 hover:bg-black/5 rounded-xl text-black font-medium transition-all"
+            >
+              Copy Details
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
-  )
+  </div>
+)}
+</div>
+</div>
+ )
 }
