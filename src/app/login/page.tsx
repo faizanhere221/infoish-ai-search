@@ -41,19 +41,19 @@ export default function LoginPage() {
   }, [])
 
   const checkBackendStatus = async () => {
-  try {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
-    const response = await fetch(`${backendUrl}/health`)
-    if (response.ok) {
-      const data = await response.json()
-      setBackendStatus(data.status === 'healthy' ? 'online' : 'offline')  // Changed 'backend' to 'status'
-    } else {
-      setBackendStatus('error')
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+      const response = await fetch(`${backendUrl}/health`)
+      if (response.ok) {
+        const data = await response.json()
+        setBackendStatus(data.status === 'healthy' ? 'online' : 'offline')
+      } else {
+        setBackendStatus('error')
+      }
+    } catch (error) {
+      setBackendStatus('offline')
     }
-  } catch (error) {
-    setBackendStatus('offline')
   }
-}
 
   const checkExistingAuth = async () => {
     const token = localStorage.getItem('auth_token')
@@ -89,6 +89,9 @@ export default function LoginPage() {
         callback: handleGoogleResponse,
         auto_select: false,
         cancel_on_tap_outside: true,
+        // iOS Safari compatibility
+        use_fedcm_for_prompt: true,
+        itp_support: true,
       })
       setGoogleLoaded(true)
     } else if (!GOOGLE_CLIENT_ID) {
@@ -101,7 +104,6 @@ export default function LoginPage() {
     setIsSigningIn(true)
     
     try {
-      // Use frontend API route instead of direct backend call
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
       const authResponse = await fetch(`${backendUrl}/auth/google`, {
         method: 'POST',
@@ -136,13 +138,30 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = () => {
     if (window.google && googleLoaded) {
-      window.google.accounts.id.prompt()
+      // iOS Safari specific handling
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
+      
+      if (isIOS || isSafari) {
+        // Use redirect flow for iOS Safari instead of popup
+        window.google.accounts.id.renderButton(
+          document.getElementById('google-signin-button'),
+          {
+            theme: "outline",
+            size: "large",
+            width: "100%",
+            text: "continue_with",
+            shape: "rectangular"
+          }
+        )
+      } else {
+        window.google.accounts.id.prompt()
+      }
     } else {
       setError('Google Sign-In not loaded. Please refresh the page.')
     }
   }
 
-  // Enhanced developer testing with multiple test users
   const handleTestLogin = async (userType: 'free' | 'premium' = 'free') => {
     if (!isDevelopment) {
       setError('Test login only available in development mode')
@@ -158,7 +177,6 @@ export default function LoginPage() {
     }
     
     try {
-      // Use frontend API route for test login too
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
       const response = await fetch(`${backendUrl}/auth/google`, {
         method: 'POST',
@@ -220,10 +238,10 @@ Timestamp: ${data.timestamp}
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Checking authentication...</p>
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-black/70">Checking authentication...</p>
         </div>
       </div>
     )
@@ -240,27 +258,29 @@ Timestamp: ${data.timestamp}
         />
       )}
 
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <div className="max-w-md w-full mx-4">
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+      <div className="min-h-screen flex items-center justify-center bg-white px-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-black/10 p-8">
+            
+            {/* Header Section */}
             <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-2xl">🇵🇰</span>
+              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-green-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <span className="text-white font-bold text-3xl">I</span>
               </div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
-                Pakistani Influencer Search
+              <h1 className="text-3xl font-bold text-black mb-2">
+                Welcome to Infoish
               </h1>
-              <p className="text-gray-600">
+              <p className="text-black/70">
                 Sign in to access our database of 1,800+ Pakistani content creators
               </p>
             </div>
 
-            {/* Backend Status */}
-            <div className={`mb-6 p-4 rounded-lg border ${
-              backendStatus === 'online' ? 'bg-green-50 border-green-200' :
-              backendStatus === 'offline' ? 'bg-red-50 border-red-200' :
-              backendStatus === 'error' ? 'bg-yellow-50 border-yellow-200' :
-              'bg-gray-50 border-gray-200'
+            {/* Backend Status - Compact Design */}
+            <div className={`mb-6 p-4 rounded-2xl border ${
+              backendStatus === 'online' ? 'bg-green-500/10 border-green-500/20' :
+              backendStatus === 'offline' ? 'bg-red-500/10 border-red-500/20' :
+              backendStatus === 'error' ? 'bg-yellow-500/10 border-yellow-500/20' :
+              'bg-black/5 border-black/10'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -268,13 +288,13 @@ Timestamp: ${data.timestamp}
                     backendStatus === 'online' ? 'bg-green-500' :
                     backendStatus === 'offline' ? 'bg-red-500' :
                     backendStatus === 'error' ? 'bg-yellow-500' :
-                    'bg-gray-400 animate-pulse'
+                    'bg-black/50 animate-pulse'
                   }`}></div>
                   <span className={`text-sm font-medium ${
-                    backendStatus === 'online' ? 'text-green-700' :
-                    backendStatus === 'offline' ? 'text-red-700' :
-                    backendStatus === 'error' ? 'text-yellow-700' :
-                    'text-gray-700'
+                    backendStatus === 'online' ? 'text-green-600' :
+                    backendStatus === 'offline' ? 'text-red-600' :
+                    backendStatus === 'error' ? 'text-yellow-600' :
+                    'text-black/70'
                   }`}>
                     API: {backendStatus === 'online' ? 'Connected' : 
                          backendStatus === 'offline' ? 'Offline' :
@@ -284,7 +304,7 @@ Timestamp: ${data.timestamp}
                 {backendStatus !== 'online' && (
                   <button
                     onClick={testBackendConnection}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                    className="text-blue-500 hover:text-green-500 text-sm font-medium transition-colors"
                   >
                     Test API
                   </button>
@@ -292,163 +312,132 @@ Timestamp: ${data.timestamp}
               </div>
             </div>
 
-            <div className="space-y-4">
-              {/* Google Sign In Button */}
+            <div className="space-y-6">
+              {/* Google Sign In Section */}
               {backendStatus === 'online' && GOOGLE_CLIENT_ID ? (
-                <div className="space-y-3">
-                  <button
-                    onClick={handleGoogleSignIn}
-                    disabled={isSigningIn || !googleLoaded}
-                    className="w-full bg-white hover:bg-gray-50 text-gray-700 py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-3 transition-colors border border-gray-300 disabled:opacity-50"
-                  >
-                    {isSigningIn ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span>Signing in...</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                        </svg>
-                        Continue with Google
-                      </>
-                    )}
-                  </button>
+                <div className="space-y-4">
+                  {/* Custom Google Button for better iOS compatibility */}
+                  <div id="google-signin-button" className="w-full">
+                    <button
+                      onClick={handleGoogleSignIn}
+                      disabled={isSigningIn || !googleLoaded}
+                      className="w-full bg-white hover:bg-black/5 text-black py-4 px-6 rounded-2xl font-medium flex items-center justify-center gap-3 transition-all duration-300 border-2 border-black/10 hover:border-blue-500/30 disabled:opacity-50 shadow-lg hover:shadow-xl"
+                    >
+                      {isSigningIn ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                          <span>Signing in...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-6 h-6" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                          </svg>
+                          Continue with Google
+                        </>
+                      )}
+                    </button>
+                  </div>
 
-                  {/* Developer Test Login - Multiple Options */}
+                  {/* Developer Test Login */}
                   {isDevelopment && (
-                    <div className="space-y-2">
-                      <div className="text-xs text-gray-500 text-center">Development Mode - Test Users:</div>
-                      <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-3">
+                      <div className="text-xs text-black/60 text-center font-medium">Development Mode</div>
+                      <div className="grid grid-cols-2 gap-3">
                         <button
                           onClick={() => handleTestLogin('free')}
                           disabled={isSigningIn}
-                          className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded-lg text-sm transition-colors border-2 border-dashed border-gray-300"
+                          className="bg-black/5 hover:bg-black/10 text-black py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 border-2 border-dashed border-black/20"
                         >
                           Test Free User
                         </button>
                         <button
                           onClick={() => handleTestLogin('premium')}
                           disabled={isSigningIn}
-                          className="bg-green-100 hover:bg-green-200 text-green-700 py-2 px-3 rounded-lg text-sm transition-colors border-2 border-dashed border-green-300"
+                          className="bg-green-500/10 hover:bg-green-500/20 text-green-600 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 border-2 border-dashed border-green-500/30"
                         >
-                          Test Premium User
+                          Test Premium
                         </button>
                       </div>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center text-gray-500">
+                <div className="w-full p-6 border-2 border-dashed border-black/20 rounded-2xl text-center text-black/60 bg-black/5">
                   {!GOOGLE_CLIENT_ID ? 'Google OAuth not configured' : 'Login unavailable (API offline)'}
                 </div>
               )}
 
               {/* Error Message */}
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                  <div className="font-medium mb-1">Authentication Error:</div>
+                <div className="bg-red-500/10 border border-red-500/20 text-red-600 px-6 py-4 rounded-2xl text-sm">
+                  <div className="font-semibold mb-2">Authentication Error:</div>
                   <div>{error}</div>
                   {!GOOGLE_CLIENT_ID && (
-                    <div className="mt-2 text-xs">
+                    <div className="mt-3 text-xs text-red-500">
                       Add NEXT_PUBLIC_GOOGLE_CLIENT_ID to your .env.local file
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Backend Instructions */}
+              {/* Setup Instructions - Compact */}
               {backendStatus === 'offline' && (
-                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm">
-                  <div className="font-medium mb-2">Setup Required</div>
-                  <div className="space-y-1">
-                    <div>To use this app, run these commands:</div>
-                    <div className="space-y-1 text-xs">
-                      <div className="font-mono bg-blue-100 px-2 py-1 rounded">cd vector-backend</div>
-                      <div className="font-mono bg-blue-100 px-2 py-1 rounded">python setup_auth_database.py</div>
-                      <div className="font-mono bg-blue-100 px-2 py-1 rounded">python main.py</div>
-                      <div className="font-mono bg-blue-100 px-2 py-1 rounded">npm run dev (in another terminal)</div>
-                    </div>
+                <div className="bg-blue-500/10 border border-blue-500/20 text-blue-600 px-6 py-4 rounded-2xl text-sm">
+                  <div className="font-semibold mb-3">Setup Required</div>
+                  <div className="space-y-2 text-xs">
+                    <div className="font-mono bg-blue-500/10 px-3 py-2 rounded-lg">cd vector-backend && python main.py</div>
+                    <div className="font-mono bg-blue-500/10 px-3 py-2 rounded-lg">npm run dev</div>
                   </div>
                 </div>
               )}
 
-              {/* Configuration Help */}
-              {backendStatus === 'online' && !GOOGLE_CLIENT_ID && (
-                <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg text-sm">
-                  <div className="font-medium mb-2">Google OAuth Setup Required</div>
-                  <div className="space-y-1 text-xs">
-                    <div>1. Get Google OAuth credentials from console.cloud.google.com</div>
-                    <div>2. Add to .env.local: NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-id</div>
-                    <div>3. Restart the development server</div>
-                    <div className="mt-2">
-                      <strong>For now:</strong> Use "Test Free User" button to try the platform
-                    </div>
+              {/* Features Preview - Modern Grid */}
+              <div className="bg-gradient-to-r from-blue-500/5 to-green-500/5 rounded-2xl p-6 border border-blue-500/10">
+                <h3 className="font-bold text-black text-lg mb-4 text-center">What's included:</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-sm text-black/80">15 free searches</span>
                   </div>
-                </div>
-              )}
-
-              {/* Features Preview */}
-              <div className="border-t pt-6">
-                <h3 className="font-semibold text-gray-900 mb-4">What you'll get:</h3>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-gray-600">15 free searches/month</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-sm text-black/80">1,800+ creators</span>
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-gray-600">1,800+ verified creators</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span className="text-sm text-black/80">Advanced filters</span>
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-gray-600">Advanced filters</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-gray-600">YouTube analytics</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                    <span className="text-gray-600">Save favorites</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                    <span className="text-gray-600">Export data</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span className="text-sm text-black/80">Export data</span>
                   </div>
                 </div>
               </div>
 
-              {/* Upgrade CTA */}
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
-                <div className="text-center">
-                  <div className="font-semibold text-green-800 mb-1">Ready for more?</div>
-                  <div className="text-sm text-green-700 mb-2">
-                    Upgrade to Premium for unlimited searches
-                  </div>
-                  <div className="text-lg font-bold text-green-600">
-                    Only PKR 2,999/month
-                  </div>
-                  <button
-                    onClick={() => router.push('/pricing')}
-                    className="mt-2 text-green-600 hover:text-green-700 text-sm font-medium hover:underline"
-                  >
-                    View Pricing →
-                  </button>
-                </div>
+              {/* Upgrade CTA - Compact */}
+              <div className="bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl p-6 text-white text-center">
+                <div className="font-bold text-lg mb-2">Ready for unlimited access?</div>
+                <div className="text-white/90 mb-4">Only PKR 2,999/month</div>
+                <button
+                  onClick={() => router.push('/pricing')}
+                  className="bg-white/20 hover:bg-white/30 backdrop-blur-lg text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 border border-white/20"
+                >
+                  View Pricing Plans
+                </button>
               </div>
             </div>
           </div>
 
-          <div className="text-center mt-6 text-sm text-gray-500">
+          {/* Terms Footer */}
+          <div className="text-center mt-8 text-sm text-black/60">
             By signing in, you agree to our{' '}
-            <a href="/terms" className="text-green-600 hover:underline">Terms of Service</a>
+            <a href="/terms" className="text-blue-500 hover:text-green-500 transition-colors">Terms of Service</a>
             {' '}and{' '}
-            <a href="/privacy" className="text-green-600 hover:underline">Privacy Policy</a>
+            <a href="/privacy" className="text-blue-500 hover:text-green-500 transition-colors">Privacy Policy</a>
           </div>
         </div>
       </div>
