@@ -428,12 +428,12 @@ function DemoSection() {
   )
 }
 
-// Pricing Preview Section - Fixed Mobile Background
+// Pricing Preview Section - 4 Color Design
 function PricingPreviewSection() {
   const router = useRouter()
   
   return (
-    <section className="py-24 bg-white sm:bg-gradient-to-br sm:from-white sm:via-blue-50/20 sm:to-green-50/20 relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-br from-white via-blue-50/30 to-green-50/30 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6">
@@ -446,7 +446,7 @@ function PricingPreviewSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {/* Free Plan */}
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
             <div className="text-center">
               <h3 className="text-2xl font-bold text-black mb-2">Free</h3>
               <div className="text-4xl font-bold text-black mb-4">PKR 0</div>
@@ -469,7 +469,7 @@ function PricingPreviewSection() {
               
               <button
                 onClick={() => router.push('/login')}
-                className="w-full bg-white/80 hover:bg-white backdrop-blur-lg border border-black/20 hover:border-blue-500/50 text-black font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:shadow-lg"
+                className="w-full bg-white/60 hover:bg-white backdrop-blur-lg border border-black/20 hover:border-blue-500/50 text-black font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:shadow-lg"
               >
                 Start Free
               </button>
@@ -477,7 +477,7 @@ function PricingPreviewSection() {
           </div>
 
           {/* Starter Plan */}
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-blue-500 relative md:transform md:scale-105 hover:scale-110 transition-all duration-300">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-blue-500 relative transform scale-105 hover:scale-110 transition-all duration-300">
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
               <span className="bg-gradient-to-r from-blue-500 to-green-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
                 Most Popular
@@ -518,7 +518,7 @@ function PricingPreviewSection() {
           </div>
 
           {/* Pro Plan */}
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
             <div className="text-center">
               <h3 className="text-2xl font-bold text-black mb-2">Pro</h3>
               <div className="text-4xl font-bold text-black mb-1">PKR 6,999</div>
@@ -636,7 +636,11 @@ function FinalCTASection() {
   )
 }
 
-// User Dashboard Section (for authenticated users)
+
+
+
+
+// User Dashboard Section (for authenticated users) - Updated Design
 function UserDashboardSection({ user }: { user: User }) {
   const router = useRouter()
 
@@ -647,102 +651,159 @@ function UserDashboardSection({ user }: { user: User }) {
   }
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-16 sm:py-24">
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="space-y-12">
-          {/* User-specific greeting */}
-          <div className="relative bg-white/90 backdrop-blur-md rounded-3xl p-8 max-w-4xl mx-auto border border-white/50 shadow-xl">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
+    <div className="relative overflow-hidden bg-white py-8 sm:py-16">
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="space-y-6 sm:space-y-8">
+          
+          {/* User Dashboard Card - Compact */}
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-5 sm:p-6 max-w-4xl mx-auto border border-black/10 shadow-xl">
+            
+            {/* Header Section - Fixed Layout */}
+            <div className="flex flex-col gap-4 mb-6">
+              {/* User Info Row */}
+              <div className="flex items-center gap-3">
                 {user.profile_picture ? (
                   <img
                     src={user.profile_picture}
                     alt={user.full_name || 'User'}
-                    className="w-20 h-20 rounded-2xl border-4 border-gradient-to-r from-green-300 to-emerald-300 object-cover shadow-lg"
+                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 border-blue-500/30 object-cover shadow-lg"
                   />
                 ) : (
-                  <div className="w-20 h-20 bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-xl flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg">
                     {(user.full_name || user.email).charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div className="text-left">
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                <div className="flex-1">
+                  <h2 className="text-lg sm:text-xl font-bold text-black mb-1">
                     Welcome back, {user.full_name?.split(' ')[0] || user.email.split('@')[0]}!
                   </h2>
-                  <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
-                    user.subscription_tier === 'developer' ? 'bg-green-100 text-green-800' :
-                    user.subscription_tier === 'pro' ? 'bg-purple-100 text-purple-800' :
-                    user.subscription_tier === 'starter' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold border ${
+                    user.subscription_tier === 'developer' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
+                    user.subscription_tier === 'pro' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                    user.subscription_tier === 'starter' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                    'bg-black/10 text-black border-black/20'
                   }`}>
-                    {user.subscription_tier === 'developer' ? 'Developer Account' :
-                     user.subscription_tier === 'pro' ? 'Pro Account' :
-                     user.subscription_tier === 'starter' ? 'Starter Account' :
-                     'Free Account'}
+                    <div className={`w-1.5 h-1.5 rounded-full ${
+                      user.subscription_tier === 'developer' ? 'bg-green-500' :
+                      user.subscription_tier === 'pro' ? 'bg-blue-500' :
+                      user.subscription_tier === 'starter' ? 'bg-blue-500' :
+                      'bg-black'
+                    }`}></div>
+                    {user.subscription_tier === 'developer' ? 'Developer' :
+                     user.subscription_tier === 'pro' ? 'Pro' :
+                     user.subscription_tier === 'starter' ? 'Starter' :
+                     'Free'} Account
                   </span>
                 </div>
               </div>
               
+              {/* CTA Button Row - Full Width on Mobile */}
               <button
                 onClick={() => router.push('/search')}
                 disabled={getSearchesRemaining() === 0 && user.subscription_tier === 'free'}
-                className={`px-6 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
+                className={`w-full px-5 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
                   getSearchesRemaining() === 0 && user.subscription_tier === 'free'
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl'
+                    ? 'bg-black/20 text-black/50 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white'
                 }`}
               >
-                {getSearchesRemaining() === 0 && user.subscription_tier === 'free' ? 'Limit Reached' : 'Start Searching'}
+                {getSearchesRemaining() === 0 && user.subscription_tier === 'free' ? 'Limit Reached - Upgrade to Continue' : 'Start Searching Pakistani Influencers'}
               </button>
             </div>
 
-            {/* Usage Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 text-center border border-blue-200/50">
-                <div className="text-3xl font-bold text-blue-600 mb-2">
+            {/* Usage Statistics - Compact Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              
+              {/* Searches This Month */}
+              <div className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 rounded-xl p-4 text-center border border-blue-500/20 backdrop-blur-lg">
+                <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-1">
                   {user.subscription_tier === 'pro' || user.subscription_tier === 'developer' ? 
                     user.monthly_searches : 
                     `${user.monthly_searches}/${user.search_limit}`
                   }
                 </div>
-                <div className="text-sm text-blue-700 font-medium">Searches This Month</div>
+                <div className="text-xs text-blue-600 font-medium">Searches This Month</div>
               </div>
 
+              {/* Searches Remaining - Only show for limited plans */}
               {(user.subscription_tier === 'free' || user.subscription_tier === 'starter') && (
-                <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl p-6 text-center border border-green-200/50">
-                  <div className="text-3xl font-bold text-green-600 mb-2">
+                <div className="bg-gradient-to-br from-green-500/5 to-green-500/10 rounded-xl p-4 text-center border border-green-500/20 backdrop-blur-lg">
+                  <div className="text-xl sm:text-2xl font-bold text-green-600 mb-1">
                     {getSearchesRemaining()}
                   </div>
-                  <div className="text-sm text-green-700 font-medium">Searches Remaining</div>
+                  <div className="text-xs text-green-600 font-medium">Searches Remaining</div>
                 </div>
               )}
 
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 text-center border border-purple-200/50">
-                <div className="text-3xl mb-2">
+              {/* Account Type */}
+              <div className={`bg-gradient-to-br rounded-xl p-4 text-center border backdrop-blur-lg ${
+                user.subscription_tier === 'pro' || user.subscription_tier === 'developer' 
+                  ? 'from-green-500/5 to-green-500/10 border-green-500/20' 
+                  : 'from-black/5 to-black/10 border-black/20'
+              } ${(user.subscription_tier === 'free' || user.subscription_tier === 'starter') ? '' : 'lg:col-span-1 sm:col-span-2'}`}>
+                <div className="text-xl sm:text-2xl mb-1">
                   {user.subscription_tier === 'developer' ? '🔧' :
                    user.subscription_tier === 'pro' ? '👑' :
                    user.subscription_tier === 'starter' ? '⚡' : '🆓'}
                 </div>
-                <div className="text-sm text-purple-700 font-medium">
+                <div className={`text-xs font-medium ${
+                  user.subscription_tier === 'pro' || user.subscription_tier === 'developer' 
+                    ? 'text-green-600' 
+                    : 'text-black/80'
+                }`}>
                   {user.subscription_tier.charAt(0).toUpperCase() + user.subscription_tier.slice(1)} Plan
                 </div>
               </div>
             </div>
+
+            {/* Upgrade CTA for Free Users - Compact */}
+            {user.subscription_tier === 'free' && (
+              <div className="mt-5 bg-gradient-to-r from-blue-500/10 to-green-500/10 rounded-xl p-4 border border-blue-500/20">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div>
+                    <h3 className="font-bold text-black mb-1 text-sm">Ready for unlimited searches?</h3>
+                    <p className="text-black/70 text-xs">Upgrade to unlock all features and remove search limits.</p>
+                  </div>
+                  <button
+                    onClick={() => router.push('/pricing')}
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-5 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg text-sm"
+                  >
+                    Upgrade Now
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Main headline for authenticated users */}
-          <div className="space-y-4">
-            <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 text-balance">
-              
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Influencer Marketing 
+          {/* Main headline for authenticated users - Mobile Optimized */}
+          <div className="text-center space-y-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-black leading-tight">
+              Find the{' '}
+              <span className="bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">
+                Perfect Influencers
               </span>
               <br />
-              Powered by AI
+              With AI-Powered Search
             </h1>
-            <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto text-balance">
+            <p className="text-lg sm:text-xl text-black/70 max-w-3xl mx-auto leading-relaxed">
               Search through 1,800+ verified Pakistani content creators with your personalized dashboard.
             </p>
+            
+            {/* Quick Action Buttons - Mobile Responsive */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <button
+                onClick={() => router.push('/search')}
+                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                Start Searching Now
+              </button>
+              <button
+                onClick={() => router.push('/pricing')}
+                className="bg-white/80 backdrop-blur-lg hover:bg-white text-black px-8 py-4 rounded-2xl font-semibold transition-all duration-300 border border-black/10 hover:border-blue-500/30"
+              >
+                View Plans
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -750,7 +811,7 @@ function UserDashboardSection({ user }: { user: User }) {
   )
 }
 
-// Main page component
+// Main page component - Updated
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -819,7 +880,14 @@ export default function HomePage() {
   }
 
   if (isLoading) {
-    return <LoadingFallback />
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-black/70">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
