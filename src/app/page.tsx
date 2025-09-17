@@ -428,12 +428,12 @@ function DemoSection() {
   )
 }
 
-// Pricing Preview Section - 4 Color Design
+// Pricing Preview Section - Fixed Mobile Background
 function PricingPreviewSection() {
   const router = useRouter()
   
   return (
-    <section className="py-24 bg-gradient-to-br from-white via-blue-50/30 to-green-50/30 relative overflow-hidden">
+    <section className="py-24 bg-white sm:bg-gradient-to-br sm:from-white sm:via-blue-50/20 sm:to-green-50/20 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6">
@@ -446,7 +446,7 @@ function PricingPreviewSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {/* Free Plan */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
             <div className="text-center">
               <h3 className="text-2xl font-bold text-black mb-2">Free</h3>
               <div className="text-4xl font-bold text-black mb-4">PKR 0</div>
@@ -469,7 +469,7 @@ function PricingPreviewSection() {
               
               <button
                 onClick={() => router.push('/login')}
-                className="w-full bg-white/60 hover:bg-white backdrop-blur-lg border border-black/20 hover:border-blue-500/50 text-black font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:shadow-lg"
+                className="w-full bg-white/80 hover:bg-white backdrop-blur-lg border border-black/20 hover:border-blue-500/50 text-black font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:shadow-lg"
               >
                 Start Free
               </button>
@@ -477,7 +477,7 @@ function PricingPreviewSection() {
           </div>
 
           {/* Starter Plan */}
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-blue-500 relative transform scale-105 hover:scale-110 transition-all duration-300">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-blue-500 relative md:transform md:scale-105 hover:scale-110 transition-all duration-300">
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
               <span className="bg-gradient-to-r from-blue-500 to-green-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
                 Most Popular
@@ -518,7 +518,7 @@ function PricingPreviewSection() {
           </div>
 
           {/* Pro Plan */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
             <div className="text-center">
               <h3 className="text-2xl font-bold text-black mb-2">Pro</h3>
               <div className="text-4xl font-bold text-black mb-1">PKR 6,999</div>
