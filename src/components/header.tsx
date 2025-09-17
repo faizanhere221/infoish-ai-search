@@ -15,11 +15,6 @@ interface UserProfile {
   search_limit: number
 }
 
-
-
-
-
-
 export default function Header() {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -31,65 +26,61 @@ export default function Header() {
   useEffect(() => {
     checkAuthStatus()
     
-    // Add scroll listener
+    // Add scroll listener for glass effect
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
+      setIsScrolled(window.scrollY > 20)
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-
   useEffect(() => {
-  // Listen for search completion events to refresh header data
-  const handleSearchUpdate = () => {
-    // Refresh user data when search completes
-    const refreshHeaderData = async () => {
-      try {
-        const token = localStorage.getItem('auth_token')
-        if (!token) return
+    // Listen for search completion events
+    const handleSearchUpdate = () => {
+      const refreshHeaderData = async () => {
+        try {
+          const token = localStorage.getItem('auth_token')
+          if (!token) return
 
-        const backendUrl = process.env.NODE_ENV === 'production' 
-          ? 'https://infoish-ai-search-production.up.railway.app' 
-          : 'http://127.0.0.1:8000'
+          const backendUrl = process.env.NODE_ENV === 'production' 
+            ? 'https://infoish-ai-search-production.up.railway.app' 
+            : 'http://127.0.0.1:8000'
 
-        const response = await fetch(`${backendUrl}/auth/me`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        })
-
-        if (response.ok) {
-          const userData = await response.json()
-          setUser({
-            id: userData.id,
-            email: userData.email,
-            full_name: userData.full_name,
-            profile_picture: userData.profile_picture,
-            subscription_tier: userData.subscription_tier,
-            monthly_searches: userData.monthly_searches,
-            search_limit: userData.search_limit
+          const response = await fetch(`${backendUrl}/auth/me`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
           })
+
+          if (response.ok) {
+            const userData = await response.json()
+            setUser({
+              id: userData.id,
+              email: userData.email,
+              full_name: userData.full_name,
+              profile_picture: userData.profile_picture,
+              subscription_tier: userData.subscription_tier,
+              monthly_searches: userData.monthly_searches,
+              search_limit: userData.search_limit
+            })
+          }
+        } catch (error) {
+          console.error('Failed to refresh header data:', error)
         }
-      } catch (error) {
-        console.error('Failed to refresh header data:', error)
       }
+      refreshHeaderData()
     }
 
-    refreshHeaderData()
-  }
-
-  window.addEventListener('searchCompleted', handleSearchUpdate)
-  
-  return () => {
-    window.removeEventListener('searchCompleted', handleSearchUpdate)
-  }
-}, [])
+    window.addEventListener('searchCompleted', handleSearchUpdate)
+    return () => {
+      window.removeEventListener('searchCompleted', handleSearchUpdate)
+    }
+  }, [])
 
   const checkAuthStatus = async () => {
     try {
-      const token = localStorage.getItem('auth_token') // Fixed: use 'auth_token' not 'jwt_token'
+      const token = localStorage.getItem('auth_token')
       if (!token) {
         setIsLoading(false)
         return
@@ -163,15 +154,15 @@ export default function Header() {
   const getTierBadgeColor = () => {
     switch (user?.subscription_tier) {
       case 'free':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-white/20 text-black border border-black/10'
       case 'starter':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-500/20 text-blue-600 border border-blue-500/20'
       case 'pro':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-green-500/20 text-green-600 border border-green-500/20'
       case 'developer':
-        return 'bg-green-100 text-green-800'
+        return 'bg-black/20 text-black border border-black/20'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-white/20 text-black border border-black/10'
     }
   }
 
@@ -190,24 +181,24 @@ export default function Header() {
 
   if (isLoading) {
     return (
-      <header className={`sticky top-0 z-50 transition-all duration-300 ${
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled 
-          ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50' 
-          : 'bg-white/90 backdrop-blur-sm border-b border-gray-200/30'
+          ? 'bg-white/80 backdrop-blur-xl shadow-2xl border-b border-black/5' 
+          : 'bg-white/60 backdrop-blur-lg border-b border-black/5'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">🇵🇰</span>
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">I</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                  AI Influencer Search Tool
+                <h1 className="text-2xl font-bold text-black">
+                  Infoish
                 </h1>
               </div>
             </div>
-            <div className="animate-pulse bg-gray-200 rounded-full w-10 h-10"></div>
+            <div className="animate-pulse bg-black/10 rounded-full w-12 h-12"></div>
           </div>
         </div>
       </header>
@@ -215,313 +206,315 @@ export default function Header() {
   }
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-300 ${
-      isScrolled 
-        ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50' 
-        : 'bg-white/90 backdrop-blur-sm border-b border-gray-200/30'
-    }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo Section */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative">
-              <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                <span className="text-white font-bold text-lg">🇵🇰</span>
-              </div>
-              {user?.subscription_tier === 'pro' && (
-                <Crown className="w-4 h-4 text-yellow-500 absolute -top-1 -right-1" />
-              )}
-              {user?.subscription_tier === 'developer' && (
-                <Key className="w-4 h-4 text-green-500 absolute -top-1 -right-1" />
-              )}
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                Infoish
-              </h1>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Pakistan AI Influencer Search Tool
-              </p>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-6">
-            <Link href="/dashboard" className="text-gray-700 hover:text-green-600 font-medium transition-colors py-2 px-1">
-              Dashboard
-            </Link>
-
+    <>
+      {/* Glass Morphism Navbar */}
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        isScrolled 
+          ? 'bg-white/85 backdrop-blur-2xl shadow-2xl border-b border-black/10' 
+          : 'bg-white/70 backdrop-blur-xl border-b border-black/5'
+      }`}>
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
             
-            <Link href="/blog" className="text-gray-700 hover:text-green-600 font-medium transition-colors py-2 px-1">
-              Blog
-            </Link>
-            <Link href="/pricing" className="text-gray-700 hover:text-green-600 font-medium transition-colors py-2 px-1">
-              Pricing
-            </Link>
-            <Link href="/about" className="text-gray-700 hover:text-green-600 font-medium transition-colors py-2 px-1">
-              About
-            </Link>
-          </nav>
-
-          {/* User Actions Section */}
-          <div className="flex items-center gap-3">
-            {user ? (
-              <>
-                {/* Contact Us Button - Beautiful Design */}
-                <Link
-                  href="/contact"
-                  className="hidden md:flex items-center gap-2 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium text-sm transition-all shadow-sm hover:shadow-md"
-                >
-                  <Mail className="w-4 h-4" />
-                  <span className="hidden lg:inline">Contact</span>
-                </Link>
-
-                {/* Upgrade Button - Only show for non-unlimited users */}
-                {user.subscription_tier === 'free' && (
-                  <Link
-                    href="/pricing"
-                    className="hidden md:flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg font-medium text-sm shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-                  >
-                    <Crown className="w-4 h-4" />
-                    <span className="hidden lg:inline">Upgrade</span>
-                  </Link>
-                )}
-
-                {/* Search Usage Indicator */}
-                {user.subscription_tier !== 'pro' && user.subscription_tier !== 'developer' && (
-                  <div className="hidden xl:block text-xs text-gray-500 px-2 py-1 bg-gray-50 rounded-full">
-                    {getSearchesRemaining()}/{user.search_limit} left
-                  </div>
-                )}
-
-                {/* User Profile Section */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowDropdown(!showDropdown)}
-                    className="flex items-center gap-3 pl-2 border-l border-gray-200 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors"
-                  >
-                    {user.profile_picture ? (
-                      <img
-                        src={user.profile_picture}
-                        alt={getUserDisplayName()}
-                        className="w-9 h-9 rounded-full border-2 border-green-200 object-cover"
-                      />
-                    ) : (
-                      <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">
-                        <User className="w-5 h-5 text-green-600" />
-                      </div>
-                    )}
-                    <div className="hidden xl:block text-left">
-                      <p className="text-sm font-medium text-gray-900 leading-tight">
-                        {getUserDisplayName()}
-                      </p>
-                      <div className="flex items-center gap-1">
-                        {getTierIcon()}
-                        <p className="text-xs text-gray-500">
-                          {user.subscription_tier === 'developer' ? 'Developer' : user.subscription_tier}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Dropdown Menu - Enhanced */}
-                  {showDropdown && (
-                    <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-100 z-50">
-                      <div className="p-4 border-b border-gray-100">
-                        <div className="flex items-center gap-3 mb-3">
-                          {user.profile_picture ? (
-                            <img
-                              src={user.profile_picture}
-                              alt={getUserDisplayName()}
-                              className="w-12 h-12 rounded-full border-2 border-green-200"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                              <User className="w-6 h-6 text-green-600" />
-                            </div>
-                          )}
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">{getUserDisplayName()}</p>
-                            <p className="text-sm text-gray-500">{user.email}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${getTierBadgeColor()}`}>
-                            {getTierIcon()}
-                            {user.subscription_tier.toUpperCase()} PLAN
-                          </span>
-                          {user.subscription_tier === 'free' && (
-                            <Link
-                              href="/pricing"
-                              className="text-xs text-green-600 hover:text-green-700 font-medium"
-                              onClick={() => setShowDropdown(false)}
-                            >
-                              Upgrade →
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="p-2">
-                        {/* Search Usage */}
-                        <div className="px-3 py-2 mb-2">
-                          <div className="text-xs text-gray-500 mb-1">This Month</div>
-                          <div className="text-sm font-medium text-gray-800">
-                            {getSearchLimitText()}
-                          </div>
-                        </div>
-                        
-                        {/* Menu Items */}
-                        <Link
-                          href="/dashboard"
-                          className="w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg transition-colors"
-                          onClick={() => setShowDropdown(false)}
-                        >
-                          <Settings className="w-4 h-4" />
-                          Dashboard
-                        </Link>
-                        
-                        <Link
-                          href="/contact"
-                          className="w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg transition-colors"
-                          onClick={() => setShowDropdown(false)}
-                        >
-                          <Mail className="w-4 h-4" />
-                          Contact Support
-                        </Link>
-                        
-                        <div className="border-t border-gray-100 mt-2 pt-2">
-                          <button 
-                            className="w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-red-50 rounded-lg text-red-600 transition-colors"
-                            onClick={handleLogout}
-                          >
-                            <X className="w-4 h-4" />
-                            Sign Out
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+            {/* Logo Section - Modern & Clean */}
+            <Link href="/" className="flex items-center gap-4 group">
+              <div className="relative">
+                <div className={`w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${
+                  isScrolled ? 'shadow-xl scale-95' : 'group-hover:shadow-2xl group-hover:scale-105'
+                }`}>
+                  <span className="text-white font-bold text-xl">I</span>
                 </div>
-              </>
-            ) : (
-              // Non-authenticated user - should not show since homepage redirects to login
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/contact"
-                  className="text-gray-700 hover:text-green-600 font-medium transition-colors px-3 py-2"
-                >
-                  Contact
-                </Link>
-                <Link
-                  href="/login"
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg hover:from-green-700 hover:to-emerald-700 transition-all"
-                >
-                  <span className="hidden sm:inline">Continue with Google</span>
-                  <span className="sm:hidden">Login</span>
-                </Link>
+                {user?.subscription_tier === 'pro' && (
+                  <Crown className="w-5 h-5 text-green-500 absolute -top-2 -right-2 drop-shadow-lg" />
+                )}
+                {user?.subscription_tier === 'developer' && (
+                  <Key className="w-5 h-5 text-blue-500 absolute -top-2 -right-2 drop-shadow-lg" />
+                )}
               </div>
-            )}
+              <div className="hidden sm:block">
+                <h1 className="text-2xl font-bold text-black tracking-tight">
+                  Infoish
+                </h1>
+                <p className="text-sm text-black/60 -mt-1">
+                  AI Influencer Search
+                </p>
+              </div>
+            </Link>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors ml-2"
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-5 h-5 text-gray-600" />
-              ) : (
-                <Menu className="w-5 h-5 text-gray-600" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 py-4 bg-white/95 backdrop-blur-sm">
-            <div className="flex flex-col gap-1">
+            {/* Desktop Navigation - Minimal & Clean */}
+            <nav className="hidden lg:flex items-center gap-8">
               <Link 
                 href="/dashboard" 
-                className="text-gray-700 hover:text-green-600 hover:bg-green-50 font-medium py-3 px-4 rounded-lg transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-black/70  hover:text-blue-500 font-medium transition-all duration-300 hover:scale-105 px-2 py-1"
               >
                 Dashboard
               </Link>
-
-              {user?.subscription_tier === 'pro' && (
-                <Link 
-                  href="/api-keys" 
-                  className="text-gray-700 hover:text-green-600 hover:bg-green-50 font-medium py-3 px-4 rounded-lg transition-colors flex items-center gap-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Key className="w-4 h-4" />
-                  API Keys
-                </Link>
-              )}
-
               <Link 
                 href="/blog" 
-                className="text-gray-700 hover:text-green-600 hover:bg-green-50 font-medium py-3 px-4 rounded-lg transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-black/70 hover:text-blue-500 font-medium transition-all duration-300 hover:scale-105 px-2 py-1"
               >
                 Blog
               </Link>
               <Link 
                 href="/pricing" 
-                className="text-gray-700 hover:text-green-600 hover:bg-green-50 font-medium py-3 px-4 rounded-lg transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-black/70  hover:text-blue-500 font-medium transition-all duration-300 hover:scale-105 px-2 py-1"
               >
                 Pricing
               </Link>
               <Link 
                 href="/about" 
-                className="text-gray-700 hover:text-green-600 hover:bg-green-50 font-medium py-3 px-4 rounded-lg transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-black/70 hover:text-blue-500 font-medium transition-all duration-300 hover:scale-105 px-2 py-1"
               >
                 About
               </Link>
-              
-              {user && (
+            </nav>
+
+            {/* User Actions - Glass Morphism Buttons */}
+            <div className="flex items-center gap-4">
+              {user ? (
                 <>
-                  <div className="border-t border-gray-200 mt-4 pt-4">
-                    {/* Mobile Contact Button */}
+                  {/* Contact Button - Glass Design */}
+                  <Link
+                    href="/contact"
+                    className="hidden md:flex items-center gap-2 bg-white/40 hover:bg-white/60 backdrop-blur-lg border border-white/20 text-black px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                  >
+                    <Mail className="w-4 h-4" />
+                    <span className="hidden lg:inline">Contact</span>
+                  </Link>
+
+                  {/* Upgrade Button - Premium Glass */}
+                  {user.subscription_tier === 'free' && (
+                    <Link
+                      href="/pricing"
+                      className="hidden md:flex items-center gap-2 bg-gradient-to-r from-green-500/90 to-blue-500/90 hover:from-green-600 hover:to-blue-600 backdrop-blur-lg text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                    >
+                      <Crown className="w-4 h-4" />
+                      <span className="hidden lg:inline">Upgrade</span>
+                    </Link>
+                  )}
+
+                  {/* Search Counter - Glass Badge */}
+                  {user.subscription_tier !== 'pro' && user.subscription_tier !== 'developer' && (
+                    <div className="hidden xl:flex items-center text-xs text-black/60 px-3 py-2 bg-white/30 backdrop-blur-lg rounded-full border border-white/20 shadow-sm">
+                      {getSearchesRemaining()}/{user.search_limit}
+                    </div>
+                  )}
+
+                  {/* User Profile - Glass Morphism */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowDropdown(!showDropdown)}
+                      className="flex items-center gap-3 bg-white/30 hover:bg-white/50 backdrop-blur-lg border border-white/20 rounded-2xl px-4 py-2 transition-all duration-300 shadow-lg hover:shadow-xl"
+                    >
+                      {user.profile_picture ? (
+                        <img
+                          src={user.profile_picture}
+                          alt={getUserDisplayName()}
+                          className="w-10 h-10 rounded-xl border-2 border-white/30 object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-blue-400 flex items-center justify-center">
+                          <User className="w-5 h-5 text-white" />
+                        </div>
+                      )}
+                      <div className="hidden xl:block text-left">
+                        <p className="text-sm font-semibold text-black leading-tight">
+                          {getUserDisplayName()}
+                        </p>
+                        <div className="flex items-center gap-1">
+                          {getTierIcon()}
+                          <p className="text-xs text-black/60 capitalize">
+                            {user.subscription_tier}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Glass Dropdown */}
+                    {showDropdown && (
+                      <div className="absolute right-0 mt-4 w-80 bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 z-50">
+                        <div className="p-6 border-b border-black/10">
+                          <div className="flex items-center gap-4 mb-4">
+                            {user.profile_picture ? (
+                              <img
+                                src={user.profile_picture}
+                                alt={getUserDisplayName()}
+                                className="w-16 h-16 rounded-2xl border-2 border-white/30"
+                              />
+                            ) : (
+                              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-blue-400 flex items-center justify-center">
+                                <User className="w-8 h-8 text-white" />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <p className="font-bold text-black text-lg">{getUserDisplayName()}</p>
+                              <p className="text-sm text-black/60">{user.email}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${getTierBadgeColor()}`}>
+                              {getTierIcon()}
+                              {user.subscription_tier.toUpperCase()}
+                            </span>
+                            {user.subscription_tier === 'free' && (
+                              <Link
+                                href="/pricing"
+                                className="text-sm text-green-500 hover:text-green-600 font-bold transition-colors"
+                                onClick={() => setShowDropdown(false)}
+                              >
+                                Upgrade →
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="p-4">
+                          {/* Search Usage */}
+                          <div className="bg-white/40 rounded-2xl px-4 py-3 mb-4">
+                            <div className="text-xs text-black/60 mb-1 font-medium">Usage This Month</div>
+                            <div className="text-sm font-bold text-black">
+                              {getSearchLimitText()}
+                            </div>
+                          </div>
+                          
+                          {/* Menu Items */}
+                          <Link
+                            href="/dashboard"
+                            className="w-full flex items-center gap-3 text-left px-4 py-3 text-sm font-medium text-black hover:bg-white/40 rounded-2xl transition-all duration-200"
+                            onClick={() => setShowDropdown(false)}
+                          >
+                            <Settings className="w-5 h-5" />
+                            Dashboard
+                          </Link>
+                          
+                          <Link
+                            href="/contact"
+                            className="w-full flex items-center gap-3 text-left px-4 py-3 text-sm font-medium text-black hover:bg-white/40 rounded-2xl transition-all duration-200"
+                            onClick={() => setShowDropdown(false)}
+                          >
+                            <Mail className="w-5 h-5" />
+                            Contact Support
+                          </Link>
+                          
+                          <div className="border-t border-black/10 mt-4 pt-4">
+                            <button 
+                              className="w-full flex items-center gap-3 text-left px-4 py-3 text-sm font-medium hover:bg-white/40 rounded-2xl text-black/70 hover:text-black transition-all duration-200"
+                              onClick={handleLogout}
+                            >
+                              <X className="w-5 h-5" />
+                              Sign Out
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <Link
+                    href="/contact"
+                    className="text-black/70 hover:text-green-500 font-medium transition-colors px-3 py-2"
+                  >
+                    Contact
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <span className="hidden sm:inline">Continue with Google</span>
+                    <span className="sm:hidden">Login</span>
+                  </Link>
+                </div>
+              )}
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-3 rounded-xl bg-white/30 hover:bg-white/50 backdrop-blur-lg border border-white/20 transition-all duration-300"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-5 h-5 text-black" />
+                ) : (
+                  <Menu className="w-5 h-5 text-black" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Menu - Glass Design */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden border-t border-black/10 py-6 bg-white/20 backdrop-blur-xl">
+              <div className="flex flex-col gap-2">
+                <Link 
+                  href="/dashboard" 
+                  className="text-black hover:text-green-500 font-medium py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-white/30"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+                <Link 
+                  href="/blog" 
+                  className="text-black hover:text-blue-500 font-medium py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-white/30"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Blog
+                </Link>
+                <Link 
+                  href="/pricing" 
+                  className="text-black hover:text-green-500 font-medium py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-white/30"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Pricing
+                </Link>
+                <Link 
+                  href="/about" 
+                  className="text-black hover:text-blue-500 font-medium py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-white/30"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  About
+                </Link>
+                
+                {user && (
+                  <div className="border-t border-black/10 mt-4 pt-4 space-y-2">
                     <Link
                       href="/contact"
-                      className="w-full flex items-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all mb-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      className="w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-medium text-sm transition-all duration-200 bg-white/20 text-black hover:bg-white/40"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <Mail className="w-4 h-4" />
+                      <Mail className="w-5 h-5" />
                       Contact Support
                     </Link>
 
-                    {/* Mobile Upgrade Button */}
                     {user.subscription_tier === 'free' && (
                       <Link
                         href="/pricing"
-                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3 rounded-lg font-medium text-sm hover:shadow-lg transition-all"
+                        className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-4 rounded-2xl font-bold text-sm hover:shadow-xl transition-all duration-300"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <Crown className="w-4 h-4" />
+                        <Crown className="w-5 h-5" />
                         Upgrade to Premium
                       </Link>
                     )}
                   </div>
-                </>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Click outside to close dropdown */}
-      {showDropdown && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setShowDropdown(false)}
-        />
-      )}
-    </header>
+        {/* Click outside to close dropdown */}
+        {showDropdown && (
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setShowDropdown(false)}
+          />
+        )}
+      </header>
+
+      {/* Spacer to prevent content overlap */}
+      <div className="h-20"></div>
+    </>
   )
 }

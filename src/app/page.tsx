@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/header'
+
+
 import { 
   Search, 
   Users, 
@@ -30,6 +32,11 @@ interface User {
   monthly_searches: number
   search_limit: number
 }
+
+
+import React from 'react';
+
+
 
 function LoadingFallback() {
   return (
@@ -113,19 +120,43 @@ function LandingHeroSection() {
               </span>
             </div>
             
-            <h1 className="text-5xl sm:text-7xl font-bold text-gray-900 text-balance leading-tight">
-              Find the {' '}
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                Influencers
-              </span>
-              <br />
-              Who Grow Your Brand
-              <br />
-              With {' '}
-              <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                 AI Search
-              </span>
-            </h1>
+    
+<h1 className="text-4xl sm:text-6xl font-bold text-black text-balance leading-tight hero-text">
+  {/* First line */}
+  <span className="hero-word animate-fade-in-up delay-0">
+    Find the
+  </span>
+   <span>
+    {' '}
+  </span>
+  <span className="hero-word animate-fade-in-up delay-200">
+    <span className="gradient-text-primary animate-gradient-shift">
+      Influencers
+    </span>
+  </span>
+  
+  <br />
+  
+  {/* Second line */}
+  <span className="hero-word animate-fade-in-up delay-400">
+    Who Grow Your Brand
+  </span>
+  
+  <br />
+  
+  {/* Third line */}
+  <span className="hero-word animate-fade-in-up delay-600">
+    With
+  </span>
+  <span>
+    {' '}
+  </span>
+  <span className="hero-word animate-fade-in-up delay-800">
+    <span className="gradient-text-secondary animate-gradient-shift animate-pulse-glow">
+      AI Search
+    </span>
+  </span>
+</h1>
             
             <p className="text-xl sm:text-2xl text-gray-600 max-w-4xl mx-auto text-balance leading-relaxed">
               Connect with 1,800+ verified Pakistani content creators across Instagram, YouTube, and TikTok. 
@@ -162,23 +193,25 @@ function LandingHeroSection() {
 
           {/* CTA Buttons */}
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => router.push('/login')}
-                className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-5 px-10 rounded-2xl shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 flex items-center justify-center gap-3"
-              >
-                <span className="text-lg">Start Free Search</span>
-                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-              </button>
-              
-              <button
-                onClick={() => document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group bg-white/90 backdrop-blur-sm hover:bg-white text-gray-900 font-bold py-5 px-10 rounded-2xl shadow-xl hover:shadow-2xl transition-all border-2 border-gray-200 hover:border-gray-300 flex items-center justify-center gap-3"
-              >
-                <PlayCircle className="w-6 h-6 text-blue-600" />
-                <span className="text-lg">Watch Demo</span>
-              </button>
-            </div>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+  {/* Primary CTA Button - Blue to Green Gradient */}
+  <button
+    onClick={() => router.push('/login')}
+    className="group bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-bold py-6 px-12 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-3 backdrop-blur-lg"
+  >
+    <span className="text-lg">Start Free Search</span>
+    <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-200" />
+  </button>
+  
+  {/* Secondary CTA Button - Glass Morphism */}
+  <button
+    onClick={() => document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' })}
+    className="group bg-white/80 backdrop-blur-xl hover:bg-white/90 text-black font-bold py-6 px-12 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border-2 border-black/10 hover:border-blue-500/30 flex items-center justify-center gap-3 hover:scale-105 transform"
+  >
+    <PlayCircle className="w-6 h-6 text-blue-500 group-hover:text-green-500 transition-colors duration-200" />
+    <span className="text-lg">Watch Demo</span>
+  </button>
+</div>
             
             <div className="inline-flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/30 shadow-lg">
               <div className="flex items-center gap-3">
@@ -395,48 +428,48 @@ function DemoSection() {
   )
 }
 
-// Pricing Preview Section
+// Pricing Preview Section - 4 Color Design
 function PricingPreviewSection() {
   const router = useRouter()
   
   return (
-    <section className="py-24 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-br from-white via-blue-50/30 to-green-50/30 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-black/70 max-w-3xl mx-auto">
             Choose the plan that fits your needs. No hidden fees, cancel anytime.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {/* Free Plan */}
-          <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-white/50 relative">
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
             <div className="text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
-              <div className="text-4xl font-bold text-gray-900 mb-4">PKR 0</div>
-              <p className="text-gray-600 mb-6">Perfect for trying out</p>
+              <h3 className="text-2xl font-bold text-black mb-2">Free</h3>
+              <div className="text-4xl font-bold text-black mb-4">PKR 0</div>
+              <p className="text-black/60 mb-6">Perfect for trying out</p>
               
               <div className="space-y-3 mb-8 text-left">
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">10 searches per month</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">10 searches per month</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">5 results per search</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">5 results per search</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Basic influencer data</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Basic influencer data</span>
                 </div>
               </div>
               
               <button
                 onClick={() => router.push('/login')}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-3 px-6 rounded-xl transition-colors"
+                className="w-full bg-white/60 hover:bg-white backdrop-blur-lg border border-black/20 hover:border-blue-500/50 text-black font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:shadow-lg"
               >
                 Start Free
               </button>
@@ -444,40 +477,40 @@ function PricingPreviewSection() {
           </div>
 
           {/* Starter Plan */}
-          <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-xl border-2 border-blue-500 relative transform scale-105">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-blue-500 relative transform scale-105 hover:scale-110 transition-all duration-300">
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-bold">
+              <span className="bg-gradient-to-r from-blue-500 to-green-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
                 Most Popular
               </span>
             </div>
             
             <div className="text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
-              <div className="text-4xl font-bold text-gray-900 mb-1">PKR 2,999</div>
-              <div className="text-gray-600 mb-6">/month</div>
+              <h3 className="text-2xl font-bold text-black mb-2">Starter</h3>
+              <div className="text-4xl font-bold text-black mb-1">PKR 2,999</div>
+              <div className="text-black/60 mb-6">/month</div>
               
               <div className="space-y-3 mb-8 text-left">
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">30 searches per month</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">30 searches per month</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Unlimited results</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Unlimited results</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Export to CSV/Excel</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Export to CSV/Excel</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Advanced filters</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Advanced filters</span>
                 </div>
               </div>
               
               <button
                 onClick={() => router.push('/pricing')}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Get Started
               </button>
@@ -485,38 +518,38 @@ function PricingPreviewSection() {
           </div>
 
           {/* Pro Plan */}
-          <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-white/50 relative">
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
             <div className="text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Pro</h3>
-              <div className="text-4xl font-bold text-gray-900 mb-1">PKR 6,999</div>
-              <div className="text-gray-600 mb-6">/month</div>
+              <h3 className="text-2xl font-bold text-black mb-2">Pro</h3>
+              <div className="text-4xl font-bold text-black mb-1">PKR 6,999</div>
+              <div className="text-black/60 mb-6">/month</div>
               
               <div className="space-y-3 mb-8 text-left">
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Unlimited Searches</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Unlimited Searches</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Unlimited Results</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Unlimited Results</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Export to CSV/Excel</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Export to CSV/Excel</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Priority support</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Priority support</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700">Direct Consultation</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Direct Consultation</span>
                 </div>
               </div>
               
               <button
                 onClick={() => router.push('/pricing')}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-xl transition-all transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Upgrade to Pro
               </button>
@@ -527,7 +560,7 @@ function PricingPreviewSection() {
         <div className="text-center mt-12">
           <button
             onClick={() => router.push('/pricing')}
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+            className="inline-flex items-center gap-2 text-blue-500 hover:text-green-500 font-medium transition-colors duration-200"
           >
             View detailed pricing
             <ArrowRight className="w-4 h-4" />
@@ -537,22 +570,21 @@ function PricingPreviewSection() {
     </section>
   )
 }
-
-// Final CTA Section
+// Final CTA Section - 4 Color Design
 function FinalCTASection() {
   const router = useRouter()
   
   return (
-    <section className="py-24 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-r from-blue-500 to-green-500 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-32 w-80 h-80 bg-white rounded-full mix-blend-overlay filter blur-xl opacity-10 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-white rounded-full mix-blend-overlay filter blur-xl opacity-10 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute -top-40 -right-32 w-80 h-80 bg-white rounded-full mix-blend-overlay filter blur-xl opacity-20 animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-white rounded-full mix-blend-overlay filter blur-xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
       <div className="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full border border-white/30">
+          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-lg px-6 py-3 rounded-full border border-white/30 shadow-lg">
             <TrendingUp className="w-5 h-5 text-white" />
             <span className="text-sm font-semibold text-white">Grow with AI-Search</span>
           </div>
@@ -561,23 +593,23 @@ function FinalCTASection() {
             Ready to Find Your Perfect Influencers?
           </h2>
           
-          <p className="text-xl sm:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl sm:text-2xl text-white/80 max-w-3xl mx-auto leading-relaxed">
             Start discovering Pakistani creators who align with your brand values and audience. 
             <span className="font-semibold text-white"> Get your first results in under 30 seconds.</span>
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center pt-8">
             <button
               onClick={() => router.push('/login')}
-              className="group bg-white hover:bg-gray-50 text-blue-600 font-bold py-5 px-10 rounded-2xl shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 flex items-center justify-center gap-3"
+              className="group bg-white hover:bg-white/90 text-blue-500 hover:text-green-500 font-bold py-6 px-12 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-3 backdrop-blur-lg"
             >
               <span className="text-lg">Start Free Search Now</span>
-              <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-200" />
             </button>
             
             <button
               onClick={() => router.push('/pricing')}
-              className="group border-2 border-white hover:bg-white hover:text-blue-600 text-white font-bold py-5 px-10 rounded-2xl transition-all flex items-center justify-center gap-3"
+              className="group border-2 border-white hover:bg-white hover:text-blue-500 text-white font-bold py-6 px-12 rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 hover:scale-105 transform backdrop-blur-lg"
             >
               <Eye className="w-6 h-6" />
               <span className="text-lg">View Pricing Plans</span>
@@ -585,17 +617,17 @@ function FinalCTASection() {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-12 max-w-2xl mx-auto">
-            <div className="text-center">
+            <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
               <div className="text-3xl font-bold text-white mb-2">Free</div>
-              <div className="text-blue-100 text-sm">No credit card required</div>
+              <div className="text-white/80 text-sm">No credit card required</div>
             </div>
-            <div className="text-center">
+            <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
               <div className="text-3xl font-bold text-white mb-2">30s</div>
-              <div className="text-blue-100 text-sm">Average search time</div>
+              <div className="text-white/80 text-sm">Average search time</div>
             </div>
-            <div className="text-center">
+            <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
               <div className="text-3xl font-bold text-white mb-2">24/7</div>
-              <div className="text-blue-100 text-sm">Real-time data updates</div>
+              <div className="text-white/80 text-sm">Real-time data updates</div>
             </div>
           </div>
         </div>
