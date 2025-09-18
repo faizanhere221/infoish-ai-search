@@ -27,6 +27,7 @@ export default function LoginPage() {
   const [backendStatus, setBackendStatus] = useState('checking')
   const [googleLoaded, setGoogleLoaded] = useState(false)
   const [isDevelopment, setIsDevelopment] = useState(false)
+  const [userAgent, setUserAgent] = useState('')
   const router = useRouter()
 
   // Use environment variables
@@ -35,6 +36,7 @@ export default function LoginPage() {
   useEffect(() => {
     // Check if in development mode
     setIsDevelopment(process.env.NODE_ENV === 'development')
+    setUserAgent(navigator.userAgent)
     
     checkBackendStatus()
     checkExistingAuth()
@@ -84,18 +86,105 @@ export default function LoginPage() {
 
   const initializeGoogleSignIn = () => {
     if (window.google && GOOGLE_CLIENT_ID) {
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleGoogleResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-        // iOS Safari compatibility
-        use_fedcm_for_prompt: true,
-        itp_support: true,
-      })
-      setGoogleLoaded(true)
+      try {
+        // Detect device type for optimal configuration
+        const isAndroid = /Android/i.test(navigator.userAgent)
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+        const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
+        const isDesktop = !isAndroid && !isIOS
+
+        // Platform-specific configuration
+        const config: any = {
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleResponse,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+          context: 'signin',
+        }
+
+        if (isIOS || isSafari) {
+          // iOS Safari specific settings
+          config.use_fedcm_for_prompt = true
+          config.itp_support = true
+          config.ux_mode = 'redirect' // Better for iOS Safari
+        } else if (isAndroid) {
+          // Android specific settings
+          config.use_fedcm_for_prompt = false
+          config.itp_support = false
+          config.ux_mode = 'popup'
+        } else {
+          // Desktop settings
+          config.use_fedcm_for_prompt = false
+          config.itp_support = true
+          config.ux_mode = 'popup'
+        }
+
+        window.google.accounts.id.initialize(config)
+
+        // Render button immediately for better compatibility
+        setTimeout(() => renderGoogleButton(), 100)
+        setGoogleLoaded(true)
+      } catch (error) {
+        console.error('Google Sign-In initialization error:', error)
+        setError('Failed to initialize Google Sign-In. Please refresh the page.')
+      }
     } else if (!GOOGLE_CLIENT_ID) {
       setError('Google OAuth not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID in environment variables.')
+    }
+  }
+
+  const renderGoogleButton = () => {
+    const buttonElement = document.getElementById('google-signin-button-container')
+    if (buttonElement && window.google) {
+      // Clear any existing content
+      buttonElement.innerHTML = ''
+      
+      try {
+        // Device-specific button rendering
+        const isAndroid = /Android/i.test(navigator.userAgent)
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+        const isDesktop = !isAndroid && !isIOS
+
+        const buttonConfig: any = {
+          theme: "outline",
+          size: "large",
+          width: "100%",
+          text: "continue_with",
+          shape: "rectangular",
+          logo_alignment: "left",
+        }
+
+        // Platform-specific button optimizations
+        if (isIOS) {
+          buttonConfig.click_listener = () => {
+            console.log('iOS Google button clicked')
+            // iOS-specific handling
+            window.google.accounts.id.prompt()
+          }
+        } else if (isAndroid) {
+          buttonConfig.click_listener = () => {
+            console.log('Android Google button clicked')
+            // Android-specific handling with fallbacks
+            try {
+              window.google.accounts.id.prompt()
+            } catch (error) {
+              console.log('Android prompt fallback')
+            }
+          }
+        } else {
+          // Desktop handling
+          buttonConfig.click_listener = () => {
+            console.log('Desktop Google button clicked')
+            window.google.accounts.id.prompt()
+          }
+        }
+
+        window.google.accounts.id.renderButton(buttonElement, buttonConfig)
+      } catch (error) {
+        console.error('Failed to render Google button:', error)
+        // Fallback to custom button only
+        setGoogleLoaded(true)
+      }
     }
   }
 
@@ -138,27 +227,103 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = () => {
     if (window.google && googleLoaded) {
-      // iOS Safari specific handling
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-      const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
-      
-      if (isIOS || isSafari) {
-        // Use redirect flow for iOS Safari instead of popup
-        window.google.accounts.id.renderButton(
-          document.getElementById('google-signin-button'),
-          {
-            theme: "outline",
-            size: "large",
-            width: "100%",
-            text: "continue_with",
-            shape: "rectangular"
+      try {
+        // Enhanced device detection
+        const isAndroid = /Android/i.test(navigator.userAgent)
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+        const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
+        const isChrome = /Chrome/.test(navigator.userAgent)
+        const isDesktop = !isAndroid && !isIOS
+        
+        console.log('Device detection:', { isAndroid, isIOS, isSafari, isChrome, isDesktop })
+        
+        if (isIOS || isSafari) {
+          // iOS Safari specific handling - use redirect flow
+          try {
+            window.google.accounts.id.prompt((notification: any) => {
+              if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                console.log('iOS: Prompt not displayed, trying rendered button')
+                const renderedButton = document.querySelector('[data-idom-class="wqN2Le"] button, .nsm7Bb-HzV7m-LgbsSe')
+                if (renderedButton) {
+                  (renderedButton as HTMLElement).click()
+                } else {
+                  // Final fallback for iOS - redirect to Google OAuth directly
+                  const redirectUrl = `https://accounts.google.com/oauth/authorize?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=code&scope=email profile`
+                  window.location.href = redirectUrl
+                }
+              }
+            })
+          } catch (iosError) {
+            console.error('iOS sign-in error:', iosError)
+            // Direct redirect fallback for iOS
+            setError('Redirecting to Google sign-in...')
+            setTimeout(() => {
+              const redirectUrl = `https://accounts.google.com/oauth/authorize?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=code&scope=email profile`
+              window.location.href = redirectUrl
+            }, 1000)
           }
-        )
-      } else {
-        window.google.accounts.id.prompt()
+        } else if (isAndroid) {
+          // Android-specific handling with multiple fallbacks
+          try {
+            window.google.accounts.id.prompt((notification: any) => {
+              console.log('Android prompt notification:', notification)
+              if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                console.log('Android: Prompt not displayed, trying rendered button')
+                // Try to click the rendered Google button
+                setTimeout(() => {
+                  const renderedButton = document.querySelector('[data-idom-class="wqN2Le"] button, .nsm7Bb-HzV7m-LgbsSe, [role="button"]')
+                  if (renderedButton) {
+                    console.log('Android: Clicking rendered button')
+                    ;(renderedButton as HTMLElement).click()
+                  } else {
+                    console.log('Android: No rendered button found, manual trigger')
+                    // Force trigger the sign-in flow
+                    window.google.accounts.id.disableAutoSelect()
+                    setTimeout(() => window.google.accounts.id.prompt(), 500)
+                  }
+                }, 100)
+              }
+            })
+          } catch (androidError) {
+            console.error('Android prompt error:', androidError)
+            // Direct button click fallback
+            const renderedButton = document.querySelector('[data-idom-class="wqN2Le"] button, .nsm7Bb-HzV7m-LgbsSe')
+            if (renderedButton) {
+              (renderedButton as HTMLElement).click()
+            } else {
+              setError('Android: Unable to launch Google Sign-In. Please try refreshing the page.')
+            }
+          }
+        } else {
+          // Desktop handling - standard popup flow
+          try {
+            window.google.accounts.id.prompt((notification: any) => {
+              console.log('Desktop prompt notification:', notification)
+              if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                // For desktop, try clicking rendered button
+                const renderedButton = document.querySelector('[data-idom-class="wqN2Le"] button, .nsm7Bb-HzV7m-LgbsSe')
+                if (renderedButton) {
+                  (renderedButton as HTMLElement).click()
+                }
+              }
+            })
+          } catch (desktopError) {
+            console.error('Desktop sign-in error:', desktopError)
+            // Fallback to rendered button click
+            const renderedButton = document.querySelector('[data-idom-class="wqN2Le"] button, .nsm7Bb-HzV7m-LgbsSe')
+            if (renderedButton) {
+              (renderedButton as HTMLElement).click()
+            } else {
+              setError('Desktop: Unable to launch Google Sign-In. Please refresh the page.')
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Sign-in error:', error)
+        setError(`Failed to launch Google Sign-In: ${error}. Please try refreshing the page.`)
       }
     } else {
-      setError('Google Sign-In not loaded. Please refresh the page.')
+      setError('Google Sign-In not loaded. Please refresh the page and ensure you have a stable internet connection.')
     }
   }
 
@@ -249,12 +414,16 @@ Timestamp: ${data.timestamp}
 
   return (
     <>
-      {/* Load Google Sign-In Script */}
+      {/* Load Google Sign-In Script with enhanced configuration */}
       {GOOGLE_CLIENT_ID && (
         <Script
           src="https://accounts.google.com/gsi/client"
           onLoad={initializeGoogleSignIn}
           strategy="afterInteractive"
+          onError={(error) => {
+            console.error('Failed to load Google Sign-In script:', error)
+            setError('Failed to load Google Sign-In. Please check your internet connection.')
+          }}
         />
       )}
 
@@ -275,7 +444,18 @@ Timestamp: ${data.timestamp}
               </p>
             </div>
 
-            {/* Backend Status - Compact Design */}
+            {/* Debug Info for Development */}
+            {isDevelopment && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
+                <div className="font-mono text-yellow-800">
+                  <div>UA: {userAgent.slice(0, 50)}...</div>
+                  <div>Google Loaded: {googleLoaded ? 'Yes' : 'No'}</div>
+                  <div>Client ID: {GOOGLE_CLIENT_ID ? 'Set' : 'Missing'}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Backend Status */}
             <div className={`mb-6 p-4 rounded-2xl border ${
               backendStatus === 'online' ? 'bg-green-500/10 border-green-500/20' :
               backendStatus === 'offline' ? 'bg-red-500/10 border-red-500/20' :
@@ -316,11 +496,15 @@ Timestamp: ${data.timestamp}
               {/* Google Sign In Section */}
               {backendStatus === 'online' && GOOGLE_CLIENT_ID ? (
                 <div className="space-y-4">
-                  {/* Custom Google Button for better iOS compatibility */}
-                  <div id="google-signin-button" className="w-full">
+                  {/* Google Sign-In Button Container */}
+                  <div className="w-full">
+                    {/* Rendered Google Button (for Android compatibility) */}
+                    <div id="google-signin-button-container" className="w-full mb-3"></div>
+                    
+                    {/* Custom Fallback Button */}
                     <button
                       onClick={handleGoogleSignIn}
-                      disabled={isSigningIn || !googleLoaded}
+                      disabled={isSigningIn}
                       className="w-full bg-white hover:bg-black/5 text-black py-4 px-6 rounded-2xl font-medium flex items-center justify-center gap-3 transition-all duration-300 border-2 border-black/10 hover:border-blue-500/30 disabled:opacity-50 shadow-lg hover:shadow-xl"
                     >
                       {isSigningIn ? (
@@ -384,7 +568,7 @@ Timestamp: ${data.timestamp}
                 </div>
               )}
 
-              {/* Setup Instructions - Compact */}
+              {/* Setup Instructions */}
               {backendStatus === 'offline' && (
                 <div className="bg-blue-500/10 border border-blue-500/20 text-blue-600 px-6 py-4 rounded-2xl text-sm">
                   <div className="font-semibold mb-3">Setup Required</div>
@@ -395,7 +579,7 @@ Timestamp: ${data.timestamp}
                 </div>
               )}
 
-              {/* Features Preview - Modern Grid */}
+              {/* Features Preview */}
               <div className="bg-gradient-to-r from-blue-500/5 to-green-500/5 rounded-2xl p-6 border border-blue-500/10">
                 <h3 className="font-bold text-black text-lg mb-4 text-center">What's included:</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -418,7 +602,7 @@ Timestamp: ${data.timestamp}
                 </div>
               </div>
 
-              {/* Upgrade CTA - Compact */}
+              {/* Upgrade CTA */}
               <div className="bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl p-6 text-white text-center">
                 <div className="font-bold text-lg mb-2">Ready for unlimited access?</div>
                 <div className="text-white/90 mb-4">Only PKR 2,999/month</div>
