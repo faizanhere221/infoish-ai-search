@@ -15,7 +15,11 @@ interface UserProfile {
   search_limit: number
 }
 
-export default function Header() {
+interface HeaderProps {
+  isSearchPage?: boolean
+}
+
+export default function Header({ isSearchPage = false }: HeaderProps) {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showDropdown, setShowDropdown] = useState(false)
