@@ -83,26 +83,9 @@ export default function LoginPage() {
   }
 
   const initializeGoogleSignIn = () => {
-    if (window.google && GOOGLE_CLIENT_ID) {
-      try {
-        // Configuration with FedCM disabled for localhost
-        window.google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: handleGoogleResponse,
-          auto_select: false,
-          cancel_on_tap_outside: true,
-          context: 'signin',
-          ux_mode: 'popup',
-          // Disable FedCM to prevent AbortError
-          use_fedcm_for_prompt: false
-        })
-
-        setGoogleLoaded(true)
-      } catch (error) {
-        console.error('Google Sign-In initialization error:', error)
-        setError('Failed to initialize Google Sign-In. Please refresh the page.')
-      }
-    } else if (!GOOGLE_CLIENT_ID) {
+    if (GOOGLE_CLIENT_ID) {
+      setGoogleLoaded(true)
+    } else {
       setError('Google OAuth not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID in environment variables.')
     }
   }
@@ -145,18 +128,101 @@ export default function LoginPage() {
   }
 
   const handleGoogleSignIn = () => {
-    if (window.google && googleLoaded) {
-      try {
-        setIsSigningIn(true)
-        window.google.accounts.id.prompt()
-      } catch (error) {
-        console.error('Sign-in error:', error)
-        setError('Failed to launch Google Sign-In. Please try refreshing the page.')
+    if (!GOOGLE_CLIENT_ID || !googleLoaded) {
+      setError('Google Sign-In not configured. Please refresh the page.')
+      return
+    }
+
+    setIsSigningIn(true)
+    setError('')
+
+    // Build OAuth URL with proper parameters
+    const redirectUri = window.location.origin
+    const scope = 'email profile'
+    const responseType = 'code'
+    const accessType = 'online'
+    const prompt = 'select_account' // Forces account selection screen
+
+    const googleAuthUrl = `https://accounts.google.com/oauth/authorize?` +
+      `client_id=${GOOGLE_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `scope=${encodeURIComponent(scope)}&` +
+      `response_type=${responseType}&` +
+      `access_type=${accessType}&` +
+      `prompt=${prompt}&` +
+      `state=${Math.random().toString(36).substring(2)}`
+
+    // Open popup window
+    const popup = window.open(
+      googleAuthUrl,
+      'googleAuth',
+      'width=500,height=600,scrollbars=yes,resizable=yes,status=yes,location=yes,toolbar=no,menubar=no'
+    )
+
+    if (!popup) {
+      setError('Popup blocked. Please allow popups for this site and try again.')
+      setIsSigningIn(false)
+      return
+    }
+
+    // Listen for popup messages
+    const handleMessage = async (event: MessageEvent) => {
+      // Security: Check origin
+      if (event.origin !== window.location.origin) return
+
+      if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
+        const { code } = event.data
+        try {
+          // Exchange code for user data via your backend
+          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
+          const response = await fetch(`${backendUrl}/auth/google/callback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, redirect_uri: redirectUri })
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            localStorage.setItem('auth_token', data.access_token)
+            localStorage.setItem('user_data', JSON.stringify(data.user))
+            router.push('/search')
+          } else {
+            const errorData = await response.json().catch(() => ({ detail: 'Login failed' }))
+            setError(errorData.detail || errorData.error || 'Authentication failed')
+          }
+        } catch (error: any) {
+          setError(`Authentication error: ${error.message}`)
+        }
+        popup.close()
+        setIsSigningIn(false)
+      } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
+        setError(event.data.error || 'Authentication failed')
+        popup.close()
         setIsSigningIn(false)
       }
-    } else {
-      setError('Google Sign-In not loaded. Please refresh the page.')
     }
+
+    window.addEventListener('message', handleMessage)
+
+    // Check if popup is closed manually
+    const checkClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkClosed)
+        window.removeEventListener('message', handleMessage)
+        setIsSigningIn(false)
+      }
+    }, 1000)
+
+    // Cleanup function
+    setTimeout(() => {
+      if (!popup.closed) {
+        popup.close()
+        setIsSigningIn(false)
+        setError('Authentication timeout. Please try again.')
+      }
+      clearInterval(checkClosed)
+      window.removeEventListener('message', handleMessage)
+    }, 300000) // 5 minute timeout
   }
 
   const handleTestLogin = async (userType: 'free' | 'premium' = 'free') => {
@@ -246,17 +312,8 @@ Timestamp: ${data.timestamp}
 
   return (
     <>
-      {/* Load Google Sign-In Script */}
-      {GOOGLE_CLIENT_ID && (
-        <Script
-          src="https://accounts.google.com/gsi/client"
-          onLoad={initializeGoogleSignIn}
-          strategy="afterInteractive"
-          onError={() => {
-            setError('Failed to load Google Sign-In. Please check your internet connection.')
-          }}
-        />
-      )}
+      {/* Load Google Sign-In Script - Not needed for popup method */}
+      {/* We're using direct OAuth popup instead of Google's SDK */}
 
       <div className="min-h-screen flex items-center justify-center bg-white px-4">
         <div className="max-w-md w-full">
