@@ -243,51 +243,37 @@ async def get_current_user_profile(current_user: User = Depends(AuthService.get_
     }
 
 @app.post("/auth/google/callback")
-async def google_oauth_callback(
-    request: dict,
-    db: Session = Depends(get_db)
-):
+async def google_oauth_callback(request: dict, db: Session = Depends(get_db)):
     """Handle OAuth callback with authorization code"""
     try:
+        import os
+        import requests as http_requests
+        from google.oauth2 import id_token
+        from google.auth.transport import requests
+        
         code = request.get('code')
         redirect_uri = request.get('redirect_uri')
         
-        if not code:
-            raise HTTPException(status_code=400, detail="Authorization code required")
-        
         # Exchange code for tokens
-        from google.oauth2 import id_token
-        from google.auth.transport import requests
-        import requests as http_requests
-        
-        # Get tokens from Google
-        token_url = "https://oauth2.googleapis.com/token"
-        token_data = {
+        token_response = http_requests.post('https://oauth2.googleapis.com/token', data={
             'code': code,
             'client_id': os.getenv('GOOGLE_CLIENT_ID'),
-            'client_secret': os.getenv('GOOGLE_CLIENT_SECRET'),
+            'client_secret': os.getenv('GOOGLE_CLIENT_SECRET'), 
             'redirect_uri': redirect_uri,
             'grant_type': 'authorization_code'
-        }
+        })
         
-        token_response = http_requests.post(token_url, data=token_data)
         tokens = token_response.json()
-        
-        if 'id_token' not in tokens:
-            raise HTTPException(status_code=400, detail="Invalid authorization code")
-        
-        # Verify and decode the ID token
         user_info = id_token.verify_oauth2_token(
-            tokens['id_token'],
-            requests.Request(),
+            tokens['id_token'], 
+            requests.Request(), 
             os.getenv('GOOGLE_CLIENT_ID')
         )
         
-        # Process user login (same as your existing logic)
-        return await AuthEndpoints.process_google_user(user_info, db)
+        # Use your existing user creation logic
+        return await AuthEndpoints.google_login(tokens['id_token'], db)
         
     except Exception as e:
-        logger.error(f"OAuth callback error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 

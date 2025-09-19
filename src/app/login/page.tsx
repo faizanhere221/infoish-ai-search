@@ -142,7 +142,7 @@ export default function LoginPage() {
     setError('')
 
     // Build OAuth URL with proper parameters
-    const redirectUri = window.location.origin
+    const redirectUri = `${window.location.origin}/auth/callback`
     const scope = 'email profile'
     const responseType = 'code'
     const accessType = 'online'
@@ -466,19 +466,19 @@ Timestamp: ${data.timestamp}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span className="text-sm text-black/80">15 Free Searches</span>
+                    <span className="text-sm text-black/80">15 free searches</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span className="text-sm text-black/80">1,800+ Creators</span>
+                    <span className="text-sm text-black/80">1,800+ creators</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm text-black/80">Advanced Filters</span>
+                    <span className="text-sm text-black/80">Advanced filters</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm text-black/80">Export Data</span>
+                    <span className="text-sm text-black/80">Export data</span>
                   </div>
                 </div>
               </div>
