@@ -85,14 +85,16 @@ export default function LoginPage() {
   const initializeGoogleSignIn = () => {
     if (window.google && GOOGLE_CLIENT_ID) {
       try {
-        // Simple, universal configuration
+        // Configuration with FedCM disabled for localhost
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: handleGoogleResponse,
           auto_select: false,
           cancel_on_tap_outside: true,
           context: 'signin',
-          ux_mode: 'popup'
+          ux_mode: 'popup',
+          // Disable FedCM to prevent AbortError
+          use_fedcm_for_prompt: false
         })
 
         setGoogleLoaded(true)
