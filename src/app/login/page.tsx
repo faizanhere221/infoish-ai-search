@@ -38,6 +38,11 @@ export default function LoginPage() {
     
     checkBackendStatus()
     checkExistingAuth()
+    
+    // Set Google loaded immediately since we don't need the SDK
+    if (GOOGLE_CLIENT_ID) {
+      setGoogleLoaded(true)
+    }
   }, [])
 
   const checkBackendStatus = async () => {
@@ -461,19 +466,19 @@ Timestamp: ${data.timestamp}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span className="text-sm text-black/80">15 free searches</span>
+                    <span className="text-sm text-black/80">15 Free Searches</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span className="text-sm text-black/80">1,800+ creators</span>
+                    <span className="text-sm text-black/80">1,800+ Creators</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm text-black/80">Advanced filters</span>
+                    <span className="text-sm text-black/80">Advanced Filters</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm text-black/80">Export data</span>
+                    <span className="text-sm text-black/80">Export Data</span>
                   </div>
                 </div>
               </div>
