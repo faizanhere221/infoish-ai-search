@@ -27,7 +27,6 @@ export default function LoginPage() {
   const [backendStatus, setBackendStatus] = useState('checking')
   const [googleLoaded, setGoogleLoaded] = useState(false)
   const [isDevelopment, setIsDevelopment] = useState(false)
-  const [userAgent, setUserAgent] = useState('')
   const router = useRouter()
 
   // Use environment variables
@@ -36,7 +35,6 @@ export default function LoginPage() {
   useEffect(() => {
     // Check if in development mode
     setIsDevelopment(process.env.NODE_ENV === 'development')
-    setUserAgent(navigator.userAgent)
     
     checkBackendStatus()
     checkExistingAuth()
@@ -87,42 +85,16 @@ export default function LoginPage() {
   const initializeGoogleSignIn = () => {
     if (window.google && GOOGLE_CLIENT_ID) {
       try {
-        // Detect device type for optimal configuration
-        const isAndroid = /Android/i.test(navigator.userAgent)
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-        const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
-        const isDesktop = !isAndroid && !isIOS
-
-        // Platform-specific configuration
-        const config: any = {
+        // Simple, universal configuration
+        window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: handleGoogleResponse,
           auto_select: false,
           cancel_on_tap_outside: true,
           context: 'signin',
-        }
+          ux_mode: 'popup'
+        })
 
-        if (isIOS || isSafari) {
-          // iOS Safari specific settings
-          config.use_fedcm_for_prompt = true
-          config.itp_support = true
-          config.ux_mode = 'redirect' // Better for iOS Safari
-        } else if (isAndroid) {
-          // Android specific settings
-          config.use_fedcm_for_prompt = false
-          config.itp_support = false
-          config.ux_mode = 'popup'
-        } else {
-          // Desktop settings
-          config.use_fedcm_for_prompt = false
-          config.itp_support = true
-          config.ux_mode = 'popup'
-        }
-
-        window.google.accounts.id.initialize(config)
-
-        // Render button immediately for better compatibility
-        setTimeout(() => renderGoogleButton(), 100)
         setGoogleLoaded(true)
       } catch (error) {
         console.error('Google Sign-In initialization error:', error)
@@ -130,61 +102,6 @@ export default function LoginPage() {
       }
     } else if (!GOOGLE_CLIENT_ID) {
       setError('Google OAuth not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID in environment variables.')
-    }
-  }
-
-  const renderGoogleButton = () => {
-    const buttonElement = document.getElementById('google-signin-button-container')
-    if (buttonElement && window.google) {
-      // Clear any existing content
-      buttonElement.innerHTML = ''
-      
-      try {
-        // Device-specific button rendering
-        const isAndroid = /Android/i.test(navigator.userAgent)
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-        const isDesktop = !isAndroid && !isIOS
-
-        const buttonConfig: any = {
-          theme: "outline",
-          size: "large",
-          width: "100%",
-          text: "continue_with",
-          shape: "rectangular",
-          logo_alignment: "left",
-        }
-
-        // Platform-specific button optimizations
-        if (isIOS) {
-          buttonConfig.click_listener = () => {
-            console.log('iOS Google button clicked')
-            // iOS-specific handling
-            window.google.accounts.id.prompt()
-          }
-        } else if (isAndroid) {
-          buttonConfig.click_listener = () => {
-            console.log('Android Google button clicked')
-            // Android-specific handling with fallbacks
-            try {
-              window.google.accounts.id.prompt()
-            } catch (error) {
-              console.log('Android prompt fallback')
-            }
-          }
-        } else {
-          // Desktop handling
-          buttonConfig.click_listener = () => {
-            console.log('Desktop Google button clicked')
-            window.google.accounts.id.prompt()
-          }
-        }
-
-        window.google.accounts.id.renderButton(buttonElement, buttonConfig)
-      } catch (error) {
-        console.error('Failed to render Google button:', error)
-        // Fallback to custom button only
-        setGoogleLoaded(true)
-      }
     }
   }
 
@@ -228,102 +145,15 @@ export default function LoginPage() {
   const handleGoogleSignIn = () => {
     if (window.google && googleLoaded) {
       try {
-        // Enhanced device detection
-        const isAndroid = /Android/i.test(navigator.userAgent)
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-        const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
-        const isChrome = /Chrome/.test(navigator.userAgent)
-        const isDesktop = !isAndroid && !isIOS
-        
-        console.log('Device detection:', { isAndroid, isIOS, isSafari, isChrome, isDesktop })
-        
-        if (isIOS || isSafari) {
-          // iOS Safari specific handling - use redirect flow
-          try {
-            window.google.accounts.id.prompt((notification: any) => {
-              if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                console.log('iOS: Prompt not displayed, trying rendered button')
-                const renderedButton = document.querySelector('[data-idom-class="wqN2Le"] button, .nsm7Bb-HzV7m-LgbsSe')
-                if (renderedButton) {
-                  (renderedButton as HTMLElement).click()
-                } else {
-                  // Final fallback for iOS - redirect to Google OAuth directly
-                  const redirectUrl = `https://accounts.google.com/oauth/authorize?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=code&scope=email profile`
-                  window.location.href = redirectUrl
-                }
-              }
-            })
-          } catch (iosError) {
-            console.error('iOS sign-in error:', iosError)
-            // Direct redirect fallback for iOS
-            setError('Redirecting to Google sign-in...')
-            setTimeout(() => {
-              const redirectUrl = `https://accounts.google.com/oauth/authorize?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=code&scope=email profile`
-              window.location.href = redirectUrl
-            }, 1000)
-          }
-        } else if (isAndroid) {
-          // Android-specific handling with multiple fallbacks
-          try {
-            window.google.accounts.id.prompt((notification: any) => {
-              console.log('Android prompt notification:', notification)
-              if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                console.log('Android: Prompt not displayed, trying rendered button')
-                // Try to click the rendered Google button
-                setTimeout(() => {
-                  const renderedButton = document.querySelector('[data-idom-class="wqN2Le"] button, .nsm7Bb-HzV7m-LgbsSe, [role="button"]')
-                  if (renderedButton) {
-                    console.log('Android: Clicking rendered button')
-                    ;(renderedButton as HTMLElement).click()
-                  } else {
-                    console.log('Android: No rendered button found, manual trigger')
-                    // Force trigger the sign-in flow
-                    window.google.accounts.id.disableAutoSelect()
-                    setTimeout(() => window.google.accounts.id.prompt(), 500)
-                  }
-                }, 100)
-              }
-            })
-          } catch (androidError) {
-            console.error('Android prompt error:', androidError)
-            // Direct button click fallback
-            const renderedButton = document.querySelector('[data-idom-class="wqN2Le"] button, .nsm7Bb-HzV7m-LgbsSe')
-            if (renderedButton) {
-              (renderedButton as HTMLElement).click()
-            } else {
-              setError('Android: Unable to launch Google Sign-In. Please try refreshing the page.')
-            }
-          }
-        } else {
-          // Desktop handling - standard popup flow
-          try {
-            window.google.accounts.id.prompt((notification: any) => {
-              console.log('Desktop prompt notification:', notification)
-              if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                // For desktop, try clicking rendered button
-                const renderedButton = document.querySelector('[data-idom-class="wqN2Le"] button, .nsm7Bb-HzV7m-LgbsSe')
-                if (renderedButton) {
-                  (renderedButton as HTMLElement).click()
-                }
-              }
-            })
-          } catch (desktopError) {
-            console.error('Desktop sign-in error:', desktopError)
-            // Fallback to rendered button click
-            const renderedButton = document.querySelector('[data-idom-class="wqN2Le"] button, .nsm7Bb-HzV7m-LgbsSe')
-            if (renderedButton) {
-              (renderedButton as HTMLElement).click()
-            } else {
-              setError('Desktop: Unable to launch Google Sign-In. Please refresh the page.')
-            }
-          }
-        }
+        setIsSigningIn(true)
+        window.google.accounts.id.prompt()
       } catch (error) {
         console.error('Sign-in error:', error)
-        setError(`Failed to launch Google Sign-In: ${error}. Please try refreshing the page.`)
+        setError('Failed to launch Google Sign-In. Please try refreshing the page.')
+        setIsSigningIn(false)
       }
     } else {
-      setError('Google Sign-In not loaded. Please refresh the page and ensure you have a stable internet connection.')
+      setError('Google Sign-In not loaded. Please refresh the page.')
     }
   }
 
@@ -414,14 +244,13 @@ Timestamp: ${data.timestamp}
 
   return (
     <>
-      {/* Load Google Sign-In Script with enhanced configuration */}
+      {/* Load Google Sign-In Script */}
       {GOOGLE_CLIENT_ID && (
         <Script
           src="https://accounts.google.com/gsi/client"
           onLoad={initializeGoogleSignIn}
           strategy="afterInteractive"
-          onError={(error) => {
-            console.error('Failed to load Google Sign-In script:', error)
+          onError={() => {
             setError('Failed to load Google Sign-In. Please check your internet connection.')
           }}
         />
@@ -443,17 +272,6 @@ Timestamp: ${data.timestamp}
                 Sign in to access our database of 1,800+ Pakistani content creators
               </p>
             </div>
-
-            {/* Debug Info for Development */}
-            {isDevelopment && (
-              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
-                <div className="font-mono text-yellow-800">
-                  <div>UA: {userAgent.slice(0, 50)}...</div>
-                  <div>Google Loaded: {googleLoaded ? 'Yes' : 'No'}</div>
-                  <div>Client ID: {GOOGLE_CLIENT_ID ? 'Set' : 'Missing'}</div>
-                </div>
-              </div>
-            )}
 
             {/* Backend Status */}
             <div className={`mb-6 p-4 rounded-2xl border ${
@@ -496,35 +314,34 @@ Timestamp: ${data.timestamp}
               {/* Google Sign In Section */}
               {backendStatus === 'online' && GOOGLE_CLIENT_ID ? (
                 <div className="space-y-4">
-                  {/* Google Sign-In Button Container */}
-                  <div className="w-full">
-                    {/* Rendered Google Button (for Android compatibility) */}
-                    <div id="google-signin-button-container" className="w-full mb-3"></div>
-                    
-                    {/* Custom Fallback Button */}
-                    <button
-                      onClick={handleGoogleSignIn}
-                      disabled={isSigningIn}
-                      className="w-full bg-white hover:bg-black/5 text-black py-4 px-6 rounded-2xl font-medium flex items-center justify-center gap-3 transition-all duration-300 border-2 border-black/10 hover:border-blue-500/30 disabled:opacity-50 shadow-lg hover:shadow-xl"
-                    >
-                      {isSigningIn ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                          <span>Signing in...</span>
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-6 h-6" viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                          </svg>
-                          Continue with Google
-                        </>
-                      )}
-                    </button>
-                  </div>
+                  {/* Single Google Sign-In Button */}
+                  <button
+                    onClick={handleGoogleSignIn}
+                    disabled={isSigningIn || !googleLoaded}
+                    className="w-full bg-white hover:bg-black/5 text-black py-4 px-6 rounded-2xl font-medium flex items-center justify-center gap-3 transition-all duration-300 border-2 border-black/10 hover:border-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    {isSigningIn ? (
+                      <>
+                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span>Signing in...</span>
+                      </>
+                    ) : !googleLoaded ? (
+                      <>
+                        <div className="w-6 h-6 border-2 border-black/30 border-t-transparent rounded-full animate-spin"></div>
+                        <span>Loading Google...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-6 h-6" viewBox="0 0 24 24">
+                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        <span className="text-lg">Continue with Google</span>
+                      </>
+                    )}
+                  </button>
 
                   {/* Developer Test Login */}
                   {isDevelopment && (
@@ -608,7 +425,7 @@ Timestamp: ${data.timestamp}
                 <div className="text-white/90 mb-4">Only PKR 2,999/month</div>
                 <button
                   onClick={() => router.push('/pricing')}
-                  className="bg-white/20 hover:bg-white/30 backdrop-blur-lg text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 border border-white/20"
+                  className="bg-white/20 hover:bg-white/30 backdrop-blur-lg text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 border border-white/20 hover:scale-105 active:scale-95"
                 >
                   View Pricing Plans
                 </button>
