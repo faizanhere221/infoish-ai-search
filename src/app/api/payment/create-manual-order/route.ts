@@ -3,13 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 const PLANS = {
   starter: {
     name: 'Starter Plan',
-    description: '50 searches per month, unlimited results, advanced filters',
+    description: '30 Searches Per Month, Unlimited Results, Advanced Filters',
     monthly_price: 2999,
     yearly_price: 29990,
   },
   pro: {
     name: 'Pro Plan', 
-    description: 'Unlimited searches, API access, priority support',
+    description: 'Unlimited Searches, Unilimited Results, Advanced Filters, Priority Support',
     monthly_price: 6999,
     yearly_price: 69990,
   }
