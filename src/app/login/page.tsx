@@ -7,6 +7,7 @@ import Script from 'next/script'
 declare global {
   interface Window {
     google: any;
+    PasswordCredential?: any;
   }
 }
 
@@ -25,29 +26,83 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [isSigningIn, setIsSigningIn] = useState(false)
   const [backendStatus, setBackendStatus] = useState('checking')
-  const [googleLoaded, setGoogleLoaded] = useState(false)
   const [isDevelopment, setIsDevelopment] = useState(false)
+  const [googleLoaded, setGoogleLoaded] = useState(false)
   const router = useRouter()
 
-  // Use environment variables
   const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
   useEffect(() => {
-    // Check if in development mode
     setIsDevelopment(process.env.NODE_ENV === 'development')
+    
+    // Check for error in URL params
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlError = urlParams.get('error')
+    if (urlError) {
+      setError(decodeURIComponent(urlError))
+      window.history.replaceState({}, '', '/login')
+    }
+    
+    // Force complete reset on page load
+    forceGoogleReset()
     
     checkBackendStatus()
     checkExistingAuth()
     
-    // Set Google loaded immediately since we don't need the SDK
-    if (GOOGLE_CLIENT_ID) {
-      setGoogleLoaded(true)
-    }
+    // Force Google script reload after cleanup
+    setTimeout(() => {
+      if (!window.google) {
+        console.log('Google not loaded after reset, forcing reload...')
+        const existingScript = document.querySelector('script[src*="accounts.google.com"]')
+        if (existingScript) {
+          existingScript.remove()
+        }
+        
+        // Reload the Google script
+        const script = document.createElement('script')
+        script.src = 'https://accounts.google.com/gsi/client'
+        script.onload = () => {
+          console.log('Google script reloaded')
+          initializeGoogleAuth()
+        }
+        script.onerror = () => {
+          setError('Failed to load Google Sign-In')
+          setGoogleLoaded(true)
+        }
+        document.head.appendChild(script)
+      }
+    }, 1000)
+    
   }, [])
+
+  const forceGoogleReset = () => {
+    try {
+      // Nuclear option: completely reset Google state
+      if (window.google) {
+        delete window.google
+      }
+      
+      // Remove any existing Google scripts
+      const existingScripts = document.querySelectorAll('script[src*="accounts.google.com"]')
+      existingScripts.forEach(script => script.remove())
+      
+      // Clear all possible Google storage
+      clearGoogleAuthState()
+      
+      // Reset our state
+      setGoogleLoaded(false)
+      setError('')
+      
+      console.log('Force reset completed')
+      
+    } catch (error) {
+      console.log('Error in force reset:', error)
+    }
+  }
 
   const checkBackendStatus = async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
       const response = await fetch(`${backendUrl}/health`)
       if (response.ok) {
         const data = await response.json()
@@ -62,36 +117,218 @@ export default function LoginPage() {
 
   const checkExistingAuth = async () => {
     const token = localStorage.getItem('auth_token')
-    if (token) {
-      try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
-        const response = await fetch(`${backendUrl}/auth/me`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        })
+    
+    // If no token, skip auth check and go straight to login
+    if (!token) {
+      console.log('No auth token found, proceeding to login')
+      setIsLoading(false)
+      return
+    }
+    
+    try {
+      console.log('Checking existing auth token...')
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
+      
+      // Set a timeout for the auth check to prevent hanging
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 second timeout
+      
+      const response = await fetch(`${backendUrl}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal
+      })
 
-        if (response.ok) {
-          router.push('/search')
-          return
-        } else {
-          localStorage.removeItem('auth_token')
-          localStorage.removeItem('user_data')
-        }
-      } catch (error) {
+      clearTimeout(timeoutId)
+
+      if (response.ok) {
+        console.log('Valid token found, redirecting to search')
+        router.push('/search')
+        return
+      } else {
+        console.log('Invalid token, clearing auth data')
         localStorage.removeItem('auth_token')
         localStorage.removeItem('user_data')
       }
+    } catch (error: any) {
+      console.log('Auth check failed:', error.message)
+      // Clear potentially corrupted auth data
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('user_data')
     }
+    
     setIsLoading(false)
   }
 
-  const initializeGoogleSignIn = () => {
-    if (GOOGLE_CLIENT_ID) {
+  const clearGoogleAuthState = () => {
+    try {
+      // Clear Google auth state completely
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        window.google.accounts.id.disableAutoSelect()
+        
+        // Cancel any pending prompts
+        window.google.accounts.id.cancel()
+      }
+      
+      // Clear all Google-related storage and cookies
+      if (navigator.credentials && navigator.credentials.preventSilentAccess) {
+        navigator.credentials.preventSilentAccess()
+      }
+      
+      // Clear Google cookies more aggressively
+      const googleCookies = [
+        'g_state', 'g_csrf_token', 'gsi_state', 'gsi_replay', 
+        'g_authuser', 'g_enabled_idps', '__Host-1PLSID', '__Host-3PLSID',
+        'NID', 'HSID', 'SSID', 'APISID', 'SAPISID'
+      ]
+      
+      googleCookies.forEach(cookieName => {
+        // Multiple domain attempts for thorough cleanup
+        const domains = ['', `.${window.location.hostname}`, '.google.com', '.accounts.google.com']
+        const paths = ['/', '/auth', '/oauth']
+        
+        domains.forEach(domain => {
+          paths.forEach(path => {
+            const domainPart = domain ? `; domain=${domain}` : ''
+            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}${domainPart}`
+          })
+        })
+      })
+      
+      // Clear session storage
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.includes('google') || key.includes('gsi') || key.includes('oauth')) {
+          sessionStorage.removeItem(key)
+        }
+      })
+      
+      console.log('Google auth state cleared completely')
+      
+    } catch (error) {
+      console.log('Error clearing Google auth state:', error)
+    }
+  }
+
+  const initializeGoogleAuth = () => {
+    console.log('Initializing Google Auth...', { 
+      hasGoogle: !!window.google, 
+      hasClientId: !!GOOGLE_CLIENT_ID 
+    })
+
+    if (!GOOGLE_CLIENT_ID) {
+      setError('Google Client ID not configured')
       setGoogleLoaded(true)
-    } else {
-      setError('Google OAuth not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID in environment variables.')
+      return
+    }
+
+    if (!window.google) {
+      console.log('Google SDK not loaded yet, waiting...')
+      return
+    }
+
+    try {
+      console.log('Google SDK available, clearing previous state...')
+      
+      // Force complete cleanup first
+      clearGoogleAuthState()
+      
+      // Wait a moment for cleanup to complete
+      setTimeout(() => {
+        try {
+          console.log('Reinitializing Google with fresh state...')
+          
+          // Initialize Google One Tap with completely fresh state
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleResponse,
+            auto_select: false,
+            cancel_on_tap_outside: false,
+            use_fedcm_for_prompt: false,
+            // Force new initialization
+            context: 'signin',
+            ux_mode: 'popup',
+            itp_support: true,
+          })
+
+          console.log('Google reinitialized, waiting for DOM and rendering button...')
+          
+          // Wait for DOM to be ready and try multiple times if needed
+          const tryRenderButton = (attempts = 0) => {
+            const buttonDiv = document.getElementById('google-signin-button')
+            
+            if (buttonDiv) {
+              console.log(`Button div found on attempt ${attempts + 1}, rendering...`)
+              renderGoogleButton()
+              setGoogleLoaded(true)
+            } else if (attempts < 10) {
+              console.log(`Button div not found, attempt ${attempts + 1}, retrying...`)
+              setTimeout(() => tryRenderButton(attempts + 1), 200)
+            } else {
+              console.error('Failed to find button div after 10 attempts')
+              setError('Failed to initialize Google Sign-In button')
+              setGoogleLoaded(true)
+            }
+          }
+          
+          // Start trying to render the button
+          tryRenderButton()
+          
+        } catch (innerError) {
+          console.error('Error in delayed initialization:', innerError)
+          setError('Google Sign-In initialization failed. Please refresh the page.')
+          setGoogleLoaded(true)
+        }
+      }, 300) // Give cleanup time to complete
+
+    } catch (error) {
+      console.error('Google auth initialization error:', error)
+      setError('Google Sign-In initialization failed. Please refresh the page.')
+      setGoogleLoaded(true)
+    }
+  }
+
+  const renderGoogleButton = () => {
+    const buttonDiv = document.getElementById('google-signin-button')
+    
+    if (!buttonDiv) {
+      console.error('google-signin-button div not found')
+      return false
+    }
+
+    // Clear any existing content
+    buttonDiv.innerHTML = ''
+    
+    try {
+      console.log('Rendering Google button...')
+      window.google.accounts.id.renderButton(buttonDiv, {
+        theme: 'outline',
+        size: 'large',
+        width: 400, // Use pixel value instead of percentage
+        text: 'continue_with',
+        shape: 'rectangular',
+        logo_alignment: 'left'
+      })
+      
+      console.log('Google button rendered successfully')
+      
+      // Verify the button actually rendered
+      setTimeout(() => {
+        if (buttonDiv.innerHTML.length > 0) {
+          console.log('✅ Google button confirmed in DOM')
+        } else {
+          console.error('❌ Google button failed to render')
+          setError('Google button failed to appear')
+        }
+      }, 300)
+      
+      return true
+      
+    } catch (error) {
+      console.error('Error rendering Google button:', error)
+      setError('Failed to load Google Sign-In button: ' + error.message)
+      return false
     }
   }
 
@@ -132,8 +369,37 @@ export default function LoginPage() {
     }
   }
 
-  const handleGoogleSignIn = () => {
-    if (!GOOGLE_CLIENT_ID || !googleLoaded) {
+  const handleManualGoogleSignIn = () => {
+    if (!googleLoaded || !window.google) {
+      // Fallback to redirect method if Google SDK fails
+      handleRedirectSignIn()
+      return
+    }
+
+    setIsSigningIn(true)
+    setError('')
+
+    try {
+      // Try to trigger Google One Tap again
+      window.google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          console.log('One Tap failed, falling back to redirect')
+          handleRedirectSignIn()
+        }
+      })
+    } catch (error) {
+      console.error('Manual Google sign-in error:', error)
+      handleRedirectSignIn()
+    }
+    
+    setTimeout(() => {
+      setIsSigningIn(false)
+    }, 3000)
+  }
+
+  // Fallback redirect method (your original approach)
+  const handleRedirectSignIn = () => {
+    if (!GOOGLE_CLIENT_ID) {
       setError('Google Sign-In not configured. Please refresh the page.')
       return
     }
@@ -141,93 +407,22 @@ export default function LoginPage() {
     setIsSigningIn(true)
     setError('')
 
-    // Build OAuth URL with proper parameters
+    // Build redirect URL (fallback method)
     const redirectUri = `${window.location.origin}/auth/callback`
     const scope = 'email profile'
     const responseType = 'code'
-    const accessType = 'online'
-    const prompt = 'select_account' // Forces account selection screen
-
+    
     const googleAuthUrl = `https://accounts.google.com/oauth/authorize?` +
       `client_id=${GOOGLE_CLIENT_ID}&` +
       `redirect_uri=${encodeURIComponent(redirectUri)}&` +
       `scope=${encodeURIComponent(scope)}&` +
       `response_type=${responseType}&` +
-      `access_type=${accessType}&` +
-      `prompt=${prompt}&` +
+      `access_type=online&` +
+      `prompt=select_account&` +
       `state=${Math.random().toString(36).substring(2)}`
 
-    // Open popup window
-    const popup = window.open(
-      googleAuthUrl,
-      'googleAuth',
-      'width=500,height=600,scrollbars=yes,resizable=yes,status=yes,location=yes,toolbar=no,menubar=no'
-    )
-
-    if (!popup) {
-      setError('Popup blocked. Please allow popups for this site and try again.')
-      setIsSigningIn(false)
-      return
-    }
-
-    // Listen for popup messages
-    const handleMessage = async (event: MessageEvent) => {
-      // Security: Check origin
-      if (event.origin !== window.location.origin) return
-
-      if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
-        const { code } = event.data
-        try {
-          // Exchange code for user data via your backend
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
-          const response = await fetch(`${backendUrl}/auth/google/callback`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, redirect_uri: redirectUri })
-          })
-
-          if (response.ok) {
-            const data = await response.json()
-            localStorage.setItem('auth_token', data.access_token)
-            localStorage.setItem('user_data', JSON.stringify(data.user))
-            router.push('/search')
-          } else {
-            const errorData = await response.json().catch(() => ({ detail: 'Login failed' }))
-            setError(errorData.detail || errorData.error || 'Authentication failed')
-          }
-        } catch (error: any) {
-          setError(`Authentication error: ${error.message}`)
-        }
-        popup.close()
-        setIsSigningIn(false)
-      } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
-        setError(event.data.error || 'Authentication failed')
-        popup.close()
-        setIsSigningIn(false)
-      }
-    }
-
-    window.addEventListener('message', handleMessage)
-
-    // Check if popup is closed manually
-    const checkClosed = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(checkClosed)
-        window.removeEventListener('message', handleMessage)
-        setIsSigningIn(false)
-      }
-    }, 1000)
-
-    // Cleanup function
-    setTimeout(() => {
-      if (!popup.closed) {
-        popup.close()
-        setIsSigningIn(false)
-        setError('Authentication timeout. Please try again.')
-      }
-      clearInterval(checkClosed)
-      window.removeEventListener('message', handleMessage)
-    }, 300000) // 5 minute timeout
+    console.log('Falling back to redirect method:', googleAuthUrl)
+    window.location.href = googleAuthUrl
   }
 
   const handleTestLogin = async (userType: 'free' | 'premium' = 'free') => {
@@ -317,8 +512,30 @@ Timestamp: ${data.timestamp}
 
   return (
     <>
-      {/* Load Google Sign-In Script - Not needed for popup method */}
-      {/* We're using direct OAuth popup instead of Google's SDK */}
+      {/* Load Google Sign-In Script */}
+      <Script
+        src="https://accounts.google.com/gsi/client"
+        onLoad={() => {
+          console.log('Google script loaded')
+          
+          // Set a timeout to prevent infinite loading
+          setTimeout(() => {
+            if (!googleLoaded) {
+              console.log('Google taking too long, forcing button render')
+              setGoogleLoaded(true)
+              setError('Google Sign-In may be slow. Try the test login or refresh the page.')
+            }
+          }, 3000)
+          
+          initializeGoogleAuth()
+        }}
+        onError={() => {
+          console.error('Failed to load Google script')
+          setError('Failed to load Google Sign-In. Please refresh the page.')
+          setGoogleLoaded(true)
+        }}
+        strategy="afterInteractive"
+      />
 
       <div className="min-h-screen flex items-center justify-center bg-white px-4">
         <div className="max-w-md w-full">
@@ -378,34 +595,49 @@ Timestamp: ${data.timestamp}
               {/* Google Sign In Section */}
               {backendStatus === 'online' && GOOGLE_CLIENT_ID ? (
                 <div className="space-y-4">
-                  {/* Single Google Sign-In Button */}
-                  <button
-                    onClick={handleGoogleSignIn}
-                    disabled={isSigningIn || !googleLoaded}
-                    className="w-full bg-white hover:bg-black/5 text-black py-4 px-6 rounded-2xl font-medium flex items-center justify-center gap-3 transition-all duration-300 border-2 border-black/10 hover:border-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    {isSigningIn ? (
-                      <>
-                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                        <span>Signing in...</span>
-                      </>
-                    ) : !googleLoaded ? (
-                      <>
-                        <div className="w-6 h-6 border-2 border-black/30 border-t-transparent rounded-full animate-spin"></div>
-                        <span>Loading Google...</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-6 h-6" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                        </svg>
-                        <span className="text-lg">Continue with Google</span>
-                      </>
-                    )}
-                  </button>
+                  {/* Google button container */}
+                  <div id="google-signin-button" className="w-full flex justify-center min-h-[50px]"></div>
+                  
+                  {/* Loading state with timeout */}
+                  {!googleLoaded && !error && (
+                    <div className="w-full bg-white/50 text-black/50 py-4 px-6 rounded-2xl font-medium flex items-center justify-center gap-3 border-2 border-black/10">
+                      <div className="w-6 h-6 border-2 border-black/30 border-t-transparent rounded-full animate-spin"></div>
+                      <span>Loading Google Sign-In...</span>
+                    </div>
+                  )}
+
+                  {/* Manual refresh button if loading takes too long */}
+                  {!googleLoaded && error && (
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="w-full bg-blue-500 hover:bg-blue-600 text-white py-4 px-6 rounded-2xl font-medium flex items-center justify-center gap-3 transition-all duration-300"
+                    >
+                      <span>Refresh to Load Google Sign-In</span>
+                    </button>
+                  )}
+
+                  {/* Simple fallback login button if Google completely fails */}
+                  {googleLoaded && (!document.getElementById('google-signin-button')?.innerHTML || error) && (
+                    <button
+                      onClick={() => {
+                        // Force reinitialize
+                        setGoogleLoaded(false)
+                        forceGoogleReset()
+                        setTimeout(() => {
+                          window.location.reload()
+                        }, 100)
+                      }}
+                      className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white py-4 px-6 rounded-2xl font-medium flex items-center justify-center gap-3 transition-all duration-300"
+                    >
+                      <svg className="w-6 h-6" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      </svg>
+                      <span>Reload Google Sign-In</span>
+                    </button>
+                  )}
 
                   {/* Developer Test Login */}
                   {isDevelopment && (

@@ -124,14 +124,85 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
     }
   }
 
-  const handleLogout = () => {
+  // Replace your existing handleLogout function in header.ts with this:
+
+// Enhanced logout function for your header.ts file
+const handleLogout = async () => {
+  try {
+    const token = localStorage.getItem('auth_token')
+    
+    // Notify backend of logout (if token exists)
+    if (token) {
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
+        await fetch(`${backendUrl}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        console.log('Backend logout successful')
+      } catch (error) {
+        console.log('Backend logout failed (non-critical):', error)
+      }
+    }
+    
+    // Clear all local auth data FIRST
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('user_data')
+    setUser(null)
+    setShowDropdown(false)
+    
+    // Enhanced Google auth cleanup
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      window.google.accounts.id.disableAutoSelect()
+      window.google.accounts.id.cancel()
+    }
+    
+    if (navigator.credentials && navigator.credentials.preventSilentAccess) {
+      navigator.credentials.preventSilentAccess()
+    }
+    
+    // Clear Google cookies aggressively
+    const googleCookies = [
+      'g_state', 'g_csrf_token', 'gsi_state', 'gsi_replay', 
+      'g_authuser', 'g_enabled_idps', '__Host-1PLSID', '__Host-3PLSID',
+      'NID', 'HSID', 'SSID', 'APISID', 'SAPISID'
+    ]
+    
+    googleCookies.forEach(cookieName => {
+      const domains = ['', `.${window.location.hostname}`, '.google.com', '.accounts.google.com']
+      const paths = ['/', '/auth', '/oauth']
+      
+      domains.forEach(domain => {
+        paths.forEach(path => {
+          const domainPart = domain ? `; domain=${domain}` : ''
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}${domainPart}`
+        })
+      })
+    })
+    
+    // Clear session storage
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.includes('google') || key.includes('gsi') || key.includes('oauth')) {
+        sessionStorage.removeItem(key)
+      }
+    })
+    
+    console.log('Complete logout with enhanced cleanup')
+    router.push('/login')
+    
+  } catch (error) {
+    console.error('Logout error:', error)
+    // Still clear local data even if logout fails
     localStorage.removeItem('auth_token')
     localStorage.removeItem('user_data')
     setUser(null)
     setShowDropdown(false)
     router.push('/login')
   }
-
+}
   const getUserDisplayName = () => {
     if (user?.full_name) {
       return user.full_name.split(' ')[0]

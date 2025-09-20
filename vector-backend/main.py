@@ -114,12 +114,12 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://infoishai.com",
-        "https://www.infoishai.com",
-        "https://infoish-ai-search.vercel.app",
-    ],
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",  # Add this line
+    "https://infoishai.com",
+    "https://www.infoishai.com",
+    "https://infoish-ai-search.vercel.app",
+],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -254,6 +254,9 @@ async def google_oauth_callback(request: dict, db: Session = Depends(get_db)):
         code = request.get('code')
         redirect_uri = request.get('redirect_uri')
         
+        if not code:
+            raise HTTPException(status_code=400, detail="No authorization code provided")
+        
         # Exchange code for tokens
         token_response = http_requests.post('https://oauth2.googleapis.com/token', data={
             'code': code,
@@ -263,7 +266,15 @@ async def google_oauth_callback(request: dict, db: Session = Depends(get_db)):
             'grant_type': 'authorization_code'
         })
         
+        if token_response.status_code != 200:
+            raise HTTPException(status_code=400, detail=f"Failed to exchange code for tokens: {token_response.text}")
+        
         tokens = token_response.json()
+        
+        if 'id_token' not in tokens:
+            raise HTTPException(status_code=400, detail="No ID token received from Google")
+        
+        # Verify the ID token
         user_info = id_token.verify_oauth2_token(
             tokens['id_token'], 
             requests.Request(), 
@@ -271,10 +282,47 @@ async def google_oauth_callback(request: dict, db: Session = Depends(get_db)):
         )
         
         # Use your existing user creation logic
-        return await AuthEndpoints.google_login(tokens['id_token'], db)
+        auth_result = await AuthEndpoints.google_login(tokens['id_token'], db)
+        
+        # Return the result from your existing auth system
+        return auth_result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"OAuth callback error: {e}")
+        raise HTTPException(status_code=400, detail=f"Authentication failed: {str(e)}")
+
+
+
+# Add this endpoint to your main.py file
+
+@app.post("/auth/logout")
+async def logout_user(
+    current_user: User = Depends(AuthService.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Logout user and invalidate session"""
+    try:
+        # Update user's last logout time (optional)
+        auth_user = db.query(AuthUser).filter(AuthUser.id == current_user.id).first()
+        if auth_user:
+            auth_user.last_logout = datetime.utcnow()
+            db.commit()
+        
+        logger.info(f"User logged out: {current_user.email}")
+        
+        return {
+            "message": "Logout successful",
+            "status": "success"
+        }
         
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"Logout error: {e}")
+        return {
+            "message": "Logout completed",
+            "status": "success"  # Always return success for logout
+        }
 
 
 @app.get("/auth/limits")

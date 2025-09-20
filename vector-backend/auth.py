@@ -14,7 +14,8 @@ from database import get_db
 logger = logging.getLogger(__name__)
 
 # JWT Settings
-SECRET_KEY = "your-super-secret-jwt-key-change-in-production"
+import os
+SECRET_KEY = os.getenv("JWT_SECRET", "your-super-secret-jwt-key-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
@@ -375,6 +376,8 @@ class AuthService:
         except Exception as e:
             print(f"❌ DEBUG: Search logging error: {e}")
             logger.error(f"Search logging error: {e}")
+
+            
 # Authentication Endpoints
 class AuthEndpoints:
     
