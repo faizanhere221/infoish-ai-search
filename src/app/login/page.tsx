@@ -690,7 +690,7 @@ Timestamp: ${data.timestamp}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span className="text-sm text-black/80">15 Free Searches</span>
+                    <span className="text-sm text-black/80">10 Free Searches</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>

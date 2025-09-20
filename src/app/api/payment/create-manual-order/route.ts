@@ -49,11 +49,11 @@ export async function POST(request: NextRequest) {
         billing_cycle: billing_cycle
       },
       bank_details: {
-        account_title: process.env.BANK_ACCOUNT_TITLE || "AI Influencer Search",
-        account_number: process.env.BANK_ACCOUNT_NUMBER || "1234567890123456",
-        bank_name: process.env.BANK_NAME || "HBL Bank",
-        iban: process.env.BANK_IBAN || "PK36HABB0012345678901234",
-        branch_code: process.env.BANK_BRANCH_CODE || "1234"
+        account_title: process.env.BANK_ACCOUNT_TITLE || "Faizan Islam",
+        account_number: process.env.BANK_ACCOUNT_NUMBER || "14860010141071090013",
+        bank_name: process.env.BANK_NAME || "Allied Bank",
+        iban: process.env.BANK_IBAN || "PK69ABPA0010141071090013",
+        branch_code: process.env.BANK_BRANCH_CODE || "1486"
       },
       instructions: [
         `Transfer PKR ${amount.toLocaleString()} to the above account`,
