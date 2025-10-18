@@ -24,10 +24,10 @@ const blogPosts: BlogPost[] = [
     id: '1',
     title: 'Complete Guide to Influencer Marketing in Pakistan 2025',
     excerpt: 'Master influencer marketing with our comprehensive guide covering strategies, budgets, and ROI optimization specifically for Pakistani brands.',
-    date: '2025-10-10',
+    date: '2025-10-16',
     author: 'Laiba Razzaq',
     category: 'Marketing',
-    readTime: '12 min read',
+    readTime: '10 min read',
     slug: 'complete-guide-influencer-marketing-pakistan-2025',
     featured: true,
     views: '2.3K'
@@ -36,115 +36,26 @@ const blogPosts: BlogPost[] = [
     id: '2',
     title: 'How to Find the Right Pakistani Influencers for Your Brand',
     excerpt: 'Step-by-step framework for discovering, evaluating, and partnering with Pakistani influencers who deliver real results for your campaigns.',
-    date: '2025-01-15',
-    author: 'Content Team',
+    date: '2025-10-18',
+    author: 'Laiba Razzaq',
     category: 'Strategy',
-    readTime: '10 min read',
+    readTime: '8 min read',
     slug: 'find-right-pakistani-influencers-brand',
     featured: true,
     views: '1.8K'
-  },
-  {
-    id: '3',
-    title: 'Top 10 Pakistani Beauty Influencers to Watch in 2025',
-    excerpt: 'Discover the most influential beauty creators in Pakistan who are shaping trends and driving brand partnerships across platforms.',
-    date: '2025-01-14',
-    author: 'Beauty Team',
-    category: 'Beauty',
-    readTime: '5 min read',
-    slug: 'top-10-pakistani-beauty-influencers-2025',
-    views: '3.1K'
-  },
-  {
-    id: '4',
-    title: 'Tech Reviewers in Pakistan: Complete Guide for Brands',
-    excerpt: 'Everything you need to know about Pakistani tech influencers, from top creators to campaign strategies that drive sales.',
-    date: '2025-01-13',
-    author: 'Tech Team',
-    category: 'Tech',
-    readTime: '8 min read',
-    slug: 'tech-reviewers-pakistan-guide-brands',
-    views: '1.5K'
-  },
-  {
-    id: '5',
-    title: 'YouTube vs Instagram: Where Pakistani Creators Perform Best',
-    excerpt: 'Data-driven analysis of platform performance, engagement rates, and ROI across different social media platforms in Pakistan.',
-    date: '2025-01-12',
-    author: 'Data Team',
-    category: 'Analytics',
-    readTime: '6 min read',
-    slug: 'youtube-vs-instagram-pakistani-creators',
-    views: '2.7K'
-  },
-  {
-    id: '6',
-    title: 'Influencer Marketing ROI: Maximizing Returns in Pakistan',
-    excerpt: 'Learn how to measure, optimize, and maximize your influencer marketing investment with Pakistani market insights and benchmarks.',
-    date: '2025-01-11',
-    author: 'Strategy Team',
-    category: 'Business',
-    readTime: '10 min read',
-    slug: 'influencer-marketing-roi-guide-pakistan',
-    views: '1.9K'
-  },
-  {
-    id: '7',
-    title: 'Top Gaming Influencers in Pakistan: PUBG to Valorant',
-    excerpt: 'Comprehensive guide to Pakistani gaming content creators across mobile and PC gaming platforms, with audience insights.',
-    date: '2025-01-10',
-    author: 'Gaming Team',
-    category: 'Gaming',
-    readTime: '7 min read',
-    slug: 'top-gaming-influencers-pakistan-2025',
-    views: '4.2K'
-  },
-  {
-    id: '8',
-    title: 'Food Bloggers Revolution: Pakistani Culinary Creators',
-    excerpt: 'Explore the vibrant world of Pakistani food content creators and their impact on culinary trends and restaurant marketing.',
-    date: '2025-01-09',
-    author: 'Food Team',
-    category: 'Food',
-    readTime: '5 min read',
-    slug: 'pakistani-food-bloggers-culinary-creators',
-    views: '2.1K'
-  },
-  {
-    id: '9',
-    title: 'Micro vs Macro Influencers: What Works in Pakistan?',
-    excerpt: 'Data-driven analysis of micro and macro influencer performance in the Pakistani market with budget recommendations.',
-    date: '2025-01-08',
-    author: 'Research Team',
-    category: 'Strategy',
-    readTime: '9 min read',
-    slug: 'micro-vs-macro-influencers-pakistan',
-    views: '1.6K'
-  },
-  {
-    id: '10',
-    title: 'Travel Vloggers: Showcasing Pakistan to the World',
-    excerpt: 'Meet the Pakistani travel creators who are changing global perceptions and driving tourism through authentic storytelling.',
-    date: '2025-01-07',
-    author: 'Travel Team',
-    category: 'Travel',
-    readTime: '6 min read',
-    slug: 'pakistani-travel-vloggers-tourism',
-    views: '3.5K'
   }
 ]
 
 export default function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   
-  const categories = ['All', 'Marketing', 'Strategy', 'Beauty', 'Tech', 'Gaming', 'Food', 'Travel', 'Business', 'Analytics']
+  const categories = ['All', 'Marketing', 'Strategy']
   
   const filteredPosts = selectedCategory === 'All' 
     ? blogPosts 
     : blogPosts.filter(post => post.category === selectedCategory)
 
   const featuredPosts = blogPosts.filter(post => post.featured)
-  const regularPosts = blogPosts.filter(post => !post.featured)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -251,7 +162,30 @@ export default function BlogPage() {
           </div>
         )}
 
-        
+        {/* Coming Soon Section */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">More Articles Coming Soon</h2>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/50 text-center">
+            <div className="max-w-2xl mx-auto">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">We're Working on More Content!</h3>
+              <p className="text-gray-600 mb-6">
+                Our team is creating in-depth guides on topics like micro vs macro influencers, platform comparisons, ROI optimization, and niche-specific influencer lists. Subscribe to stay updated!
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link 
+                  href="/contact"
+                  className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                >
+                  Request a Topic
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
         
         {/* CTA Section */}
         <div className="text-center bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-12 border border-white/50">
