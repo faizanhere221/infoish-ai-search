@@ -598,7 +598,7 @@ const handleLogout = async () => {
                     className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   >
                     <span className="hidden sm:inline">Sign up as Brand</span>
-                    <span className="sm:hidden">Login</span>
+                    <span className="sm:hidden">Brand Login</span>
                   </Link>
                 </div>
               )}
@@ -732,7 +732,7 @@ const handleLogout = async () => {
             }}
             className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 rounded-2xl font-bold text-sm hover:shadow-xl transition-all duration-300"
           >
-            Sign In with Google
+            Sign up as Brand
           </button>
         </div>
       )}
