@@ -55,6 +55,53 @@
     line-height: 1.6;
   }
 
+
+  /* 🆕 INPUT TEXT COLOR FIX - ADD THIS */
+  input,
+  textarea,
+  select {
+    color: #111827 !important; /* Always dark text */
+    background-color: white !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder,
+  select::placeholder {
+    color: #9ca3af !important; /* Gray placeholder */
+    opacity: 1;
+  }
+
+  /* Ensure text stays dark on focus */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    color: #000000 !important;
+  }
+
+  /* Fix for autofill (Chrome yellow background) */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #111827 !important;
+    color: #111827 !important;
+  }
+
+  /* Disabled inputs */
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    color: #6b7280 !important;
+    background-color: #f3f4f6 !important;
+  }
+
+  /* Custom scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
   /* Custom scrollbar styles */
   ::-webkit-scrollbar {
     width: 8px;
@@ -423,6 +470,20 @@
   body {
     background: linear-gradient(135deg, #000000 0%, #1f2937 50%, #374151 100%);
     color: #ffffff;
+  }
+
+  /* 🆕 KEEP INPUTS LIGHT EVEN IN DARK MODE */
+  input,
+  textarea,
+  select {
+    color: #111827 !important;
+    background-color: white !important;
+    border-color: #d1d5db !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #9ca3af !important;
   }
 
   .card {
