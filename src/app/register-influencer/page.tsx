@@ -63,10 +63,11 @@ export default function InfluencerRegistration() {
   const [success, setSuccess] = useState(false)
   const [successData, setSuccessData] = useState<SuccessData | null>(null)
   const [step, setStep] = useState(1)
+  const [copiedEmail, setCopiedEmail] = useState(false)
+const [copiedPassword, setCopiedPassword] = useState(false)
   
   // State for success screen
-  const [copiedEmail, setCopiedEmail] = useState(false)
-  const [copiedPassword, setCopiedPassword] = useState(false)
+  
   const [showPassword, setShowPassword] = useState(false)
 
 
@@ -442,44 +443,64 @@ const removeImage = () => {
               
               <div className="space-y-3 bg-white rounded-xl p-4 mb-3">
                 {/* Email */}
-                <div>
-                  <label className="text-xs text-gray-500 uppercase font-semibold">Email</label>
-                  <div className="flex items-center justify-between mt-1 gap-3">
-                    <span className="font-semibold text-gray-900 break-all">
-                      {successData.temporary_credentials.email}
-                    </span>
-                    <button 
-                      onClick={() => {
-                        navigator.clipboard.writeText(successData.temporary_credentials.email)
-                        toast.success('Email copied!')
-                      }}
-                      className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center gap-1 flex-shrink-0"
-                    >
-                      <Copy className="w-4 h-4" />
-                      Copy
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Password */}
-                <div>
-                  <label className="text-xs text-gray-500 uppercase font-semibold">Password</label>
-                  <div className="flex items-center justify-between mt-1 gap-3">
-                    <span className="font-mono font-bold text-gray-900 bg-gray-100 px-3 py-2 rounded break-all">
-                      {successData.temporary_credentials.temporary_password}
-                    </span>
-                    <button 
-                      onClick={() => {
-                        navigator.clipboard.writeText(successData.temporary_credentials.temporary_password)
-                        toast.success('Password copied!')
-                      }}
-                      className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center gap-1 flex-shrink-0"
-                    >
-                      <Copy className="w-4 h-4" />
-                      Copy
-                    </button>
-                  </div>
-                </div>
+<div>
+  <label className="text-xs text-gray-500 uppercase font-semibold">Email</label>
+  <div className="flex items-center justify-between mt-1 gap-3">
+    <span className="font-semibold text-gray-900 break-all">
+      {successData.temporary_credentials.email}
+    </span>
+    <button 
+      onClick={() => {
+        navigator.clipboard.writeText(successData.temporary_credentials.email)
+        setCopiedEmail(true)
+        setTimeout(() => setCopiedEmail(false), 2000)
+      }}
+      className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center gap-1 flex-shrink-0"
+    >
+      {copiedEmail ? (
+        <>
+          <CheckCircle className="w-4 h-4" />
+          Copied!
+        </>
+      ) : (
+        <>
+          <Copy className="w-4 h-4" />
+          Copy
+        </>
+      )}
+    </button>
+  </div>
+</div>
+
+{/* Password */}
+<div>
+  <label className="text-xs text-gray-500 uppercase font-semibold">Password</label>
+  <div className="flex items-center justify-between mt-1 gap-3">
+    <span className="font-mono font-bold text-gray-900 bg-gray-100 px-3 py-2 rounded break-all">
+      {successData.temporary_credentials.temporary_password}
+    </span>
+    <button 
+      onClick={() => {
+        navigator.clipboard.writeText(successData.temporary_credentials.temporary_password)
+        setCopiedPassword(true)
+        setTimeout(() => setCopiedPassword(false), 2000)
+      }}
+      className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center gap-1 flex-shrink-0"
+    >
+      {copiedPassword ? (
+        <>
+          <CheckCircle className="w-4 h-4" />
+          Copied!
+        </>
+      ) : (
+        <>
+          <Copy className="w-4 h-4" />
+          Copy
+        </>
+      )}
+    </button>
+  </div>
+</div>
               </div>
               
               {!successData.email_sent && (

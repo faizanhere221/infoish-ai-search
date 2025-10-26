@@ -23,6 +23,7 @@ import uuid
 import hashlib
 import secrets  # ✅ Added for secure random generation
 import os  # ✅ Added for environment variables
+import random
 
 # Import your modules
 from database import get_db, init_database, Influencer, InfluencerAuth, AuthUser, SearchLog, User  # ✅ Added 'InfluencerAuth'
@@ -229,7 +230,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
     "http://localhost:3000",
-    "http://127.0.0.1:3000",  # Add this line
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",  # Add this line
     "https://infoishai.com",
     "https://www.infoishai.com",
     "https://infoish-ai-search.vercel.app",
@@ -926,10 +929,13 @@ async def register_influencer(
         
         logger.info(f"🔵 Generated ID: {unique_id}")
         
-        # 🔵 5. Generate temporary password
-        random_token = hashlib.sha256(str(time.time()).encode()).hexdigest()[:8]
-        temp_password = f"{request.username}_{random_token}"
-        
+        # 🔵 5. Generate temporary password (bcrypt-safe)
+
+        import secrets
+        temp_password = f"{request.username[:8].lower()}{secrets.randbelow(9000) + 1000}"
+       
+       
+
         logger.info(f"🔵 Temporary password generated: {temp_password[:5]}...")
         
         # 🔵 6. Hash the password for storage
