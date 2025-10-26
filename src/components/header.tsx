@@ -661,14 +661,7 @@ const handleLogout = async () => {
         </>
       ) : (
         <>
-          {/* For Influencers Link - Show only when logged out */}
-          <Link 
-            href="/register-influencer"
-            className="text-purple-600 hover:text-purple-700 font-semibold py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-purple-50 border-2 border-purple-200"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Register as Influencer
-          </Link>
+          
         </>
       )}
       
