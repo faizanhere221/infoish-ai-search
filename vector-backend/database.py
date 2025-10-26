@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, F
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import mapped_column
 from datetime import datetime
 import os
 from dotenv import load_dotenv
@@ -59,7 +60,7 @@ class Influencer(Base):
     instagram_followers = Column(Integer, default=0)
     youtube_subscribers = Column(Integer, default=0)
     tiktok_followers = Column(Integer, default=0)
-    total_followers = Column(Integer, default=0, index=True)
+    total_followers = mapped_column(Integer, insert_default=None, server_default=None, nullable=True, index=True)
     
     # NEW YOUTUBE METRICS
     video_count = Column(Integer, default=0, index=True)
@@ -83,6 +84,25 @@ class Influencer(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_updated = Column(DateTime, nullable=True)
+
+
+
+
+# Influencer Auth Model
+
+class InfluencerAuth(Base):
+    __tablename__ = "influencer_auth"
+    
+    id = Column(String, primary_key=True)  # Links to influencers.id
+    email = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
+    email_verified = Column(Boolean, default=False)
+    last_login = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 
 # User Model - Simplified to Match Prisma
 class User(Base):

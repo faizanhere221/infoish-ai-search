@@ -5,6 +5,7 @@ export const logoutUser = () => {
     // Clear local storage
     localStorage.removeItem('auth_token')
     localStorage.removeItem('user_data')
+    localStorage.removeItem('user_type')
     
     // Clear session storage
     sessionStorage.clear()
@@ -78,3 +79,25 @@ export const logoutUserWithBackend = async (authToken?: string) => {
     return logoutUser()
   }
 }
+
+
+export const setUserType = (type: 'brand' | 'influencer') => {
+  try {
+    localStorage.setItem('user_type', type)
+    return true
+  } catch (error) {
+    console.error('Error setting user type:', error)
+    return false
+  }
+}
+
+export const getUserType = (): 'brand' | 'influencer' | null => {
+  try {
+    const type = localStorage.getItem('user_type')
+    return type as 'brand' | 'influencer' | null
+  } catch (error) {
+    console.error('Error getting user type:', error)
+    return null
+  }
+}
+

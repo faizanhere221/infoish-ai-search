@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { User, Search, Star, Menu, X, Crown, Zap, Key, Mail, Settings } from 'lucide-react'
+import { User, Search, Star, Menu, X, Crown, Zap, Key, Mail, Settings,ChevronDown, Building } from 'lucide-react'
+
 
 interface UserProfile {
   id: string
@@ -19,6 +20,8 @@ interface HeaderProps {
   isSearchPage?: boolean
 }
 
+
+
 export default function Header({ isSearchPage = false }: HeaderProps) {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -26,6 +29,39 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const router = useRouter()
+  const [userType, setUserType] = useState<'brand' | 'influencer' | null>(null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  // ADD THESE NEW STATES (don't remove existing ones)
+  const [showLoginDropdown, setShowLoginDropdown] = useState(false)
+
+
+
+const handleGoogleLogin = () => {
+  // Redirect to your login page or trigger Google OAuth
+  router.push('/login')
+  
+  // OR if you have Google OAuth setup directly in header:
+  // Trigger your Google login flow here
+}
+
+useEffect(() => {
+  // Check if user is logged in
+  const authToken = localStorage.getItem('auth_token')
+  setIsLoggedIn(!!authToken)
+  
+  // Check user type
+  const storedUserType = localStorage.getItem('user_type')
+  if (storedUserType === 'influencer' || storedUserType === 'brand') {
+    setUserType(storedUserType)
+  }
+}, [])
+useEffect(() => {
+  // Check user type from localStorage
+  const storedUserType = localStorage.getItem('user_type')
+  if (storedUserType === 'influencer' || storedUserType === 'brand') {
+    setUserType(storedUserType)
+  }
+}, [])
 
   useEffect(() => {
     checkAuthStatus()
@@ -124,7 +160,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
     }
   }
 
-  // Replace your existing handleLogout function in header.ts with this:
+  
 
 // Enhanced logout function for your header.ts file
 const handleLogout = async () => {
@@ -182,6 +218,10 @@ const handleLogout = async () => {
         })
       })
     })
+
+
+
+
     
     // Clear session storage
     Object.keys(sessionStorage).forEach(key => {
@@ -191,7 +231,7 @@ const handleLogout = async () => {
     })
     
     console.log('Complete logout with enhanced cleanup')
-    router.push('/login')
+    window.location.href = '/'
     
   } catch (error) {
     console.error('Logout error:', error)
@@ -200,7 +240,7 @@ const handleLogout = async () => {
     localStorage.removeItem('user_data')
     setUser(null)
     setShowDropdown(false)
-    router.push('/login')
+    window.location.href = '/'
   }
 }
   const getUserDisplayName = () => {
@@ -316,33 +356,92 @@ const handleLogout = async () => {
               </div>
             </Link>
 
-            {/* Desktop Navigation - Minimal & Clean */}
-            <nav className="hidden lg:flex items-center gap-8">
-              <Link 
-                href="/dashboard" 
-                className="text-black/70  hover:text-blue-500 font-medium transition-all duration-300 hover:scale-105 px-2 py-1"
+     {/* Desktop Navigation - ENHANCED */}
+<nav className="hidden lg:flex items-center gap-2">
+  <Link 
+    href="/about" 
+    className="px-4 py-2 text-black/70 hover:text-blue-600 font-medium rounded-xl transition-all duration-200 hover:bg-blue-50/50"
+  >
+    About
+  </Link>
+  <Link 
+    href="/pricing" 
+    className="px-4 py-2 text-black/70 hover:text-green-600 font-medium rounded-xl transition-all duration-200 hover:bg-green-50/50"
+  >
+    Pricing
+  </Link>
+  <Link 
+    href="/blog" 
+    className="px-4 py-2 text-black/70 hover:text-purple-600 font-medium rounded-xl transition-all duration-200 hover:bg-purple-50/50"
+  >
+    Blog
+  </Link>
+
+  {!user && (
+    <>
+      {/* NEW: Login Dropdown */}
+      <div className="relative ml-2">
+        <button
+          onClick={() => setShowLoginDropdown(!showLoginDropdown)}
+          className="px-4 py-2 text-black/70 hover:bg-white/50 backdrop-blur-lg rounded-xl flex items-center gap-2 font-medium transition-all border border-white/20"
+        >
+          Login
+          <ChevronDown className={`w-4 h-4 transition-transform ${showLoginDropdown ? 'rotate-180' : ''}`} />
+        </button>
+        
+        {showLoginDropdown && (
+          <>
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => setShowLoginDropdown(false)}
+            />
+            <div className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/30 py-2 z-50">
+              <Link
+                href="/influencer/login"
+                className="flex items-center gap-3 px-4 py-3 text-black hover:bg-purple-50 transition-colors"
+                onClick={() => setShowLoginDropdown(false)}
               >
-                Dashboard
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Influencer</p>
+                  <p className="text-xs text-black/60">Manage profile</p>
+                </div>
               </Link>
-              <Link 
-                href="/blog" 
-                className="text-black/70 hover:text-blue-500 font-medium transition-all duration-300 hover:scale-105 px-2 py-1"
+              
+              <div className="my-1 h-px bg-black/10" />
+              
+              <button
+                onClick={() => {
+                  setShowLoginDropdown(false)
+                  handleGoogleLogin()
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-black hover:bg-blue-50 transition-colors"
               >
-                Blog
-              </Link>
-              <Link 
-                href="/pricing" 
-                className="text-black/70  hover:text-blue-500 font-medium transition-all duration-300 hover:scale-105 px-2 py-1"
-              >
-                Pricing
-              </Link>
-              <Link 
-                href="/about" 
-                className="text-black/70 hover:text-blue-500 font-medium transition-all duration-300 hover:scale-105 px-2 py-1"
-              >
-                About
-              </Link>
-            </nav>
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+                  <Building className="w-4 h-4 text-white" />
+                </div>
+                <div className="text-left">
+                  <p className="font-semibold text-sm">Brand</p>
+                  <p className="text-xs text-black/60">Search influencers</p>
+                </div>
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+      
+      {/* NEW: Register as Influencer */}
+      <Link 
+        href="/register-influencer"
+        className="ml-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all font-semibold text-sm backdrop-blur-lg"
+      >
+        Register as Influencer
+      </Link>
+    </>
+  )}
+</nav>
 
             {/* User Actions - Glass Morphism Buttons */}
             <div className="flex items-center gap-4">
@@ -455,7 +554,7 @@ const handleLogout = async () => {
                           
                           {/* Menu Items */}
                           <Link
-                            href="/dashboard"
+                            href={userType === 'influencer' ? '/influencer/dashboard' : '/dashboard'}
                             className="w-full flex items-center gap-3 text-left px-4 py-3 text-sm font-medium text-black hover:bg-white/40 rounded-2xl transition-all duration-200"
                             onClick={() => setShowDropdown(false)}
                           >
@@ -498,7 +597,7 @@ const handleLogout = async () => {
                     href="/login"
                     className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   >
-                    <span className="hidden sm:inline">Continue with Google</span>
+                    <span className="hidden sm:inline">Sign up as Brand</span>
                     <span className="sm:hidden">Login</span>
                   </Link>
                 </div>
@@ -519,65 +618,138 @@ const handleLogout = async () => {
           </div>
 
           {/* Mobile Menu - Glass Design */}
-          {isMobileMenuOpen && (
-            <div className="lg:hidden border-t border-black/10 py-6 bg-white/20 backdrop-blur-xl">
-              <div className="flex flex-col gap-2">
-                <Link 
-                  href="/dashboard" 
-                  className="text-black hover:text-green-500 font-medium py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-white/30"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
-                <Link 
-                  href="/blog" 
-                  className="text-black hover:text-blue-500 font-medium py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-white/30"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Blog
-                </Link>
-                <Link 
-                  href="/pricing" 
-                  className="text-black hover:text-green-500 font-medium py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-white/30"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Pricing
-                </Link>
-                <Link 
-                  href="/about" 
-                  className="text-black hover:text-blue-500 font-medium py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-white/30"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  About
-                </Link>
-                
-                {user && (
-                  <div className="border-t border-black/10 mt-4 pt-4 space-y-2">
-                    <Link
-                      href="/contact"
-                      className="w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-medium text-sm transition-all duration-200 bg-white/20 text-black hover:bg-white/40"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Mail className="w-5 h-5" />
-                      Contact Support
-                    </Link>
+{isMobileMenuOpen && (
+  <div className="lg:hidden border-t border-black/10 py-6 bg-white/20 backdrop-blur-xl">
+    <div className="flex flex-col gap-2">
 
-                    {user.subscription_tier === 'free' && (
-                      <Link
-                        href="/pricing"
-                        className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-4 rounded-2xl font-bold text-sm hover:shadow-xl transition-all duration-300"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <Crown className="w-5 h-5" />
-                        Upgrade to Premium
-                      </Link>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+
+      {/* NEW: Add these login options if user is not logged in */}
+      {!user && (
+        <>
+          <Link 
+            href="/influencer/login"
+            className="flex items-center gap-3 text-purple-600 hover:text-purple-700 font-semibold py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-purple-50 border-2 border-purple-200"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <User className="w-5 h-5" />
+            Influencer Login
+          </Link>
+          
+          <Link 
+            href="/register-influencer"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-4 px-6 rounded-2xl transition-all duration-200 hover:shadow-lg"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Register as Influencer
+          </Link>
+          
+          <div className="h-px bg-black/10 my-2" />
+        </>
+      )}
+
+
+      {/* Show these links based on login status */}
+      {isLoggedIn ? (
+        <>
+          <Link 
+            href={userType === 'influencer' ? '/influencer/dashboard' : '/dashboard'}
+            className="text-black hover:text-green-500 font-medium py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-white/30"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Dashboard
+          </Link>
+        </>
+      ) : (
+        <>
+          {/* For Influencers Link - Show only when logged out */}
+          <Link 
+            href="/register-influencer"
+            className="text-purple-600 hover:text-purple-700 font-semibold py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-purple-50 border-2 border-purple-200"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Register as Influencer
+          </Link>
+        </>
+      )}
+      
+      {/* Common links for everyone */}
+      <Link 
+        href="/blog" 
+        className="text-black hover:text-blue-500 font-medium py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-white/30"
+        onClick={() => setIsMobileMenuOpen(false)}
+      >
+        Blog
+      </Link>
+      <Link 
+        href="/pricing" 
+        className="text-black hover:text-green-500 font-medium py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-white/30"
+        onClick={() => setIsMobileMenuOpen(false)}
+      >
+        Pricing
+      </Link>
+      <Link 
+        href="/about" 
+        className="text-black hover:text-blue-500 font-medium py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-white/30"
+        onClick={() => setIsMobileMenuOpen(false)}
+      >
+        About
+      </Link>
+      
+      {/* User-specific actions */}
+      {isLoggedIn ? (
+        <div className="border-t border-black/10 mt-4 pt-4 space-y-2">
+          <Link
+            href="/contact"
+            className="w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-medium text-sm transition-all duration-200 bg-white/20 text-black hover:bg-white/40"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <Mail className="w-5 h-5" />
+            Contact Support
+          </Link>
+
+          {user?.subscription_tier === 'free' && (
+            <Link
+              href="/pricing"
+              className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-4 rounded-2xl font-bold text-sm hover:shadow-xl transition-all duration-300"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <Crown className="w-5 h-5" />
+              Upgrade to Premium
+            </Link>
           )}
+          
+          {/* Logout Button */}
+          <button
+            onClick={() => {
+              handleLogout()
+              setIsMobileMenuOpen(false)
+            }}
+            className="w-full flex items-center justify-center gap-3 bg-red-500 text-white px-6 py-4 rounded-2xl font-bold text-sm hover:bg-red-600 transition-all duration-300"
+          >
+            Logout
+          </button>
         </div>
+      ) : (
+        <div className="border-t border-black/10 mt-4 pt-4">
+          {/* Sign In Button for logged out users */}
+          <button
+            onClick={() => {
+              handleGoogleLogin()
+              setIsMobileMenuOpen(false)
+            }}
+            className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 rounded-2xl font-bold text-sm hover:shadow-xl transition-all duration-300"
+          >
+            Sign In with Google
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+        </div>
+
+
+        
 
         {/* Click outside to close dropdown */}
         {showDropdown && (
@@ -591,5 +763,6 @@ const handleLogout = async () => {
       {/* Spacer to prevent content overlap */}
       <div className="h-20"></div>
     </>
+
   )
 }

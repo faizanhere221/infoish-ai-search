@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/header'
 
+import Link from 'next/link'
 
 import { 
   Search, 
@@ -20,7 +21,8 @@ import {
   Target,
   Award,
   Sparkles,
-  Eye
+  Eye,
+  User
 } from 'lucide-react'
 
 interface User {
@@ -247,9 +249,16 @@ function LandingHeroSection() {
           animation: float 6s ease-in-out infinite;
         }
       `}</style>
+
+      
     </div>
   )
 }
+
+
+
+
+
 
 // Features Section
 function FeaturesSection() {
@@ -884,7 +893,7 @@ export default function HomePage() {
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-black/70">Loading your dashboard...</p>
+          <p className="text-black/70">Loading...</p>
         </div>
       </div>
     )
@@ -928,6 +937,59 @@ export default function HomePage() {
         // Visitors see landing page
         <>
           <LandingHeroSection />
+          {/* Influencer Registration Section */}
+      <section className="py-20 bg-gradient-to-r from-purple-50 to-pink-50">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-block p-3 bg-purple-100 rounded-full mb-4">
+              <Sparkles className="w-8 h-8 text-purple-600" />
+            </div>
+            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Are You an Influencer?
+            </h2>
+            <p className="text-xl text-gray-600 mb-8">
+              Join InfoIshai and get discovered by top brands in Pakistan. 
+              Create your profile, showcase your work, and grow your influence.
+            </p>
+            
+            <div className="grid md:grid-cols-3 gap-6 mb-10">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <Users className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Get Discovered</h3>
+                <p className="text-sm text-gray-600">Be found by brands searching for creators like you</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <TrendingUp className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Manage Your Profile</h3>
+                <p className="text-sm text-gray-600">Update your stats, portfolio, and contact info anytime</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <Zap className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Connect with Brands</h3>
+                <p className="text-sm text-gray-600">Receive collaboration opportunities directly</p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link 
+                href="/register-influencer"
+                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+              >
+                Register as Influencer
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              
+              <Link 
+                href="/influencer/login"
+                className="px-8 py-4 bg-white text-purple-600 border-2 border-purple-600 rounded-full font-semibold text-lg hover:bg-purple-50 transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+              >
+                <User className="w-5 h-5" />
+                Already Registered? Login
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
           <FeaturesSection />
           <DemoSection />
           <PricingPreviewSection />
