@@ -43,13 +43,25 @@ const blogPosts: BlogPost[] = [
     slug: 'find-right-pakistani-influencers-brand',
     featured: true,
     views: '1.8K'
+  },
+  {
+    id: '3',
+    title: 'AI-powered Influencer Marketing Tools: A Game Changer for Pakistani Brands',
+    excerpt: 'Discover how AI is transforming influencer marketing in Pakistan. Learn about smart discovery, fraud detection, and ROI measurement tools that help brands run smarter campaigns.',
+    date: '2025-11-01',
+    author: 'Laiba Razzaq',
+    category: 'Technology',
+    readTime: '9 min read',
+    slug: 'ai-powered-influencer-marketing-tools-game-changer',
+    featured: true,
+    views: '1.5K'
   }
 ]
 
 export default function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   
-  const categories = ['All', 'Marketing', 'Strategy']
+  const categories = ['All', 'Marketing', 'Strategy', 'Technology']
   
   const filteredPosts = selectedCategory === 'All' 
     ? blogPosts 
@@ -90,6 +102,23 @@ export default function BlogPage() {
           </div>
         </div>
 
+        {/* Category Filter */}
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-6 py-2 rounded-full font-medium transition-all ${
+                selectedCategory === category
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'bg-white/80 text-gray-700 hover:bg-white hover:shadow-md'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
         {/* Featured Articles */}
         {featuredPosts.length > 0 && (
           <div className="mb-16">
@@ -97,8 +126,8 @@ export default function BlogPage() {
               <Star className="w-6 h-6 text-yellow-500" />
               Featured Articles
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {featuredPosts.map((post) => (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+              {filteredPosts.map((post) => (
                 <article key={post.id} className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-white/50 group">
                   <div className="relative">
                     <div className="absolute top-4 left-4 z-10">
