@@ -31,7 +31,7 @@ export default function AIPoweredInfluencerMarketingPage() {
           </div>
           
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            AI-powered Influencer Marketing Tools: A Game Changer for Pakistani Brands
+            AI-Powered Influencer Marketing Tools: A Game Changer for Pakistani Brands
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
@@ -59,7 +59,7 @@ export default function AIPoweredInfluencerMarketingPage() {
           
           {/* Why now? The opportunity in Pakistan */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Why now? The opportunity in Pakistan</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Now? The Opportunity in Pakistan</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
               Pakistan's digital and social-media ecosystem has grown fast. Influencer marketing has scaled beyond one-off sponsored posts into measurable, revenue-driving programs. i.e, across e-commerce, FMCG, fintech, telecom and fashion. Influencer-driven and tech-enabled creator networks delivering strong GMV and measurable ROI.
             </p>
@@ -70,7 +70,7 @@ export default function AIPoweredInfluencerMarketingPage() {
 
           {/* What AI-powered influencer tools actually do */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">What AI-powered influencer tools actually do (short version)</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">What AI-Powered Influencer Tools Actually Do</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
               AI features in influencer platforms transform manual guesswork into data-driven workflows:
             </p>
@@ -126,7 +126,7 @@ export default function AIPoweredInfluencerMarketingPage() {
 
           {/* Why Pakistani brands benefit */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Pakistani brands benefit</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Pakistani Brands Benefit</h2>
             
             <div className="space-y-6 mb-8">
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
@@ -153,7 +153,7 @@ export default function AIPoweredInfluencerMarketingPage() {
 
           {/* Practical playbook */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Practical playbook for Pakistani marketers (step-by-step)</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Practical Playbook for Pakistani Marketers</h2>
             
             <div className="bg-white rounded-lg p-8 shadow-sm border mb-8">
               <div className="space-y-8">
@@ -210,7 +210,7 @@ export default function AIPoweredInfluencerMarketingPage() {
 
           {/* Recommended types of tools */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Recommended types of tools (and examples)</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Recommended Types of Tools</h2>
             
             <div className="bg-white rounded-lg p-8 shadow-sm border mb-6">
               <ul className="space-y-4">
@@ -240,7 +240,7 @@ export default function AIPoweredInfluencerMarketingPage() {
 
           {/* Compliance, culture and reputation */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Compliance, culture and reputation — local cautions</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Compliance, Culture and Reputation — Local Cautions</h2>
             
             <div className="space-y-4 mb-8">
               <div className="flex gap-4 items-start">
@@ -271,7 +271,7 @@ export default function AIPoweredInfluencerMarketingPage() {
 
           {/* Quick checklist */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Quick checklist for choosing an AI influencer tool</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Quick Checklist for Choosing an AI Influencer Tool</h2>
             
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-8">
               <ul className="space-y-4">
@@ -301,7 +301,7 @@ export default function AIPoweredInfluencerMarketingPage() {
 
           {/* Final thoughts */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Final thoughts — where to start this month</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Final thoughts — Where to Start this Month</h2>
             
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 mb-6">
               <ol className="space-y-4 list-decimal list-inside text-gray-800">
