@@ -11,43 +11,49 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Pakistani Influencer Search - Find Perfect Creators',
-  description: 'Discover and connect with Pakistan\'s top influencers and content creators using our AI-powered search platform. Search through 1,800+ verified Pakistani creator profiles across all major social platforms.',
+  title: 'Infoishai - AI-Powered Pakistani Influencer Search Platform',
+  description: 'Discover and connect with 1,800+ verified Pakistani influencers and content creators. AI-powered search across Instagram, YouTube, and TikTok. Find the perfect creators for your brand in seconds.',
   keywords: [
+    'infoishai',
     'pakistani influencers',
     'influencer marketing pakistan',
     'pakistani content creators',
+    'ai influencer search',
     'creator discovery pakistan',
-    'AI search pakistan',
+    'instagram influencers pakistan',
+    'youtube creators pakistan',
+    'tiktok influencers pakistan',
     'brand partnerships pakistan',
     'social media marketing pakistan',
     'karachi influencers',
     'lahore influencers',
-    'islamabad influencers'
+    'islamabad influencers',
+    'influencer database pakistan',
+    'find influencers pakistan'
   ],
-  authors: [{ name: 'Pakistani Influencer Search Team' }],
-  creator: 'Pakistani Influencer Search Platform',
-  publisher: 'Pakistani Influencer Search',
+  authors: [{ name: 'Infoishai Team' }],
+  creator: 'Infoishai',
+  publisher: 'Infoishai',
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://pakistani-influencer-search.com'),
+  metadataBase: new URL('https://infoishai.com'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'Pakistani Influencer Search - Find Perfect Creators',
-    description: 'Discover and connect with Pakistan\'s top influencers and content creators using our AI-powered search platform.',
-    url: 'https://pakistani-influencer-search.com',
-    siteName: 'Pakistani Influencer Search',
+    title: 'Infoishai - AI-Powered Pakistani Influencer Search',
+    description: 'Discover 1,800+ verified Pakistani influencers. AI-powered search, real-time analytics, instant results.',
+    url: 'https://infoishai.com',
+    siteName: 'Infoishai',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Pakistani Influencer Search Platform',
+        alt: 'Infoishai - Pakistani Influencer Search Platform',
       },
     ],
     locale: 'en_US',
@@ -55,10 +61,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pakistani Influencer Search - Find Perfect Creators',
-    description: 'Discover and connect with Pakistan\'s top influencers and content creators using our AI-powered search platform.',
+    title: 'Infoishai - AI-Powered Pakistani Influencer Search',
+    description: 'Discover 1,800+ verified Pakistani influencers with AI-powered search.',
     images: ['/twitter-image.jpg'],
-    creator: '@pakinfluencers',
+    creator: '@infoishai',
   },
   robots: {
     index: true,
@@ -70,10 +76,6 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
-  },
-  verification: {
-    google: 'google-site-verification-code',
-    yandex: 'yandex-verification-code',
   },
   category: 'technology',
 }
@@ -102,7 +104,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         
         {/* Theme color for mobile browsers */}
-        <meta name="theme-color" content="#059669" />
+        <meta name="theme-color" content="#3B82F6" />
         <meta name="color-scheme" content="light dark" />
         
         {/* Viewport meta tag for responsive design */}
@@ -114,9 +116,10 @@ export default function RootLayout({
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://infoish-ai-search-production.up.railway.app" />
         
         {/* DNS prefetch for external resources */}
-        <link rel="dns-prefetch" href="https://api.pakistaniinfluencersearch.com" />
+        <link rel="dns-prefetch" href="https://infoish-ai-search-production.up.railway.app" />
         
         {/* Security headers */}
         <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
@@ -124,13 +127,13 @@ export default function RootLayout({
         <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
         
         {/* Progressive Web App meta tags */}
-        <meta name="application-name" content="Pakistani Influencer Search" />
+        <meta name="application-name" content="Infoishai" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Pakistani Influencer Search" />
+        <meta name="apple-mobile-web-app-title" content="Infoishai" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
-        <meta name="msapplication-TileColor" content="#059669" />
+        <meta name="msapplication-TileColor" content="#3B82F6" />
         
         {/* Schema.org structured data */}
         <script
@@ -139,25 +142,45 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              "name": "Pakistani Influencer Search",
-              "description": "AI-powered influencer discovery platform for Pakistani creators",
-              "url": "https://pakistani-influencer-search.com",
+              "name": "Infoishai",
+              "alternateName": "Infoishai - Pakistani Influencer Search",
+              "description": "AI-powered influencer discovery platform for Pakistani creators. Search 1,800+ verified influencers across Instagram, YouTube, and TikTok.",
+              "url": "https://infoishai.com",
               "applicationCategory": "BusinessApplication",
               "operatingSystem": "Web",
               "offers": {
-                "@type": "Offer",
-                "category": "SaaS",
+                "@type": "AggregateOffer",
                 "priceCurrency": "PKR",
-                "price": "2999"
+                "lowPrice": "0",
+                "highPrice": "6999",
+                "offerCount": "3"
+              },
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": "4.8",
+                "reviewCount": "150"
               },
               "provider": {
                 "@type": "Organization",
-                "name": "Pakistani Influencer Search",
+                "name": "Infoishai",
+                "url": "https://infoishai.com",
+                "logo": "https://infoishai.com/logo.png",
+                "sameAs": [
+                  "https://twitter.com/infoishai",
+                  "https://linkedin.com/company/infoishai"
+                ],
                 "address": {
                   "@type": "PostalAddress",
-                  "addressCountry": "PK",
-                  "addressLocality": "Karachi"
+                  "addressCountry": "PK"
                 }
+              },
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": "https://infoishai.com/search?q={search_term_string}"
+                },
+                "query-input": "required name=search_term_string"
               }
             })
           }}
@@ -167,7 +190,7 @@ export default function RootLayout({
         {/* Skip to main content for accessibility */}
         <a 
           href="#main-content" 
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-green-600 text-white px-4 py-2 rounded-lg z-50"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-lg z-50"
         >
           Skip to main content
         </a>
@@ -176,7 +199,7 @@ export default function RootLayout({
         <div id="global-loading" className="hidden">
           <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
               <p className="text-gray-600 font-medium">Loading...</p>
             </div>
           </div>
@@ -219,18 +242,9 @@ export default function RootLayout({
                   });
                 });
               }
-
-              // Google Analytics (replace with your tracking ID)
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'GA_TRACKING_ID');
             `
           }}
         />
-
-        {/* Google Analytics Script */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=GA_TRACKING_ID"></script>
       </body>
     </html>
   )
