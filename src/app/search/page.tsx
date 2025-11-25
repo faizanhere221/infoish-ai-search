@@ -1,171 +1,882 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/header'
-import {Mail, Youtube, Eye, Search, Filter, Download, ChevronLeft, ChevronRight, Heart, ExternalLink, X, Bookmark, Share2 } from 'lucide-react'
 
-import { exportToCSV } from '@/lib/utils'
+import Link from 'next/link'
 
-interface InfluencerResult {
-  id: string;
-  username: string;
-  full_name?: string;
-  bio?: string;
-  category?: string;
-  total_followers: number;
-  engagement_rate: number;
-  verified: boolean;
-  
-  // Platform data
-  instagram_followers: number;
-  youtube_subscribers: number;
-  tiktok_followers: number;
-  instagram_handle?: string;
-  youtube_channel?: string;
-  tiktok_handle?: string;
-  
-  // YouTube fields
-  video_count?: number;
-  total_views?: number;
-  youtube_url?: string;
-  last_updated?: string;
-  
-  profile_image_url?: string;
-  email?: string;
-  
-  // UI state
-  is_favorited?: boolean;
-  is_saved?: boolean;
-  match_score?: number;
-  search_type?: string;
-}
+import { 
+  Search, 
+  Users, 
+  BarChart3, 
+  Shield, 
+  Zap, 
+  Star, 
+  ArrowRight, 
+  CheckCircle,
+  PlayCircle,
+  TrendingUp,
+  Globe,
+  Target,
+  Award,
+  Sparkles,
+  Eye,
+  User
+} from 'lucide-react'
 
 interface User {
   id: string
   email: string
   full_name?: string
   profile_picture?: string
-  subscription_tier: "free" | "premium" | "developer" | "pro"  // ADD developer and pro
+  subscription_tier: 'free' | 'starter' | 'pro' | 'developer'
   monthly_searches: number
   search_limit: number
 }
 
-interface SearchFilters {
-  platform: string;
-  category: string;
-  minFollowers: string;
-  maxFollowers: string;
-  engagementMin: string;
-  minVideoCount: string;
-  minTotalViews: string;
-  hasYouTubeUrl: boolean;
-  verified: string;
+
+import React from 'react';
+
+
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="text-center">
+        <div className="relative mb-8">
+          <div className="w-20 h-20 border-4 border-blue-200 rounded-full animate-spin mx-auto">
+            <div className="w-4 h-4 bg-blue-600 rounded-full absolute top-0 left-1/2 transform -translate-x-1/2"></div>
+          </div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-lg">AI</span>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Loading Infoishai
+          </h2>
+          <p className="text-gray-600 max-w-md mx-auto">
+            Preparing your personalized dashboard...
+          </p>
+          <div className="flex justify-center gap-2 mt-6">
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
-export default function AuthenticatedInfluencerSearch() {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<InfluencerResult[]>([])
-  const [searching, setSearching] = useState(false)
-  const [error, setError] = useState('')
-  const [totalResults, setTotalResults] = useState(0)
-  const [showFilters, setShowFilters] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [searchInsights, setSearchInsights] = useState<any>(null)
-  const [savedInfluencers, setSavedInfluencers] = useState<InfluencerResult[]>([])
-  const [showSaved, setShowSaved] = useState(false)
-  const [selectedInfluencer, setSelectedInfluencer] = useState<InfluencerResult | null>(null)
-  
+// Hero Section for Landing Page - GLOBALLY OPTIMIZED
+function LandingHeroSection() {
   const router = useRouter()
-  
-  const [filters, setFilters] = useState<SearchFilters>({
-    platform: '',
-    category: '',
-    minFollowers: '',
-    maxFollowers: '',
-    engagementMin: '',
-    minVideoCount: '',
-    minTotalViews: '',
-    hasYouTubeUrl: false,
-    verified: ''
-  })
+  const [currentStat, setCurrentStat] = useState(0)
 
-  const BACKEND_URL = process.env.NODE_ENV === 'production' 
-    ? 'https://infoish-ai-search-production.up.railway.app' 
-    : 'http://127.0.0.1:8000'
-
-  const categoryOptions = [
-    'Beauty', 'Tech', 'Food', 'Gaming', 'Comedy', 'Travel', 'Fitness', 'Music', 
-    'Lifestyle', 'Business', 'Education', 'News', 'General'
+  const stats = [
+    { number: "1,800+", label: "Verified Creators", icon: "👥" },
+    { number: "4", label: "Countries (Growing)", icon: "🌍" },
+    { number: "3", label: "Major Platforms", icon: "📱" },
+    { number: "Real-time", label: "Global Data", icon: "⚡" }
   ]
 
-  const RESULTS_PER_PAGE = 12
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentStat((prev) => (prev + 1) % stats.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 pt-16 pb-24">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-32 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-green-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-40 left-1/2 w-60 h-60 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-pulse" style={{ animationDelay: '4s' }}></div>
+      </div>
+
+      {/* Floating Elements */}
+      <div className="absolute top-20 left-10 w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center animate-float">
+        <Search className="w-8 h-8 text-blue-600" />
+      </div>
+      <div className="absolute top-40 right-10 w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center animate-float" style={{ animationDelay: '1s' }}>
+        <Globe className="w-8 h-8 text-green-600" />
+      </div>
+      <div className="absolute bottom-40 left-20 w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center animate-float" style={{ animationDelay: '2s' }}>
+        <Users className="w-8 h-8 text-purple-600" />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="space-y-12">
+          {/* Main Headline - GLOBAL POSITIONING */}
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full border border-white/50 shadow-lg">
+              <Globe className="w-5 h-5 text-blue-500" />
+              <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                Global Influencer Discovery Platform
+              </span>
+            </div>
+            
+    
+<h1 className="text-4xl sm:text-6xl font-bold text-black text-balance leading-tight hero-text">
+  {/* First line */}
+  <span className="hero-word animate-fade-in-up delay-0">
+    Find
+  </span>
+   <span>
+    {' '}
+  </span>
+  <span className="hero-word animate-fade-in-up delay-200">
+    <span className="gradient-text-primary animate-gradient-shift">
+      Influencers
+    </span>
+  </span>
+  <span>
+    {' '}
+  </span>
+  <span className="hero-word animate-fade-in-up delay-300">
+    Worldwide
+  </span>
+  
+  <br />
+  
+  {/* Second line */}
+  <span className="hero-word animate-fade-in-up delay-600">
+    With
+  </span>
+  <span>
+    {' '}
+  </span>
+  <span className="hero-word animate-fade-in-up delay-800">
+    <span className="gradient-text-secondary animate-gradient-shift animate-pulse-glow">
+      AI-Powered Search
+    </span>
+  </span>
+</h1>
+            
+            <p className="text-xl sm:text-2xl text-gray-600 max-w-4xl mx-auto text-balance leading-relaxed">
+              Connect with verified creators across Instagram, YouTube, and TikTok. 
+              <span className="font-semibold text-gray-800"> 1,800+ Pakistani creators available now. Expanding globally to India, UAE & beyond.</span>
+            </p>
+
+            {/* Global Availability Badge - NEW */}
+            <div className="inline-flex flex-wrap items-center gap-4 bg-white/90 backdrop-blur-md rounded-2xl px-8 py-4 shadow-xl border border-white/50">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🇵🇰</span>
+                <div className="text-left">
+                  <div className="text-xs font-bold text-green-600">LIVE NOW</div>
+                  <div className="text-sm text-gray-700">Pakistan</div>
+                </div>
+              </div>
+              <div className="h-8 w-px bg-gray-300 hidden sm:block"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🔜</span>
+                <div className="text-left">
+                  <div className="text-xs font-bold text-blue-600">COMING SOON</div>
+                  <div className="text-sm text-gray-700">India • UAE • Bangladesh</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Animated Statistics */}
+          <div className="flex justify-center">
+            <div className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-white/50 max-w-md">
+              <div className="text-center transition-all duration-500">
+                <div className="text-5xl mb-4 transition-all duration-500">
+                  {stats[currentStat].icon}
+                </div>
+                <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2 transition-all duration-500">
+                  {stats[currentStat].number}
+                </div>
+                <div className="text-gray-600 font-medium transition-all duration-500">
+                  {stats[currentStat].label}
+                </div>
+              </div>
+              <div className="flex justify-center gap-2 mt-6">
+                {stats.map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      idx === currentStat ? 'bg-blue-600 scale-125' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+  {/* Primary CTA Button - Blue to Green Gradient */}
+  <button
+    onClick={() => router.push('/login')}
+    className="group bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-bold py-6 px-12 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-3 backdrop-blur-lg"
+  >
+    <span className="text-lg">Start Free Search</span>
+    <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-200" />
+  </button>
+  
+  {/* Secondary CTA Button - Glass Morphism */}
+  <button
+    onClick={() => document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' })}
+    className="group bg-white/80 backdrop-blur-xl hover:bg-white/90 text-black font-bold py-6 px-12 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border-2 border-black/10 hover:border-blue-500/30 flex items-center justify-center gap-3 hover:scale-105 transform"
+  >
+    <PlayCircle className="w-6 h-6 text-blue-500 group-hover:text-green-500 transition-colors duration-200" />
+    <span className="text-lg">Watch Demo</span>
+  </button>
+</div>
+            
+            <div className="inline-flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/30 shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-semibold text-gray-700">1,847 creators online now</span>
+              </div>
+              <div className="h-6 w-px bg-gray-300 hidden sm:block"></div>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="text-sm font-medium text-gray-600">Free account • No credit card</span>
+              </div>
+              <div className="h-6 w-px bg-gray-300 hidden sm:block"></div>
+              <div className="flex items-center gap-2">
+                <Globe className="w-5 h-5 text-blue-600" />
+                <span className="text-sm text-gray-600">Expanding Globally</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Custom animations */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+      `}</style>
+
+      
+    </div>
+  )
+}
+
+
+
+
+
+
+// Features Section - GLOBAL FOCUS
+function FeaturesSection() {
+  const features = [
+    {
+      icon: Search,
+      title: "AI-Powered Global Search",
+      description: "Advanced semantic search finds creators worldwide by content style, audience demographics, and engagement patterns across multiple countries.",
+      color: "from-blue-500 to-blue-600",
+      bgColor: "bg-blue-50",
+      stats: "Multi-country"
+    },
+    {
+      icon: BarChart3,
+      title: "Cross-Country Analytics",
+      description: "Real-time data updated daily. Compare creator performance across Pakistan, India, UAE and more with unified metrics.",
+      color: "from-purple-500 to-purple-600",
+      bgColor: "bg-purple-50",
+      stats: "Daily updates"
+    },
+    {
+      icon: Shield,
+      title: "Globally Verified",
+      description: "Every profile verified with authentic contact information, active social presence, and engagement validation across all markets.",
+      color: "from-green-500 to-green-600",
+      bgColor: "bg-green-50",
+      stats: "100% verified"
+    },
+    {
+      icon: Target,
+      title: "Multi-Market Targeting",
+      description: "Filter by country, region, platforms, niche, followers, verified status, and content type for precise global campaigns.",
+      color: "from-orange-500 to-orange-600",
+      bgColor: "bg-orange-50",
+      stats: "50+ filters"
+    },
+    {
+      icon: Zap,
+      title: "Instant Global Results",
+      description: "Get comprehensive influencer matches from multiple countries in under 3 seconds with our optimized infrastructure.",
+      color: "from-yellow-500 to-yellow-600",
+      bgColor: "bg-yellow-50",
+      stats: "<3s response"
+    },
+    {
+      icon: Globe,
+      title: "International Database",
+      description: "Currently covering Pakistan with 1,800+ creators. Expanding to India, UAE, Bangladesh. One platform for global reach.",
+      color: "from-indigo-500 to-indigo-600",
+      bgColor: "bg-indigo-50",
+      stats: "4 countries"
+    }
+  ]
+
+  return (
+    <section className="py-24 bg-white relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }}></div>
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-green-100 px-6 py-3 rounded-full mb-6">
+            <Award className="w-5 h-5 text-blue-600" />
+            <span className="text-sm font-semibold text-blue-800">Global Platform Features</span>
+          </div>
+          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+            Why Global Brands Choose Infoishai
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Built for worldwide reach with advanced AI and deep local insights across multiple markets
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              className="group relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 hover:border-gray-200"
+            >
+              {/* Gradient Border Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100"></div>
+              
+              <div className="relative">
+                <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                  <feature.icon className="w-8 h-8 text-white" />
+                </div>
+                
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-900">{feature.title}</h3>
+                  <span className="text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {feature.stats}
+                  </span>
+                </div>
+                
+                <p className="text-gray-600 leading-relaxed mb-6">{feature.description}</p>
+                
+                
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// Social Proof Section
+
+
+// Demo Section
+function DemoSection() {
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  return (
+    <section id="demo-section" className="py-24 bg-white relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+            See It In Action
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Watch how easy it is to find and connect with influencers across any country
+          </p>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 shadow-2xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              </div>
+              <div className="flex-1 bg-gray-700 rounded-lg px-4 py-2 text-gray-300 text-sm">
+                infoishai.com
+              </div>
+            </div>
+            
+            <div className="bg-gray-100 rounded-2xl aspect-video relative overflow-hidden">
+              {!isPlaying ? (
+                // Video Thumbnail with Play Button
+                <div 
+                  className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center cursor-pointer group"
+                  onClick={() => setIsPlaying(true)}
+                >
+                  <div className="relative text-center">
+                    <div className="w-24 h-24 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-2xl">
+                      <PlayCircle className="w-16 h-16 text-blue-600" />
+                    </div>
+                    <p className="text-gray-700 font-medium">Watch Platform Demo</p>
+                    <p className="text-gray-500 text-sm">2 minutes • See real search results</p>
+                  </div>
+                </div>
+              ) : (
+                // Actual Video
+                <video
+                  className="w-full h-full rounded-2xl"
+                  controls
+                  autoPlay
+                  poster="/demo-thumbnail.jpg" // Add your thumbnail image
+                >
+                  <source src="/demo-video.mp4" type="video/mp4" />
+                  <source src="/demo-video.webm" type="video/webm" />
+                  Your browser does not support the video tag.
+                </video>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// Pricing Preview Section - 4 Color Design
+function PricingPreviewSection() {
+  const router = useRouter()
+  
+  return (
+    <section className="py-24 bg-gradient-to-br from-white via-blue-50/30 to-green-50/30 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6">
+            Simple, Global Pricing
+          </h2>
+          <p className="text-xl text-black/70 max-w-3xl mx-auto">
+            One platform. Multiple countries. Transparent pricing for brands worldwide.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {/* Free Plan */}
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold text-black mb-2">Free</h3>
+              <div className="text-4xl font-bold text-black mb-4">PKR 0</div>
+              <p className="text-black/60 mb-6">Perfect for trying out</p>
+              
+              <div className="space-y-3 mb-8 text-left">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">10 searches per month</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">5 results per search</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Basic influencer data</span>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => router.push('/login')}
+                className="w-full bg-white/60 hover:bg-white backdrop-blur-lg border border-black/20 hover:border-blue-500/50 text-black font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:shadow-lg"
+              >
+                Start Free
+              </button>
+            </div>
+          </div>
+
+          {/* Starter Plan */}
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-blue-500 relative transform scale-105 hover:scale-110 transition-all duration-300">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <span className="bg-gradient-to-r from-blue-500 to-green-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                Most Popular
+              </span>
+            </div>
+            
+            <div className="text-center">
+              <h3 className="text-2xl font-bold text-black mb-2">Starter</h3>
+              <div className="text-4xl font-bold text-black mb-1">PKR 2,999</div>
+              <div className="text-black/60 mb-6">/month</div>
+              
+              <div className="space-y-3 mb-8 text-left">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">30 searches per month</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Unlimited results</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Export to CSV/Excel</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Advanced filters</span>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => router.push('/pricing')}
+                className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                Get Started
+              </button>
+            </div>
+          </div>
+
+          {/* Pro Plan */}
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold text-black mb-2">Pro</h3>
+              <div className="text-4xl font-bold text-black mb-1">PKR 6,999</div>
+              <div className="text-black/60 mb-6">/month</div>
+              
+              <div className="space-y-3 mb-8 text-left">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Unlimited Searches</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Unlimited Results</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Multi-country access</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Priority support</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-black/80">Direct Consultation</span>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => router.push('/pricing')}
+                className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                Upgrade to Pro
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center mt-12">
+          <button
+            onClick={() => router.push('/pricing')}
+            className="inline-flex items-center gap-2 text-blue-500 hover:text-green-500 font-medium transition-colors duration-200"
+          >
+            View detailed pricing
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </section>
+  )
+}
+// Final CTA Section - 4 Color Design
+function FinalCTASection() {
+  const router = useRouter()
+  
+  return (
+    <section className="py-24 bg-gradient-to-r from-blue-500 to-green-500 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-32 w-80 h-80 bg-white rounded-full mix-blend-overlay filter blur-xl opacity-20 animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-white rounded-full mix-blend-overlay filter blur-xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <div className="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+        <div className="space-y-8">
+          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-lg px-6 py-3 rounded-full border border-white/30 shadow-lg">
+            <Globe className="w-5 h-5 text-white" />
+            <span className="text-sm font-semibold text-white">Go Global with Infoishai</span>
+          </div>
+          
+          <h2 className="text-4xl sm:text-6xl font-bold text-white mb-6 leading-tight">
+            Ready to Find Your Perfect Influencers Worldwide?
+          </h2>
+          
+          <p className="text-xl sm:text-2xl text-white/80 max-w-3xl mx-auto leading-relaxed">
+            Start discovering creators who align with your brand across Pakistan, India, UAE, and beyond. 
+            <span className="font-semibold text-white"> Get your first results in under 30 seconds.</span>
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-6 justify-center pt-8">
+            <button
+              onClick={() => router.push('/login')}
+              className="group bg-white hover:bg-white/90 text-blue-500 hover:text-green-500 font-bold py-6 px-12 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-3 backdrop-blur-lg"
+            >
+              <span className="text-lg">Start Free Search Now</span>
+              <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-200" />
+            </button>
+            
+            <button
+              onClick={() => router.push('/pricing')}
+              className="group border-2 border-white hover:bg-white hover:text-blue-500 text-white font-bold py-6 px-12 rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 hover:scale-105 transform backdrop-blur-lg"
+            >
+              <Eye className="w-6 h-6" />
+              <span className="text-lg">View Pricing Plans</span>
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-12 max-w-2xl mx-auto">
+            <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <div className="text-3xl font-bold text-white mb-2">Free</div>
+              <div className="text-white/80 text-sm">No credit card required</div>
+            </div>
+            <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <div className="text-3xl font-bold text-white mb-2">30s</div>
+              <div className="text-white/80 text-sm">Average search time</div>
+            </div>
+            <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <div className="text-3xl font-bold text-white mb-2">24/7</div>
+              <div className="text-white/80 text-sm">Real-time data updates</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+
+
+
+
+// User Dashboard Section (for authenticated users) - Updated Design
+function UserDashboardSection({ user }: { user: User }) {
+  const router = useRouter()
+
+  const getSearchesRemaining = () => {
+    if (!user) return 0
+    if (user.subscription_tier === 'pro' || user.subscription_tier === 'developer') return 'unlimited'
+    return Math.max(0, user.search_limit - user.monthly_searches)
+  }
+
+  return (
+    <div className="relative overflow-hidden bg-white py-8 sm:py-16">
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="space-y-6 sm:space-y-8">
+          
+          {/* User Dashboard Card - Compact */}
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-5 sm:p-6 max-w-4xl mx-auto border border-black/10 shadow-xl">
+            
+            {/* Header Section - Fixed Layout */}
+            <div className="flex flex-col gap-4 mb-6">
+              {/* User Info Row */}
+              <div className="flex items-center gap-3">
+                {user.profile_picture ? (
+                  <img
+                    src={user.profile_picture}
+                    alt={user.full_name || 'User'}
+                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 border-blue-500/30 object-cover shadow-lg"
+                  />
+                ) : (
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-xl flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg">
+                    {(user.full_name || user.email).charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h2 className="text-lg sm:text-xl font-bold text-black mb-1">
+                    Welcome back, {user.full_name?.split(' ')[0] || user.email.split('@')[0]}!
+                  </h2>
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold border ${
+                    user.subscription_tier === 'developer' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
+                    user.subscription_tier === 'pro' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                    user.subscription_tier === 'starter' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                    'bg-black/10 text-black border-black/20'
+                  }`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${
+                      user.subscription_tier === 'developer' ? 'bg-green-500' :
+                      user.subscription_tier === 'pro' ? 'bg-blue-500' :
+                      user.subscription_tier === 'starter' ? 'bg-blue-500' :
+                      'bg-black'
+                    }`}></div>
+                    {user.subscription_tier === 'developer' ? 'Developer' :
+                     user.subscription_tier === 'pro' ? 'Pro' :
+                     user.subscription_tier === 'starter' ? 'Starter' :
+                     'Free'} Account
+                  </span>
+                </div>
+              </div>
+              
+              {/* CTA Button Row - Full Width on Mobile */}
+              <button
+                onClick={() => router.push('/search')}
+                disabled={getSearchesRemaining() === 0 && user.subscription_tier === 'free'}
+                className={`w-full px-5 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                  getSearchesRemaining() === 0 && user.subscription_tier === 'free'
+                    ? 'bg-black/20 text-black/50 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white'
+                }`}
+              >
+                {getSearchesRemaining() === 0 && user.subscription_tier === 'free' ? 'Limit Reached - Upgrade to Continue' : 'Start Searching Global Influencers'}
+              </button>
+            </div>
+
+            {/* Usage Statistics - Compact Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              
+              {/* Searches This Month */}
+              <div className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 rounded-xl p-4 text-center border border-blue-500/20 backdrop-blur-lg">
+                <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-1">
+                  {user.subscription_tier === 'pro' || user.subscription_tier === 'developer' ? 
+                    user.monthly_searches : 
+                    `${user.monthly_searches}/${user.search_limit}`
+                  }
+                </div>
+                <div className="text-xs text-blue-600 font-medium">Searches This Month</div>
+              </div>
+
+              {/* Searches Remaining - Only show for limited plans */}
+              {(user.subscription_tier === 'free' || user.subscription_tier === 'starter') && (
+                <div className="bg-gradient-to-br from-green-500/5 to-green-500/10 rounded-xl p-4 text-center border border-green-500/20 backdrop-blur-lg">
+                  <div className="text-xl sm:text-2xl font-bold text-green-600 mb-1">
+                    {getSearchesRemaining()}
+                  </div>
+                  <div className="text-xs text-green-600 font-medium">Searches Remaining</div>
+                </div>
+              )}
+
+              {/* Account Type */}
+              <div className={`bg-gradient-to-br rounded-xl p-4 text-center border backdrop-blur-lg ${
+                user.subscription_tier === 'pro' || user.subscription_tier === 'developer' 
+                  ? 'from-green-500/5 to-green-500/10 border-green-500/20' 
+                  : 'from-black/5 to-black/10 border-black/20'
+              } ${(user.subscription_tier === 'free' || user.subscription_tier === 'starter') ? '' : 'lg:col-span-1 sm:col-span-2'}`}>
+                <div className="text-xl sm:text-2xl mb-1">
+                  {user.subscription_tier === 'developer' ? '🔧' :
+                   user.subscription_tier === 'pro' ? '👑' :
+                   user.subscription_tier === 'starter' ? '⚡' : '🆓'}
+                </div>
+                <div className={`text-xs font-medium ${
+                  user.subscription_tier === 'pro' || user.subscription_tier === 'developer' 
+                    ? 'text-green-600' 
+                    : 'text-black/80'
+                }`}>
+                  {user.subscription_tier.charAt(0).toUpperCase() + user.subscription_tier.slice(1)} Plan
+                </div>
+              </div>
+            </div>
+
+            {/* Upgrade CTA for Free Users - Compact */}
+            {user.subscription_tier === 'free' && (
+              <div className="mt-5 bg-gradient-to-r from-blue-500/10 to-green-500/10 rounded-xl p-4 border border-blue-500/20">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div>
+                    <h3 className="font-bold text-black mb-1 text-sm">Ready for unlimited global searches?</h3>
+                    <p className="text-black/70 text-xs">Upgrade to unlock all features and remove search limits.</p>
+                  </div>
+                  <button
+                    onClick={() => router.push('/pricing')}
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-5 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg text-sm"
+                  >
+                    Upgrade Now
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Main headline for authenticated users - Mobile Optimized */}
+          <div className="text-center space-y-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-black leading-tight">
+              Find{' '}
+              <span className="bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">
+                Global Influencers
+              </span>
+              <br />
+              With AI-Powered Search
+            </h1>
+            <p className="text-lg sm:text-xl text-black/70 max-w-3xl mx-auto leading-relaxed">
+              Search through verified creators worldwide with your personalized dashboard.
+            </p>
+            
+            {/* Quick Action Buttons - Mobile Responsive */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <button
+                onClick={() => router.push('/search')}
+                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                Start Searching Now
+              </button>
+              <button
+                onClick={() => router.push('/pricing')}
+                className="bg-white/80 backdrop-blur-lg hover:bg-white text-black px-8 py-4 rounded-2xl font-semibold transition-all duration-300 border border-black/10 hover:border-blue-500/30"
+              >
+                View Plans
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Main page component - Updated
+export default function HomePage() {
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
-    checkAuthentication()
-    loadSavedInfluencers()
+    checkAuthStatus()
   }, [])
 
   useEffect(() => {
-  checkAuthentication()
-  loadSavedInfluencers()
-  
-  // Handle repeat search - MOVED OUT of nested useEffect
-  const checkForRepeatSearch = () => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search)
-      const autoQuery = urlParams.get('q')
-      const isAuto = urlParams.get('auto')
-      
-      if (autoQuery && isAuto) {
-        setQuery(autoQuery)
-        window.history.replaceState({}, '', '/search')
-        setTimeout(() => {
-          handleSearch(1)
-        }, 500)
-        console.log(`Executing repeat search for: "${autoQuery}"`)
+    // Listen for search events
+    const handleSearchUpdate = (event: CustomEvent) => {
+      if (user && event.detail) {
+        setUser(prev => prev ? {
+          ...prev,
+          monthly_searches: event.detail.monthly_searches,
+          search_limit: event.detail.search_limit
+        } : null)
       }
-    } catch (error) {
-      console.error('Error handling repeat search:', error)
     }
-  }
-  
-  checkForRepeatSearch()
-}, [])
 
-useEffect(() => {
-  const keepBackendAlive = async () => {
+    window.addEventListener('searchCompleted', handleSearchUpdate as EventListener)
+    
+    return () => {
+      window.removeEventListener('searchCompleted', handleSearchUpdate as EventListener)
+    }
+  }, [user])
+
+  const checkAuthStatus = async () => {
     try {
-      await fetch(`${BACKEND_URL}/keepalive`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      console.log('Backend keepalive ping successful')
-    } catch (error) {
-      console.warn('Backend keepalive failed:', error)
-    }
-  }
+      const token = localStorage.getItem('auth_token')
+      
+      if (!token) {
+        setIsLoading(false)
+        return
+      }
 
-  const keepaliveInterval = setInterval(keepBackendAlive, 4 * 60 * 1000)
-  keepBackendAlive()
+      const backendUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://infoish-ai-search-production.up.railway.app' 
+        : 'http://127.0.0.1:8000'
 
-  return () => {
-    clearInterval(keepaliveInterval)
-  }
-}, [BACKEND_URL])
-
-  const checkAuthentication = async () => {
-    const token = localStorage.getItem('auth_token')
-    if (!token) {
-      router.push('/login')
-      return
-    }
-
-    try {
-      const response = await fetch(`${BACKEND_URL}/auth/me`, {
+      const response = await fetch(`${backendUrl}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -174,1425 +885,131 @@ useEffect(() => {
 
       if (response.ok) {
         const userData = await response.json()
-        setUser(userData)
-      } else {
-        localStorage.removeItem('auth_token')
-        router.push('/login')
-        return
+        setUser({
+          id: userData.id,
+          email: userData.email,
+          full_name: userData.full_name,
+          profile_picture: userData.profile_picture,
+          subscription_tier: userData.subscription_tier,
+          monthly_searches: userData.monthly_searches,
+          search_limit: userData.search_limit
+        })
       }
     } catch (error) {
       console.error('Auth check failed:', error)
-      localStorage.removeItem('auth_token')
-      router.push('/login')
-      return
     } finally {
       setIsLoading(false)
     }
   }
 
-
-  const saveToRecentSearches = (searchQuery: string) => {
-  if (!searchQuery.trim()) return
-  
-  try {
-    const recentSearches = JSON.parse(localStorage.getItem('recent_searches') || '[]')
-    
-    const filteredSearches = recentSearches.filter((search: string) => 
-      search.toLowerCase() !== searchQuery.toLowerCase()
-    )
-    
-    const updatedSearches = [searchQuery.trim(), ...filteredSearches].slice(0, 10)
-    
-    localStorage.setItem('recent_searches', JSON.stringify(updatedSearches))
-  } catch (error) {
-    console.error('Failed to save recent search:', error)
-  }
-}
-
-  const loadSavedInfluencers = () => {
-    const saved = localStorage.getItem('saved_influencers')
-    if (saved) {
-      try {
-        setSavedInfluencers(JSON.parse(saved))
-      } catch (error) {
-        console.error('Error loading saved influencers:', error)
-      }
-    }
-  }
-
-  const handleSearch = async (page = 1) => {
-  // Save to recent searches FIRST (but only if there's a valid query)
-  if (query.trim()) {
-    saveToRecentSearches(query.trim())
-  }
-
-  if (!query.trim() && !Object.values(filters).some(v => v && v !== false)) {
-    setError('Please enter your search or apply filters')
-    return
-  }
-
-  setSearching(true)
-  setError('')
-  setCurrentPage(page)
-  
-  try {
-    const offset = (page - 1) * RESULTS_PER_PAGE
-    
-    const params = new URLSearchParams({
-      query: query.trim() || '',
-      limit: RESULTS_PER_PAGE.toString(),
-      offset: offset.toString()
-    })
-
-    // Add all filters
-    if (filters.platform) params.append('platform', filters.platform)
-    if (filters.category) params.append('category', filters.category)
-    if (filters.minFollowers) params.append('min_followers', filters.minFollowers)
-    if (filters.maxFollowers) params.append('max_followers', filters.maxFollowers)
-    if (filters.engagementMin) params.append('engagement_min', filters.engagementMin)
-    if (filters.minVideoCount) params.append('min_video_count', filters.minVideoCount)
-    if (filters.minTotalViews) params.append('min_total_views', filters.minTotalViews)
-    if (filters.hasYouTubeUrl) params.append('has_youtube_url', 'true')
-    if (filters.verified) params.append('verified', filters.verified)
-
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 25000)
-
-    // Call backend directly to ensure search counting works
-    const response = await fetch(`${BACKEND_URL}/search/influencers?${params.toString()}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-        'Content-Type': 'application/json'
-      },
-      signal: controller.signal
-    })
-
-    clearTimeout(timeoutId)
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Search failed (${response.status}): ${errorText}`)
-    }
-
-    const data = await response.json()
-    
-    if (data.success !== false) {
-      const searchResults = data.results || []
-
-
-      let displayTotal = data.total || data.total_found || 0
-      let displayPages = Math.ceil(displayTotal / RESULTS_PER_PAGE)
-      
-      // If user is free and we got exactly 5 results, adjust display
-      {user?.subscription_tier === 'free' && results.length >= 5 && !showSaved && (
-  <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
-    <div className="flex items-center justify-between">
-      <div>
-        <h3 className="font-bold text-blue-900 mb-2">Want to see all {totalResults}+ results?</h3>
-        <p className="text-blue-700 text-sm mb-3">
-          Free accounts are limited to 5 results per search. Upgrade to see unlimited results and export data.
-        </p>
-        <div className="flex items-center gap-4 text-sm">
-          <span className="text-blue-600">✓ Unlimited search results</span>
-          <span className="text-blue-600">✓ Export to CSV</span>
-          <span className="text-blue-600">✓ Advanced filters</span>
-        </div>
-      </div>
-      <button 
-        onClick={() => router.push('/pricing')}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all"
-      >
-        Upgrade Now
-      </button>
-    </div>
-  </div>
-)}
-      
-      setResults(searchResults)
-      setTotalResults(displayTotal)  // Use adjusted total
-      setTotalPages(displayPages)    // Use adjusted pages
-      setSearchInsights(data.search_insights || null)
-      
-      // Update user state immediately after successful search
-      if (data.user_info && user) {
-        const updatedUser = {
-          ...user,
-          monthly_searches: data.user_info.monthly_searches || user.monthly_searches + 1,
-        }
-        setUser(updatedUser)
-        
-        // Emit custom event for other components to listen to
-        const searchEvent = new CustomEvent('searchCompleted', {
-          detail: {
-            monthly_searches: updatedUser.monthly_searches,
-            search_limit: updatedUser.search_limit
-          }
-        })
-        window.dispatchEvent(searchEvent)
-        
-        console.log(`Search completed. New count: ${updatedUser.monthly_searches}/${updatedUser.search_limit}`)
-      }
-
-      // Show upgrade message if user hit limits
-      if (data.upgrade_message) {
-        setError(data.upgrade_message)
-      }
-      
-      console.log(`Page ${page}: Got ${searchResults.length} results, Displaying total: ${displayTotal}`)
-    } else {
-      throw new Error(data.message || 'Search failed')
-    }
-  } catch (err) {
-    console.error('Search error:', err)
-    setError(err instanceof Error ? err.message : 'Search failed')
-    setResults([])
-  } finally {
-    setSearching(false)
-  }
-}
-
-const canUserExport = (user: User | null): boolean => {
-  if (!user) return false;
-  return user.subscription_tier !== 'free';
-};
-
-// ALSO ADD this function to refresh user data periodically
-const refreshUserData = async () => {
-  try {
-    const token = localStorage.getItem('auth_token')
-    if (!token) return
-
-    const response = await fetch(`${BACKEND_URL}/auth/me`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (response.ok) {
-      const userData = await response.json()
-      setUser(userData)
-    }
-  } catch (error) {
-    console.error('Failed to refresh user data:', error)
-  }
-}
-
-// ADD this useEffect to refresh user data after searches
-useEffect(() => {
-  // Refresh user data every time results change (after a search)
-  if (results.length > 0 && user) {
-    refreshUserData()
-  }
-}, [results])
-
-  const handleSaveInfluencer = (influencer: InfluencerResult) => {
-  const isCurrentlySaved = savedInfluencers.some(saved => saved.id === influencer.id)
-  
-  let updatedSaved = isCurrentlySaved
-    ? savedInfluencers.filter(saved => saved.id !== influencer.id)
-    : [...savedInfluencers, { ...influencer, is_saved: true }]
-
-  setSavedInfluencers(updatedSaved)
-  localStorage.setItem('saved_influencers', JSON.stringify(updatedSaved))
-  
-  // Update the results to reflect the saved state
-  setResults(prevResults => 
-    prevResults.map(result => 
-      result.id === influencer.id 
-        ? { ...result, is_saved: !isCurrentlySaved }
-        : result
-    )
-  )
-
-  // Optional: Show a brief toast notification
-  const action = isCurrentlySaved ? 'removed from' : 'added to'
-  console.log(`${influencer.full_name || influencer.username} ${action} saved list`)
-}
-
-  const handleFavorite = (influencerId: string, currentlyFavorited: boolean) => {
-  // Simple local-only favorites for quick launch
-  setResults(prevResults => 
-    prevResults.map(result => 
-      result.id === influencerId 
-        ? {...result, is_favorited: !currentlyFavorited}
-        : result
-    )
-  )
-}
-
-// That's it! No backend calls, no errors, just working favorites
-// The heart will turn red immediately when clicked
-
-// Optional: If you want persistence across browser sessions, add this enhanced version:
-const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited: boolean) => {
-  // Update the UI immediately
-  setResults(prevResults => 
-    prevResults.map(result => 
-      result.id === influencerId 
-        ? {...result, is_favorited: !currentlyFavorited}
-        : result
-    )
-  )
-  
-  // Save to localStorage for persistence
-  try {
-    const favorites = JSON.parse(localStorage.getItem('favorite_influencers') || '[]')
-    const updatedFavorites = currentlyFavorited
-      ? favorites.filter((id: string) => id !== influencerId)
-      : [...favorites, influencerId]
-    
-    localStorage.setItem('favorite_influencers', JSON.stringify(updatedFavorites))
-  } catch (error) {
-    console.log('Could not save favorites to localStorage')
-  }
-}
-
-  const handleExportResults = async (exportSaved: boolean = false) => {
-
-    // Block free users from exporting search results
-  if (!canUserExport(user) && !exportSaved) {
-    alert('Export feature is available for Starter, Pro, and Developer accounts. Please upgrade your plan.');
-    return;
-  }
-  if (exportSaved) {
-    // Export saved influencers (this works fine)
-    const dataToExport = savedInfluencers
-    exportToCSV(dataToExport, true)
-    return
-  }
-
-  // For search results, fetch ALL results with same search parameters
-  setError('')
-  
-  try {
-    console.log('Starting export with query:', query)
-    console.log('Current filters:', filters)
-    
-    const params = new URLSearchParams({
-      query: query.trim() || '',
-      limit: '500', // Reasonable limit for export
-      offset: '0'    // Start from beginning
-    })
-
-    // Add all your current filters - but validate them first
-    if (filters.platform && filters.platform !== '') {
-      params.append('platform', filters.platform)
-    }
-    if (filters.category && filters.category !== '') {
-      params.append('category', filters.category)
-    }
-    if (filters.minFollowers && filters.minFollowers !== '') {
-      params.append('min_followers', filters.minFollowers)
-    }
-    if (filters.maxFollowers && filters.maxFollowers !== '') {
-      params.append('max_followers', filters.maxFollowers)
-    }
-    if (filters.engagementMin && filters.engagementMin !== '') {
-      params.append('engagement_min', filters.engagementMin)
-    }
-    if (filters.minVideoCount && filters.minVideoCount !== '') {
-      params.append('min_video_count', filters.minVideoCount)
-    }
-    if (filters.minTotalViews && filters.minTotalViews !== '') {
-      params.append('min_total_views', filters.minTotalViews)
-    }
-    if (filters.hasYouTubeUrl === true) {
-      params.append('has_youtube_url', 'true')
-    }
-    if (filters.verified && filters.verified !== '') {
-      params.append('verified', filters.verified)
-    }
-
-    console.log('Export URL params:', params.toString())
-
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 45000) // Longer timeout for export
-
-    const response = await fetch(`/api/search?${params.toString()}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-        'Content-Type': 'application/json'
-      },
-      signal: controller.signal
-    })
-
-    clearTimeout(timeoutId)
-
-    console.log('Export response status:', response.status)
-    
-    if (response.ok) {
-      const data = await response.json()
-      console.log('Export data received:', data)
-      
-      const allResults = data.results || []
-      
-      if (allResults.length === 0) {
-        alert('No results found to export. Try adjusting your search criteria.')
-        return
-      }
-      
-      // Now export all results
-      exportToCSV(allResults, false)
-      
-      alert(`Successfully exported ${allResults.length} influencers to CSV`)
-    } else {
-      // Get error details
-      const errorText = await response.text()
-      console.error('Export error response:', errorText)
-      throw new Error(`Export failed (${response.status}): ${errorText}`)
-    }
-  } catch (error: unknown) {
-    // FIXED: Proper error type handling
-    console.error('Export failed:', error)
-    
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        alert('Export timed out. Please try with fewer results or contact support.')
-      } else {
-        alert(`Export failed: ${error.message}. Please try again or contact support.`)
-      }
-    } else {
-      alert('Export failed due to an unknown error. Please try again or contact support.')
-    }
-  }
-}
-
-
-  const formatFollowers = (count: number) => {
-    if (!count || count === 0) return '0'
-    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`
-    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`
-    return count.toString()
-  }
-
-  const formatViews = (count: number): string => {
-    if (!count || count === 0) return '0'
-    if (count >= 1000000000) return `${(count / 1000000000).toFixed(1)}B`
-    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`
-    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`
-    return count.toString()
-  }
-
-  const getPlatformStats = (influencer: InfluencerResult) => {
-    const stats = []
-    
-    if (influencer.instagram_handle && influencer.instagram_followers > 0) {
-      stats.push({ 
-        platform: 'Instagram', 
-        followers: influencer.instagram_followers, 
-        handle: influencer.instagram_handle,
-        color: 'bg-pink-50 hover:bg-pink-100',
-        url: `https://instagram.com/${influencer.instagram_handle}`,
-        icon: '📷'
-      })
-    }
-    
-    if (influencer.youtube_channel && influencer.youtube_subscribers > 0) {
-      stats.push({ 
-        platform: 'YouTube', 
-        followers: influencer.youtube_subscribers, 
-        handle: influencer.youtube_channel,
-        color: 'bg-red-50 hover:bg-red-100',
-        url: influencer.youtube_url || `https://youtube.com/@${influencer.youtube_channel}`,
-        icon: '🎥',
-        extraInfo: influencer.video_count ? `${influencer.video_count} videos` : undefined
-      })
-    }
-    
-    if (influencer.tiktok_handle && influencer.tiktok_followers > 0) {
-      stats.push({ 
-        platform: 'TikTok', 
-        followers: influencer.tiktok_followers, 
-        handle: influencer.tiktok_handle,
-        color: 'bg-gray-50 hover:bg-gray-100',
-        url: `https://tiktok.com/@${influencer.tiktok_handle}`,
-        icon: '🎵'
-      })
-    }
-    
-    return stats
-  }
-
-  const getEngagementColor = (rate: number) => {
-    if (rate >= 6) return 'bg-green-100 text-green-700'
-    if (rate >= 3) return 'bg-yellow-100 text-yellow-700'
-    return 'bg-red-100 text-red-700'
-  }
-
-  const clearFilters = () => {
-    setFilters({
-      platform: '',
-      category: '',
-      minFollowers: '',
-      maxFollowers: '',
-      engagementMin: '',
-      minVideoCount: '',
-      minTotalViews: '',
-      hasYouTubeUrl: false,
-      verified: ''
-    })
-    setCurrentPage(1)
-  }
-
-  const handleQuickSearch = (searchTerm: string) => {
-    setQuery(searchTerm);
-    setFilters(prev => ({ ...prev, category: '' }));
-    //setTimeout(() => handleSearch(1), 100);
-  }
-
-  const handleViewDetails = (influencer: InfluencerResult) => {
-     console.log('View Details clicked for:', influencer.username)
-    setSelectedInfluencer(influencer)
-  }
-
-  const closeDetailsModal = () => {
-    setSelectedInfluencer(null)
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('saved_influencers')
-    router.push('/login')
-  }
-
-  const ProfileImage = ({ influencer }: { influencer: InfluencerResult }) => {
-    const [imageError, setImageError] = useState(false)
-    
-    const fallbackInitial = (influencer.full_name || influencer.username).charAt(0).toUpperCase()
-    
-    if (!influencer.profile_image_url || imageError) {
-      return (
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          {fallbackInitial}
-        </div>
-      )
-    }
-    
-    return (
-      <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-        <img 
-          src={influencer.profile_image_url}
-          alt={influencer.full_name || influencer.username}
-          className="w-full h-full object-cover"
-          onError={() => setImageError(true)}
-          onLoad={() => setImageError(false)}
-        />
-      </div>
-    )
-  }
-
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-black/70">Loading...</p>
         </div>
       </div>
     )
   }
 
-  if (!user) {
-    return null
-  }
+  return (
+    <>
+      <Header />
 
-  const currentResults = showSaved ? savedInfluencers : results
-
- return (
-  <div className="min-h-screen bg-white">
-    {/* Header Component */}
-    <Header />
-
-    {/* Main Content */}
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Search Section - Only show when not viewing saved */}
-      {!showSaved && (
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-black/10 p-8 mb-8">
-          {/* Search Bar */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                placeholder="Search Pakistani influencers (e.g., tech reviewers, beauty influencers, YouTube creators)"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch(1)}
-                className="w-full px-5 py-4 pl-12 text-black placeholder-black/50 bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-2xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 text-base"
-                disabled={searching}
-              />
-              <Search className="w-5 h-5 text-black/60 absolute left-4 top-4.5" />
-            </div>
-            <button
-              onClick={() => handleSearch(1)}
-              disabled={searching}
-              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 disabled:from-black/30 disabled:to-black/40 text-white px-8 py-4 rounded-2xl font-semibold min-w-[140px] transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-            >
-              {searching ? 'Searching...' : 'Search'}
-            </button>
-          </div>
-
-          {/* Search insights */}
-          {searchInsights && (
-            <div className="mb-6 p-4 bg-blue-500/10 backdrop-blur-lg rounded-2xl border border-blue-500/20">
-              <div className="text-sm text-blue-600 font-medium">
-                Search Strategy: {searchInsights.search_strategy} • 
-                Keyword matches: {searchInsights.keyword_matches || 0} • 
-                {searchInsights.youtube_data_included && '🎥 YouTube Enhanced • '}
-                Search time: {searchInsights.search_time_ms || 0}ms
-              </div>
-            </div>
-          )}
-
-          {/* Quick Search Tags */}
-          <div className="flex flex-wrap gap-3 mb-6">
-            {['Beauty Influencers', 'Tech Reviewers', 'Food Bloggers', 'Gaming Creators', 'YouTube Stars', 'Comedy Channels'].map((tag) => (
-              <button
-                key={tag}
-                onClick={() => handleQuickSearch(tag)}
-                className="px-4 py-2 bg-white/60 hover:bg-blue-500/10 border border-black/10 hover:border-blue-500/30 text-black hover:text-blue-600 rounded-xl text-sm font-medium transition-all duration-300 backdrop-blur-lg transform hover:scale-105"
-                disabled={searching}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-
-          {/* Filters Toggle */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="text-blue-500 hover:text-green-500 font-semibold mb-6 flex items-center gap-3 bg-white/60 backdrop-blur-lg px-4 py-3 rounded-xl border border-black/10 hover:border-blue-500/30 transition-all duration-300"
-          >
-            <span>{showFilters ? '− Hide Filters' : '+ Show Filters'}</span>
-            <span className="text-xs bg-blue-500/20 text-blue-600 px-3 py-1 rounded-full font-bold">
-              {Object.values(filters).filter(v => v && v !== false).length}
-            </span>
-          </button>
-
-          {/* Filters Panel */}
-          {showFilters && (
-            <div className="bg-white/50 backdrop-blur-xl rounded-3xl p-8 border border-black/10">
-              <h3 className="text-lg font-bold text-black mb-6">Filter Results</h3>
-              
-              {/* Main Filters Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-black">Platform</label>
-                  <select
-                    value={filters.platform}
-                    onChange={(e) => setFilters({...filters, platform: e.target.value})}
-                    className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
-                  >
-                    <option value="">All Platforms</option>
-                    <option value="instagram">Instagram</option>
-                    <option value="youtube">YouTube</option>
-                    <option value="tiktok">TikTok</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-black">Category</label>
-                  <select
-                    value={filters.category}
-                    onChange={(e) => setFilters({...filters, category: e.target.value})}
-                    className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
-                  >
-                    <option value="">All Categories</option>
-                    {categoryOptions.map(cat => (
-                      <option key={cat} value={cat.toLowerCase()}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-black">Min Followers</label>
-                  <select
-                    value={filters.minFollowers}
-                    onChange={(e) => setFilters({...filters, minFollowers: e.target.value})}
-                    className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
-                  >
-                    <option value="">Min Followers</option>
-                    <option value="1000">1K+</option>
-                    <option value="10000">10K+</option>
-                    <option value="100000">100K+</option>
-                    <option value="1000000">1M+</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-black">Status</label>
-                  <select
-                    value={filters.verified}
-                    onChange={(e) => setFilters({...filters, verified: e.target.value})}
-                    className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
-                  >
-                    <option value="">All Status</option>
-                    <option value="true">Verified Only</option>
-                    <option value="false">Unverified Only</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* YouTube Filters Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-black">Min Videos</label>
-                  <select
-                    value={filters.minVideoCount}
-                    onChange={(e) => setFilters({...filters, minVideoCount: e.target.value})}
-                    className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
-                  >
-                    <option value="">Min Videos</option>
-                    <option value="10">10+ videos</option>
-                    <option value="50">50+ videos</option>
-                    <option value="100">100+ videos</option>
-                    <option value="500">500+ videos</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-black">Min Total Views</label>
-                  <select
-                    value={filters.minTotalViews}
-                    onChange={(e) => setFilters({...filters, minTotalViews: e.target.value})}
-                    className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
-                  >
-                    <option value="">Min Total Views</option>
-                    <option value="100000">100K+ views</option>
-                    <option value="1000000">1M+ views</option>
-                    <option value="10000000">10M+ views</option>
-                    <option value="100000000">100M+ views</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-black">YouTube URL</label>
-                  <label className="flex items-center gap-3 px-4 py-3 border-2 border-black/20 rounded-xl bg-white/80 backdrop-blur-lg hover:border-blue-500/30 transition-all duration-300 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={filters.hasYouTubeUrl}
-                      onChange={(e) => setFilters({...filters, hasYouTubeUrl: e.target.checked})}
-                      className="w-4 h-4 text-blue-500 bg-white border-2 border-black/30 rounded focus:ring-blue-500 focus:ring-2"
-                    />
-                    <span className="text-sm font-medium text-black">Has YouTube URL</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-                <div className="text-sm text-black/70">
-                  {Object.values(filters).filter(v => v && v !== false).length} filters active
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleSearch(1)}
-                    disabled={searching}
-                    className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 disabled:from-black/30 disabled:to-black/40 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
-                  >
-                    Apply Filters
-                  </button>
-                  <button
-                    onClick={clearFilters}
-                    className="text-red-500 hover:text-red-600 font-medium px-6 py-3 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-all duration-300 border border-red-500/20"
-                  >
-                    Clear All
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Search Tips - Mobile Friendly */}
-          <div className="bg-gradient-to-r from-blue-500/5 to-green-500/5 rounded-2xl p-6 border border-blue-500/10">
-            <h4 className="font-semibold text-black mb-3">💡 Search Tips</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-black/70">
-              <div>• Try specific niches: "tech reviewer", "cooking channel"</div>
-              <div>• Use platform names: "YouTube gaming creators"</div>
-              <div>• Search by location: "Lahore food bloggers"</div>
-              <div>• Try category + size: "beauty micro influencers"</div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 text-red-600 px-6 py-4 rounded-2xl mb-6 backdrop-blur-lg">
-          <div className="font-semibold mb-1">Search Error:</div>
-          <div>{error}</div>
-        </div>
-      )}
-
-      {/* Results Header */}
-      {currentResults.length > 0 && (
-        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/60 backdrop-blur-xl rounded-2xl p-6 border border-black/10">
-          <h2 className="text-xl font-bold text-black">
-            {showSaved 
-              ? `Saved Influencers (${savedInfluencers.length})`
-              : user?.subscription_tier === 'free' && results.length >= 5
-                ? `Showing ${results.length} of ${totalResults}+ Pakistani influencers (Free Account - Upgrade for more)`
-                : `Found ${totalResults.toLocaleString()} Pakistani influencers`
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": user ? "Infoishai - Dashboard" : "Infoishai - Global Influencer Discovery Platform",
+            "description": "Find and connect with verified influencers worldwide. AI-powered search across Instagram, YouTube, TikTok. Starting with Pakistan, expanding globally.",
+            "url": "https://infoishai.com",
+            "mainEntity": {
+              "@type": "SoftwareApplication",
+              "name": "Infoishai",
+              "applicationCategory": "BusinessApplication",
+              "offers": {
+                "@type": "Offer",
+                "category": "SaaS"
+              }
             }
-          </h2>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            {canUserExport(user) ? (
-              <button
-                onClick={() => handleExportResults(showSaved)}
-                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
-              >
-                <Download className="w-4 h-4" />
-                Export {showSaved ? 'Saved' : 'Results'}
-              </button>
-            ) : (
-              <div className="relative group">
-                <button
-                  disabled
-                  className="bg-black/20 text-black/50 px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2 cursor-not-allowed"
-                >
-                  <Download className="w-4 h-4" />
-                  Export Disabled
-                </button>
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-2 bg-black text-white text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  Upgrade to Starter plan to export results
-                </div>
-              </div>
-            )}
-            {!showSaved && (
-              <div className="text-sm text-black/60 bg-white/60 px-4 py-2 rounded-xl">
-                Page {currentPage} of {totalPages}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    
+          })
+        }}
+      />
 
-
-
-
-
-
-
-
-
-
-{/* REPLACE your Results Grid section with this improved responsive version */}
-{currentResults.length > 0 && (
-  <>
-    <div className="space-y-3 mb-6">
-      {currentResults.map((influencer, index) => (
-        <div 
-          key={influencer.id} 
-          className="bg-white/95 backdrop-blur-xl rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border-2 border-blue-500/30 hover:border-blue-500/50 transform hover:scale-[1.005] animate-fade-in-up"
-          style={{ 
-            animationDelay: `${index * 30}ms`,
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9))'
-          }}
-        >
-          {/* Compact Responsive Layout */}
-          <div className="flex flex-col md:flex-row">
+      {/* Conditional Content */}
+      {user ? (
+        // Authenticated user sees dashboard
+        <>
+          <UserDashboardSection user={user} />
+          <FeaturesSection />
+        </>
+      ) : (
+        // Visitors see landing page
+        <>
+          <LandingHeroSection />
+          {/* Influencer Registration Section - GLOBAL UPDATE */}
+      <section className="py-20 bg-gradient-to-r from-purple-50 to-pink-50">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-block p-3 bg-purple-100 rounded-full mb-4">
+              <Sparkles className="w-8 h-8 text-purple-600" />
+            </div>
+            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Are You an Influencer?
+            </h2>
+            <p className="text-xl text-gray-600 mb-8">
+              Join Infoishai and get discovered by brands worldwide. 
+              Create your profile, showcase your work, and grow your influence globally.
+            </p>
             
-            {/* Left Section - Profile & Core Info - More compact */}
-            <div className="md:w-72 p-3 bg-gradient-to-br from-blue-500/8 to-green-500/8 border-r border-blue-500/20">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="relative">
-                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500/30 flex items-center justify-center bg-gray-100">
-                    <img 
-                      src={influencer.profile_image_url || '/default-avatar.png'} 
-                      alt={influencer.full_name || influencer.username}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(influencer.full_name || influencer.username)}&background=3b82f6&color=fff&size=128`
-                      }}
-                    />
-                  </div>
-                  {influencer.verified && (
-                    <div className="absolute -top-0.5 -right-0.5 bg-blue-500 text-white rounded-full p-0.5">
-                      <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-base text-black mb-0.5 truncate">
-                    {influencer.full_name || influencer.username}
-                  </h3>
-                  <p className="text-blue-600 font-medium text-xs truncate">@{influencer.username}</p>
-                  
-                  {/* Engagement Rate - More compact */}
-                  <div className={`inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md text-xs font-bold ${getEngagementColor(influencer.engagement_rate)}`}>
-                    <div className="w-1 h-1 bg-current rounded-full"></div>
-                    {influencer.engagement_rate.toFixed(1)}% Engagement
-                  </div>
-                </div>
+            <div className="grid md:grid-cols-3 gap-6 mb-10">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <Users className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Get Discovered Globally</h3>
+                <p className="text-sm text-gray-600">Be found by brands searching for creators worldwide</p>
               </div>
-
-              {/* Total Followers - More compact */}
-              <div className="text-center bg-gradient-to-r from-blue-500/15 to-green-500/15 rounded-lg p-2 mb-2 border border-blue-500/20">
-                <div className="text-xl font-bold bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">
-                  {formatFollowers(influencer.total_followers)}
-                </div>
-                <div className="text-xs text-black/60 font-medium">Followers</div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <TrendingUp className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Manage Your Profile</h3>
+                <p className="text-sm text-gray-600">Update your stats, portfolio, and contact info anytime</p>
               </div>
-
-              {/* Contact Info - More compact */}
-              {influencer.email && (
-                <div className="bg-green-500/15 backdrop-blur-lg rounded-lg p-2 border border-green-500/25 mb-2">
-                  <div className="flex items-center gap-1 mb-1">
-                    <Mail className="w-2.5 h-2.5 text-green-600" />
-                    <span className="text-xs font-semibold text-green-700">Contact</span>
-                  </div>
-                  <a 
-                    href={`mailto:${influencer.email}`}
-                    className="text-green-600 hover:text-green-700 font-medium text-xs transition-colors hover:underline block truncate"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {influencer.email}
-                  </a>
-                </div>
-              )}
-
-              {/* Ultra compact Action Buttons */}
-              <div className="grid grid-cols-3 gap-1 mb-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleFavorite(influencer.id, influencer.is_favorited || false);
-                  }}
-                  className={`py-1.5 px-1 rounded-md transition-all duration-300 text-xs font-medium border ${
-                    influencer.is_favorited 
-                      ? 'bg-red-500/20 text-red-600 border-red-500/30' 
-                      : 'bg-white/80 text-black/70 hover:bg-red-500/10 hover:text-red-600 border-black/20 hover:border-red-500/30'
-                  }`}
-                >
-                  <Heart 
-                    className="w-2.5 h-2.5 mx-auto mb-0.5" 
-                    fill={influencer.is_favorited ? "currentColor" : "none"}
-                  />
-                  Like
-                </button>
-                
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSaveInfluencer(influencer);
-                  }}
-                  className={`py-1.5 px-1 rounded-md transition-all duration-300 text-xs font-medium border ${
-                    savedInfluencers.some(saved => saved.id === influencer.id)
-                      ? 'bg-green-500/20 text-green-600 border-green-500/30' 
-                      : 'bg-white/80 text-black/70 hover:bg-green-500/10 hover:text-green-600 border-black/20 hover:border-green-500/30'
-                  }`}
-                >
-                  <Bookmark 
-                    className="w-2.5 h-2.5 mx-auto mb-0.5" 
-                    fill={savedInfluencers.some(saved => saved.id === influencer.id) ? "currentColor" : "none"}
-                  />
-                  Save
-                </button>
-                
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const shareData = {
-                      title: `${influencer.full_name || influencer.username}`,
-                      text: `${formatFollowers(influencer.total_followers)} followers, ${influencer.engagement_rate.toFixed(1)}% engagement`,
-                      url: window.location.href
-                    };
-                    
-                    if (navigator.share) {
-                      navigator.share(shareData).catch(() => {
-                        navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}`)
-                          .then(() => alert('Copied!'))
-                          .catch(() => alert('Unable to share'));
-                      });
-                    } else {
-                      navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}`)
-                        .then(() => alert('Copied!'))
-                        .catch(() => alert(`${shareData.title}\n${shareData.text}`));
-                    }
-                  }}
-                  className="py-1.5 px-1 rounded-md bg-white/80 text-black/70 hover:bg-blue-500/10 hover:text-blue-600 transition-all duration-300 text-xs font-medium border border-black/20 hover:border-blue-500/30"
-                >
-                  <Share2 className="w-2.5 h-2.5 mx-auto mb-0.5" />
-                  Share
-                </button>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <Globe className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Connect Internationally</h3>
+                <p className="text-sm text-gray-600">Receive collaboration opportunities from global brands</p>
               </div>
-
-              {/* View Details Button - Ultra compact */}
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleViewDetails(influencer);
-                }}
-                className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white py-1.5 px-3 rounded-md font-medium transition-all duration-300 text-xs flex items-center justify-center gap-1 border border-blue-500/30"
-              >
-                <Eye className="w-2.5 h-2.5" />
-                Details
-              </button>
             </div>
-
-            {/* Right Section - Platform Details - Flexible width */}
-            <div className="flex-1 p-3">
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link 
+                href="/register-influencer"
+                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+              >
+                Register as Influencer
+                <ArrowRight className="w-5 h-5" />
+              </Link>
               
-              {/* Bio - More compact */}
-              {influencer.bio && (
-                <div className="mb-2">
-                  <p className="text-black/70 line-clamp-2 leading-relaxed text-xs">
-                    {influencer.bio}
-                  </p>
-                </div>
-              )}
-
-              {/* Dynamic Platform Stats - Only show platforms with data */}
-              <div className="mb-2">
-                {(() => {
-                  const platforms = [];
-                  
-                  // Instagram
-                  if (influencer.instagram_followers > 0) {
-                    platforms.push({
-                      platform: 'Instagram',
-                      icon: '📷',
-                      followers: influencer.instagram_followers,
-                      handle: influencer.instagram_handle || influencer.username,
-                      url: `https://instagram.com/${influencer.instagram_handle || influencer.username}`,
-                      color: 'bg-pink-500/15 text-pink-700 border-pink-500/25'
-                    });
-                  }
-                  
-                  // YouTube
-                  if (influencer.youtube_subscribers > 0) {
-                    platforms.push({
-                      platform: 'YouTube',
-                      icon: '🎥',
-                      followers: influencer.youtube_subscribers,
-                      handle: influencer.youtube_channel || influencer.username,
-                      url: influencer.youtube_url || `https://youtube.com/@${influencer.youtube_channel || influencer.username}`,
-                      color: 'bg-red-500/15 text-red-700 border-red-500/25',
-                      extraInfo: influencer.video_count ? `${influencer.video_count} videos` : null
-                    });
-                  }
-                  
-                  // TikTok
-                  if (influencer.tiktok_followers > 0) {
-                    platforms.push({
-                      platform: 'TikTok',
-                      icon: '🎵',
-                      followers: influencer.tiktok_followers,
-                      handle: influencer.tiktok_handle || influencer.username,
-                      url: `https://tiktok.com/@${influencer.tiktok_handle || influencer.username}`,
-                      color: 'bg-black/15 text-black border-black/25'
-                    });
-                  }
-
-                  // If no platforms have data, show a placeholder
-                  if (platforms.length === 0) {
-                    return (
-                      <div className="bg-gray-500/15 text-gray-600 rounded-lg p-2 text-center text-xs border border-gray-500/25">
-                        <div className="text-gray-400 mb-1">📱</div>
-                        Social data unavailable
-                      </div>
-                    );
-                  }
-
-                  // Responsive grid based on number of platforms
-                  const gridCols = platforms.length === 1 ? 'grid-cols-1' : 
-                                  platforms.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : 
-                                  'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
-
-                  return (
-                    <div className={`grid ${gridCols} gap-1.5`}>
-                      {platforms.map((platform, idx) => (
-                        <a
-                          key={idx}
-                          href={platform.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`${platform.color} rounded-lg p-2 hover:shadow-sm transition-all duration-300 transform hover:scale-105 group border`}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm group-hover:scale-110 transition-transform duration-300">
-                              {platform.icon}
-                            </span>
-                            <ExternalLink className="w-2 h-2 opacity-50 group-hover:opacity-100 transition-opacity" />
-                          </div>
-                          <div className="font-bold text-xs">{formatFollowers(platform.followers)}</div>
-                          <div className="text-xs opacity-80 font-medium">{platform.platform}</div>
-                          <div className="text-xs opacity-60 truncate">@{platform.handle}</div>
-                          {platform.extraInfo && (
-                            <div className="text-xs opacity-60 mt-0.5">{platform.extraInfo}</div>
-                          )}
-                        </a>
-                      ))}
-                    </div>
-                  );
-                })()}
-              </div>
-
-              {/* YouTube Enhanced Metrics - More compact */}
-              {influencer.video_count && influencer.total_views && (
-                <div className="bg-red-500/15 backdrop-blur-lg rounded-lg p-2 border border-red-500/25 mb-2">
-                  <div className="flex items-center gap-1 mb-1">
-                    <Youtube className="w-3 h-3 text-red-600" />
-                    <span className="text-xs font-semibold text-red-700">YouTube Stats</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1 text-xs">
-                    <div className="text-center">
-                      <div className="font-bold text-red-600">{influencer.video_count}</div>
-                      <div className="text-xs text-red-600">Videos</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-bold text-red-600">{formatViews(influencer.total_views)}</div>
-                      <div className="text-xs text-red-600">Views</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-bold text-red-600">
-                        {Math.round(influencer.total_views / influencer.video_count / 1000)}K
-                      </div>
-                      <div className="text-xs text-red-600">Avg</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Category Badge - More compact */}
-              {influencer.category && (
-                <div>
-                  <span className="inline-flex items-center gap-1 bg-blue-500/15 text-blue-700 px-2 py-1 rounded-md text-xs font-medium border border-blue-500/25">
-                    <div className="w-1 h-1 bg-blue-600 rounded-full"></div>
-                    {influencer.category}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-
-    {/* Pagination - Compact Design */}
-    {!showSaved && totalPages > 1 && !(user?.subscription_tier === 'free' && results.length >= 5) && (
-      <div className="flex justify-center items-center gap-2 bg-white/60 backdrop-blur-xl rounded-xl p-4 border border-black/10">
-        <button
-          onClick={() => handleSearch(currentPage - 1)}
-          disabled={currentPage === 1 || searching}
-          className="flex items-center gap-1 px-3 py-2 bg-white/80 backdrop-blur-lg text-black rounded-lg hover:bg-blue-500/10 hover:text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-black/10 text-sm"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Previous</span>
-        </button>
-        
-        <div className="flex gap-1">
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => handleSearch(i + 1)}
-              disabled={searching}
-              className={`w-10 h-10 rounded-lg font-semibold transition-all duration-300 text-sm ${
-                i + 1 === currentPage 
-                  ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg scale-105' 
-                  : 'bg-white/80 backdrop-blur-lg text-black hover:bg-blue-500/10 hover:text-blue-500 border border-black/10'
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-        
-        <button
-          onClick={() => handleSearch(currentPage + 1)}
-          disabled={currentPage === totalPages || searching}
-          className="flex items-center gap-1 px-3 py-2 bg-white/80 backdrop-blur-lg text-black rounded-lg hover:bg-blue-500/10 hover:text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-black/10 text-sm"
-        >
-          <span className="hidden sm:inline">Next</span>
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-    )}
-  </>
-)}
-
-{/* Loading State - Compact */}
-{searching && (
-  <div className="flex flex-col items-center justify-center py-12">
-    <div className="relative">
-      <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
-      <div className="w-12 h-12 border-4 border-green-500/30 border-t-green-500 rounded-full animate-spin absolute top-0 left-0" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
-    </div>
-    <p className="text-black/70 font-semibold mt-4 animate-pulse">Searching Pakistani influencers...</p>
-  </div>
-)}
-
-{/* Empty State - Compact */}
-{!searching && currentResults.length === 0 && (showSaved || query) && (
-  <div className="text-center py-12 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-black/10">
-    <div className="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-      <Search className="w-8 h-8 text-black/60" />
-    </div>
-    <h3 className="text-xl font-bold text-black mb-2">
-      {showSaved ? 'No saved influencers' : 'No influencers found'}
-    </h3>
-    <p className="text-black/60 mb-4 text-sm">
-      {showSaved 
-        ? 'Start saving influencers from your search results' 
-        : 'Try adjusting your search terms or filters'
-      }
-    </p>
-  </div>
-)}
-
-{/* Initial State - Compact */}
-{!searching && results.length === 0 && !query && !showSaved && (
-  <div className="text-center py-12 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-black/10">
-    <h2 className="text-2xl font-bold text-black mb-3">
-      Discover Pakistani Influencers
-    </h2>
-    <p className="text-black/70 mb-6 max-w-xl mx-auto text-sm">
-      Search through our database of 1,800+ Pakistani content creators with enhanced YouTube analytics
-    </p>
-    
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto">
-      {[
-        { name: 'Beauty', icon: '💄' },
-        { name: 'Tech', icon: '📱' },
-        { name: 'Gaming', icon: '🎮' },
-        { name: 'YouTube', icon: '🎥' }
-      ].map((category, index) => (
-        <button
-          key={category.name}
-          onClick={() => handleQuickSearch(category.name)}
-          className="p-4 bg-gradient-to-r from-blue-500/5 to-green-500/5 hover:from-blue-500/10 hover:to-green-500/10 rounded-xl transition-all duration-300 transform hover:scale-105 border border-black/5 animate-fade-in-up"
-          style={{ animationDelay: `${index * 100}ms` }}
-        >
-          <div className="text-2xl mb-2">{category.icon}</div>
-          <div className="font-semibold text-black text-sm">{category.name}</div>
-        </button>
-      ))}
-    </div>
-  </div>
-)}
-</div>
-
-
-
-{/* Details Modal - Add this to the end of your return statement in search/page.tsx */}
-{selectedInfluencer && (
-  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-    <div className="bg-white/95 backdrop-blur-xl rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-auto shadow-2xl border-2 border-gradient-to-r from-blue-500/30 to-green-500/30">
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-black">Influencer Details</h2>
-          <button
-            onClick={closeDetailsModal}
-            className="p-2 hover:bg-black/10 rounded-xl transition-colors border border-black/20"
-          >
-            <X className="w-6 h-6 text-black/60" />
-          </button>
-        </div>
-
-        <div className="space-y-6">
-          {/* Header Section */}
-          <div className="flex items-center gap-6 p-4 bg-gradient-to-r from-blue-500/10 to-green-500/10 rounded-xl border border-blue-500/20">
-            <div className="relative">
-              <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-gradient-to-r from-blue-500/30 to-green-500/30">
-                <ProfileImage influencer={selectedInfluencer} />
-              </div>
-              {selectedInfluencer.verified && (
-                <div className="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full p-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <h3 className="text-2xl font-bold text-black mb-2">
-                {selectedInfluencer.full_name || selectedInfluencer.username}
-              </h3>
-              <p className="text-blue-600 font-medium text-lg mb-2">@{selectedInfluencer.username}</p>
-              <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-bold ${getEngagementColor(selectedInfluencer.engagement_rate)}`}>
-                <div className="w-2 h-2 bg-current rounded-full"></div>
-                {selectedInfluencer.engagement_rate.toFixed(1)}% Engagement Rate
-              </div>
-            </div>
-          </div>
-
-          {/* Bio Section */}
-          {selectedInfluencer.bio && (
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-              <h4 className="font-semibold text-black mb-3 text-lg">About</h4>
-              <p className="text-black/70 leading-relaxed">{selectedInfluencer.bio}</p>
-            </div>
-          )}
-
-          {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-6 bg-blue-500/15 rounded-xl border border-blue-500/25">
-              <div className="text-3xl font-bold text-blue-600 mb-2">
-                {formatFollowers(selectedInfluencer.total_followers)}
-              </div>
-              <div className="text-sm text-black/60 font-medium">Total Followers</div>
-            </div>
-            <div className="text-center p-6 bg-green-500/15 rounded-xl border border-green-500/25">
-              <div className="text-3xl font-bold text-green-600 mb-2">
-                {selectedInfluencer.engagement_rate.toFixed(1)}%
-              </div>
-              <div className="text-sm text-black/60 font-medium">Engagement Rate</div>
-            </div>
-            <div className="text-center p-6 bg-purple-500/15 rounded-xl border border-purple-500/25">
-              <div className="text-3xl font-bold text-purple-600 mb-2">
-                {selectedInfluencer.category || 'General'}
-              </div>
-              <div className="text-sm text-black/60 font-medium">Category</div>
-            </div>
-          </div>
-
-          {/* Platform Breakdown */}
-          <div>
-            <h4 className="font-semibold text-black mb-4 text-lg">Platform Breakdown</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(() => {
-                const platforms = [];
-                
-                if (selectedInfluencer.instagram_followers > 0) {
-                  platforms.push({
-                    platform: 'Instagram',
-                    icon: '📷',
-                    followers: selectedInfluencer.instagram_followers,
-                    handle: selectedInfluencer.instagram_handle || selectedInfluencer.username,
-                    url: `https://instagram.com/${selectedInfluencer.instagram_handle || selectedInfluencer.username}`,
-                    color: 'bg-pink-500/15 text-pink-700 border-pink-500/25'
-                  });
-                }
-                
-                if (selectedInfluencer.youtube_subscribers > 0) {
-                  platforms.push({
-                    platform: 'YouTube',
-                    icon: '🎥',
-                    followers: selectedInfluencer.youtube_subscribers,
-                    handle: selectedInfluencer.youtube_channel || selectedInfluencer.username,
-                    url: selectedInfluencer.youtube_url || `https://youtube.com/@${selectedInfluencer.youtube_channel || selectedInfluencer.username}`,
-                    color: 'bg-red-500/15 text-red-700 border-red-500/25'
-                  });
-                }
-                
-                if (selectedInfluencer.tiktok_followers > 0) {
-                  platforms.push({
-                    platform: 'TikTok',
-                    icon: '🎵',
-                    followers: selectedInfluencer.tiktok_followers,
-                    handle: selectedInfluencer.tiktok_handle || selectedInfluencer.username,
-                    url: `https://tiktok.com/@${selectedInfluencer.tiktok_handle || selectedInfluencer.username}`,
-                    color: 'bg-black/15 text-black border-black/25'
-                  });
-                }
-
-                if (platforms.length === 0) {
-                  return (
-                    <div className="col-span-full text-center p-6 bg-gray-100 rounded-xl">
-                      <p className="text-gray-600">No social media data available</p>
-                    </div>
-                  );
-                }
-
-                return platforms.map((platform, idx) => (
-                  <a
-                    key={idx}
-                    href={platform.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`${platform.color} p-4 rounded-xl border hover:shadow-md transition-all duration-300 transform hover:scale-105 group`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-2xl group-hover:scale-110 transition-transform duration-300">
-                        {platform.icon}
-                      </span>
-                      <ExternalLink className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <div className="font-bold text-xl mb-1">{formatFollowers(platform.followers)}</div>
-                    <div className="text-sm opacity-80 font-medium mb-1">{platform.platform}</div>
-                    <div className="text-sm opacity-60 truncate">@{platform.handle}</div>
-                  </a>
-                ));
-              })()}
-            </div>
-          </div>
-
-          {/* YouTube Enhanced Analytics */}
-          {selectedInfluencer.video_count && selectedInfluencer.total_views && (
-            <div className="p-4 bg-red-500/15 rounded-xl border border-red-500/25">
-              <h4 className="font-semibold text-red-700 mb-4 text-lg flex items-center gap-2">
-                <Youtube className="w-5 h-5" />
-                YouTube Analytics
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-red-500/20 rounded-lg border border-red-500/30">
-                  <div className="text-2xl font-bold text-red-600 mb-1">{selectedInfluencer.video_count}</div>
-                  <div className="text-sm text-red-600">Total Videos</div>
-                </div>
-                <div className="text-center p-4 bg-red-500/20 rounded-lg border border-red-500/30">
-                  <div className="text-2xl font-bold text-red-600 mb-1">{formatViews(selectedInfluencer.total_views)}</div>
-                  <div className="text-sm text-red-600">Total Views</div>
-                </div>
-                <div className="text-center p-4 bg-red-500/20 rounded-lg border border-red-500/30">
-                  <div className="text-2xl font-bold text-red-600 mb-1">
-                    {selectedInfluencer.video_count ? Math.round(selectedInfluencer.total_views / selectedInfluencer.video_count / 1000) + 'K' : 'N/A'}
-                  </div>
-                  <div className="text-sm text-red-600">Avg Views per Video</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Contact Information */}
-          {selectedInfluencer.email && (
-            <div className="p-4 bg-green-500/15 rounded-xl border border-green-500/25">
-              <h4 className="font-semibold text-green-700 mb-3 text-lg flex items-center gap-2">
-                <Mail className="w-5 h-5" />
-                Contact Information
-              </h4>
-              <a 
-                href={`mailto:${selectedInfluencer.email}`}
-                className="text-green-600 hover:underline font-medium text-lg transition-colors"
+              <Link 
+                href="/influencer/login"
+                className="px-8 py-4 bg-white text-purple-600 border-2 border-purple-600 rounded-full font-semibold text-lg hover:bg-purple-50 transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
               >
-                {selectedInfluencer.email}
-              </a>
+                <User className="w-5 h-5" />
+                Already Registered? Login
+              </Link>
             </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-4 border-t border-black/10">
-            <button
-              onClick={() => handleSaveInfluencer(selectedInfluencer)}
-              className={`flex-1 py-3 px-6 rounded-xl font-medium transition-all text-lg border-2 ${
-                savedInfluencers.some(saved => saved.id === selectedInfluencer.id)
-                  ? 'bg-green-500/20 text-green-600 border-green-500/30'
-                  : 'bg-white hover:bg-green-500/10 hover:text-green-600 text-black border-black/20 hover:border-green-500/30'
-              }`}
-            >
-              {savedInfluencers.some(saved => saved.id === selectedInfluencer.id) ? 'Saved ✓' : 'Save Influencer'}
-            </button>
-            <button
-              onClick={() => {
-                const text = `${selectedInfluencer.full_name || selectedInfluencer.username} - ${formatFollowers(selectedInfluencer.total_followers)} followers - ${selectedInfluencer.engagement_rate.toFixed(1)}% engagement - Contact: ${selectedInfluencer.email || 'Not available'}`
-                navigator.clipboard.writeText(text)
-                  .then(() => alert('Profile details copied to clipboard!'))
-                  .catch(() => alert(`Copied: ${text}`))
-              }}
-              className="flex-1 py-3 px-6 border-2 border-black/20 hover:bg-black/5 rounded-xl text-black font-medium transition-all text-lg hover:border-blue-500/30"
-            >
-              Copy Details
-            </button>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-)}
-</div>
-)}
+      </section>
+          <FeaturesSection />
+          <DemoSection />
+          <PricingPreviewSection />
+          <FinalCTASection />
+        </>
+      )}
+    </>
+  )
+}

@@ -11,25 +11,33 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Infoishai - AI-Powered Pakistani Influencer Search Platform',
-  description: 'Discover and connect with 1,800+ verified Pakistani influencers and content creators. AI-powered search across Instagram, YouTube, and TikTok. Find the perfect creators for your brand in seconds.',
+  title: 'Infoishai - Global Influencer Discovery Platform | AI-Powered Search',
+  description: 'Discover and connect with verified influencers worldwide using AI-powered search. 1,800+ Pakistani creators available now. Instagram, YouTube, TikTok. Expanding globally to India, UAE, and beyond.',
   keywords: [
     'infoishai',
+    'influencer search platform',
+    'ai influencer discovery',
+    'find influencers online',
+    'influencer marketing platform',
+    'creator search tool',
+    'influencer database',
+    'social media influencer finder',
+    'instagram influencer search',
+    'youtube creator finder',
+    'tiktok influencer database',
     'pakistani influencers',
     'influencer marketing pakistan',
-    'pakistani content creators',
-    'ai influencer search',
-    'creator discovery pakistan',
-    'instagram influencers pakistan',
-    'youtube creators pakistan',
-    'tiktok influencers pakistan',
-    'brand partnerships pakistan',
-    'social media marketing pakistan',
-    'karachi influencers',
-    'lahore influencers',
-    'islamabad influencers',
-    'influencer database pakistan',
-    'find influencers pakistan'
+    'indian influencers',
+    'uae influencers',
+    'middle east creators',
+    'asian influencers',
+    'global influencer marketplace',
+    'multi-platform influencer tool',
+    'brand partnerships',
+    'creator discovery',
+    'influencer analytics',
+    'micro influencers',
+    'nano influencers'
   ],
   authors: [{ name: 'Infoishai Team' }],
   creator: 'Infoishai',
@@ -44,8 +52,8 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'Infoishai - AI-Powered Pakistani Influencer Search',
-    description: 'Discover 1,800+ verified Pakistani influencers. AI-powered search, real-time analytics, instant results.',
+    title: 'Infoishai - Global Influencer Discovery Platform',
+    description: 'AI-powered influencer search across Instagram, YouTube & TikTok. 1,800+ verified creators. Starting with Pakistan, expanding globally.',
     url: 'https://infoishai.com',
     siteName: 'Infoishai',
     images: [
@@ -53,7 +61,7 @@ export const metadata: Metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Infoishai - Pakistani Influencer Search Platform',
+        alt: 'Infoishai - Global Influencer Discovery Platform',
       },
     ],
     locale: 'en_US',
@@ -61,8 +69,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Infoishai - AI-Powered Pakistani Influencer Search',
-    description: 'Discover 1,800+ verified Pakistani influencers with AI-powered search.',
+    title: 'Infoishai - Global Influencer Discovery Platform',
+    description: 'AI-powered search for influencers worldwide. 1,800+ verified creators. Starting with Pakistan.',
     images: ['/twitter-image.jpg'],
     creator: '@infoishai',
   },
@@ -143,16 +151,35 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebApplication",
               "name": "Infoishai",
-              "alternateName": "Infoishai - Pakistani Influencer Search",
-              "description": "AI-powered influencer discovery platform for Pakistani creators. Search 1,800+ verified influencers across Instagram, YouTube, and TikTok.",
+              "alternateName": "Infoishai - Global Influencer Discovery Platform",
+              "description": "AI-powered global influencer discovery platform. Search verified creators across Instagram, YouTube, and TikTok. Currently serving Pakistan with 1,800+ verified influencers, expanding to India, UAE, and worldwide.",
               "url": "https://infoishai.com",
               "applicationCategory": "BusinessApplication",
               "operatingSystem": "Web",
+              "availableLanguage": ["en", "ur"],
+              "areaServed": [
+                {
+                  "@type": "Country",
+                  "name": "Pakistan"
+                },
+                {
+                  "@type": "Country", 
+                  "name": "India"
+                },
+                {
+                  "@type": "Country",
+                  "name": "United Arab Emirates"
+                },
+                {
+                  "@type": "Country",
+                  "name": "Bangladesh"
+                }
+              ],
               "offers": {
                 "@type": "AggregateOffer",
-                "priceCurrency": "PKR",
+                "priceCurrency": "USD",
                 "lowPrice": "0",
-                "highPrice": "6999",
+                "highPrice": "250",
                 "offerCount": "3"
               },
               "aggregateRating": {
