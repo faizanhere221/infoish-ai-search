@@ -215,6 +215,24 @@ export default function RootLayout({
           <Footer />
         </div>
 
+        {/* Google Analytics */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-Y97NRDZSBB"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-Y97NRDZSBB', {
+                page_path: window.location.pathname,
+              });
+            `
+          }}
+        />
+
         {/* Global scripts */}
         <script
           dangerouslySetInnerHTML={{
