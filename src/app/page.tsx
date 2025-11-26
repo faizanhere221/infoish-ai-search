@@ -56,7 +56,7 @@ function LoadingFallback() {
         </div>
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-gray-900">
-            Loading Pakistani Influencer Search
+            Loading Infoishai
           </h2>
           <p className="text-gray-600 max-w-md mx-auto">
             Preparing your personalized dashboard...
@@ -72,16 +72,16 @@ function LoadingFallback() {
   )
 }
 
-// Hero Section for Landing Page
+// Hero Section for Landing Page - GLOBALLY OPTIMIZED
 function LandingHeroSection() {
   const router = useRouter()
   const [currentStat, setCurrentStat] = useState(0)
 
   const stats = [
-    { number: "1,800+", label: "Pakistani Creators", icon: "👥" },
-    { number: "15+", label: "Categories", icon: "📂" },
+    { number: "1,800+", label: "Verified Creators", icon: "👥" },
+    { number: "4", label: "Countries (Growing)", icon: "🌍" },
     { number: "3", label: "Major Platforms", icon: "📱" },
-    { number: "Real-time", label: "Data Updates", icon: "⚡" }
+    { number: "Real-time", label: "Global Data", icon: "⚡" }
   ]
 
   useEffect(() => {
@@ -96,8 +96,8 @@ function LandingHeroSection() {
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-32 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-40 left-1/2 w-60 h-60 bg-green-400 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-pulse" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-green-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-40 left-1/2 w-60 h-60 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-pulse" style={{ animationDelay: '4s' }}></div>
       </div>
 
       {/* Floating Elements */}
@@ -105,20 +105,20 @@ function LandingHeroSection() {
         <Search className="w-8 h-8 text-blue-600" />
       </div>
       <div className="absolute top-40 right-10 w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center animate-float" style={{ animationDelay: '1s' }}>
-        <BarChart3 className="w-8 h-8 text-purple-600" />
+        <Globe className="w-8 h-8 text-green-600" />
       </div>
       <div className="absolute bottom-40 left-20 w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center animate-float" style={{ animationDelay: '2s' }}>
-        <Users className="w-8 h-8 text-green-600" />
+        <Users className="w-8 h-8 text-purple-600" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="space-y-12">
-          {/* Main Headline */}
+          {/* Main Headline - GLOBAL POSITIONING */}
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full border border-white/50 shadow-lg">
-              <Sparkles className="w-5 h-5 text-yellow-500" />
-              <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Where AI meets influence
+              <Globe className="w-5 h-5 text-blue-500" />
+              <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                Global Influencer Discovery Platform
               </span>
             </div>
             
@@ -126,7 +126,7 @@ function LandingHeroSection() {
 <h1 className="text-4xl sm:text-6xl font-bold text-black text-balance leading-tight hero-text">
   {/* First line */}
   <span className="hero-word animate-fade-in-up delay-0">
-    Find the
+    Find
   </span>
    <span>
     {' '}
@@ -136,17 +136,16 @@ function LandingHeroSection() {
       Influencers
     </span>
   </span>
-  
-  <br />
-  
-  {/* Second line */}
-  <span className="hero-word animate-fade-in-up delay-400">
-    Who Grow Your Brand
+  <span>
+    {' '}
+  </span>
+  <span className="hero-word animate-fade-in-up delay-300">
+    Worldwide
   </span>
   
   <br />
   
-  {/* Third line */}
+  {/* Second line */}
   <span className="hero-word animate-fade-in-up delay-600">
     With
   </span>
@@ -155,15 +154,34 @@ function LandingHeroSection() {
   </span>
   <span className="hero-word animate-fade-in-up delay-800">
     <span className="gradient-text-secondary animate-gradient-shift animate-pulse-glow">
-      AI Search
+      AI-Powered Search
     </span>
   </span>
 </h1>
             
             <p className="text-xl sm:text-2xl text-gray-600 max-w-4xl mx-auto text-balance leading-relaxed">
-              Connect with 1,800+ verified Pakistani content creators across Instagram, YouTube, and TikTok. 
-              <span className="font-semibold text-gray-800"> Advanced AI search, real-time analytics, instant results.</span>
+              Connect with verified creators across Instagram, YouTube, and TikTok. 
+              <span className="font-semibold text-gray-800"> 1,800+ Pakistani creators available now. Expanding globally to India, UAE & beyond.</span>
             </p>
+
+            {/* Global Availability Badge - NEW */}
+            <div className="inline-flex flex-wrap items-center gap-4 bg-white/90 backdrop-blur-md rounded-2xl px-8 py-4 shadow-xl border border-white/50">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🇵🇰</span>
+                <div className="text-left">
+                  <div className="text-xs font-bold text-green-600">LIVE NOW</div>
+                  <div className="text-sm text-gray-700">Pakistan</div>
+                </div>
+              </div>
+              <div className="h-8 w-px bg-gray-300 hidden sm:block"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🔜</span>
+                <div className="text-left">
+                  <div className="text-xs font-bold text-blue-600">COMING SOON</div>
+                  <div className="text-sm text-gray-700">India • UAE • Bangladesh</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Animated Statistics */}
@@ -223,16 +241,12 @@ function LandingHeroSection() {
               <div className="h-6 w-px bg-gray-300 hidden sm:block"></div>
               <div className="flex items-center gap-3">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-sm font-medium text-gray-600">Free account • No credit card required</span>
+                <span className="text-sm font-medium text-gray-600">Free account • No credit card</span>
               </div>
               <div className="h-6 w-px bg-gray-300 hidden sm:block"></div>
               <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full border-2 border-white"></div>
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full border-2 border-white"></div>
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full border-2 border-white"></div>
-                </div>
-                <span className="text-sm text-gray-600 ml-2">AI-Powered Search</span>
+                <Globe className="w-5 h-5 text-blue-600" />
+                <span className="text-sm text-gray-600">Expanding Globally</span>
               </div>
             </div>
           </div>
@@ -260,56 +274,56 @@ function LandingHeroSection() {
 
 
 
-// Features Section
+// Features Section - GLOBAL FOCUS
 function FeaturesSection() {
   const features = [
     {
       icon: Search,
-      title: "AI-Powered Search",
-      description: "Advanced semantic search finds creators by content style, audience demographics, and engagement patterns - not just keywords.",
+      title: "AI-Powered Global Search",
+      description: "Advanced semantic search finds creators worldwide by content style, audience demographics, and engagement patterns across multiple countries.",
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50",
-      stats: "99.2% accuracy"
+      stats: "Multi-country"
     },
     {
       icon: BarChart3,
-      title: "Real-Time Analytics",
-      description: "Follower counts, engagement rates, audience insights, and performance trends are updated.",
+      title: "Cross-Country Analytics",
+      description: "Real-time data updated daily. Compare creator performance across Pakistan, India, UAE and more with unified metrics.",
       color: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50",
-      stats: "Updated Data"
+      stats: "Daily updates"
     },
     {
       icon: Shield,
-      title: "Verified Creators",
-      description: "Every profile verified with authentic contact information, active social presence, and engagement validation.",
+      title: "Globally Verified",
+      description: "Every profile verified with authentic contact information, active social presence, and engagement validation across all markets.",
       color: "from-green-500 to-green-600",
       bgColor: "bg-green-50",
       stats: "100% verified"
     },
     {
       icon: Target,
-      title: "Precise Targeting",
-      description: "Filter by platforms, niche, followers, verified status, audience size and content type.",
+      title: "Multi-Market Targeting",
+      description: "Filter by country, region, platforms, niche, followers, verified status, and content type for precise global campaigns.",
       color: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-50",
       stats: "50+ filters"
     },
     {
       icon: Zap,
-      title: "Instant Results",
-      description: "Get comprehensive influencer matches in under 3 seconds with our optimized search infrastructure.",
+      title: "Instant Global Results",
+      description: "Get comprehensive influencer matches from multiple countries in under 3 seconds with our optimized infrastructure.",
       color: "from-yellow-500 to-yellow-600",
       bgColor: "bg-yellow-50",
       stats: "<3s response"
     },
     {
       icon: Globe,
-      title: "Pakistan Focus",
-      description: "Specialized database covering all major Pakistani influencers with deep local market understanding and cultural context.",
+      title: "International Database",
+      description: "Currently covering Pakistan with 1,800+ creators. Expanding to India, UAE, Bangladesh. One platform for global reach.",
       color: "from-indigo-500 to-indigo-600",
       bgColor: "bg-indigo-50",
-      stats: "15+ cities"
+      stats: "4 countries"
     }
   ]
 
@@ -324,15 +338,15 @@ function FeaturesSection() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-purple-100 px-6 py-3 rounded-full mb-6">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-green-100 px-6 py-3 rounded-full mb-6">
             <Award className="w-5 h-5 text-blue-600" />
-            <span className="text-sm font-semibold text-blue-800">Industry-Leading Platform</span>
+            <span className="text-sm font-semibold text-blue-800">Global Platform Features</span>
           </div>
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-            Why Choose Our Platform?
+            Why Global Brands Choose Infoishai
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Built specifically for the Businesses to do influencer marketing with advanced AI Powered Search and deep local insights
+            Built for worldwide reach with advanced AI and deep local insights across multiple markets
           </p>
         </div>
 
@@ -384,7 +398,7 @@ function DemoSection() {
             See It In Action
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Watch how easy it is to find and connect with Pakistani influencers of any niche
+            Watch how easy it is to find and connect with influencers across any country
           </p>
         </div>
 
@@ -397,7 +411,7 @@ function DemoSection() {
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               </div>
               <div className="flex-1 bg-gray-700 rounded-lg px-4 py-2 text-gray-300 text-sm">
-                infoish.com
+                infoishai.com
               </div>
             </div>
             
@@ -446,10 +460,10 @@ function PricingPreviewSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6">
-            Simple, Transparent Pricing
+            Simple, Global Pricing
           </h2>
           <p className="text-xl text-black/70 max-w-3xl mx-auto">
-            Choose the plan that fits your needs. No hidden fees, cancel anytime.
+            One platform. Multiple countries. Transparent pricing for brands worldwide.
           </p>
         </div>
 
@@ -544,7 +558,7 @@ function PricingPreviewSection() {
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">Export to CSV/Excel</span>
+                  <span className="text-black/80">Multi-country access</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500" />
@@ -594,16 +608,16 @@ function FinalCTASection() {
       <div className="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-lg px-6 py-3 rounded-full border border-white/30 shadow-lg">
-            <TrendingUp className="w-5 h-5 text-white" />
-            <span className="text-sm font-semibold text-white">Grow with AI-Search</span>
+            <Globe className="w-5 h-5 text-white" />
+            <span className="text-sm font-semibold text-white">Go Global with Infoishai</span>
           </div>
           
           <h2 className="text-4xl sm:text-6xl font-bold text-white mb-6 leading-tight">
-            Ready to Find Your Perfect Influencers?
+            Ready to Find Your Perfect Influencers Worldwide?
           </h2>
           
           <p className="text-xl sm:text-2xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-            Start discovering Pakistani creators who align with your brand values and audience. 
+            Start discovering creators who align with your brand across Pakistan, India, UAE, and beyond. 
             <span className="font-semibold text-white"> Get your first results in under 30 seconds.</span>
           </p>
           
@@ -716,7 +730,7 @@ function UserDashboardSection({ user }: { user: User }) {
                     : 'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white'
                 }`}
               >
-                {getSearchesRemaining() === 0 && user.subscription_tier === 'free' ? 'Limit Reached - Upgrade to Continue' : 'Start Searching Pakistani Influencers'}
+                {getSearchesRemaining() === 0 && user.subscription_tier === 'free' ? 'Limit Reached - Upgrade to Continue' : 'Start Searching Global Influencers'}
               </button>
             </div>
 
@@ -770,7 +784,7 @@ function UserDashboardSection({ user }: { user: User }) {
               <div className="mt-5 bg-gradient-to-r from-blue-500/10 to-green-500/10 rounded-xl p-4 border border-blue-500/20">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div>
-                    <h3 className="font-bold text-black mb-1 text-sm">Ready for unlimited searches?</h3>
+                    <h3 className="font-bold text-black mb-1 text-sm">Ready for unlimited global searches?</h3>
                     <p className="text-black/70 text-xs">Upgrade to unlock all features and remove search limits.</p>
                   </div>
                   <button
@@ -787,15 +801,15 @@ function UserDashboardSection({ user }: { user: User }) {
           {/* Main headline for authenticated users - Mobile Optimized */}
           <div className="text-center space-y-6">
             <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-black leading-tight">
-              Find the{' '}
+              Find{' '}
               <span className="bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">
-                Perfect Influencers
+                Global Influencers
               </span>
               <br />
               With AI-Powered Search
             </h1>
             <p className="text-lg sm:text-xl text-black/70 max-w-3xl mx-auto leading-relaxed">
-              Search through 1,800+ verified Pakistani content creators with your personalized dashboard.
+              Search through verified creators worldwide with your personalized dashboard.
             </p>
             
             {/* Quick Action Buttons - Mobile Responsive */}
@@ -910,12 +924,12 @@ export default function HomePage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebPage",
-            "name": user ? "Pakistani Influencer Search - Dashboard" : "Pakistani Influencer Search - Find Creators",
-            "description": "Find and connect with 1800+ verified Pakistani influencers and content creators",
-            "url": "https://infoish-ai-search.vercel.app",
+            "name": user ? "Infoishai - Dashboard" : "Infoishai - Global Influencer Discovery Platform",
+            "description": "Find and connect with verified influencers worldwide. AI-powered search across Instagram, YouTube, TikTok. Starting with Pakistan, expanding globally.",
+            "url": "https://infoishai.com",
             "mainEntity": {
               "@type": "SoftwareApplication",
-              "name": "Pakistani Influencer Search Platform",
+              "name": "Infoishai",
               "applicationCategory": "BusinessApplication",
               "offers": {
                 "@type": "Offer",
@@ -937,7 +951,7 @@ export default function HomePage() {
         // Visitors see landing page
         <>
           <LandingHeroSection />
-          {/* Influencer Registration Section */}
+          {/* Influencer Registration Section - GLOBAL UPDATE */}
       <section className="py-20 bg-gradient-to-r from-purple-50 to-pink-50">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center">
@@ -948,15 +962,15 @@ export default function HomePage() {
               Are You an Influencer?
             </h2>
             <p className="text-xl text-gray-600 mb-8">
-              Join InfoIshai and get discovered by top brands in Pakistan. 
-              Create your profile, showcase your work, and grow your influence.
+              Join Infoishai and get discovered by brands worldwide. 
+              Create your profile, showcase your work, and grow your influence globally.
             </p>
             
             <div className="grid md:grid-cols-3 gap-6 mb-10">
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <Users className="w-12 h-12 text-purple-600 mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">Get Discovered</h3>
-                <p className="text-sm text-gray-600">Be found by brands searching for creators like you</p>
+                <h3 className="font-semibold mb-2">Get Discovered Globally</h3>
+                <p className="text-sm text-gray-600">Be found by brands searching for creators worldwide</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <TrendingUp className="w-12 h-12 text-purple-600 mx-auto mb-4" />
@@ -964,9 +978,9 @@ export default function HomePage() {
                 <p className="text-sm text-gray-600">Update your stats, portfolio, and contact info anytime</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <Zap className="w-12 h-12 text-purple-600 mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">Connect with Brands</h3>
-                <p className="text-sm text-gray-600">Receive collaboration opportunities directly</p>
+                <Globe className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Connect Internationally</h3>
+                <p className="text-sm text-gray-600">Receive collaboration opportunities from global brands</p>
               </div>
             </div>
             

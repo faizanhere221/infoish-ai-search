@@ -352,6 +352,7 @@ export default function LoginPage() {
         const data = await authResponse.json()
         localStorage.setItem('auth_token', data.access_token)
         localStorage.setItem('user_data', JSON.stringify(data.user))
+        localStorage.setItem('user_type', 'brand') 
         
         router.push('/search')
       } else {
@@ -455,6 +456,7 @@ export default function LoginPage() {
         const data = await response.json()
         localStorage.setItem('auth_token', data.access_token)
         localStorage.setItem('user_data', JSON.stringify(data.user))
+        localStorage.setItem('user_type', 'brand') 
         router.push('/search')
       } else {
         const errorData = await response.json().catch(() => ({ detail: 'Login failed' }))

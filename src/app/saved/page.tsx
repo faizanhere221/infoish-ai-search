@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Header from '@/components/header'
 import { 
   Heart, 
   Search, 
@@ -18,7 +17,9 @@ import {
   Users,
   BarChart3,
   Calendar,
-  Trash2
+  Trash2,
+  Plus,
+  CheckCircle
 } from 'lucide-react'
 
 interface InfluencerResult {
@@ -59,6 +60,13 @@ interface User {
   search_limit: number
 }
 
+interface Campaign {
+  id: string
+  name: string
+  status: string
+  influencer_count?: number
+}
+
 export default function SavedInfluencersPage() {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -70,6 +78,12 @@ export default function SavedInfluencersPage() {
   const [selectedInfluencer, setSelectedInfluencer] = useState<InfluencerResult | null>(null)
   const [sortBy, setSortBy] = useState<'saved_date' | 'followers' | 'engagement'>('saved_date')
   
+  // Campaign modal states
+  const [showCampaignModal, setShowCampaignModal] = useState(false)
+  const [selectedForCampaign, setSelectedForCampaign] = useState<InfluencerResult | null>(null)
+  const [userCampaigns, setUserCampaigns] = useState<Campaign[]>([])
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  
   const router = useRouter()
 
   const BACKEND_URL = process.env.NODE_ENV === 'production' 
@@ -79,13 +93,13 @@ export default function SavedInfluencersPage() {
   useEffect(() => {
     checkAuthentication()
     loadSavedInfluencers()
+    loadUserCampaigns()
   }, [])
 
   useEffect(() => {
     filterInfluencers()
   }, [savedInfluencers, searchQuery, selectedCategory, sortBy])
 
-  // CORRECTED checkAuthentication - REMOVE search-related code
   const checkAuthentication = async () => {
     const token = localStorage.getItem('auth_token')
     if (!token) {
@@ -111,7 +125,6 @@ export default function SavedInfluencersPage() {
       }
     } catch (error) {
       console.error('Auth check failed:', error)
-      // Mock user for localhost development
       setUser({
         id: '1',
         email: 'user@example.com',
@@ -125,14 +138,11 @@ export default function SavedInfluencersPage() {
     }
   }
 
-
-
   const loadSavedInfluencers = () => {
     const saved = localStorage.getItem('saved_influencers')
     if (saved) {
       try {
         const savedData = JSON.parse(saved)
-        // Add saved_date if not present
         const enrichedData = savedData.map((influencer: InfluencerResult) => ({
           ...influencer,
           saved_date: influencer.saved_date || new Date().toISOString()
@@ -144,10 +154,81 @@ export default function SavedInfluencersPage() {
     }
   }
 
+  const loadUserCampaigns = () => {
+    try {
+      const campaigns = JSON.parse(localStorage.getItem('user_campaigns') || '[]')
+      setUserCampaigns(campaigns)
+    } catch (error) {
+      console.error('Error loading campaigns:', error)
+    }
+  }
+
+  const handleAddToCampaign = (influencer: InfluencerResult) => {
+    setSelectedForCampaign(influencer)
+    setShowCampaignModal(true)
+  }
+
+  const addInfluencerToCampaign = (campaignId: string) => {
+    if (!selectedForCampaign) return
+
+    try {
+      // Get existing campaign influencers
+      const existingCampaignInfluencers = JSON.parse(localStorage.getItem('campaign_influencers') || '[]')
+      
+      // Check if already added
+      const alreadyAdded = existingCampaignInfluencers.some(
+        (ci: any) => ci.campaign_id === campaignId && ci.influencer_id === selectedForCampaign.id
+      )
+
+      if (alreadyAdded) {
+        alert('This influencer is already in the selected campaign')
+        return
+      }
+
+      // Create new campaign influencer entry
+      const newCampaignInfluencer = {
+        id: `ci_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        campaign_id: campaignId,
+        influencer_id: selectedForCampaign.id,
+        influencer_username: selectedForCampaign.username,
+        influencer_data: selectedForCampaign,
+        status: 'shortlisted',
+        offered_price: null,
+        agreed_price: null,
+        notes: '',
+        payment_status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+
+      // Save to localStorage
+      existingCampaignInfluencers.push(newCampaignInfluencer)
+      localStorage.setItem('campaign_influencers', JSON.stringify(existingCampaignInfluencers))
+
+      // Update campaign influencer count
+      const campaigns = JSON.parse(localStorage.getItem('user_campaigns') || '[]')
+      const updatedCampaigns = campaigns.map((c: Campaign) => {
+        if (c.id === campaignId) {
+          return { ...c, influencer_count: (c.influencer_count || 0) + 1 }
+        }
+        return c
+      })
+      localStorage.setItem('user_campaigns', JSON.stringify(updatedCampaigns))
+
+      // Show success
+      setShowCampaignModal(false)
+      setShowSuccessMessage(true)
+      setTimeout(() => setShowSuccessMessage(false), 3000)
+
+    } catch (error) {
+      console.error('Error adding to campaign:', error)
+      alert('Failed to add influencer to campaign')
+    }
+  }
+
   const filterInfluencers = () => {
     let filtered = [...savedInfluencers]
 
-    // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(influencer => 
         influencer.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -156,14 +237,12 @@ export default function SavedInfluencersPage() {
       )
     }
 
-    // Filter by category
     if (selectedCategory) {
       filtered = filtered.filter(influencer => 
         influencer.category?.toLowerCase() === selectedCategory.toLowerCase()
       )
     }
 
-    // Sort results
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'followers':
@@ -331,13 +410,37 @@ export default function SavedInfluencersPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <Header 
-        user={user}
-        onLogout={handleLogout}
-        isSearchPage={false}
-      />
+      {/* Simple Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+              Infoishai
+            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/search" className="text-gray-700 hover:text-blue-600 font-medium">Search</Link>
+              <Link href="/saved" className="text-blue-600 font-semibold">Saved</Link>
+              <Link href="/campaigns" className="text-gray-700 hover:text-blue-600 font-medium">Campaigns</Link>
+              <button
+                onClick={handleLogout}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Success Message */}
+        {showSuccessMessage && (
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+            <CheckCircle className="w-6 h-6 text-green-600" />
+            <span className="text-green-800 font-medium">Influencer added to campaign successfully!</span>
+          </div>
+        )}
+
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -350,6 +453,13 @@ export default function SavedInfluencersPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <Link
+                href="/campaigns"
+                className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors"
+              >
+                <BarChart3 className="w-4 h-4" />
+                My Campaigns
+              </Link>
               <Link
                 href="/search"
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
@@ -372,7 +482,6 @@ export default function SavedInfluencersPage() {
           {/* Filters and Controls */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-              {/* Search Bar */}
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
@@ -384,7 +493,6 @@ export default function SavedInfluencersPage() {
                 />
               </div>
 
-              {/* Category Filter */}
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
@@ -396,7 +504,6 @@ export default function SavedInfluencersPage() {
                 ))}
               </select>
 
-              {/* Sort Options */}
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
@@ -407,7 +514,6 @@ export default function SavedInfluencersPage() {
                 <option value="engagement">Best Engagement</option>
               </select>
 
-              {/* View Mode Toggle */}
               <div className="flex items-center bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode('grid')}
@@ -445,7 +551,6 @@ export default function SavedInfluencersPage() {
                 }`}
               >
                 {viewMode === 'grid' ? (
-                  // Grid View
                   <>
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-4">
@@ -494,16 +599,24 @@ export default function SavedInfluencersPage() {
                         ))}
                       </div>
 
-                      <button
-                        onClick={() => setSelectedInfluencer(influencer)}
-                        className="w-full bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
-                      >
-                        View Details
-                      </button>
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => setSelectedInfluencer(influencer)}
+                          className="w-full bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                        >
+                          View Details
+                        </button>
+                        <button
+                          onClick={() => handleAddToCampaign(influencer)}
+                          className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add to Campaign
+                        </button>
+                      </div>
                     </div>
                   </>
                 ) : (
-                  // List View
                   <div className="flex items-center gap-6">
                     <ProfileImage influencer={influencer} />
                     
@@ -536,6 +649,13 @@ export default function SavedInfluencersPage() {
 
                       <div className="flex items-center gap-2">
                         <button
+                          onClick={() => handleAddToCampaign(influencer)}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add to Campaign
+                        </button>
+                        <button
                           onClick={() => setSelectedInfluencer(influencer)}
                           className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
                         >
@@ -555,7 +675,6 @@ export default function SavedInfluencersPage() {
             ))}
           </div>
         ) : (
-          // Empty State
           <div className="text-center py-16 bg-white rounded-xl shadow-lg">
             <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -577,7 +696,56 @@ export default function SavedInfluencersPage() {
           </div>
         )}
 
-        {/* Detail Modal */}
+        {/* Campaign Selection Modal */}
+        {showCampaignModal && selectedForCampaign && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold">Add to Campaign</h3>
+                <button
+                  onClick={() => setShowCampaignModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-gray-600 mb-2">
+                  Select a campaign to add <span className="font-semibold">{selectedForCampaign.full_name || selectedForCampaign.username}</span>:
+                </p>
+              </div>
+
+              {userCampaigns.length > 0 ? (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {userCampaigns.map((campaign) => (
+                    <button
+                      key={campaign.id}
+                      onClick={() => addInfluencerToCampaign(campaign.id)}
+                      className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all"
+                    >
+                      <div className="font-semibold text-gray-900">{campaign.name}</div>
+                      <div className="text-sm text-gray-600 capitalize">{campaign.status}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 mb-4">You don't have any campaigns yet</p>
+                  <Link
+                    href="/campaigns/new"
+                    className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Campaign
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Detail Modal (existing code) */}
         {selectedInfluencer && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-auto">
