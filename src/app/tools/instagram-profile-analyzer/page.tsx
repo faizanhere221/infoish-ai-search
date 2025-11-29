@@ -223,21 +223,21 @@ export default function InstagramProfileAnalyzer() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                <Instagram className="w-7 h-7 text-white" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Instagram className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Instagram Profile Analyzer</h1>
-                <p className="text-gray-600">Advanced analytics for any public Instagram profile</p>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Instagram Profile Analyzer</h1>
+                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Advanced analytics for any public Instagram profile</p>
               </div>
             </div>
-            <div className="hidden md:block">
-              <div className="text-right">
-                <div className="text-sm text-gray-500">Rate Limit</div>
-                <div className="text-lg font-semibold text-purple-600">10 profiles/min</div>
+            <div className="w-full sm:w-auto">
+              <div className="text-left sm:text-right">
+                <div className="text-xs sm:text-sm text-gray-500">Rate Limit</div>
+                <div className="text-base sm:text-lg font-semibold text-purple-600">10 profiles/min</div>
               </div>
             </div>
           </div>
@@ -248,12 +248,12 @@ export default function InstagramProfileAnalyzer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
         {/* Search Box */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 mb-8">
           <div className="max-w-2xl mx-auto">
             <label className="block text-sm font-semibold text-gray-700 mb-3">
               Instagram Username
             </label>
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="flex-1 relative">
                 <input
                   type="text"
@@ -262,23 +262,24 @@ export default function InstagramProfileAnalyzer() {
                   onKeyPress={handleKeyPress}
                   placeholder="cristiano, @cristiano, or instagram.com/cristiano"
                   disabled={isLoading}
-                  className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all text-lg disabled:bg-gray-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 sm:py-4 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all text-base sm:text-lg disabled:bg-gray-50 disabled:cursor-not-allowed"
                 />
               </div>
               <button
                 onClick={analyzeProfile}
                 disabled={isLoading || !username.trim()}
-                className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg hover:shadow-xl"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
               >
                 {isLoading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Analyzing...
+                    <span className="hidden sm:inline">Analyzing...</span>
+                    <span className="sm:hidden">Loading...</span>
                   </>
                 ) : (
                   <>
                     <Search className="w-5 h-5" />
-                    Analyze
+                    <span>Analyze</span>
                   </>
                 )}
               </button>
@@ -359,19 +360,19 @@ export default function InstagramProfileAnalyzer() {
           <div className="space-y-8">
             
             {/* Profile Card */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="flex flex-col md:flex-row gap-8">
+            <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-col md:flex-row gap-6 sm:gap-8">
                 {/* Profile Link */}
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 mx-auto md:mx-0">
                   <a
                     href={`https://www.instagram.com/${profile.username}/`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block"
                   >
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 flex items-center justify-center hover:scale-105 transition-transform shadow-lg relative group">
+                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 flex items-center justify-center hover:scale-105 transition-transform shadow-lg relative group">
                       <div className="text-center">
-                        <Instagram className="w-12 h-12 text-white mx-auto mb-1" />
+                        <Instagram className="w-10 h-10 sm:w-12 sm:h-12 text-white mx-auto mb-1" />
                         <span className="text-xs text-white font-medium">View Profile</span>
                       </div>
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-full transition-all"></div>
@@ -380,28 +381,28 @@ export default function InstagramProfileAnalyzer() {
                 </div>
 
                 {/* Profile Info */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <h2 className="text-3xl font-bold text-gray-900">@{profile.username}</h2>
+                <div className="flex-1 text-center md:text-left">
+                  <div className="flex flex-col sm:flex-row items-center md:items-start gap-2 sm:gap-3 mb-3">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">@{profile.username}</h2>
                     {profile.is_verified && (
                       <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 rounded-full">
-                        <CheckCircle className="w-5 h-5 text-blue-500" />
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
                         <span className="text-xs font-medium text-blue-700">Verified</span>
                       </div>
                     )}
                   </div>
                   
                   {profile.full_name && profile.full_name !== profile.username && (
-                    <p className="text-xl text-gray-700 mb-2">{profile.full_name}</p>
+                    <p className="text-lg sm:text-xl text-gray-700 mb-2">{profile.full_name}</p>
                   )}
 
                   {/* Follower Tier Badge */}
                   <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full mb-4">
-                    <span className="text-sm font-semibold text-purple-700">{insights.followerTier}</span>
+                    <span className="text-xs sm:text-sm font-semibold text-purple-700">{insights.followerTier}</span>
                   </div>
                   
                   {profile.biography && (
-                    <p className="text-gray-600 mb-4 whitespace-pre-wrap">{profile.biography}</p>
+                    <p className="text-sm sm:text-base text-gray-600 mb-4 whitespace-pre-wrap">{profile.biography}</p>
                   )}
 
                   {profile.external_url && (
@@ -409,33 +410,33 @@ export default function InstagramProfileAnalyzer() {
                       href={profile.external_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center gap-2"
+                      className="text-sm sm:text-base text-purple-600 hover:text-purple-700 font-medium inline-flex items-center gap-2 break-all"
                     >
-                      🔗 {profile.external_url.replace(/^https?:\/\//,'').slice(0, 40)}...
+                      🔗 {profile.external_url.replace(/^https?:\/\//,'').slice(0, 30)}{profile.external_url.length > 30 ? '...' : ''}
                     </a>
                   )}
                 </div>
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-3 gap-6 mt-8 pt-8 border-t">
+              <div className="grid grid-cols-3 gap-3 sm:gap-6 mt-6 sm:mt-8 pt-6 sm:pt-8 border-t">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900">
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                     {formatNumber(profile.posts_count)}
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">Posts</div>
+                  <div className="text-xs sm:text-sm text-gray-600 mt-1">Posts</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900">
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                     {formatNumber(profile.followers)}
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">Followers</div>
+                  <div className="text-xs sm:text-sm text-gray-600 mt-1">Followers</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900">
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                     {formatNumber(profile.following)}
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">Following</div>
+                  <div className="text-xs sm:text-sm text-gray-600 mt-1">Following</div>
                 </div>
               </div>
             </div>
@@ -447,37 +448,37 @@ export default function InstagramProfileAnalyzer() {
               insights.engagementQuality.label === 'Good' ? 'from-purple-500 to-pink-500' :
               insights.engagementQuality.label === 'Average' ? 'from-yellow-500 to-orange-500' :
               'from-gray-500 to-gray-600'
-            } rounded-2xl shadow-xl p-6 text-white`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  {React.createElement(insights.engagementQuality.icon, { className: "w-12 h-12" })}
+            } rounded-2xl shadow-xl p-4 sm:p-6 text-white`}>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3 sm:gap-4 text-center sm:text-left">
+                  {React.createElement(insights.engagementQuality.icon, { className: "w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0" })}
                   <div>
-                    <h3 className="text-2xl font-bold">{insights.engagementQuality.label} Engagement</h3>
-                    <p className="text-white/90">
+                    <h3 className="text-xl sm:text-2xl font-bold">{insights.engagementQuality.label} Engagement</h3>
+                    <p className="text-sm sm:text-base text-white/90">
                       This profile has {insights.engagementQuality.label.toLowerCase()} audience engagement metrics
                     </p>
                   </div>
                 </div>
-                <div className="text-right hidden md:block">
-                  <div className="text-5xl font-bold">{formatPercentage(metrics.engagement_rate)}%</div>
-                  <div className="text-sm text-white/80">Engagement Rate</div>
+                <div className="text-center">
+                  <div className="text-4xl sm:text-5xl font-bold">{formatPercentage(metrics.engagement_rate)}%</div>
+                  <div className="text-xs sm:text-sm text-white/80">Engagement Rate</div>
                 </div>
               </div>
             </div>
 
             {/* Main Metrics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               
               {/* Engagement Rate */}
-              <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-xl p-6 text-white">
+              <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-xl p-5 sm:p-6 text-white">
                 <div className="flex items-center gap-3 mb-3">
-                  <TrendingUp className="w-8 h-8" />
-                  <h3 className="text-lg font-semibold">Engagement Rate</h3>
+                  <TrendingUp className="w-7 h-7 sm:w-8 sm:h-8" />
+                  <h3 className="text-base sm:text-lg font-semibold">Engagement Rate</h3>
                 </div>
-                <div className="text-4xl font-bold mb-2">
+                <div className="text-3xl sm:text-4xl font-bold mb-2">
                   {formatPercentage(metrics.engagement_rate)}%
                 </div>
-                <p className="text-purple-100 text-sm">
+                <p className="text-purple-100 text-xs sm:text-sm">
                   Based on {metrics.total_posts_analyzed} posts
                 </p>
                 <div className="mt-3 pt-3 border-t border-white/20">
@@ -488,15 +489,15 @@ export default function InstagramProfileAnalyzer() {
               </div>
 
               {/* Average Likes */}
-              <div className="bg-gradient-to-br from-pink-500 to-red-500 rounded-2xl shadow-xl p-6 text-white">
+              <div className="bg-gradient-to-br from-pink-500 to-red-500 rounded-2xl shadow-xl p-5 sm:p-6 text-white">
                 <div className="flex items-center gap-3 mb-3">
-                  <Heart className="w-8 h-8" />
-                  <h3 className="text-lg font-semibold">Avg Likes</h3>
+                  <Heart className="w-7 h-7 sm:w-8 sm:h-8" />
+                  <h3 className="text-base sm:text-lg font-semibold">Avg Likes</h3>
                 </div>
-                <div className="text-4xl font-bold mb-2">
+                <div className="text-3xl sm:text-4xl font-bold mb-2">
                   {formatNumber(metrics.avg_likes)}
                 </div>
-                <p className="text-pink-100 text-sm">
+                <p className="text-pink-100 text-xs sm:text-sm">
                   Per post
                 </p>
                 <div className="mt-3 pt-3 border-t border-white/20">
@@ -507,15 +508,15 @@ export default function InstagramProfileAnalyzer() {
               </div>
 
               {/* Average Comments */}
-              <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-xl p-6 text-white">
+              <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-xl p-5 sm:p-6 text-white sm:col-span-2 lg:col-span-1">
                 <div className="flex items-center gap-3 mb-3">
-                  <MessageCircle className="w-8 h-8" />
-                  <h3 className="text-lg font-semibold">Avg Comments</h3>
+                  <MessageCircle className="w-7 h-7 sm:w-8 sm:h-8" />
+                  <h3 className="text-base sm:text-lg font-semibold">Avg Comments</h3>
                 </div>
-                <div className="text-4xl font-bold mb-2">
+                <div className="text-3xl sm:text-4xl font-bold mb-2">
                   {formatNumber(metrics.avg_comments)}
                 </div>
-                <p className="text-blue-100 text-sm">
+                <p className="text-blue-100 text-xs sm:text-sm">
                   Per post
                 </p>
                 <div className="mt-3 pt-3 border-t border-white/20">
@@ -527,12 +528,12 @@ export default function InstagramProfileAnalyzer() {
             </div>
 
             {/* Advanced Insights */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <BarChart3 className="w-7 h-7 text-purple-600" />
+            <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+                <BarChart3 className="w-6 h-6 sm:w-7 sm:h-7 text-purple-600" />
                 Advanced Insights
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 
                 {/* Consistency Score */}
                 <div className="p-5 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-100">
@@ -652,36 +653,36 @@ export default function InstagramProfileAnalyzer() {
 
             {/* Recent Posts List */}
             {posts && posts.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-xl p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <Calendar className="w-7 h-7 text-purple-600" />
+              <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-2">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-purple-600" />
                     Recent Posts ({posts.length})
                   </h2>
-                  <span className="text-sm text-gray-500">Last {posts.length} posts analyzed</span>
+                  <span className="text-xs sm:text-sm text-gray-500">Last {posts.length} posts analyzed</span>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {posts.map((post: any, index: number) => (
                     <a
                       key={post.shortcode || index}
                       href={post.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl hover:shadow-md transition-all group border-2 border-transparent hover:border-purple-200"
+                      className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl hover:shadow-md transition-all group border-2 border-transparent hover:border-purple-200"
                     >
                       {/* Post Icon */}
-                      <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                      <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
                         {post.is_video ? (
-                          <span className="text-2xl">📹</span>
+                          <span className="text-xl sm:text-2xl">📹</span>
                         ) : (
-                          <span className="text-2xl">📷</span>
+                          <span className="text-xl sm:text-2xl">📷</span>
                         )}
                       </div>
 
                       {/* Post Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-gray-900">Post {index + 1}</span>
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className="font-semibold text-gray-900 text-sm sm:text-base">Post {index + 1}</span>
                           {post.is_video && (
                             <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
                               Video
@@ -692,21 +693,21 @@ export default function InstagramProfileAnalyzer() {
                           </span>
                         </div>
                         {post.caption && (
-                          <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                          <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-2">
                             {post.caption}
                           </p>
                         )}
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1 text-sm">
-                            <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
+                        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                          <div className="flex items-center gap-1 text-xs sm:text-sm">
+                            <Heart className="w-3 h-3 sm:w-4 sm:h-4 text-pink-500 fill-pink-500" />
                             <span className="font-semibold text-gray-900">{formatNumber(post.likes)}</span>
                           </div>
-                          <div className="flex items-center gap-1 text-sm">
-                            <MessageCircle className="w-4 h-4 text-blue-500 fill-blue-500" />
+                          <div className="flex items-center gap-1 text-xs sm:text-sm">
+                            <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 fill-blue-500" />
                             <span className="font-semibold text-gray-900">{formatNumber(post.comments)}</span>
                           </div>
-                          <div className="flex items-center gap-1 text-sm text-purple-600">
-                            <TrendingUp className="w-4 h-4" />
+                          <div className="flex items-center gap-1 text-xs sm:text-sm text-purple-600">
+                            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
                             <span className="font-medium">
                               {(((post.likes + post.comments) / profile.followers) * 100).toFixed(2)}% ER
                             </span>
@@ -716,7 +717,7 @@ export default function InstagramProfileAnalyzer() {
 
                       {/* View on Instagram */}
                       <div className="flex-shrink-0">
-                        <div className="flex items-center gap-2 text-sm text-purple-600 font-medium group-hover:text-purple-700 transition-colors">
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-purple-600 font-medium group-hover:text-purple-700 transition-colors">
                           <span className="hidden sm:inline">View</span>
                           <ExternalLink className="w-4 h-4" />
                         </div>
@@ -728,12 +729,12 @@ export default function InstagramProfileAnalyzer() {
             )}
 
             {/* Analysis Summary */}
-            <div className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl shadow-xl p-8 text-white">
-              <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Sparkles className="w-7 h-7" />
+            <div className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 text-white">
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 flex items-center gap-2">
+                <Sparkles className="w-6 h-6 sm:w-7 sm:h-7" />
                 Analysis Summary
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-3">
                   <h4 className="font-semibold text-lg">Strengths</h4>
                   <ul className="space-y-2 text-white/90">
