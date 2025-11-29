@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, TrendingUp, Users, Heart, MessageCircle, Instagram, AlertCircle, CheckCircle, ArrowRight, Loader2, Eye, Bookmark, Share2, Crown, Zap, Target, Award, BarChart3 } from 'lucide-react'
+import { Search, TrendingUp, Users, Heart, MessageCircle, Instagram, AlertCircle, CheckCircle, ArrowRight, Loader2, Eye, Bookmark, Share2, Crown, Zap, Target, Award, BarChart3, Image as ImageIcon } from 'lucide-react'
+import Image from 'next/image'
 
 interface InstagramProfile {
   username: string
@@ -36,6 +37,7 @@ interface PostData {
   type: 'image' | 'video' | 'carousel'
   timestamp: string
   engagementRate: number
+  thumbnail?: string
 }
 
 export default function InstagramProfileAnalyzer() {
@@ -47,12 +49,10 @@ export default function InstagramProfileAnalyzer() {
   const [error, setError] = useState<string | null>(null)
 
   const extractUsername = (input: string): string => {
-    // Handle Instagram URLs
     if (input.includes('instagram.com')) {
       const match = input.match(/instagram\.com\/([a-zA-Z0-9._]+)/)
       return match ? match[1] : input
     }
-    // Remove @ symbol if present
     return input.replace('@', '').trim()
   }
 
@@ -71,7 +71,6 @@ export default function InstagramProfileAnalyzer() {
     setRecentPosts([])
 
     try {
-      // Call your backend API endpoint
       const backendUrl = process.env.NODE_ENV === 'production' 
         ? 'https://infoish-ai-search-production.up.railway.app' 
         : 'http://127.0.0.1:8000'
@@ -95,7 +94,6 @@ export default function InstagramProfileAnalyzer() {
 
       const data = await response.json()
 
-      // Set profile data
       setProfile({
         username: data.username,
         displayName: data.display_name,
@@ -109,11 +107,9 @@ export default function InstagramProfileAnalyzer() {
         location: data.location
       })
 
-      // Calculate engagement metrics
       const totalEngagements = data.avg_likes + data.avg_comments
       const engagementRate = (totalEngagements / data.followers) * 100
 
-      // Determine rating
       let rating = ''
       let color = ''
       let description = ''
@@ -151,9 +147,12 @@ export default function InstagramProfileAnalyzer() {
         description
       })
 
-      // Set recent posts
       if (data.recent_posts) {
-        setRecentPosts(data.recent_posts)
+        const postsWithThumbnails = data.recent_posts.map((post: any) => ({
+          ...post,
+          thumbnail: `https://www.instagram.com/p/${post.id}/media/?size=m`
+        }))
+        setRecentPosts(postsWithThumbnails)
       }
 
     } catch (err: any) {
@@ -190,7 +189,6 @@ export default function InstagramProfileAnalyzer() {
   }
 
   const getBenchmarkData = (followers: number) => {
-    // Industry benchmarks based on follower count
     const ranges = {
       '<1k': { low: 8, median: 12, high: 18 },
       '1k-5k': { low: 5, median: 8, high: 12 },
@@ -204,6 +202,15 @@ export default function InstagramProfileAnalyzer() {
 
     const range = getFollowerRange(followers)
     return ranges[range as keyof typeof ranges] || ranges['1k-5k']
+  }
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}k`
+    }
+    return num.toString()
   }
 
   return (
@@ -231,10 +238,11 @@ export default function InstagramProfileAnalyzer() {
         </div>
       </div>
 
-      {/* Hero Section */}
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {!profile ? (
           <>
+            {/* Hero Section */}
             <div className="text-center mb-8 sm:mb-12">
               <div className="inline-flex items-center gap-2 bg-white px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg mb-4 sm:mb-6 border border-purple-200">
                 <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
@@ -252,22 +260,6 @@ export default function InstagramProfileAnalyzer() {
               <p className="text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed mb-8">
                 Enter any public Instagram username to get detailed engagement analytics, performance metrics, and industry benchmarks.
               </p>
-
-              {/* Features Pills */}
-              <div className="flex flex-wrap justify-center gap-3 mb-8">
-                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-purple-200 shadow-sm">
-                  <TrendingUp className="w-4 h-4 text-purple-600" />
-                  <span className="text-sm font-semibold text-gray-700">Engagement Rate</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-pink-200 shadow-sm">
-                  <BarChart3 className="w-4 h-4 text-pink-600" />
-                  <span className="text-sm font-semibold text-gray-700">Post Analytics</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-orange-200 shadow-sm">
-                  <Target className="w-4 h-4 text-orange-600" />
-                  <span className="text-sm font-semibold text-gray-700">Benchmarks</span>
-                </div>
-              </div>
 
               {/* Search Input */}
               <div className="max-w-2xl mx-auto">
@@ -320,33 +312,6 @@ export default function InstagramProfileAnalyzer() {
                 </div>
               </div>
             </div>
-
-            {/* Info Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto mt-12">
-              <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-purple-100 hover:border-purple-300 transition-colors">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-4">
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-lg font-black text-gray-900 mb-2">Instant Analysis</h3>
-                <p className="text-gray-600 text-sm">Get comprehensive insights in seconds</p>
-              </div>
-
-              <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-pink-100 hover:border-pink-300 transition-colors">
-                <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-orange-500 rounded-xl flex items-center justify-center mb-4">
-                  <Crown className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-lg font-black text-gray-900 mb-2">100% Free</h3>
-                <p className="text-gray-600 text-sm">No registration or payment required</p>
-              </div>
-
-              <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-orange-100 hover:border-orange-300 transition-colors">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center mb-4">
-                  <Award className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-lg font-black text-gray-900 mb-2">Accurate Data</h3>
-                <p className="text-gray-600 text-sm">Real-time metrics from public profiles</p>
-              </div>
-            </div>
           </>
         ) : (
           <>
@@ -356,17 +321,25 @@ export default function InstagramProfileAnalyzer() {
               <div className="bg-white rounded-3xl shadow-2xl border-2 border-purple-200 overflow-hidden">
                 <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 p-8">
                   <div className="flex flex-col sm:flex-row items-center gap-6">
-                    <img
-                      src={profile.profilePicture || '/default-avatar.png'}
-                      alt={profile.displayName}
-                      className="w-24 h-24 rounded-full border-4 border-white shadow-xl"
-                    />
+                    <div className="relative">
+                      <img
+                        src={profile.profilePicture}
+                        alt={profile.displayName}
+                        className="w-24 h-24 rounded-full border-4 border-white shadow-xl object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.displayName)}&size=200&background=random`
+                        }}
+                      />
+                      {profile.isVerified && (
+                        <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
+                          <CheckCircle className="w-6 h-6 text-white fill-blue-500" />
+                        </div>
+                      )}
+                    </div>
                     <div className="flex-1 text-center sm:text-left">
                       <div className="flex items-center gap-2 justify-center sm:justify-start mb-2">
                         <h2 className="text-3xl font-black text-white">{profile.displayName}</h2>
-                        {profile.isVerified && (
-                          <CheckCircle className="w-6 h-6 text-white fill-blue-500" />
-                        )}
                       </div>
                       <p className="text-white/90 text-lg mb-2">@{profile.username}</p>
                       {profile.bio && (
@@ -400,19 +373,13 @@ export default function InstagramProfileAnalyzer() {
                 <div className="grid grid-cols-3 gap-px bg-gray-200">
                   <div className="bg-white p-6 text-center">
                     <div className="text-3xl font-black text-gray-900 mb-1">
-                      {profile.followers >= 1000000 
-                        ? `${(profile.followers / 1000000).toFixed(1)}M`
-                        : profile.followers >= 1000
-                        ? `${(profile.followers / 1000).toFixed(1)}k`
-                        : profile.followers}
+                      {formatNumber(profile.followers)}
                     </div>
                     <div className="text-sm text-gray-600 font-semibold">Followers</div>
                   </div>
                   <div className="bg-white p-6 text-center">
                     <div className="text-3xl font-black text-gray-900 mb-1">
-                      {profile.following >= 1000 
-                        ? `${(profile.following / 1000).toFixed(1)}k`
-                        : profile.following}
+                      {formatNumber(profile.following)}
                     </div>
                     <div className="text-sm text-gray-600 font-semibold">Following</div>
                   </div>
@@ -464,7 +431,7 @@ export default function InstagramProfileAnalyzer() {
                           <Heart className="w-5 h-5 text-pink-600" />
                           <div className="text-sm font-bold text-gray-600">Avg Likes</div>
                         </div>
-                        <div className="text-3xl font-black text-gray-900">{metrics.avgLikes.toLocaleString()}</div>
+                        <div className="text-3xl font-black text-gray-900">{formatNumber(metrics.avgLikes)}</div>
                       </div>
                       
                       <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border-2 border-blue-200">
@@ -472,7 +439,7 @@ export default function InstagramProfileAnalyzer() {
                           <MessageCircle className="w-5 h-5 text-blue-600" />
                           <div className="text-sm font-bold text-gray-600">Avg Comments</div>
                         </div>
-                        <div className="text-3xl font-black text-gray-900">{metrics.avgComments.toLocaleString()}</div>
+                        <div className="text-3xl font-black text-gray-900">{formatNumber(metrics.avgComments)}</div>
                       </div>
                       
                       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-6 border-2 border-purple-200">
@@ -480,7 +447,7 @@ export default function InstagramProfileAnalyzer() {
                           <TrendingUp className="w-5 h-5 text-purple-600" />
                           <div className="text-sm font-bold text-gray-600">Total Engagement</div>
                         </div>
-                        <div className="text-3xl font-black text-gray-900">{metrics.totalEngagements.toLocaleString()}</div>
+                        <div className="text-3xl font-black text-gray-900">{formatNumber(metrics.totalEngagements)}</div>
                       </div>
                     </div>
 
@@ -491,38 +458,49 @@ export default function InstagramProfileAnalyzer() {
                         Engagement Rate Distribution for {getFollowerRange(profile.followers)} Followers
                       </h4>
                       
-                      <div className="relative">
-                        <div className="h-12 bg-gradient-to-r from-red-500 via-yellow-500 via-blue-500 via-green-500 to-purple-500 rounded-xl relative overflow-hidden">
-                          <div 
-                            className="absolute top-0 bottom-0 w-1 bg-white shadow-lg"
-                            style={{ left: `${Math.min(metrics.engagementRate / 20 * 100, 100)}%` }}
-                          >
-                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-white px-3 py-1 rounded-lg shadow-lg whitespace-nowrap">
-                              <div className="text-xs font-bold text-gray-600">Your Profile</div>
-                              <div className="text-lg font-black text-purple-600">{metrics.engagementRate}%</div>
-                            </div>
+                      <div className="relative pt-16 pb-4">
+                        {/* Your Profile Indicator - Above slider */}
+                        <div 
+                          className="absolute top-0 transform -translate-x-1/2 z-10"
+                          style={{ left: `${Math.min((metrics.engagementRate / (getBenchmarkData(profile.followers).high * 2)) * 100, 100)}%` }}
+                        >
+                          <div className="bg-white px-4 py-2 rounded-xl shadow-2xl border-2 border-purple-500 whitespace-nowrap">
+                            <div className="text-xs font-bold text-gray-600 mb-1">Your Profile</div>
+                            <div className="text-2xl font-black text-purple-600">{metrics.engagementRate}%</div>
+                          </div>
+                          <div className="w-1 h-8 bg-purple-500 mx-auto mt-1"></div>
+                        </div>
+                        
+                        {/* Gradient Bar */}
+                        <div className="h-16 bg-gradient-to-r from-red-500 via-yellow-500 via-blue-500 via-green-500 to-purple-500 rounded-xl shadow-inner relative">
+                          {/* Benchmark Markers */}
+                          <div className="absolute inset-0 flex justify-between px-2">
+                            <div className="w-0.5 h-full bg-white/30"></div>
+                            <div className="w-0.5 h-full bg-white/50"></div>
+                            <div className="w-0.5 h-full bg-white/30"></div>
                           </div>
                         </div>
                         
-                        <div className="flex justify-between mt-4 text-sm font-semibold text-gray-600">
-                          <div>
-                            <div className="text-xs">Low</div>
-                            <div>{getBenchmarkData(profile.followers).low}%</div>
+                        {/* Labels */}
+                        <div className="flex justify-between mt-4 text-sm font-semibold text-gray-700">
+                          <div className="text-center">
+                            <div className="text-xs text-gray-500 mb-1">Low</div>
+                            <div className="text-base font-bold text-red-600">{getBenchmarkData(profile.followers).low}%</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-xs">Median</div>
-                            <div>{getBenchmarkData(profile.followers).median}%</div>
+                            <div className="text-xs text-gray-500 mb-1">Median</div>
+                            <div className="text-base font-bold text-blue-600">{getBenchmarkData(profile.followers).median}%</div>
                           </div>
-                          <div className="text-right">
-                            <div className="text-xs">High</div>
-                            <div>{getBenchmarkData(profile.followers).high}%</div>
+                          <div className="text-center">
+                            <div className="text-xs text-gray-500 mb-1">High</div>
+                            <div className="text-base font-bold text-green-600">{getBenchmarkData(profile.followers).high}%</div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Recent Posts Analysis */}
+                  {/* Recent Posts Performance */}
                   {recentPosts.length > 0 && (
                     <div className="bg-white rounded-3xl shadow-2xl border-2 border-purple-200 p-8">
                       <h3 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
@@ -543,6 +521,11 @@ export default function InstagramProfileAnalyzer() {
                                 }`}>
                                   {post.engagementRate.toFixed(2)}% ER
                                 </span>
+                                {post.type === 'video' && (
+                                  <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold">
+                                    📹 Video
+                                  </span>
+                                )}
                               </div>
                               <span className="text-xs text-gray-500">
                                 {new Date(post.timestamp).toLocaleDateString()}
@@ -556,16 +539,16 @@ export default function InstagramProfileAnalyzer() {
                             <div className="flex items-center gap-4 text-sm">
                               <div className="flex items-center gap-1">
                                 <Heart className="w-4 h-4 text-pink-500" />
-                                <span className="font-semibold">{post.likes.toLocaleString()}</span>
+                                <span className="font-semibold">{formatNumber(post.likes)}</span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <MessageCircle className="w-4 h-4 text-blue-500" />
-                                <span className="font-semibold">{post.comments.toLocaleString()}</span>
+                                <span className="font-semibold">{formatNumber(post.comments)}</span>
                               </div>
                               {post.views && (
                                 <div className="flex items-center gap-1">
                                   <Eye className="w-4 h-4 text-purple-500" />
-                                  <span className="font-semibold">{post.views.toLocaleString()}</span>
+                                  <span className="font-semibold">{formatNumber(post.views)}</span>
                                 </div>
                               )}
                             </div>

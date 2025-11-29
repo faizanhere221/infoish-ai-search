@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, Heart, LogOut } from 'lucide-react'
+import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, Heart, LogOut, Instagram, Calculator, Wrench } from 'lucide-react'
 
 interface UserProfile {
   id: string
@@ -13,7 +13,7 @@ interface UserProfile {
   subscription_tier: 'free' | 'starter' | 'pro' | 'developer'
   monthly_searches: number
   search_limit: number
-  user_type?: 'brand' | 'influencer' // Added from backend
+  user_type?: 'brand' | 'influencer'
 }
 
 interface HeaderProps {
@@ -24,6 +24,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showDropdown, setShowDropdown] = useState(false)
+  const [showToolsDropdown, setShowToolsDropdown] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const router = useRouter()
@@ -87,7 +88,6 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
               user_type: userData.user_type
             })
             
-            // FIXED: Update userType from backend or detect from URL
             detectAndSetUserType(userData.user_type)
           }
         } catch (error) {
@@ -103,9 +103,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
     }
   }, [pathname])
 
-  // FIXED: Smart user type detection
   const detectAndSetUserType = (backendUserType?: string) => {
-    // Priority 1: Backend returns user_type
     if (backendUserType) {
       const type = backendUserType === 'influencer' ? 'influencer' : 'brand'
       setUserType(type)
@@ -113,21 +111,18 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
       return
     }
 
-    // Priority 2: Check current URL path
     if (pathname?.includes('/influencer')) {
       setUserType('influencer')
       localStorage.setItem('user_type', 'influencer')
       return
     }
 
-    // Priority 3: Check localStorage
     const storedType = localStorage.getItem('user_type')
     if (storedType === 'influencer' || storedType === 'brand') {
       setUserType(storedType)
       return
     }
 
-    // Priority 4: Default to brand (for Google OAuth users)
     setUserType('brand')
     localStorage.setItem('user_type', 'brand')
   }
@@ -164,7 +159,6 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
           user_type: userData.user_type
         })
         
-        // FIXED: Detect user type properly
         detectAndSetUserType(userData.user_type)
       } else {
         localStorage.removeItem('auth_token')
@@ -305,12 +299,11 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
     }
   }
 
-  // FIXED: Get correct dashboard URL based on user type
   const getDashboardUrl = () => {
     if (userType === 'influencer') {
       return '/influencer/dashboard'
     }
-    return '/dashboard' // Brand dashboard is at /dashboard
+    return '/dashboard'
   }
 
   if (isLoading) {
@@ -377,74 +370,131 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
               >
                 Pricing
               </Link>
+
+              {/* Tools Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowToolsDropdown(!showToolsDropdown)}
+                  className="px-4 py-2 text-gray-700 hover:text-purple-600 hover:bg-purple-50 font-medium rounded-lg transition-all flex items-center gap-2"
+                >
+                  <Wrench className="w-4 h-4" />
+                  Tools
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showToolsDropdown ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {showToolsDropdown && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowToolsDropdown(false)}
+                    />
+                    <div className="absolute left-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Free Marketing Tools</p>
+                      </div>
+                      
+                      <Link
+                        href="/tools/instagram-profile-analyzer"
+                        className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition-colors"
+                        onClick={() => setShowToolsDropdown(false)}
+                      >
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Instagram className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm text-gray-900">Instagram Profile Analyzer</p>
+                          <p className="text-xs text-gray-500 mt-0.5">Check engagement rates instantly</p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/tools/instagram-engagement-calculator"
+                        className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors"
+                        onClick={() => setShowToolsDropdown(false)}
+                      >
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Calculator className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm text-gray-900">Engagement Rate Calculator</p>
+                          <p className="text-xs text-gray-500 mt-0.5">Calculate engagement manually</p>
+                        </div>
+                      </Link>
+
+                      <div className="border-t border-gray-100 mt-2 pt-2">
+                        <Link
+                          href="/tools"
+                          className="flex items-center justify-between px-4 py-2 text-sm text-purple-600 hover:text-purple-700 font-semibold"
+                          onClick={() => setShowToolsDropdown(false)}
+                        >
+                          <span>View All Tools</span>
+                          <ChevronDown className="w-4 h-4 -rotate-90" />
+                        </Link>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <Link 
                 href="/blog" 
-                className="px-4 py-2 text-gray-700 hover:text-purple-600 hover:bg-purple-50 font-medium rounded-lg transition-all"
+                className="px-4 py-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 font-medium rounded-lg transition-all"
               >
                 Blog
               </Link>
 
               {!user && (
-                <>
-                  <div className="relative ml-2">
-                    <button
-                      onClick={() => setShowLoginDropdown(!showLoginDropdown)}
-                      className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-2 font-medium transition-all border border-gray-200"
-                    >
-                      Login
-                      <ChevronDown className={`w-4 h-4 transition-transform ${showLoginDropdown ? 'rotate-180' : ''}`} />
-                    </button>
-                    
-                    {showLoginDropdown && (
-                      <>
-                        <div 
-                          className="fixed inset-0 z-40" 
-                          onClick={() => setShowLoginDropdown(false)}
-                        />
-                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
-                          <Link
-                            href="/influencer/login"
-                            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition-colors"
-                            onClick={() => setShowLoginDropdown(false)}
-                          >
-                            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                              <User className="w-4 h-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-sm">Influencer</p>
-                              <p className="text-xs text-gray-500">Manage profile</p>
-                            </div>
-                          </Link>
-                          
-                          <div className="my-1 h-px bg-gray-200" />
-                          
-                          <button
-                            onClick={() => {
-                              setShowLoginDropdown(false)
-                              handleGoogleLogin()
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors"
-                          >
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                              <Building className="w-4 h-4 text-white" />
-                            </div>
-                            <div className="text-left">
-                              <p className="font-semibold text-sm">Brand</p>
-                              <p className="text-xs text-gray-500">Search influencers</p>
-                            </div>
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  
-                  <Link 
-                    href="/register-influencer"
-                    className="ml-2 px-5 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm"
+                <div className="relative ml-2">
+                  <button
+                    onClick={() => setShowLoginDropdown(!showLoginDropdown)}
+                    className="px-5 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm flex items-center gap-2"
                   >
-                    Register as Influencer
-                  </Link>
-                </>
+                    Login
+                    <ChevronDown className={`w-4 h-4 transition-transform ${showLoginDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {showLoginDropdown && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setShowLoginDropdown(false)}
+                      />
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+                        <Link
+                          href="/influencer/login"
+                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition-colors"
+                          onClick={() => setShowLoginDropdown(false)}
+                        >
+                          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                            <User className="w-4 h-4 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">Influencer</p>
+                            <p className="text-xs text-gray-500">Manage profile</p>
+                          </div>
+                        </Link>
+                        
+                        <div className="my-1 h-px bg-gray-200" />
+                        
+                        <button
+                          onClick={() => {
+                            setShowLoginDropdown(false)
+                            handleGoogleLogin()
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors"
+                        >
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                            <Building className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="text-left">
+                            <p className="font-semibold text-sm">Brand</p>
+                            <p className="text-xs text-gray-500">Search influencers</p>
+                          </div>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
             </nav>
 
@@ -580,7 +630,6 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                           
                           {/* Menu Items */}
                           <div className="p-2">
-                            {/* FIXED: Dashboard link based on userType */}
                             <Link
                               href={getDashboardUrl()}
                               className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-all"
@@ -657,7 +706,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                     href="/login"
                     className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-5 py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
                   >
-                    <span className="hidden sm:inline">Sign up as Brand</span>
+                    <span className="hidden sm:inline">Get Started Free</span>
                     <span className="sm:hidden">Login</span>
                   </Link>
                 </div>
@@ -690,14 +739,6 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                     >
                       <User className="w-5 h-5" />
                       Influencer Login
-                    </Link>
-                    
-                    <Link 
-                      href="/register-influencer"
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-3 px-4 rounded-lg transition-all hover:shadow-lg"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Register as Influencer
                     </Link>
                     
                     <div className="h-px bg-gray-200 my-2" />
@@ -751,9 +792,19 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                 >
                   Pricing
                 </Link>
+
+                <Link 
+                  href="/tools" 
+                  className="flex items-center gap-2 text-gray-700 hover:text-purple-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-purple-50"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Wrench className="w-5 h-5" />
+                  Tools
+                </Link>
+
                 <Link 
                   href="/blog" 
-                  className="text-gray-700 hover:text-purple-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-gray-50"
+                  className="text-gray-700 hover:text-orange-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-gray-50"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Blog
@@ -803,7 +854,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                       }}
                       className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-lg font-bold text-sm hover:shadow-lg transition-all"
                     >
-                      Sign up as Brand
+                      Get Started Free
                     </button>
                   </div>
                 )}

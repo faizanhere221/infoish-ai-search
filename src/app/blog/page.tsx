@@ -21,10 +21,22 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '4',
+    title: 'Free Instagram Profile Analyzer: Complete Guide to Vetting Influencers',
+    excerpt: 'Learn how to analyze any Instagram profile for free. Get engagement rates, detect fake followers, and find authentic influencers with our complete vetting guide and free tool.',
+    date: '2024-11-29',
+    author: 'Aslam Haider',
+    category: 'Tools',
+    readTime: '12 min read',
+    slug: 'free-instagram-profile-analyzer-complete-guide',
+    featured: true,
+    views: '850'
+  },
+  {
     id: '1',
     title: 'Complete Guide to Influencer Marketing in Pakistan 2025',
     excerpt: 'Master influencer marketing with our comprehensive guide covering strategies, budgets, and ROI optimization specifically for Pakistani brands.',
-    date: '2025-10-16',
+    date: '2024-10-16',
     author: 'Laiba Razzaq',
     category: 'Marketing',
     readTime: '10 min read',
@@ -36,7 +48,7 @@ const blogPosts: BlogPost[] = [
     id: '2',
     title: 'How to Find the Right Pakistani Influencers for Your Brand',
     excerpt: 'Step-by-step framework for discovering, evaluating, and partnering with Pakistani influencers who deliver real results for your campaigns.',
-    date: '2025-10-18',
+    date: '2024-10-18',
     author: 'Laiba Razzaq',
     category: 'Strategy',
     readTime: '8 min read',
@@ -48,7 +60,7 @@ const blogPosts: BlogPost[] = [
     id: '3',
     title: 'AI-powered Influencer Marketing Tools: A Game Changer for Pakistani Brands',
     excerpt: 'Discover how AI is transforming influencer marketing in Pakistan. Learn about smart discovery, fraud detection, and ROI measurement tools that help brands run smarter campaigns.',
-    date: '2025-11-01',
+    date: '2024-11-01',
     author: 'Laiba Razzaq',
     category: 'Technology',
     readTime: '9 min read',
@@ -61,13 +73,13 @@ const blogPosts: BlogPost[] = [
 export default function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   
-  const categories = ['All', 'Marketing', 'Strategy', 'Technology']
+  const categories = ['All', 'Tools', 'Marketing', 'Strategy', 'Technology']
   
   const filteredPosts = selectedCategory === 'All' 
     ? blogPosts 
     : blogPosts.filter(post => post.category === selectedCategory)
 
-  const featuredPosts = blogPosts.filter(post => post.featured)
+  const featuredPosts = filteredPosts.filter(post => post.featured)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -126,8 +138,8 @@ export default function BlogPage() {
               <Star className="w-6 h-6 text-yellow-500" />
               Featured Articles
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-              {filteredPosts.map((post) => (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {featuredPosts.map((post) => (
                 <article key={post.id} className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-white/50 group">
                   <div className="relative">
                     <div className="absolute top-4 left-4 z-10">
@@ -140,10 +152,20 @@ export default function BlogPage() {
                         {post.views} views
                       </span>
                     </div>
-                    <div className="h-48 bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+                    <div className={`h-48 bg-gradient-to-br ${
+                      post.category === 'Tools' ? 'from-purple-500/20 to-pink-500/20' :
+                      post.category === 'Marketing' ? 'from-blue-500/20 to-cyan-500/20' :
+                      post.category === 'Strategy' ? 'from-green-500/20 to-emerald-500/20' :
+                      'from-orange-500/20 to-red-500/20'
+                    } flex items-center justify-center`}>
                       <div className="text-center">
                         <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                          <span className="text-2xl font-bold text-blue-600">{post.category.charAt(0)}</span>
+                          <span className={`text-2xl font-bold ${
+                            post.category === 'Tools' ? 'text-purple-600' :
+                            post.category === 'Marketing' ? 'text-blue-600' :
+                            post.category === 'Strategy' ? 'text-green-600' :
+                            'text-orange-600'
+                          }`}>{post.category.charAt(0)}</span>
                         </div>
                         <span className="text-sm font-medium text-gray-600">{post.category} Guide</span>
                       </div>
@@ -152,7 +174,12 @@ export default function BlogPage() {
                   
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
-                      <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                      <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                        post.category === 'Tools' ? 'bg-purple-100 text-purple-700' :
+                        post.category === 'Marketing' ? 'bg-blue-100 text-blue-700' :
+                        post.category === 'Strategy' ? 'bg-green-100 text-green-700' :
+                        'bg-orange-100 text-orange-700'
+                      }`}>
                         {post.category}
                       </span>
                       <span className="text-gray-500 text-sm">{post.readTime}</span>

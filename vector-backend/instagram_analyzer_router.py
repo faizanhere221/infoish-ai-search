@@ -1,6 +1,6 @@
 """
-Instagram Profile Analyzer API Endpoint - CORRECTED VERSION
-Fixed router prefix issue
+Instagram Profile Analyzer API - UPDATED WITH THUMBNAILS
+Includes post thumbnail URLs
 """
 
 from fastapi import APIRouter, HTTPException, Request
@@ -11,10 +11,8 @@ from datetime import datetime
 import statistics
 from collections import defaultdict
 
-# FIXED: Remove /api prefix here, add it in main.py instead
 router = APIRouter(tags=["Instagram Analyzer"])
 
-# Simple rate limiting
 rate_limit_tracker = defaultdict(list)
 MAX_REQUESTS_PER_HOUR = 30
 
@@ -27,6 +25,7 @@ class PostData(BaseModel):
     type: str
     timestamp: str
     engagementRate: float
+    thumbnail: str  # NEW: Post thumbnail URL
 
 class InstagramProfileResponse(BaseModel):
     username: str
@@ -46,7 +45,6 @@ class InstagramProfileResponse(BaseModel):
 
 
 def check_rate_limit(ip_address: str):
-    """Simple rate limiter - 30 requests per hour per IP"""
     from datetime import datetime, timedelta
     
     now = datetime.now()
@@ -69,7 +67,7 @@ def check_rate_limit(ip_address: str):
 @router.get("/analyze-instagram/{username}")
 async def analyze_instagram_profile(username: str, request: Request):
     """
-    Analyze a public Instagram profile and return engagement metrics
+    Analyze a public Instagram profile and return engagement metrics with post thumbnails
     """
     
     client_ip = request.client.host
@@ -132,6 +130,9 @@ async def analyze_instagram_profile(username: str, request: Request):
                 total_engagement = likes + comments
                 engagement_rate = (total_engagement / profile.followers) * 100 if profile.followers > 0 else 0
                 
+                # Get post thumbnail URL
+                thumbnail_url = post.url if hasattr(post, 'url') else f"https://www.instagram.com/p/{post.shortcode}/media/?size=m"
+                
                 post_data = {
                     "id": post.shortcode,
                     "caption": post.caption[:200] if post.caption else None,
@@ -140,7 +141,8 @@ async def analyze_instagram_profile(username: str, request: Request):
                     "views": views,
                     "type": "video" if post.is_video else "image",
                     "timestamp": post.date_utc.isoformat(),
-                    "engagementRate": round(engagement_rate, 2)
+                    "engagementRate": round(engagement_rate, 2),
+                    "thumbnail": thumbnail_url  # NEW: Include thumbnail
                 }
                 
                 recent_posts.append(post_data)
@@ -185,9 +187,7 @@ async def analyze_instagram_profile(username: str, request: Request):
 
 @router.get("/analyze-instagram-quick/{username}")
 async def analyze_instagram_profile_quick(username: str, request: Request):
-    """
-    Quick analysis - profile stats only (faster, no post data)
-    """
+    """Quick analysis - profile stats only"""
     
     client_ip = request.client.host
     check_rate_limit(client_ip)
@@ -247,9 +247,8 @@ async def analyze_instagram_profile_quick(username: str, request: Request):
 
 @router.get("/instagram-analyzer/health")
 async def health_check():
-    """Check if Instagram analyzer service is working"""
     return {
         "status": "healthy",
         "service": "Instagram Profile Analyzer",
-        "version": "1.0.0"
+        "version": "1.1.0"  # Updated version
     }
