@@ -249,7 +249,7 @@ app.add_middleware(
 
 
 #for instagram analyzer
-app.include_router(instagram_router)
+app.include_router(instagram_router, prefix="/api")
 
 
 
