@@ -1090,7 +1090,7 @@ export default function HomePage() {
     <>
       <Head>
         <title>Infoishai - Global Influencer Discovery Platform | AI-Powered Search</title>
-        <meta name="description" content="Find verified influencers worldwide with AI-powered search. Discover authentic creators on Instagram, YouTube, TikTok. 1,800+ Pakistani influencers available. Expanding to USA, UK, Australia, Canada, UAE." />
+        <meta name="description" content="Discover verified influencers worldwide using AI-powered search. 1,800+ Pakistani creators on Instagram, YouTube, TikTok. Free campaign management system included." />
         <meta name="keywords" content="influencer marketing, influencer discovery, find influencers, instagram influencers, youtube creators, tiktok creators, global influencer platform, AI influencer search, Pakistani influencers, USA influencers, UK influencers, Australian influencers, Canadian influencers, UAE influencers" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
@@ -1099,8 +1099,7 @@ export default function HomePage() {
         {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content="Infoishai - Global Influencer Discovery Platform" />
-        <meta property="og:description" content="Find verified influencers worldwide with AI-powered search across Instagram, YouTube, TikTok. Expanding to USA, UK, Australia, Canada, UAE." />
-        <meta property="og:url" content="https://infoishai.com" />
+        <meta property="og:description" content="Discover verified influencers worldwide using AI-powered search. 1,800+ Pakistani creators on Instagram, YouTube, TikTok. Free campaign management system included." />
         <meta property="og:site_name" content="Infoishai" />
         <meta property="og:image" content="https://infoishai.com/og-image.jpg" />
         <meta property="og:image:width" content="1200" />
@@ -1109,7 +1108,7 @@ export default function HomePage() {
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Infoishai - Global Influencer Discovery Platform" />
-        <meta name="twitter:description" content="AI-powered influencer search across Instagram, YouTube, TikTok. Find authentic creators worldwide." />
+       <meta name="twitter:description" content="AI-powered influencer search across Instagram, YouTube, TikTok. Find authentic creators worldwide. Free campaign management included." />
         <meta name="twitter:image" content="https://infoishai.com/twitter-image.jpg" />
         
         {/* Additional SEO */}

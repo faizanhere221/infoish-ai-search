@@ -12,7 +12,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Infoishai - Global Influencer Discovery Platform | AI-Powered Search',
-  description: 'Discover and connect with verified influencers worldwide using AI-powered search. 1,800+ Pakistani creators available now. Instagram, YouTube, TikTok. Expanding globally to India, UAE, and beyond.',
+  description: 'Discover verified influencers worldwide using AI-powered search. 1,800+ Pakistani creators on Instagram, YouTube, TikTok. Free campaign management system included.',
   keywords: [
     'infoishai',
     'influencer search platform',
@@ -27,17 +27,11 @@ export const metadata: Metadata = {
     'tiktok influencer database',
     'pakistani influencers',
     'influencer marketing pakistan',
-    'indian influencers',
-    'uae influencers',
-    'middle east creators',
-    'asian influencers',
-    'global influencer marketplace',
-    'multi-platform influencer tool',
-    'brand partnerships',
-    'creator discovery',
+    'campaign management',
     'influencer analytics',
     'micro influencers',
-    'nano influencers'
+    'nano influencers',
+    'free campaign tools'
   ],
   authors: [{ name: 'Infoishai Team' }],
   creator: 'Infoishai',
@@ -51,9 +45,24 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      { url: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+  },
+  manifest: '/site.webmanifest',
   openGraph: {
     title: 'Infoishai - Global Influencer Discovery Platform',
-    description: 'AI-powered influencer search across Instagram, YouTube & TikTok. 1,800+ verified creators. Starting with Pakistan, expanding globally.',
+    description: 'AI-powered influencer search across Instagram, YouTube & TikTok. 1,800+ verified creators. Free campaign management system included.',
     url: 'https://infoishai.com',
     siteName: 'Infoishai',
     images: [
@@ -70,7 +79,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Infoishai - Global Influencer Discovery Platform',
-    description: 'AI-powered search for influencers worldwide. 1,800+ verified creators. Starting with Pakistan.',
+    description: 'AI-powered search for influencers worldwide. 1,800+ verified creators. Free campaign management included.',
     images: ['/twitter-image.jpg'],
     creator: '@infoishai',
   },
@@ -104,12 +113,6 @@ export default function RootLayout({
           type="font/woff2"
           crossOrigin="anonymous"
         />
-        
-        {/* Favicon and app icons */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
         
         {/* Theme color for mobile browsers */}
         <meta name="theme-color" content="#3B82F6" />
@@ -152,40 +155,26 @@ export default function RootLayout({
               "@type": "WebApplication",
               "name": "Infoishai",
               "alternateName": "Infoishai - Global Influencer Discovery Platform",
-              "description": "AI-powered global influencer discovery platform. Search verified creators across Instagram, YouTube, and TikTok. Currently serving Pakistan with 1,800+ verified influencers, expanding to India, UAE, and worldwide.",
+              "description": "AI-powered global influencer discovery platform. Search verified creators across Instagram, YouTube, and TikTok. 1,800+ verified Pakistani influencers with free campaign management system.",
               "url": "https://infoishai.com",
               "applicationCategory": "BusinessApplication",
               "operatingSystem": "Web",
               "availableLanguage": ["en", "ur"],
-              "areaServed": [
-                {
-                  "@type": "Country",
-                  "name": "Pakistan"
-                },
-                {
-                  "@type": "Country", 
-                  "name": "India"
-                },
-                {
-                  "@type": "Country",
-                  "name": "United Arab Emirates"
-                },
-                {
-                  "@type": "Country",
-                  "name": "Bangladesh"
-                }
-              ],
+              "areaServed": {
+                "@type": "Country",
+                "name": "Pakistan"
+              },
               "offers": {
                 "@type": "AggregateOffer",
-                "priceCurrency": "USD",
+                "priceCurrency": "PKR",
                 "lowPrice": "0",
-                "highPrice": "250",
+                "highPrice": "6999",
                 "offerCount": "3"
               },
               "aggregateRating": {
                 "@type": "AggregateRating",
                 "ratingValue": "4.8",
-                "reviewCount": "150"
+                "reviewCount": "256"
               },
               "provider": {
                 "@type": "Organization",
@@ -194,10 +183,13 @@ export default function RootLayout({
                 "logo": "https://infoishai.com/logo.png",
                 "sameAs": [
                   "https://twitter.com/infoishai",
-                  "https://linkedin.com/company/infoishai"
+                  "https://linkedin.com/company/infoishai",
+                  "https://instagram.com/infoishai",
+                  "https://youtube.com/@kakayrao"
                 ],
                 "address": {
                   "@type": "PostalAddress",
+                  "addressLocality": "Multan",
                   "addressCountry": "PK"
                 }
               },

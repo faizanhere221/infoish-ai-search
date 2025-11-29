@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { MapPin, Mail, Phone, Twitter, Linkedin, Instagram, Youtube, MessageCircle } from 'lucide-react'
+import { MapPin, Mail, Phone, Linkedin, Instagram, Youtube } from 'lucide-react'
 import { useState } from 'react'
 
 export default function Footer() {
@@ -17,7 +17,6 @@ export default function Footer() {
       return
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       setSubscriptionStatus('Please enter a valid email address')
@@ -48,14 +47,11 @@ export default function Footer() {
         setSubscriptionStatus(result.message || 'You are already subscribed!')
       }
       
-      // Clear message after 5 seconds
       setTimeout(() => setSubscriptionStatus(''), 5000)
       
     } catch (error) {
       console.error('Newsletter subscription error:', error)
       setSubscriptionStatus('Something went wrong. Please try again.')
-      
-      // Clear error after 5 seconds
       setTimeout(() => setSubscriptionStatus(''), 5000)
     } finally {
       setIsSubmitting(false)
@@ -64,13 +60,13 @@ export default function Footer() {
 
   return (
     <footer className="bg-black text-white">
-      {/* Newsletter Signup Section - Moved to top */}
+      {/* Newsletter Section */}
       <div className="bg-gradient-to-r from-blue-500/10 to-green-500/10 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="max-w-2xl mx-auto text-center">
             <h3 className="font-bold text-white text-2xl mb-3">Stay Updated</h3>
             <p className="text-white/70 mb-8">
-              Get the latest insights on Pakistani influencer marketing trends, new features, and success stories.
+              Get the latest insights on influencer marketing trends, new features, and success stories.
             </p>
             <form onSubmit={handleNewsletterSubmit} className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
@@ -110,7 +106,6 @@ export default function Footer() {
               )}
             </form>
             
-            {/* Newsletter Stats */}
             <div className="mt-6 text-sm text-white/50">
               Join hundreds of marketers getting weekly insights. Unsubscribe anytime.
             </div>
@@ -120,20 +115,21 @@ export default function Footer() {
 
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           
           {/* Company Info */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
                 <span className="text-white font-bold text-xl">I</span>
               </div>
-              <span className="font-bold text-xl text-white">
-                Infoish
-              </span>
+              <div>
+                <span className="font-bold text-xl text-white">Infoishai</span>
+                <p className="text-xs text-white/60">AI Influencer Search</p>
+              </div>
             </div>
             <p className="text-white/70 mb-6 leading-relaxed">
-              Pakistan's leading AI-powered platform to discover and connect with top influencers and content creators. Find the perfect match for your brand in seconds.
+              Pakistan's leading AI-powered platform to discover and connect with top influencers and content creators. Free campaign management system included.
             </p>
             
             {/* Contact Info */}
@@ -157,35 +153,40 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Product Links */}
+          {/* Free Tools - IMPORTANT FOR SITELINKS */}
           <div>
-            <h3 className="font-semibold text-white mb-6">Product</h3>
+            <h3 className="font-semibold text-white mb-6">Free Tools</h3>
             <ul className="space-y-4">
               <li>
-                <Link href="/search" className="text-white/70 hover:text-green-400 transition-colors">
-                  AI Search
+                <Link href="/tools/instagram-profile-analyzer" className="text-white/70 hover:text-green-400 transition-colors">
+                  Instagram Analyzer
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="text-white/70 hover:text-green-400 transition-colors">
-                  Pricing
+                <Link href="/tools/instagram-engagement-calculator" className="text-white/70 hover:text-green-400 transition-colors">
+                  Engagement Calculator
+                </Link>
+              </li>
+              <li>
+                <Link href="/tools" className="text-white/70 hover:text-green-400 transition-colors font-semibold">
+                  All Tools →
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Resources */}
+          {/* Resources - IMPORTANT FOR SITELINKS */}
           <div>
             <h3 className="font-semibold text-white mb-6">Resources</h3>
             <ul className="space-y-4">
               <li>
                 <Link href="/blog" className="text-white/70 hover:text-green-400 transition-colors">
-                  Blogs
+                  Blog
                 </Link>
               </li>
               <li>
-                <Link href="/featured" className="text-white/70 hover:text-green-400 transition-colors">
-                  Featured Influencers
+                <Link href="/pricing" className="text-white/70 hover:text-green-400 transition-colors">
+                  Pricing
                 </Link>
               </li>
               <li>
@@ -194,35 +195,40 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/help" className="text-white/70 hover:text-green-400 transition-colors">
-                  Help Center
+                <Link href="/about" className="text-white/70 hover:text-green-400 transition-colors">
+                  About Us
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Company & Legal */}
+          {/* Company */}
           <div>
             <h3 className="font-semibold text-white mb-6">Company</h3>
             <ul className="space-y-4">
               <li>
-                <Link href="/about" className="text-white/70 hover:text-green-400 transition-colors">
-                  About Us
+                <Link href="/search" className="text-white/70 hover:text-green-400 transition-colors">
+                  Search Influencers
+                </Link>
+              </li>
+              <li>
+                <Link href="/login" className="text-white/70 hover:text-green-400 transition-colors">
+                  Brand Login
+                </Link>
+              </li>
+              <li>
+                <Link href="/influencer/login" className="text-white/70 hover:text-green-400 transition-colors">
+                  Influencer Login
+                </Link>
+              </li>
+              <li>
+                <Link href="/register-influencer" className="text-white/70 hover:text-green-400 transition-colors">
+                  Register as Influencer
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="text-white/70 hover:text-green-400 transition-colors">
                   Contact
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className="text-white/70 hover:text-green-400 transition-colors">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="text-white/70 hover:text-green-400 transition-colors">
-                  Terms of Service
                 </Link>
               </li>
             </ul>
@@ -238,7 +244,7 @@ export default function Footer() {
             {/* Copyright */}
             <div className="text-center lg:text-left">
               <p className="text-white/70 text-sm">
-                © {currentYear} Infoish. All rights reserved.
+                © {currentYear} Infoishai. All rights reserved.
               </p>
               <p className="text-white/50 text-xs mt-1">
                 Made with ❤️ in Pakistan for brands and creators
@@ -250,7 +256,7 @@ export default function Footer() {
               <span className="text-sm text-white/70 hidden sm:block">Follow us:</span>
               <div className="flex gap-4">
                 <a 
-                  href="https://linkedin.com/company/pakistani-influencer-search" 
+                  href="https://linkedin.com/company/infoishai" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white/70 hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-white/10"
@@ -292,6 +298,19 @@ export default function Footer() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Legal Links */}
+          <div className="flex flex-wrap justify-center gap-6 mt-6 pt-6 border-t border-white/10 text-sm">
+            <Link href="/privacy" className="text-white/70 hover:text-green-400 transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="text-white/70 hover:text-green-400 transition-colors">
+              Terms of Service
+            </Link>
+            <Link href="/cookies" className="text-white/70 hover:text-green-400 transition-colors">
+              Cookie Policy
+            </Link>
           </div>
         </div>
       </div>
