@@ -24,6 +24,8 @@ import hashlib
 import secrets  # ✅ Added for secure random generation
 import os  # ✅ Added for environment variables
 import random
+from instagram_analyzer_router import router as instagram_router
+
 
 # Import your modules
 from database import get_db, init_database, Influencer, InfluencerAuth, AuthUser, SearchLog, User  # ✅ Added 'InfluencerAuth'
@@ -246,8 +248,8 @@ app.add_middleware(
 
 
 
-
-
+#for instagram analyzer
+app.include_router(instagram_router)
 
 
 
