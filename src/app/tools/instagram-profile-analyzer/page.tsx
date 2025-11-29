@@ -1,591 +1,866 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, TrendingUp, Users, Heart, MessageCircle, Instagram, AlertCircle, CheckCircle, ArrowRight, Loader2, Eye, Bookmark, Share2, Crown, Zap, Target, Award, BarChart3, Image as ImageIcon } from 'lucide-react'
-import Image from 'next/image'
+import React, { useState } from 'react'
+import { Search, TrendingUp, Users, Heart, MessageCircle, Eye, Instagram, CheckCircle, Clock, AlertCircle, ExternalLink, Calendar, Sparkles, Award, BarChart3, TrendingDown, Zap, Target, Activity } from 'lucide-react'
 
-interface InstagramProfile {
-  username: string
-  displayName: string
-  bio: string
-  followers: number
-  following: number
-  posts: number
-  profilePicture: string
-  isVerified: boolean
-  category?: string
-  location?: string
+// Safe formatNumber function
+const formatNumber = (num: number | undefined | null): string => {
+  if (num === undefined || num === null || isNaN(num)) {
+    return '0'
+  }
+  
+  const value = Number(num)
+  
+  if (value >= 1000000) {
+    return (value / 1000000).toFixed(1) + 'M'
+  }
+  if (value >= 1000) {
+    return (value / 1000).toFixed(1) + 'K'
+  }
+  return value.toFixed(0)
 }
 
-interface EngagementMetrics {
-  engagementRate: number
-  avgLikes: number
-  avgComments: number
-  avgViews?: number
-  totalEngagements: number
-  rating: string
-  color: string
-  description: string
+// Safe percentage formatter
+const formatPercentage = (num: number | undefined | null): string => {
+  if (num === undefined || num === null || isNaN(num)) {
+    return '0.00'
+  }
+  return Number(num).toFixed(2)
 }
 
-interface PostData {
-  id: string
-  caption: string
-  likes: number
-  comments: number
-  views?: number
-  type: 'image' | 'video' | 'carousel'
-  timestamp: string
-  engagementRate: number
-  thumbnail?: string
+// Get engagement quality label
+const getEngagementQuality = (rate: number): { label: string; color: string; icon: any } => {
+  if (rate >= 10) return { label: 'Excellent', color: 'text-green-600', icon: Sparkles }
+  if (rate >= 5) return { label: 'Very Good', color: 'text-blue-600', icon: TrendingUp }
+  if (rate >= 3) return { label: 'Good', color: 'text-purple-600', icon: Target }
+  if (rate >= 1) return { label: 'Average', color: 'text-yellow-600', icon: Activity }
+  return { label: 'Low', color: 'text-gray-600', icon: TrendingDown }
+}
+
+// Get follower tier
+const getFollowerTier = (followers: number): string => {
+  if (followers >= 1000000) return '🌟 Mega Influencer'
+  if (followers >= 100000) return '⭐ Macro Influencer'
+  if (followers >= 10000) return '✨ Micro Influencer'
+  if (followers >= 1000) return '💫 Nano Influencer'
+  return '🌱 Growing Account'
 }
 
 export default function InstagramProfileAnalyzer() {
-  const [username, setUsername] = useState<string>('')
+  const [username, setUsername] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [profile, setProfile] = useState<InstagramProfile | null>(null)
-  const [metrics, setMetrics] = useState<EngagementMetrics | null>(null)
-  const [recentPosts, setRecentPosts] = useState<PostData[]>([])
-  const [error, setError] = useState<string | null>(null)
-
-  const extractUsername = (input: string): string => {
-    if (input.includes('instagram.com')) {
-      const match = input.match(/instagram\.com\/([a-zA-Z0-9._]+)/)
-      return match ? match[1] : input
-    }
-    return input.replace('@', '').trim()
-  }
+  const [error, setError] = useState('')
+  const [profile, setProfile] = useState<any>(null)
+  const [metrics, setMetrics] = useState<any>(null)
+  const [posts, setPosts] = useState<any[]>([])
+  const [rateLimitInfo, setRateLimitInfo] = useState<any>(null)
 
   const analyzeProfile = async () => {
-    const cleanUsername = extractUsername(username)
-    
-    if (!cleanUsername) {
-      setError('Please enter a valid Instagram username or profile URL')
+    if (!username.trim()) {
+      setError('Please enter a username')
       return
     }
 
     setIsLoading(true)
-    setError(null)
+    setError('')
     setProfile(null)
     setMetrics(null)
-    setRecentPosts([])
+    setPosts([])
+    setRateLimitInfo(null)
 
     try {
-      const backendUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://infoish-ai-search-production.up.railway.app' 
+      // Smart username extraction
+      let cleanUsername = username.trim()
+      
+      // Extract from Instagram URL (https://www.instagram.com/username/ or https://instagram.com/username)
+      const urlPattern = /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)/i
+      const urlMatch = cleanUsername.match(urlPattern)
+      if (urlMatch && urlMatch[1]) {
+        cleanUsername = urlMatch[1]
+      }
+      
+      // Remove @ symbol if present
+      cleanUsername = cleanUsername.replace(/^@+/, '')
+      
+      // Remove trailing slashes
+      cleanUsername = cleanUsername.replace(/\/+$/, '')
+      
+      // Remove any query parameters or hash
+      cleanUsername = cleanUsername.split('?')[0].split('#')[0]
+      
+      // Validate username (Instagram usernames can only contain letters, numbers, periods, and underscores)
+      const validUsernamePattern = /^[a-zA-Z0-9._]+$/
+      if (!validUsernamePattern.test(cleanUsername)) {
+        setError('Invalid Instagram username. Usernames can only contain letters, numbers, periods, and underscores.')
+        setIsLoading(false)
+        return
+      }
+      
+      console.log('Original input:', username)
+      console.log('Cleaned username:', cleanUsername)
+      
+      const backendUrl = process.env.NODE_ENV === 'production'
+        ? 'https://infoish-ai-search-production.up.railway.app'
         : 'http://127.0.0.1:8000'
 
-      const response = await fetch(`${backendUrl}/api/analyze-instagram/${cleanUsername}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+      console.log('Fetching from:', `${backendUrl}/api/analyze-instagram/${cleanUsername}`)
+
+      const response = await fetch(
+        `${backendUrl}/api/analyze-instagram/${cleanUsername}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
-      })
+      )
+
+      console.log('Response status:', response.status)
+
+      // Handle 429 Rate Limit with detailed info
+      if (response.status === 429) {
+        const data = await response.json()
+        setRateLimitInfo({
+          message: data.message || 'Too many requests',
+          retryAfter: data.retry_after || 60
+        })
+        throw new Error('Rate limit reached. Please wait before analyzing another profile.')
+      }
+
+      if (response.status === 404) {
+        throw new Error('Profile not found. Please check the username and try again.')
+      }
+
+      if (response.status === 403) {
+        throw new Error('This is a private profile. Only public profiles can be analyzed.')
+      }
+
+      if (response.status === 500) {
+        throw new Error('Server error. The profile might be too large or temporarily unavailable. Please try again.')
+      }
 
       if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Profile not found. Please check the username and try again.')
-        } else if (response.status === 403) {
-          throw new Error('This profile is private. Only public profiles can be analyzed.')
-        } else {
-          throw new Error('Failed to analyze profile. Please try again.')
-        }
+        throw new Error('Failed to analyze profile. Please try again in a few moments.')
       }
 
       const data = await response.json()
+      console.log('Received data:', data)
+      
+      if (!data || !data.profile) {
+        throw new Error('No profile data received. Please try again.')
+      }
 
       setProfile({
-        username: data.username,
-        displayName: data.display_name,
-        bio: data.bio,
-        followers: data.followers,
-        following: data.following,
-        posts: data.posts,
-        profilePicture: data.profile_picture,
-        isVerified: data.is_verified,
-        category: data.category,
-        location: data.location
+        username: data.profile.username || cleanUsername,
+        full_name: data.profile.full_name || cleanUsername,
+        biography: data.profile.biography || '',
+        followers: data.profile.followers || 0,
+        following: data.profile.following || 0,
+        posts_count: data.profile.posts_count || 0,
+        is_verified: data.profile.is_verified || false,
+        is_private: data.profile.is_private || false,
+        profile_pic_url: data.profile.profile_pic_url || '',
+        external_url: data.profile.external_url || ''
       })
-
-      const totalEngagements = data.avg_likes + data.avg_comments
-      const engagementRate = (totalEngagements / data.followers) * 100
-
-      let rating = ''
-      let color = ''
-      let description = ''
-
-      if (engagementRate < 1) {
-        rating = 'Low'
-        color = 'text-red-600'
-        description = 'Below average engagement'
-      } else if (engagementRate < 3) {
-        rating = 'Average'
-        color = 'text-yellow-600'
-        description = 'Standard engagement rate'
-      } else if (engagementRate < 6) {
-        rating = 'Good'
-        color = 'text-blue-600'
-        description = 'Above average engagement'
-      } else if (engagementRate < 10) {
-        rating = 'Excellent'
-        color = 'text-green-600'
-        description = 'High engagement rate'
-      } else {
-        rating = 'Outstanding'
-        color = 'text-purple-600'
-        description = 'Elite engagement rate'
-      }
-
+      
       setMetrics({
-        engagementRate: parseFloat(engagementRate.toFixed(2)),
-        avgLikes: data.avg_likes,
-        avgComments: data.avg_comments,
-        avgViews: data.avg_views,
-        totalEngagements,
-        rating,
-        color,
-        description
+        engagement_rate: data.metrics?.engagement_rate || 0,
+        avg_likes: data.metrics?.avg_likes || 0,
+        avg_comments: data.metrics?.avg_comments || 0,
+        total_posts_analyzed: data.metrics?.total_posts_analyzed || 0,
+        best_post: data.metrics?.best_post || null,
+        post_types: data.metrics?.post_types || { videos: 0, photos: 0 }
       })
 
-      if (data.recent_posts) {
-        const postsWithThumbnails = data.recent_posts.map((post: any) => ({
-          ...post,
-          thumbnail: `https://www.instagram.com/p/${post.id}/media/?size=m`
-        }))
-        setRecentPosts(postsWithThumbnails)
-      }
+      setPosts(data.posts || [])
 
+      console.log('Analysis complete:', data.posts?.length || 0, 'posts')
+      
     } catch (err: any) {
       console.error('Analysis error:', err)
-      setError(err.message || 'Failed to analyze profile. Please try again.')
+      setError(err.message || 'An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !isLoading) {
       analyzeProfile()
     }
   }
 
-  const resetAnalyzer = () => {
-    setUsername('')
-    setProfile(null)
-    setMetrics(null)
-    setRecentPosts([])
-    setError(null)
-  }
+  // Calculate additional insights
+  const getInsights = () => {
+    if (!profile || !metrics || !posts.length) return null
 
-  const getFollowerRange = (followers: number): string => {
-    if (followers < 1000) return '<1k'
-    if (followers < 5000) return '1k-5k'
-    if (followers < 10000) return '5k-10k'
-    if (followers < 50000) return '10k-50k'
-    if (followers < 100000) return '50k-100k'
-    if (followers < 500000) return '100k-500k'
-    if (followers < 1000000) return '500k-1M'
-    return '1M+'
-  }
+    const followerEngagementRatio = (metrics.avg_likes + metrics.avg_comments) / profile.followers
+    const commentLikeRatio = profile.followers > 0 ? metrics.avg_comments / metrics.avg_likes : 0
+    const postingFrequency = posts.length
+    const engagementQuality = getEngagementQuality(metrics.engagement_rate)
+    const followerTier = getFollowerTier(profile.followers)
 
-  const getBenchmarkData = (followers: number) => {
-    const ranges = {
-      '<1k': { low: 8, median: 12, high: 18 },
-      '1k-5k': { low: 5, median: 8, high: 12 },
-      '5k-10k': { low: 4, median: 6, high: 9 },
-      '10k-50k': { low: 2, median: 4, high: 7 },
-      '50k-100k': { low: 1.5, median: 3, high: 5 },
-      '100k-500k': { low: 1, median: 2, high: 4 },
-      '500k-1M': { low: 0.8, median: 1.5, high: 3 },
-      '1M+': { low: 0.5, median: 1, high: 2 }
+    // Consistency score (based on variance in likes)
+    const likes = posts.map(p => p.likes)
+    const avgLikes = likes.reduce((a, b) => a + b, 0) / likes.length
+    const variance = likes.reduce((sum, likes) => sum + Math.pow(likes - avgLikes, 2), 0) / likes.length
+    const stdDev = Math.sqrt(variance)
+    const consistencyScore = avgLikes > 0 ? Math.max(0, 100 - (stdDev / avgLikes * 100)) : 0
+
+    return {
+      followerEngagementRatio,
+      commentLikeRatio,
+      postingFrequency,
+      engagementQuality,
+      followerTier,
+      consistencyScore
     }
-
-    const range = getFollowerRange(followers)
-    return ranges[range as keyof typeof ranges] || ranges['1k-5k']
   }
 
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) {
-      return `${(num / 1000000).toFixed(1)}M`
-    } else if (num >= 1000) {
-      return `${(num / 1000).toFixed(1)}k`
-    }
-    return num.toString()
-  }
+  const insights = getInsights()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
                 <Instagram className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-black text-gray-900">Instagram Profile Analyzer</h1>
-                <p className="text-xs sm:text-sm text-gray-600">Free tool by Infoishai</p>
+                <h1 className="text-3xl font-bold text-gray-900">Instagram Profile Analyzer</h1>
+                <p className="text-gray-600">Advanced analytics for any public Instagram profile</p>
               </div>
             </div>
-            <a 
-              href="/"
-              className="text-sm font-semibold text-purple-600 hover:text-purple-700 transition-colors"
-            >
-              ← Back
-            </a>
+            <div className="hidden md:block">
+              <div className="text-right">
+                <div className="text-sm text-gray-500">Rate Limit</div>
+                <div className="text-lg font-semibold text-purple-600">10 profiles/min</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {!profile ? (
-          <>
-            {/* Hero Section */}
-            <div className="text-center mb-8 sm:mb-12">
-              <div className="inline-flex items-center gap-2 bg-white px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg mb-4 sm:mb-6 border border-purple-200">
-                <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-                <span className="text-xs sm:text-sm font-bold text-purple-800">100% Free • No Login Required</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        {/* Search Box */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div className="max-w-2xl mx-auto">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Instagram Username
+            </label>
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="cristiano, @cristiano, or instagram.com/cristiano"
+                  disabled={isLoading}
+                  className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all text-lg disabled:bg-gray-50 disabled:cursor-not-allowed"
+                />
               </div>
-              
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 mb-4 sm:mb-6 leading-tight">
-                Analyze Any Instagram Profile
-                <br />
-                <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
-                  Get Instant Insights
-                </span>
-              </h2>
-              
-              <p className="text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed mb-8">
-                Enter any public Instagram username to get detailed engagement analytics, performance metrics, and industry benchmarks.
-              </p>
+              <button
+                onClick={analyzeProfile}
+                disabled={isLoading || !username.trim()}
+                className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg hover:shadow-xl"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-5 h-5" />
+                    Analyze
+                  </>
+                )}
+              </button>
+            </div>
 
-              {/* Search Input */}
-              <div className="max-w-2xl mx-auto">
-                <div className="bg-white rounded-2xl shadow-2xl border-2 border-purple-200 p-4 sm:p-6">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex-1 relative">
-                      <Instagram className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Enter username or paste profile URL"
-                        className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500 transition-colors"
-                        disabled={isLoading}
-                      />
+            {/* Input Format Info */}
+            {!isLoading && !error && !rateLimitInfo && (
+              <div className="mt-3 p-3 bg-purple-50 border border-purple-100 rounded-lg">
+                <p className="text-xs text-purple-700">
+                  <span className="font-semibold">💡 Accepted formats:</span> username, @username, instagram.com/username, or full URL
+                </p>
+              </div>
+            )}
+
+            {/* Loading Message */}
+            {isLoading && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-blue-600 animate-pulse" />
+                  <div>
+                    <p className="text-sm text-blue-800 font-medium">
+                      Analyzing profile...
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      Fetching posts, calculating metrics, and generating insights. This may take 15-30 seconds.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Rate Limit Warning */}
+            {rateLimitInfo && (
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-yellow-800 font-medium mb-1">Rate Limit Reached</p>
+                    <p className="text-sm text-yellow-700 mb-2">{rateLimitInfo.message}</p>
+                    <p className="text-xs text-yellow-600">
+                      ⏱️ Please wait {rateLimitInfo.retryAfter} seconds before analyzing another profile.
+                    </p>
+                    <p className="text-xs text-yellow-600 mt-1">
+                      💡 Tip: You can analyze up to 10 different profiles per minute.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && !rateLimitInfo && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-red-800 font-medium mb-1">Error</p>
+                    <p className="text-sm text-red-700">{error}</p>
+                    {error.includes('private') && (
+                      <p className="text-xs text-red-600 mt-2">
+                        💡 Private profiles cannot be analyzed. Ask the user to make their profile public.
+                      </p>
+                    )}
+                    {error.includes('not found') && (
+                      <p className="text-xs text-red-600 mt-2">
+                        💡 Double-check the username spelling and make sure the account exists.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Results */}
+        {profile && metrics && insights && (
+          <div className="space-y-8">
+            
+            {/* Profile Card */}
+            <div className="bg-white rounded-2xl shadow-xl p-8">
+              <div className="flex flex-col md:flex-row gap-8">
+                {/* Profile Link */}
+                <div className="flex-shrink-0">
+                  <a
+                    href={`https://www.instagram.com/${profile.username}/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 flex items-center justify-center hover:scale-105 transition-transform shadow-lg relative group">
+                      <div className="text-center">
+                        <Instagram className="w-12 h-12 text-white mx-auto mb-1" />
+                        <span className="text-xs text-white font-medium">View Profile</span>
+                      </div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-full transition-all"></div>
                     </div>
-                    <button
-                      onClick={analyzeProfile}
-                      disabled={isLoading || !username.trim()}
-                      className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-8 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          <span className="hidden sm:inline">Analyzing...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Search className="w-5 h-5" />
-                          <span>Analyze</span>
-                        </>
-                      )}
-                    </button>
+                  </a>
+                </div>
+
+                {/* Profile Info */}
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <h2 className="text-3xl font-bold text-gray-900">@{profile.username}</h2>
+                    {profile.is_verified && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 rounded-full">
+                        <CheckCircle className="w-5 h-5 text-blue-500" />
+                        <span className="text-xs font-medium text-blue-700">Verified</span>
+                      </div>
+                    )}
                   </div>
                   
-                  <p className="mt-4 text-sm text-gray-600 text-center">
-                    Examples: @kakayrao, instagram.com/cristiano, virat.kohli
-                  </p>
-
-                  {error && (
-                    <div className="mt-4 bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-red-800 font-semibold">Error</p>
-                        <p className="text-red-700 text-sm">{error}</p>
-                      </div>
-                    </div>
+                  {profile.full_name && profile.full_name !== profile.username && (
+                    <p className="text-xl text-gray-700 mb-2">{profile.full_name}</p>
                   )}
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Profile Results */}
-            <div className="max-w-6xl mx-auto space-y-8">
-              {/* Profile Header Card */}
-              <div className="bg-white rounded-3xl shadow-2xl border-2 border-purple-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 p-8">
-                  <div className="flex flex-col sm:flex-row items-center gap-6">
-                    <div className="relative">
-                      <img
-                        src={profile.profilePicture}
-                        alt={profile.displayName}
-                        className="w-24 h-24 rounded-full border-4 border-white shadow-xl object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.displayName)}&size=200&background=random`
-                        }}
-                      />
-                      {profile.isVerified && (
-                        <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
-                          <CheckCircle className="w-6 h-6 text-white fill-blue-500" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 text-center sm:text-left">
-                      <div className="flex items-center gap-2 justify-center sm:justify-start mb-2">
-                        <h2 className="text-3xl font-black text-white">{profile.displayName}</h2>
-                      </div>
-                      <p className="text-white/90 text-lg mb-2">@{profile.username}</p>
-                      {profile.bio && (
-                        <p className="text-white/80 text-sm max-w-2xl">{profile.bio}</p>
-                      )}
-                      {(profile.category || profile.location) && (
-                        <div className="flex flex-wrap gap-3 mt-3 justify-center sm:justify-start">
-                          {profile.category && (
-                            <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-white text-sm font-semibold">
-                              {profile.category}
-                            </span>
-                          )}
-                          {profile.location && (
-                            <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-white text-sm font-semibold">
-                              📍 {profile.location}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      onClick={resetAnalyzer}
-                      className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold py-3 px-6 rounded-xl transition-all border border-white/30"
+
+                  {/* Follower Tier Badge */}
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full mb-4">
+                    <span className="text-sm font-semibold text-purple-700">{insights.followerTier}</span>
+                  </div>
+                  
+                  {profile.biography && (
+                    <p className="text-gray-600 mb-4 whitespace-pre-wrap">{profile.biography}</p>
+                  )}
+
+                  {profile.external_url && (
+                    <a
+                      href={profile.external_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center gap-2"
                     >
-                      Analyze Another
-                    </button>
+                      🔗 {profile.external_url.replace(/^https?:\/\//,'').slice(0, 40)}...
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-3 gap-6 mt-8 pt-8 border-t">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-gray-900">
+                    {formatNumber(profile.posts_count)}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">Posts</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-gray-900">
+                    {formatNumber(profile.followers)}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">Followers</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-gray-900">
+                    {formatNumber(profile.following)}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">Following</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Engagement Quality Banner */}
+            <div className={`bg-gradient-to-r ${
+              insights.engagementQuality.label === 'Excellent' ? 'from-green-500 to-emerald-500' :
+              insights.engagementQuality.label === 'Very Good' ? 'from-blue-500 to-cyan-500' :
+              insights.engagementQuality.label === 'Good' ? 'from-purple-500 to-pink-500' :
+              insights.engagementQuality.label === 'Average' ? 'from-yellow-500 to-orange-500' :
+              'from-gray-500 to-gray-600'
+            } rounded-2xl shadow-xl p-6 text-white`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  {React.createElement(insights.engagementQuality.icon, { className: "w-12 h-12" })}
+                  <div>
+                    <h3 className="text-2xl font-bold">{insights.engagementQuality.label} Engagement</h3>
+                    <p className="text-white/90">
+                      This profile has {insights.engagementQuality.label.toLowerCase()} audience engagement metrics
+                    </p>
                   </div>
                 </div>
+                <div className="text-right hidden md:block">
+                  <div className="text-5xl font-bold">{formatPercentage(metrics.engagement_rate)}%</div>
+                  <div className="text-sm text-white/80">Engagement Rate</div>
+                </div>
+              </div>
+            </div>
 
-                {/* Profile Stats */}
-                <div className="grid grid-cols-3 gap-px bg-gray-200">
-                  <div className="bg-white p-6 text-center">
-                    <div className="text-3xl font-black text-gray-900 mb-1">
-                      {formatNumber(profile.followers)}
-                    </div>
-                    <div className="text-sm text-gray-600 font-semibold">Followers</div>
-                  </div>
-                  <div className="bg-white p-6 text-center">
-                    <div className="text-3xl font-black text-gray-900 mb-1">
-                      {formatNumber(profile.following)}
-                    </div>
-                    <div className="text-sm text-gray-600 font-semibold">Following</div>
-                  </div>
-                  <div className="bg-white p-6 text-center">
-                    <div className="text-3xl font-black text-gray-900 mb-1">{profile.posts}</div>
-                    <div className="text-sm text-gray-600 font-semibold">Posts</div>
+            {/* Main Metrics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              {/* Engagement Rate */}
+              <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-xl p-6 text-white">
+                <div className="flex items-center gap-3 mb-3">
+                  <TrendingUp className="w-8 h-8" />
+                  <h3 className="text-lg font-semibold">Engagement Rate</h3>
+                </div>
+                <div className="text-4xl font-bold mb-2">
+                  {formatPercentage(metrics.engagement_rate)}%
+                </div>
+                <p className="text-purple-100 text-sm">
+                  Based on {metrics.total_posts_analyzed} posts
+                </p>
+                <div className="mt-3 pt-3 border-t border-white/20">
+                  <div className="text-xs text-purple-100">
+                    Industry Average: 1-3%
                   </div>
                 </div>
               </div>
 
-              {/* Engagement Metrics */}
-              {metrics && (
-                <>
-                  {/* Main Engagement Rate Card */}
-                  <div className="bg-white rounded-3xl shadow-2xl border-2 border-purple-200 p-8 sm:p-12">
-                    <div className="text-center mb-8">
-                      <div className="inline-flex items-center gap-3 mb-4">
-                        <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${
-                          metrics.rating === 'Outstanding' ? 'from-purple-500 to-pink-500' :
-                          metrics.rating === 'Excellent' ? 'from-green-500 to-emerald-500' :
-                          metrics.rating === 'Good' ? 'from-blue-500 to-cyan-500' :
-                          metrics.rating === 'Average' ? 'from-yellow-500 to-orange-500' :
-                          'from-red-500 to-rose-500'
-                        } flex items-center justify-center shadow-lg`}>
-                          <TrendingUp className="w-8 h-8 text-white" />
-                        </div>
-                      </div>
-                      
-                      <h3 className="text-2xl font-bold text-gray-900 mb-4">Engagement Rate</h3>
-                      <div className={`text-7xl font-black mb-4 ${metrics.color}`}>
-                        {metrics.engagementRate}%
-                      </div>
-                      <div className={`inline-block text-2xl font-black px-8 py-3 rounded-full mb-2 ${
-                        metrics.rating === 'Outstanding' ? 'bg-purple-100 text-purple-700' :
-                        metrics.rating === 'Excellent' ? 'bg-green-100 text-green-700' :
-                        metrics.rating === 'Good' ? 'bg-blue-100 text-blue-700' :
-                        metrics.rating === 'Average' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {metrics.rating}
-                      </div>
-                      <p className="text-gray-600 text-lg">{metrics.description}</p>
-                    </div>
-
-                    {/* Metrics Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-                      <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-6 border-2 border-pink-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Heart className="w-5 h-5 text-pink-600" />
-                          <div className="text-sm font-bold text-gray-600">Avg Likes</div>
-                        </div>
-                        <div className="text-3xl font-black text-gray-900">{formatNumber(metrics.avgLikes)}</div>
-                      </div>
-                      
-                      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border-2 border-blue-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <MessageCircle className="w-5 h-5 text-blue-600" />
-                          <div className="text-sm font-bold text-gray-600">Avg Comments</div>
-                        </div>
-                        <div className="text-3xl font-black text-gray-900">{formatNumber(metrics.avgComments)}</div>
-                      </div>
-                      
-                      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-6 border-2 border-purple-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <TrendingUp className="w-5 h-5 text-purple-600" />
-                          <div className="text-sm font-bold text-gray-600">Total Engagement</div>
-                        </div>
-                        <div className="text-3xl font-black text-gray-900">{formatNumber(metrics.totalEngagements)}</div>
-                      </div>
-                    </div>
-
-                    {/* Benchmark Comparison */}
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-8 border-2 border-purple-200">
-                      <h4 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2">
-                        <Target className="w-6 h-6 text-purple-600" />
-                        Engagement Rate Distribution for {getFollowerRange(profile.followers)} Followers
-                      </h4>
-                      
-                      <div className="relative pt-16 pb-4">
-                        {/* Your Profile Indicator - Above slider */}
-                        <div 
-                          className="absolute top-0 transform -translate-x-1/2 z-10"
-                          style={{ left: `${Math.min((metrics.engagementRate / (getBenchmarkData(profile.followers).high * 2)) * 100, 100)}%` }}
-                        >
-                          <div className="bg-white px-4 py-2 rounded-xl shadow-2xl border-2 border-purple-500 whitespace-nowrap">
-                            <div className="text-xs font-bold text-gray-600 mb-1">Your Profile</div>
-                            <div className="text-2xl font-black text-purple-600">{metrics.engagementRate}%</div>
-                          </div>
-                          <div className="w-1 h-8 bg-purple-500 mx-auto mt-1"></div>
-                        </div>
-                        
-                        {/* Gradient Bar */}
-                        <div className="h-16 bg-gradient-to-r from-red-500 via-yellow-500 via-blue-500 via-green-500 to-purple-500 rounded-xl shadow-inner relative">
-                          {/* Benchmark Markers */}
-                          <div className="absolute inset-0 flex justify-between px-2">
-                            <div className="w-0.5 h-full bg-white/30"></div>
-                            <div className="w-0.5 h-full bg-white/50"></div>
-                            <div className="w-0.5 h-full bg-white/30"></div>
-                          </div>
-                        </div>
-                        
-                        {/* Labels */}
-                        <div className="flex justify-between mt-4 text-sm font-semibold text-gray-700">
-                          <div className="text-center">
-                            <div className="text-xs text-gray-500 mb-1">Low</div>
-                            <div className="text-base font-bold text-red-600">{getBenchmarkData(profile.followers).low}%</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs text-gray-500 mb-1">Median</div>
-                            <div className="text-base font-bold text-blue-600">{getBenchmarkData(profile.followers).median}%</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs text-gray-500 mb-1">High</div>
-                            <div className="text-base font-bold text-green-600">{getBenchmarkData(profile.followers).high}%</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+              {/* Average Likes */}
+              <div className="bg-gradient-to-br from-pink-500 to-red-500 rounded-2xl shadow-xl p-6 text-white">
+                <div className="flex items-center gap-3 mb-3">
+                  <Heart className="w-8 h-8" />
+                  <h3 className="text-lg font-semibold">Avg Likes</h3>
+                </div>
+                <div className="text-4xl font-bold mb-2">
+                  {formatNumber(metrics.avg_likes)}
+                </div>
+                <p className="text-pink-100 text-sm">
+                  Per post
+                </p>
+                <div className="mt-3 pt-3 border-t border-white/20">
+                  <div className="text-xs text-pink-100">
+                    {((metrics.avg_likes / profile.followers) * 100).toFixed(2)}% of followers
                   </div>
+                </div>
+              </div>
 
-                  {/* Recent Posts Performance */}
-                  {recentPosts.length > 0 && (
-                    <div className="bg-white rounded-3xl shadow-2xl border-2 border-purple-200 p-8">
-                      <h3 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
-                        <BarChart3 className="w-6 h-6 text-purple-600" />
-                        Recent Posts Performance
-                      </h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {recentPosts.slice(0, 6).map((post, index) => (
-                          <div key={post.id} className="bg-gray-50 rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 transition-colors">
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-gray-500">#{index + 1}</span>
-                                <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
-                                  post.engagementRate > metrics.engagementRate 
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-gray-200 text-gray-700'
-                                }`}>
-                                  {post.engagementRate.toFixed(2)}% ER
-                                </span>
-                                {post.type === 'video' && (
-                                  <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold">
-                                    📹 Video
-                                  </span>
-                                )}
-                              </div>
-                              <span className="text-xs text-gray-500">
-                                {new Date(post.timestamp).toLocaleDateString()}
-                              </span>
-                            </div>
-                            
-                            <p className="text-sm text-gray-700 mb-3 line-clamp-2">
-                              {post.caption || 'No caption'}
-                            </p>
-                            
-                            <div className="flex items-center gap-4 text-sm">
-                              <div className="flex items-center gap-1">
-                                <Heart className="w-4 h-4 text-pink-500" />
-                                <span className="font-semibold">{formatNumber(post.likes)}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <MessageCircle className="w-4 h-4 text-blue-500" />
-                                <span className="font-semibold">{formatNumber(post.comments)}</span>
-                              </div>
-                              {post.views && (
-                                <div className="flex items-center gap-1">
-                                  <Eye className="w-4 h-4 text-purple-500" />
-                                  <span className="font-semibold">{formatNumber(post.views)}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* CTA Section */}
-                  <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 rounded-3xl p-12 text-center shadow-2xl">
-                    <h3 className="text-3xl sm:text-4xl font-black text-white mb-4">
-                      Want to Find More Influencers Like This?
-                    </h3>
-                    <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                      Search 1,800+ verified Pakistani influencers with detailed engagement metrics
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <a
-                        href="/"
-                        className="inline-flex items-center justify-center gap-3 bg-white text-purple-600 hover:bg-gray-50 font-bold py-5 px-10 rounded-2xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
-                      >
-                        <Search className="w-6 h-6" />
-                        Search Influencers
-                      </a>
-                      <button
-                        onClick={resetAnalyzer}
-                        className="inline-flex items-center justify-center gap-3 border-3 border-white text-white hover:bg-white/10 font-bold py-5 px-10 rounded-2xl transition-all transform hover:scale-105 backdrop-blur-lg"
-                      >
-                        Analyze Another Profile
-                      </button>
-                    </div>
+              {/* Average Comments */}
+              <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-xl p-6 text-white">
+                <div className="flex items-center gap-3 mb-3">
+                  <MessageCircle className="w-8 h-8" />
+                  <h3 className="text-lg font-semibold">Avg Comments</h3>
+                </div>
+                <div className="text-4xl font-bold mb-2">
+                  {formatNumber(metrics.avg_comments)}
+                </div>
+                <p className="text-blue-100 text-sm">
+                  Per post
+                </p>
+                <div className="mt-3 pt-3 border-t border-white/20">
+                  <div className="text-xs text-blue-100">
+                    {metrics.avg_likes > 0 ? ((metrics.avg_comments / metrics.avg_likes) * 100).toFixed(1) : 0}% like-to-comment ratio
                   </div>
-                </>
-              )}
+                </div>
+              </div>
             </div>
-          </>
+
+            {/* Advanced Insights */}
+            <div className="bg-white rounded-2xl shadow-xl p-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <BarChart3 className="w-7 h-7 text-purple-600" />
+                Advanced Insights
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                {/* Consistency Score */}
+                <div className="p-5 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Target className="w-5 h-5 text-purple-600" />
+                    <h4 className="font-semibold text-gray-900">Consistency Score</h4>
+                  </div>
+                  <div className="text-3xl font-bold text-purple-600 mb-2">
+                    {insights.consistencyScore.toFixed(0)}%
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {insights.consistencyScore >= 80 ? 'Very consistent engagement' :
+                     insights.consistencyScore >= 60 ? 'Fairly consistent' :
+                     insights.consistencyScore >= 40 ? 'Moderate variance' :
+                     'High variance in performance'}
+                  </p>
+                </div>
+
+                {/* Follower/Following Ratio */}
+                <div className="p-5 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Users className="w-5 h-5 text-blue-600" />
+                    <h4 className="font-semibold text-gray-900">F/F Ratio</h4>
+                  </div>
+                  <div className="text-3xl font-bold text-blue-600 mb-2">
+                    {profile.following > 0 ? (profile.followers / profile.following).toFixed(1) : '∞'}:1
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {profile.followers > profile.following * 2 ? 'Strong follower base' :
+                     profile.followers > profile.following ? 'Good ratio' :
+                     'Growing account'}
+                  </p>
+                </div>
+
+                {/* Post Types */}
+                <div className="p-5 bg-gradient-to-br from-pink-50 to-red-50 rounded-xl border-2 border-pink-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Activity className="w-5 h-5 text-pink-600" />
+                    <h4 className="font-semibold text-gray-900">Content Mix</h4>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">📷 Photos</span>
+                      <span className="font-bold text-pink-600">{metrics.post_types?.photos || 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">📹 Videos</span>
+                      <span className="font-bold text-pink-600">{metrics.post_types?.videos || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Best Performing Post */}
+                {metrics.best_post && (
+                  <div className="p-5 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border-2 border-yellow-100">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Award className="w-5 h-5 text-yellow-600" />
+                      <h4 className="font-semibold text-gray-900">Best Post</h4>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Heart className="w-4 h-4 text-red-500" />
+                        <span className="text-sm text-gray-600">{formatNumber(metrics.best_post.likes)} likes</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4 text-blue-500" />
+                        <span className="text-sm text-gray-600">{formatNumber(metrics.best_post.comments)} comments</span>
+                      </div>
+                      {metrics.best_post.url && (
+                        <a
+                          href={metrics.best_post.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-yellow-600 hover:text-yellow-700 font-medium flex items-center gap-1"
+                        >
+                          View Post <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Engagement Per Follower */}
+                <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="w-5 h-5 text-green-600" />
+                    <h4 className="font-semibold text-gray-900">Engagement/Follower</h4>
+                  </div>
+                  <div className="text-3xl font-bold text-green-600 mb-2">
+                    {(insights.followerEngagementRatio * 100).toFixed(2)}%
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {insights.followerEngagementRatio >= 0.03 ? 'Highly engaged audience' :
+                     insights.followerEngagementRatio >= 0.01 ? 'Good engagement' :
+                     'Room for improvement'}
+                  </p>
+                </div>
+
+                {/* Comment Quality */}
+                <div className="p-5 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <MessageCircle className="w-5 h-5 text-indigo-600" />
+                    <h4 className="font-semibold text-gray-900">Comment Quality</h4>
+                  </div>
+                  <div className="text-3xl font-bold text-indigo-600 mb-2">
+                    {(insights.commentLikeRatio * 100).toFixed(1)}%
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {insights.commentLikeRatio >= 0.05 ? 'High interaction' :
+                     insights.commentLikeRatio >= 0.02 ? 'Good interaction' :
+                     'Passive audience'}
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Recent Posts List */}
+            {posts && posts.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-xl p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <Calendar className="w-7 h-7 text-purple-600" />
+                    Recent Posts ({posts.length})
+                  </h2>
+                  <span className="text-sm text-gray-500">Last {posts.length} posts analyzed</span>
+                </div>
+                <div className="space-y-3">
+                  {posts.map((post: any, index: number) => (
+                    <a
+                      key={post.shortcode || index}
+                      href={post.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl hover:shadow-md transition-all group border-2 border-transparent hover:border-purple-200"
+                    >
+                      {/* Post Icon */}
+                      <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                        {post.is_video ? (
+                          <span className="text-2xl">📹</span>
+                        ) : (
+                          <span className="text-2xl">📷</span>
+                        )}
+                      </div>
+
+                      {/* Post Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-gray-900">Post {index + 1}</span>
+                          {post.is_video && (
+                            <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                              Video
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-500">
+                            {new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </div>
+                        {post.caption && (
+                          <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                            {post.caption}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
+                            <span className="font-semibold text-gray-900">{formatNumber(post.likes)}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm">
+                            <MessageCircle className="w-4 h-4 text-blue-500 fill-blue-500" />
+                            <span className="font-semibold text-gray-900">{formatNumber(post.comments)}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm text-purple-600">
+                            <TrendingUp className="w-4 h-4" />
+                            <span className="font-medium">
+                              {(((post.likes + post.comments) / profile.followers) * 100).toFixed(2)}% ER
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* View on Instagram */}
+                      <div className="flex-shrink-0">
+                        <div className="flex items-center gap-2 text-sm text-purple-600 font-medium group-hover:text-purple-700 transition-colors">
+                          <span className="hidden sm:inline">View</span>
+                          <ExternalLink className="w-4 h-4" />
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Analysis Summary */}
+            <div className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl shadow-xl p-8 text-white">
+              <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                <Sparkles className="w-7 h-7" />
+                Analysis Summary
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-lg">Strengths</h4>
+                  <ul className="space-y-2 text-white/90">
+                    {metrics.engagement_rate >= 3 && (
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <span>Strong engagement rate above industry average</span>
+                      </li>
+                    )}
+                    {insights.consistencyScore >= 70 && (
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <span>Consistent posting performance</span>
+                      </li>
+                    )}
+                    {profile.followers > profile.following * 2 && (
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <span>Excellent follower-to-following ratio</span>
+                      </li>
+                    )}
+                    {insights.commentLikeRatio >= 0.03 && (
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <span>High audience interaction with comments</span>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-lg">Recommendations</h4>
+                  <ul className="space-y-2 text-white/90">
+                    {metrics.post_types?.videos === 0 && (
+                      <li className="flex items-start gap-2">
+                        <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <span>Try adding video content for better reach</span>
+                      </li>
+                    )}
+                    {metrics.engagement_rate < 3 && (
+                      <li className="flex items-start gap-2">
+                        <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <span>Focus on increasing audience engagement</span>
+                      </li>
+                    )}
+                    {insights.consistencyScore < 60 && (
+                      <li className="flex items-start gap-2">
+                        <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <span>Maintain consistent posting quality</span>
+                      </li>
+                    )}
+                    <li className="flex items-start gap-2">
+                      <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                      <span>Post during peak engagement hours</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* How It Works Section */}
+        {!profile && !isLoading && (
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">How It Works</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">1. Enter Username</h3>
+                <p className="text-sm text-gray-600">
+                  Type any public Instagram username to analyze
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="w-8 h-8 text-pink-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">2. Analyze Profile</h3>
+                <p className="text-sm text-gray-600">
+                  We analyze 12 recent posts and calculate advanced metrics
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BarChart3 className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">3. Get Insights</h3>
+                <p className="text-sm text-gray-600">
+                  View engagement rate, consistency score, and recommendations
+                </p>
+              </div>
+            </div>
+
+            {/* Features */}
+            <div className="border-t pt-6">
+              <h3 className="font-semibold text-gray-900 mb-4">✨ Features</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>Engagement rate analysis</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>Consistency scoring</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>Best post identification</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>Content mix analysis</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>Follower tier classification</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>Free & unlimited use</span>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
