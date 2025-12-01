@@ -20,18 +20,7 @@ interface BlogPost {
 }
 
 const blogPosts: BlogPost[] = [
-  {
-    id: '4',
-    title: 'Free Instagram Profile Analyzer: Complete Guide to Vetting Influencers',
-    excerpt: 'Learn how to analyze any Instagram profile for free. Get engagement rates, detect fake followers, and find authentic influencers with our complete vetting guide and free tool.',
-    date: '2024-11-29',
-    author: 'Aslam Haider',
-    category: 'Tools',
-    readTime: '12 min read',
-    slug: 'free-instagram-profile-analyzer-complete-guide',
-    featured: true,
-    views: '850'
-  },
+  
   {
     id: '1',
     title: 'Complete Guide to Influencer Marketing in Pakistan 2025',
@@ -67,6 +56,31 @@ const blogPosts: BlogPost[] = [
     slug: 'ai-powered-influencer-marketing-tools-game-changer',
     featured: true,
     views: '1.5K'
+  },
+  {
+    id: '4',
+    title: 'Free Instagram Profile Analyzer: Complete Guide to Vetting Influencers',
+    excerpt: 'Learn how to analyze any Instagram profile for free. Get engagement rates, detect fake followers, and find authentic influencers with our complete vetting guide and free tool.',
+    date: '2024-11-29',
+    author: 'Aslam Haider',
+    category: 'Tools',
+    readTime: '12 min read',
+    slug: 'free-instagram-profile-analyzer-complete-guide',
+    featured: true,
+    views: '850'
+  },
+
+  {
+    id: '5',
+    title: 'Free Instagram Hashtag Generator 2024 | AI-Powered Tool',
+    excerpt: 'Generate perfect Instagram hashtags instantly with our free AI hashtag generator. Get 5-15 relevant hashtags for Reels, Stories & Posts. Boost reach & engagement now!',
+    date: '2024-12-01',
+    author: 'Haris Khan',
+    category: 'Tools',
+    readTime: '15 min read',
+    slug: 'free-instagram-hashtag-generator-complete-guide',
+    featured: true,
+    views: '1.2K'
   }
 ]
 

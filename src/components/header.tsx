@@ -408,7 +408,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                       </Link>
 
                       <Link
-                        href="/tools/instagram-engagement-calculator"
+                        href="/tools/instagram-hashtag-generator"
                         className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors"
                         onClick={() => setShowToolsDropdown(false)}
                       >
@@ -416,8 +416,8 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                           <Calculator className="w-5 h-5 text-white" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-sm text-gray-900">Engagement Rate Calculator</p>
-                          <p className="text-xs text-gray-500 mt-0.5">Calculate engagement manually</p>
+                          <p className="font-semibold text-sm text-gray-900">Instagram Hashtag Generator</p>
+                          <p className="text-xs text-gray-500 mt-0.5">Generate Hashtags faster</p>
                         </div>
                       </Link>
 

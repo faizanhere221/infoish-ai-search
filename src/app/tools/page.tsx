@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { Instagram, Search, TrendingUp, Sparkles, ArrowRight, CheckCircle, Zap, Target, BarChart3, Users, Heart, MessageCircle } from 'lucide-react'
+import { Instagram, Search, TrendingUp, Sparkles, ArrowRight, CheckCircle, Zap, Target, BarChart3, Hash } from 'lucide-react'
 
 export default function ToolsPage() {
   const tools = [
@@ -25,6 +25,26 @@ export default function ToolsPage() {
       ],
       badge: 'Popular',
       badgeColor: 'bg-purple-100 text-purple-700'
+    },
+    {
+      id: 'instagram-hashtag-generator',
+      name: 'Instagram Hashtag Generator',
+      description: 'AI-powered hashtag generator that creates perfect hashtags for Instagram Posts, Reels & Stories. Get 5-15 relevant hashtags instantly.',
+      icon: Hash,
+      href: '/tools/instagram-hashtag-generator',
+      color: 'from-pink-500 to-purple-500',
+      bgColor: 'from-pink-50 to-purple-50',
+      stats: ['AI-Powered', 'Free Forever', '5-15 Hashtags'],
+      features: [
+        'Smart Content Detection',
+        'Popular & Niche Hashtags',
+        'Difficulty Scoring',
+        'Copy & Download Options',
+        'Multiple Strategies',
+        'Instant Generation'
+      ],
+      badge: 'New',
+      badgeColor: 'bg-green-100 text-green-700'
     },
     // Add more tools here in the future
   ]
@@ -237,13 +257,13 @@ export default function ToolsPage() {
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <div className="px-6 py-3 bg-gray-100 rounded-xl text-gray-600 font-medium">
-                📊 TikTok Analyzer
+                ✍️ Bio Generator
+              </div>
+              <div className="px-6 py-3 bg-gray-100 rounded-xl text-gray-600 font-medium">
+                🤖 AI Humanizer
               </div>
               <div className="px-6 py-3 bg-gray-100 rounded-xl text-gray-600 font-medium">
                 📈 YouTube Analytics
-              </div>
-              <div className="px-6 py-3 bg-gray-100 rounded-xl text-gray-600 font-medium">
-                🐦 Twitter Insights
               </div>
               <div className="px-6 py-3 bg-gray-100 rounded-xl text-gray-600 font-medium">
                 💼 LinkedIn Stats
