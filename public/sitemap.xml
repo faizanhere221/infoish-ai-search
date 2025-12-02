@@ -17,6 +17,25 @@
   <priority>0.9</priority>
 </url>
 
+
+<!-- Instagram Hashtag Generator tool-->
+
+
+<url>
+  <loc>https://infoishai.com/tools/instagram-hashtag-generator</loc>
+  <lastmod>2024-12-01</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.9</priority>
+</url>
+
+<!-- Instagram Hashtag Generator Blog -->
+<url>
+  <loc>https://infoishai.com/tools/instagram-hashtag-generator/blog</loc>
+  <lastmod>2024-12-01</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+
   
   <!-- Instagram Profile Analyzer Tool -->
   <url>

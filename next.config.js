@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Keep only the page extensions you're using
+  // Page extensions
   pageExtensions: ['tsx', 'ts'],
   
   // Disable ESLint during builds for faster deployment
@@ -22,12 +22,44 @@ const nextConfig = {
   },
   
   // Configure for production builds
-  output: 'standalone', // Good for deployment
+  output: 'standalone',
   
   // Image optimization settings
   images: {
-    domains: ['localhost'], // Add your production domains later
+    domains: ['localhost'],
     unoptimized: false,
+  },
+
+  // Redirect www to non-www (backup in case Vercel redirect fails)
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.infoishai.com',
+          },
+        ],
+        destination: 'https://infoishai.com/:path*',
+        permanent: true, // 301 redirect
+      },
+    ]
+  },
+
+  // Set canonical base URL
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Link',
+            value: '<https://infoishai.com/>; rel="canonical"',
+          },
+        ],
+      },
+    ]
   },
 }
 
