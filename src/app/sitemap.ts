@@ -31,7 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     
     // Hashtag Generator Blog Post
     {
-      url: `${baseUrl}/tools/instagram-hashtag-generator/blog`,
+      url: `${baseUrl}/blog/free-instagram-hashtag-generator-complete-guide`,
       lastModified: new Date('2024-12-01').toISOString(),
       changeFrequency: 'monthly',
       priority: 0.8,
