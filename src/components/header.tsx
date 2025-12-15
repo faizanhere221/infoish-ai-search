@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, Heart, LogOut, Instagram, Calculator, Wrench } from 'lucide-react'
+import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, Heart, LogOut, Instagram, Calculator, Wrench, Wand2 } from 'lucide-react'
 
 interface UserProfile {
   id: string
@@ -372,69 +372,86 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
               </Link>
 
               {/* Tools Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowToolsDropdown(!showToolsDropdown)}
-                  className="px-4 py-2 text-gray-700 hover:text-purple-600 hover:bg-purple-50 font-medium rounded-lg transition-all flex items-center gap-2"
-                >
-                  <Wrench className="w-4 h-4" />
-                  Tools
-                  <ChevronDown className={`w-4 h-4 transition-transform ${showToolsDropdown ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {showToolsDropdown && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-40" 
-                      onClick={() => setShowToolsDropdown(false)}
-                    />
-                    <div className="absolute left-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
-                      <div className="px-4 py-2 border-b border-gray-100">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Free Marketing Tools</p>
-                      </div>
-                      
-                      <Link
-                        href="/tools/instagram-profile-analyzer"
-                        className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition-colors"
-                        onClick={() => setShowToolsDropdown(false)}
-                      >
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Instagram className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-semibold text-sm text-gray-900">Instagram Profile Analyzer</p>
-                          <p className="text-xs text-gray-500 mt-0.5">Check engagement rates instantly</p>
-                        </div>
-                      </Link>
+<div className="relative">
+  <button
+    onClick={() => setShowToolsDropdown(!showToolsDropdown)}
+    className="px-4 py-2 text-gray-700 hover:text-purple-600 hover:bg-purple-50 font-medium rounded-lg transition-all flex items-center gap-2"
+  >
+    <Wrench className="w-4 h-4" />
+    Tools
+    <ChevronDown className={`w-4 h-4 transition-transform ${showToolsDropdown ? 'rotate-180' : ''}`} />
+  </button>
+  
+  {showToolsDropdown && (
+    <>
+      <div 
+        className="fixed inset-0 z-40" 
+        onClick={() => setShowToolsDropdown(false)}
+      />
+      <div className="absolute left-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+        <div className="px-4 py-2 border-b border-gray-100">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Free Marketing Tools</p>
+        </div>
+        
+        <Link
+          href="/tools/instagram-profile-analyzer"
+          className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition-colors"
+          onClick={() => setShowToolsDropdown(false)}
+        >
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Instagram className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-sm text-gray-900">Instagram Profile Analyzer</p>
+            <p className="text-xs text-gray-500 mt-0.5">Check engagement rates instantly</p>
+          </div>
+        </Link>
 
-                      <Link
-                        href="/tools/instagram-hashtag-generator"
-                        className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors"
-                        onClick={() => setShowToolsDropdown(false)}
-                      >
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Calculator className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-semibold text-sm text-gray-900">Instagram Hashtag Generator</p>
-                          <p className="text-xs text-gray-500 mt-0.5">Generate Hashtags faster</p>
-                        </div>
-                      </Link>
+        <Link
+          href="/tools/instagram-hashtag-generator"
+          className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-pink-50 transition-colors"
+          onClick={() => setShowToolsDropdown(false)}
+        >
+          <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Calculator className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-sm text-gray-900">Instagram Hashtag Generator</p>
+            <p className="text-xs text-gray-500 mt-0.5">Generate hashtags faster</p>
+          </div>
+        </Link>
 
-                      <div className="border-t border-gray-100 mt-2 pt-2">
-                        <Link
-                          href="/tools"
-                          className="flex items-center justify-between px-4 py-2 text-sm text-purple-600 hover:text-purple-700 font-semibold"
-                          onClick={() => setShowToolsDropdown(false)}
-                        >
-                          <span>View All Tools</span>
-                          <ChevronDown className="w-4 h-4 -rotate-90" />
-                        </Link>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
+        <Link
+          href="/tools/ai-humanizer"
+          className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors relative"
+          onClick={() => setShowToolsDropdown(false)}
+        >
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Wand2 className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-sm text-gray-900">AI Humanizer</p>
+              <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded">New</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-0.5">Bypass AI detectors</p>
+          </div>
+        </Link>
+
+        <div className="border-t border-gray-100 mt-2 pt-2">
+          <Link
+            href="/tools"
+            className="flex items-center justify-between px-4 py-2 text-sm text-purple-600 hover:text-purple-700 font-semibold"
+            onClick={() => setShowToolsDropdown(false)}
+          >
+            <span>View All Tools</span>
+            <ChevronDown className="w-4 h-4 -rotate-90" />
+          </Link>
+        </div>
+      </div>
+    </>
+  )}
+</div>
 
               <Link 
                 href="/blog" 
