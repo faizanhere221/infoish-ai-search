@@ -170,8 +170,8 @@ interface TierLimits {
 
 const USAGE_LIMITS: Record<UserTier, TierLimits> = {
   free: { 
-    daily: 3,
-    wordLimit: 500,
+    daily: 2,
+    wordLimit: 300,
     model: 'gpt-4o'
   },
   starter: { 
@@ -181,7 +181,7 @@ const USAGE_LIMITS: Record<UserTier, TierLimits> = {
   },
   pro: { 
     monthly: 150,
-    wordLimit: 2500,
+    wordLimit: 3000,
     model: 'gpt-4o'
   }
 }
