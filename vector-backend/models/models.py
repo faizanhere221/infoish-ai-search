@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel
+from sqlalchemy.dialects.postgresql import JSONB
 import uuid
 
 Base = declarative_base()
@@ -45,6 +46,7 @@ class User(Base):
     first_name = Column(String(100))
     last_name = Column(String(100))
     subscription_plan = Column(String(50), default='free')
+    tool_subscriptions = Column(JSONB, default={}) 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
