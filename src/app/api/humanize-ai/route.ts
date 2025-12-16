@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-
+import { getTierConfig, getUserTierForProduct} from '@/config/product'
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
@@ -159,7 +159,8 @@ OUTPUT RULES:
 
 CRITICAL: Make text sound like someone translated it from another language or wrote quickly without perfect editing - grammatically acceptable but imperfect, with intentional awkwardness.`
 
-type UserTier = 'free' | 'starter' | 'pro'
+// NEW: Type definitions for multi-product subscriptions ✅
+type UserTier = 'free' | 'starter' | 'pro' | 'premium'
 
 interface TierLimits {
   daily?: number
@@ -168,29 +169,19 @@ interface TierLimits {
   model: string
 }
 
-const USAGE_LIMITS: Record<UserTier, TierLimits> = {
-  free: { 
-    daily: 2,
-    wordLimit: 300,
-    model: 'gpt-4o'
-  },
-  starter: { 
-    monthly: 50,
-    wordLimit: 1000,
-    model: 'gpt-4o'
-  },
-  pro: { 
-    monthly: 150,
-    wordLimit: 3000,
-    model: 'gpt-4o'
-  }
-}
 
+
+// NEW: Updated UserData interface ✅
 interface UserData {
   id: string
   email: string
-  subscription_tier: UserTier
+  subscription_tier: string  // Legacy field
+  tool_subscriptions?: Record<string, string>  // NEW: Multi-product subscriptions ✅
 }
+
+
+
+const PRODUCT_SLUG = 'ai_humanizer'
 
 export async function POST(req: NextRequest) {
   try {
@@ -222,38 +213,57 @@ export async function POST(req: NextRequest) {
         
         if (userResponse.ok) {
           const userData: UserData = await userResponse.json()
-          userTier = userData.subscription_tier || 'free'
+          
+          // Get tier using helper function ✅
+          userTier = getUserTierForProduct(
+            userData.tool_subscriptions || {},
+            PRODUCT_SLUG
+          )
+          
           userId = userData.id
           userEmail = userData.email
+          
+          console.log(`[AI Humanizer] User: ${userEmail}, Tier: ${userTier}`)
         }
       } catch (error) {
-        console.error('Auth verification failed:', error)
+        console.error('[AI Humanizer] Auth verification failed:', error)
       }
     }
 
-    const tierLimits = USAGE_LIMITS[userTier]
+    // Get config using safe getter ✅
+    const tierConfig = getTierConfig(PRODUCT_SLUG, userTier)
+    
+    if (!tierConfig) {
+      console.error(`[AI Humanizer] Invalid tier config for: ${userTier}`)
+      return NextResponse.json(
+        { error: 'Invalid subscription tier' },
+        { status: 400 }
+      )
+    }
+    
+    const wordLimit = tierConfig.wordLimit || 500
     const wordCount = text.trim().split(/\s+/).length
 
-    if (wordCount > tierLimits.wordLimit) {
+    if (wordCount > wordLimit) {
       return NextResponse.json(
         { 
-          error: `Text too long for ${userTier} tier. Maximum ${tierLimits.wordLimit} words. You have ${wordCount} words.`,
+          error: `Text too long for ${userTier} tier. Maximum ${wordLimit} words. You have ${wordCount} words.`,
           wordCount,
-          wordLimit: tierLimits.wordLimit,
+          wordLimit,
           upgrade: userTier === 'free' 
             ? 'Upgrade to Starter (PKR 999/month) for 1,000 words' 
-            : userTier === 'starter'
-            ? 'Upgrade to Pro (PKR 2,499/month) for 2,500 words'
+            : (userTier === 'starter')
+            ? 'Upgrade to Pro (PKR 2,999/month) for 3,000 words'
             : null
         },
         { status: 400 }
       )
     }
 
-    console.log(`[AI Humanizer] Processing ${wordCount} words for ${userTier} user (${userEmail || 'anonymous'})`)
+    console.log(`[AI Humanizer] Processing ${wordCount} words for ${userTier} user`)
 
     const completion = await openai.chat.completions.create({
-      model: tierLimits.model,
+      model: 'gpt-4o',
       messages: [
         {
           role: "system",
@@ -264,7 +274,7 @@ export async function POST(req: NextRequest) {
           content: `Rewrite this text following ALL the rules above:\n\n${text}`
         }
       ],
-      temperature: 0.9, // Higher creativity for more human-like output
+      temperature: 0.9,
       max_tokens: Math.ceil(wordCount * 2.5),
       presence_penalty: 0.6,
       frequency_penalty: 0.3,
@@ -277,7 +287,7 @@ export async function POST(req: NextRequest) {
     }
 
     const tokensUsed = completion.usage?.total_tokens || 0
-    const estimatedCost = (tokensUsed / 1000000) * 12.50 // gpt-4o average cost
+    const estimatedCost = (tokensUsed / 1000000) * 12.50
 
     console.log(`[AI Humanizer] Success! Tokens: ${tokensUsed}, Cost: $${estimatedCost.toFixed(4)}`)
 
@@ -285,14 +295,14 @@ export async function POST(req: NextRequest) {
       success: true,
       humanizedText,
       tier: userTier,
-      model: tierLimits.model,
+      model: 'gpt-4o',
       tokensUsed,
       wordCount,
       estimatedCost: estimatedCost.toFixed(4)
     })
 
   } catch (error) {
-    console.error('AI humanization error:', error)
+    console.error('[AI Humanizer] Error:', error)
     
     if (error instanceof Error) {
       const errorMessage = error.message.toLowerCase()
@@ -301,20 +311,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           { error: 'Rate limit exceeded. Please try again in a moment.' },
           { status: 429 }
-        )
-      }
-
-      if (errorMessage.includes('authentication') || errorMessage.includes('api key')) {
-        return NextResponse.json(
-          { error: 'API authentication failed. Please contact support.' },
-          { status: 500 }
-        )
-      }
-
-      if (errorMessage.includes('quota') || errorMessage.includes('insufficient')) {
-        return NextResponse.json(
-          { error: 'API quota exceeded. Please try again later or contact support.' },
-          { status: 503 }
         )
       }
 

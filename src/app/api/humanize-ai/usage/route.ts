@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+// FIX: Remove PRODUCTS import, only import what we use ✅
+import { getTierConfig, getUserTierForProduct } from '@/config/product'
 
-type UserTier = 'free' | 'starter' | 'pro'
+const PRODUCT_SLUG = 'ai_humanizer'
+
+type UserTier = 'free' | 'starter' | 'pro' | 'premium'
 
 interface UsageData {
   count: number
@@ -11,34 +15,31 @@ interface UsageData {
 interface UserData {
   id: string
   email: string
-  subscription_tier: UserTier
+  subscription_tier: string
+  tool_subscriptions?: Record<string, string>
 }
 
-// Simple in-memory usage store (for MVP)
 const usageStore = new Map<string, UsageData>()
 
 function getUsageKey(ip: string, userId?: string): string {
   return userId || ip
 }
 
-function shouldResetUsage(lastReset: Date, tier: UserTier): boolean {
+function shouldResetUsage(lastReset: Date, limitType: 'daily' | 'monthly'): boolean {
   const now = new Date()
   const hoursSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60)
   
-  // Free tier: reset daily (24 hours)
-  // Paid tiers: reset monthly (30 days = 720 hours)
-  const resetHours = tier === 'free' ? 24 : 720
-  
+  const resetHours = limitType === 'daily' ? 24 : 720
   return hoursSinceReset >= resetHours
 }
 
-function getResetTimeRemaining(lastReset: Date, tier: UserTier): string {
+function getResetTimeRemaining(lastReset: Date, limitType: 'daily' | 'monthly'): string {
   const now = new Date()
   const hoursSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60)
-  const resetHours = tier === 'free' ? 24 : 720
+  const resetHours = limitType === 'daily' ? 24 : 720
   const hoursRemaining = Math.ceil(resetHours - hoursSinceReset)
   
-  if (tier === 'free') {
+  if (limitType === 'daily') {
     return `${hoursRemaining} hours`
   } else {
     const daysRemaining = Math.ceil(hoursRemaining / 24)
@@ -53,9 +54,7 @@ export async function GET(req: NextRequest) {
     
     let userTier: UserTier = 'free'
     let userId: string | null = null
-    let limit = 3
 
-    // Check if user is authenticated
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7)
       
@@ -70,16 +69,39 @@ export async function GET(req: NextRequest) {
         
         if (userResponse.ok) {
           const userData: UserData = await userResponse.json()
-          userTier = userData.subscription_tier || 'free'
-          userId = userData.id
           
-          // Set limits based on tier
-          limit = userTier === 'free' ? 3 : userTier === 'starter' ? 30 : 200
+          // Use helper function ✅
+          userTier = getUserTierForProduct(
+            userData.tool_subscriptions || {},
+            PRODUCT_SLUG
+          )
+          
+          userId = userData.id
         }
       } catch (error) {
         console.error('Auth check failed:', error)
       }
     }
+
+    // Get config using helper function ✅
+    const tierConfig = getTierConfig(PRODUCT_SLUG, userTier)
+    
+    if (!tierConfig) {
+      return NextResponse.json(
+        { 
+          tier: 'free' as UserTier,
+          used: 0,
+          limit: 2,
+          remaining: 2,
+          resetIn: '24 hours',
+          error: 'Invalid tier config'
+        },
+        { status: 200 }
+      )
+    }
+
+    const limit = tierConfig.limit
+    const limitType = tierConfig.limitType
 
     const usageKey = getUsageKey(ip, userId || undefined)
     const storedUsage = usageStore.get(usageKey)
@@ -91,7 +113,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Reset if needed
-    if (shouldResetUsage(usage.lastReset, userTier)) {
+    if (shouldResetUsage(usage.lastReset, limitType)) {
       usage = {
         count: 0,
         lastReset: new Date(),
@@ -101,7 +123,7 @@ export async function GET(req: NextRequest) {
     }
 
     const remaining = Math.max(0, limit - usage.count)
-    const resetIn = getResetTimeRemaining(usage.lastReset, userTier)
+    const resetIn = getResetTimeRemaining(usage.lastReset, limitType)
 
     return NextResponse.json({
       tier: userTier,
@@ -118,8 +140,8 @@ export async function GET(req: NextRequest) {
       { 
         tier: 'free' as UserTier,
         used: 0,
-        limit: 3,
-        remaining: 3,
+        limit: 2,
+        remaining: 2,
         resetIn: '24 hours',
         error: 'Failed to check usage'
       },
@@ -150,7 +172,10 @@ export async function POST(req: NextRequest) {
         
         if (userResponse.ok) {
           const userData: UserData = await userResponse.json()
-          userTier = userData.subscription_tier || 'free'
+          userTier = getUserTierForProduct(
+            userData.tool_subscriptions || {},
+            PRODUCT_SLUG
+          )
           userId = userData.id
         }
       } catch (error) {
@@ -167,7 +192,6 @@ export async function POST(req: NextRequest) {
       tier: userTier
     }
 
-    // Increment usage
     usage.count++
     usage.tier = userTier
     usageStore.set(usageKey, usage)

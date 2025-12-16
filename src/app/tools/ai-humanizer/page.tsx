@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Wand2, Copy, Download, RotateCcw, Check, AlertCircle, Sparkles, TrendingUp, Zap, FileText, Shield, Gauge, Crown } from 'lucide-react'
 
-type UserTier = 'free' | 'starter' | 'pro'
+type UserTier = 'free' | 'starter' | 'premium'
 
 interface UsageInfo {
   tier: UserTier
@@ -172,9 +172,9 @@ export default function AIHumanizerTool() {
     const wordCount = countWords(inputText)
     
     const limits: Record<UserTier, number> = {
-      free: 500,
+      free: 300,
       starter: 1000,
-      pro: 2500
+      premium: 3000 
     }
     
     if (wordCount > limits[usage.tier]) {
@@ -300,17 +300,17 @@ export default function AIHumanizerTool() {
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">AI Humanizer</h1>
-                <p className="text-xs sm:text-sm text-gray-600">Bypass AI detectors with advanced humanization • GPT-4o Powered</p>
+                <p className="text-xs sm:text-sm text-gray-600">Bypass AI detectors with advanced humanization</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               {usage.tier !== 'free' && (
                 <span className={`px-4 py-2 rounded-full text-sm font-bold ${
-                  usage.tier === 'pro' 
+                  usage.tier === 'premium' 
                     ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white'
                     : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
                 }`}>
-                  {usage.tier === 'pro' ? '👑 PRO' : '⭐ STARTER'}
+                  {usage.tier === 'premium' ? '👑 PRO' : '⭐ STARTER'}
                 </span>
               )}
             </div>
@@ -328,12 +328,12 @@ export default function AIHumanizerTool() {
             <div className="flex-1">
               <h3 className="text-lg sm:text-xl font-bold mb-2">Premium AI Humanization</h3>
               <p className="text-sm sm:text-base text-purple-100 mb-3">
-                Our advanced humanizer achieves 15-25% AI detection Tools. 
+                Our advanced humanizer achieves upto 10% AI detection Tools. 
                 
               </p>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-xs sm:text-sm">15-25% AI Detection</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-xs sm:text-sm">GPT-4o Model</span>
+                <span className="px-3 py-1 bg-white/20 rounded-full text-xs sm:text-sm">Less than 10% AI Detection</span>
+                <span className="px-3 py-1 bg-white/20 rounded-full text-xs sm:text-sm">Advance AI</span>
                 <span className="px-3 py-1 bg-white/20 rounded-full text-xs sm:text-sm">Instant Results</span>
                 <span className="px-3 py-1 bg-white/20 rounded-full text-xs sm:text-sm">Download & Copy</span>
               </div>
@@ -389,21 +389,21 @@ export default function AIHumanizerTool() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
               <div className="text-2xl font-bold text-purple-600 mb-1">
-                {usage.tier === 'free' ? '500' : usage.tier === 'starter' ? '1,000' : '2,500'}
+                {usage.tier === 'free' ? '300' : usage.tier === 'starter' ? '1,000' : '3,000'}
               </div>
               <div className="text-xs text-gray-600">Max words per use</div>
             </div>
             
             <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
               <div className="text-2xl font-bold text-blue-600 mb-1">
-                {usage.tier === 'free' ? '3/day' : usage.tier === 'starter' ? '50/mo' : '150/mo'}
+                {usage.tier === 'free' ? '2/day' : usage.tier === 'starter' ? '50/mo' : '150/mo'}
               </div>
               <div className="text-xs text-gray-600">AI humanizations</div>
             </div>
             
             <div className="p-3 bg-green-50 rounded-xl border border-green-100">
               <div className="text-2xl font-bold text-green-600 mb-1">
-                GPT-4o
+                Advance AI
               </div>
               <div className="text-xs text-gray-600">Premium AI Model</div>
             </div>
@@ -421,7 +421,7 @@ export default function AIHumanizerTool() {
                   <p className="text-sm text-purple-700 mb-3">
                     {usage.remaining <= 1 
                       ? `You've used ${usage.used} of ${usage.limit} daily humanizations. Upgrade to get 50-150 monthly uses with higher word limits!`
-                      : 'Get 50-150 monthly humanizations with up to 2,500 words per use. Perfect for students, writers, and professionals.'
+                      : 'Get 50-150 monthly humanizations with up to 3,000 words per use. Perfect for students, writers, and professionals.'
                     }
                   </p>
                   <Link
@@ -447,10 +447,11 @@ export default function AIHumanizerTool() {
                 AI-Generated Text
               </h2>
               <span className={`text-xs sm:text-sm font-medium ${
+
                 stats.originalWords > MAX_WORDS ? 'text-red-600' : 'text-gray-500'
               }`}>
                 {stats.originalWords} / {
-                  usage.tier === 'free' ? '500' : usage.tier === 'starter' ? '1,000' : '2,500'
+                  usage.tier === 'free' ? '300' : usage.tier === 'starter' ? '1,000' : '3,000'
                 } words
               </span>
             </div>
@@ -461,13 +462,13 @@ export default function AIHumanizerTool() {
               className="w-full h-64 sm:h-80 p-4 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all resize-none text-sm sm:text-base"
               disabled={isHumanizing}
             />
-            {stats.originalWords > (usage.tier === 'free' ? 500 : usage.tier === 'starter' ? 1000 : 2500) && (
+            {stats.originalWords > (usage.tier === 'free' ? 300 : usage.tier === 'starter' ? 1000 : 3000) && (
               <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-red-700">
                   Text exceeds your tier limit. 
-                  {usage.tier === 'free' && ' Upgrade to Starter for 1,000 words or Pro for 2,500 words.'}
-                  {usage.tier === 'starter' && ' Upgrade to Pro for 2,500 words per use.'}
+                  {usage.tier === 'free' && ' Upgrade to Starter for 1,000 words or Pro for 3,000 words.'}
+                  {usage.tier === 'starter' && ' Upgrade to Pro for 3,000 words per use.'}
                 </p>
               </div>
             )}
@@ -512,7 +513,7 @@ export default function AIHumanizerTool() {
               <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-green-700">
-                  Text successfully humanized! Expected AI detection: 15-25%
+                  Text successfully humanized! Expected AI detection: upto 10% only
                 </p>
               </div>
             )}
@@ -530,7 +531,7 @@ export default function AIHumanizerTool() {
             {isHumanizing ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Humanizing with GPT-4o...</span>
+                <span>Humanizing.....</span>
               </>
             ) : (
               <>
@@ -617,9 +618,9 @@ export default function AIHumanizerTool() {
               <div className="flex items-start gap-3">
                 <Shield className={`w-5 h-5 ${plagiarismInfo.color} flex-shrink-0 mt-0.5`} />
                 <div>
-                  <h4 className={`font-semibold ${plagiarismInfo.color} mb-1`}>Expected AI Detection: 15-25%</h4>
+                  <h4 className={`font-semibold ${plagiarismInfo.color} mb-1`}>Expected AI Detection: 0-10% </h4>
                   <p className="text-sm text-gray-700">
-                    Our GPT-4o powered humanizer achieves 75-85% human detection on ZeroGPT and QuillBot. 
+                    Our GPT powered humanizer achieves 80-90% human detection on AI Detectors. 
                     Lower similarity scores indicate better transformation quality.
                   </p>
                 </div>
