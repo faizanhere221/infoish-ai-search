@@ -96,3 +96,12 @@ api_keys_backup.json
 
 # Railway & deployment
 .railway/
+
+
+# Payment data
+/data/payment-submissions.json
+/public/uploads/payment-proofs/*
+!public/uploads/payment-proofs/.gitkeep
+
+# Keep directory structure
+!public/uploads/payment-proofs/.gitkeep

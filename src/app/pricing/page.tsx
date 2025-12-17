@@ -57,48 +57,59 @@ const PricingPage: React.FC = () => {
   }, []);
 
   const handleUpgrade = async (planId: string, product: ProductTab): Promise<void> => {
-    if (planId === 'free') return;
-    
-    setLoading(prev => ({ ...prev, [`${product}_${planId}`]: true }));
-    
-    try {
-      const token = localStorage.getItem('auth_token');
-      
-      const response = await fetch('/api/payment/create-manual-order', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          plan: planId,
-          billing_cycle: billingCycle,
-          user_email: user?.email || '',
-          user_name: user?.name || '',
-          product: product
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create payment order');
-      }
-      
-      const paymentData = await response.json();
-      
-      if (paymentData.success) {
-        const encodedData = encodeURIComponent(JSON.stringify(paymentData));
-        window.location.href = `/payment?payment_data=${encodedData}`;
-      } else {
-        throw new Error(paymentData.error || 'Failed to create payment');
-      }
-      
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert('Payment setup failed: ' + errorMessage);
-    } finally {
-      setLoading(prev => ({ ...prev, [`${product}_${planId}`]: false }));
+  if (planId === 'free') return;
+  
+  // Require login for payments ✅
+  if (!user || !user.email) {
+    const shouldLogin = confirm('You need to be logged in to upgrade. Would you like to login now?');
+    if (shouldLogin) {
+      // Save the intended plan for after login
+      localStorage.setItem('intended_plan', JSON.stringify({ planId, product, billingCycle }));
+      window.location.href = '/login?redirect=/pricing';
     }
-  };
+    return;
+  }
+  
+  setLoading(prev => ({ ...prev, [`${product}_${planId}`]: true }));
+  
+  try {
+    const token = localStorage.getItem('auth_token');
+    
+    const response = await fetch('/api/payment/create-manual-order', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        plan: planId,
+        billing_cycle: billingCycle,
+        user_email: user.email,
+        user_name: user.name || 'User',
+        product: product
+      })
+    });
+    
+    const paymentData = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(paymentData.error || 'Failed to create payment order');
+    }
+    
+    if (paymentData.success) {
+      const encodedData = encodeURIComponent(JSON.stringify(paymentData));
+      window.location.href = `/payment?payment_data=${encodedData}`;
+    } else {
+      throw new Error(paymentData.error || 'Failed to create payment');
+    }
+    
+  } catch (error) {
+    console.error('Payment Error:', error);
+    alert('Payment setup failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+  } finally {
+    setLoading(prev => ({ ...prev, [`${product}_${planId}`]: false }));
+  }
+};
 
   // InfoIshai Plans
   const infoishaiPlans: Plan[] = [

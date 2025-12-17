@@ -1,47 +1,77 @@
-// src/app/api/payment/upload-proof/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
+import { writeFile, mkdir, readFile } from 'fs/promises'
 import { join } from 'path'
+import { existsSync } from 'fs'
+
+interface PaymentSubmission {
+  payment_reference: string
+  user_email: string
+  transaction_id: string | null
+  notes: string | null
+  filename: string
+  file_path: string
+  file_size: number
+  file_type: string
+  submitted_at: string
+  status: 'pending_verification' | 'verified' | 'rejected'
+  verified_at: string | null
+  verified_by: string | null
+}
+
+interface UploadResponse {
+  success: boolean
+  message: string
+  reference: string
+  filename: string
+  file_url: string
+  next_steps: string[]
+}
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const file = formData.get('proof') as File
-    const paymentReference = formData.get('payment_reference') as string
-    const userEmail = formData.get('user_email') as string
-    const transactionId = formData.get('transaction_id') as string
-    const notes = formData.get('notes') as string
+    const file = formData.get('proof') as File | null
+    const paymentReference = formData.get('payment_reference') as string | null
+    const userEmail = formData.get('user_email') as string | null
+    const transactionId = formData.get('transaction_id') as string | null
+    const notes = formData.get('notes') as string | null
 
+    // Validation
     if (!file || !paymentReference || !userEmail) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      return NextResponse.json({ 
+        error: 'Missing required fields',
+        required: ['proof (file)', 'payment_reference', 'user_email']
+      }, { status: 400 })
     }
 
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf']
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json({ 
-        error: 'Invalid file type. Please upload JPG, PNG, WEBP, or PDF files only.' 
+        error: 'Invalid file type. Please upload JPG, PNG, WEBP, or PDF files only.',
+        received_type: file.type
       }, { status: 400 })
     }
 
     // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    if (file.size > maxSize) {
       return NextResponse.json({ 
-        error: 'File too large. Maximum size is 5MB.' 
+        error: 'File too large. Maximum size is 5MB.',
+        file_size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+        max_size: '5MB'
       }, { status: 400 })
     }
 
     // Create upload directory
     const uploadDir = join(process.cwd(), 'public', 'uploads', 'payment-proofs')
-    try {
+    if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true })
-    } catch (error) {
-      // Directory might already exist
     }
 
     // Generate unique filename
     const timestamp = Date.now()
-    const extension = file.name.split('.').pop()
+    const extension = file.name.split('.').pop() || 'jpg'
     const filename = `${paymentReference}-${timestamp}.${extension}`
     const filepath = join(uploadDir, filename)
 
@@ -50,12 +80,14 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes)
     await writeFile(filepath, buffer)
 
-    // Create submission record (save to JSON file for now)
-    const submissionData = {
+    console.log(`✅ File saved: ${filepath}`)
+
+    // Create submission record
+    const submissionData: PaymentSubmission = {
       payment_reference: paymentReference,
       user_email: userEmail,
-      transaction_id: transactionId || null,
-      notes: notes || null,
+      transaction_id: transactionId,
+      notes: notes,
       filename: filename,
       file_path: filepath,
       file_size: file.size,
@@ -66,76 +98,88 @@ export async function POST(request: NextRequest) {
       verified_by: null
     }
 
-    // Save to JSON file (simple storage for now)
+    // Save to JSON file
     await saveSubmissionToFile(submissionData)
 
-    // Send email notification to admin
-    console.log('📧 EMAIL NOTIFICATION:')
-    console.log('=================================')
-    console.log(`New payment proof submitted!`)
+    // Log for admin notification
+    console.log('')
+    console.log('📧 [NEW PAYMENT PROOF SUBMITTED]')
+    console.log('================================')
     console.log(`Reference: ${paymentReference}`)
     console.log(`User: ${userEmail}`)
     console.log(`Transaction ID: ${transactionId || 'Not provided'}`)
     console.log(`File: ${filename}`)
+    console.log(`File Size: ${(file.size / 1024).toFixed(2)} KB`)
     console.log(`Notes: ${notes || 'None'}`)
-    console.log(`Check: public/uploads/payment-proofs/${filename}`)
-    console.log('=================================')
+    console.log(`Time: ${new Date().toLocaleString()}`)
+    console.log(`View file: http://localhost:3000/uploads/payment-proofs/${filename}`)
+    console.log('================================')
+    console.log('')
 
-    return NextResponse.json({
+    const response: UploadResponse = {
       success: true,
       message: 'Payment proof uploaded successfully',
       reference: paymentReference,
       filename: filename,
       file_url: `/uploads/payment-proofs/${filename}`,
       next_steps: [
-        'Your payment proof has been submitted',
-        'We will verify your payment within 24 hours',
-        'You will receive an email confirmation once verified',
-        'Your subscription will be activated automatically'
+        '✅ Your payment proof has been submitted',
+        '⏳ We will verify your payment within 2-4 hours',
+        '📧 You will receive an email confirmation once verified',
+        '🎉 Your subscription will be activated automatically'
       ]
-    })
+    }
 
-  } catch (error: any) {
-    console.error('Proof upload error:', error)
+    return NextResponse.json(response)
+
+  } catch (error) {
+    console.error('❌ [Proof Upload Error]:', error)
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
     return NextResponse.json(
       {
         error: 'Upload failed',
-        details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+        details: process.env.NODE_ENV === 'development' ? errorMessage : 'Internal server error'
       },
       { status: 500 }
     )
   }
 }
 
-async function saveSubmissionToFile(submissionData: any) {
+async function saveSubmissionToFile(submissionData: PaymentSubmission): Promise<void> {
   try {
-    const submissionsDir = join(process.cwd(), 'data')
-    const submissionsFile = join(submissionsDir, 'payment-submissions.json')
+    const dataDir = join(process.cwd(), 'data')
+    const submissionsFile = join(dataDir, 'payment-submissions.json')
     
-    // Create data directory
-    try {
-      await mkdir(submissionsDir, { recursive: true })
-    } catch (error) {
-      // Directory might already exist
+    // Create data directory if it doesn't exist
+    if (!existsSync(dataDir)) {
+      await mkdir(dataDir, { recursive: true })
     }
 
     // Read existing submissions
-    let submissions = []
-    try {
-      const existingData = await require('fs/promises').readFile(submissionsFile, 'utf8')
-      submissions = JSON.parse(existingData)
-    } catch (error) {
-      // File doesn't exist yet, start with empty array
+    let submissions: PaymentSubmission[] = []
+    
+    if (existsSync(submissionsFile)) {
+      try {
+        const existingData = await readFile(submissionsFile, 'utf8')
+        submissions = JSON.parse(existingData) as PaymentSubmission[]
+      } catch (parseError) {
+        console.warn('⚠️ Could not parse existing submissions, starting fresh')
+        submissions = []
+      }
     }
 
     // Add new submission
     submissions.push(submissionData)
 
     // Save updated submissions
-    await writeFile(submissionsFile, JSON.stringify(submissions, null, 2))
+    await writeFile(submissionsFile, JSON.stringify(submissions, null, 2), 'utf8')
     
     console.log(`💾 Submission saved to: ${submissionsFile}`)
+    console.log(`📊 Total submissions: ${submissions.length}`)
   } catch (error) {
-    console.error('Error saving submission:', error)
+    console.error('❌ Error saving submission:', error)
+    // Don't throw - file saved successfully even if JSON logging fails
   }
 }
