@@ -122,6 +122,45 @@ export default function AdminPaymentsPage() {
     return true
   })
 
+
+  const activateSubscription = async (email: string, reference: string) => {
+  const confirmed = confirm(
+    `Activate subscription for ${email}?\n\nThis will immediately grant access.`
+  )
+  
+  if (!confirmed) return
+  
+  try {
+    const productSlug = getProductSlugFromReference(reference)
+    
+    const response = await fetch('/api/admin/activate-subscription', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${adminToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user_email: email,
+        product_slug: productSlug,
+        tier: 'starter', // Default to starter
+        payment_reference: reference  // ✅ Add this
+      })
+    })
+    
+    const data = await response.json()
+    
+    if (response.ok) {
+      alert(`✅ Subscription activated for ${email}!`)
+      fetchSubmissions() // Refresh the list
+    } else {
+      alert(`❌ Activation failed: ${data.error}`)
+    }
+  } catch (error) {
+    console.error('Activation error:', error)
+    alert('❌ Failed to activate subscription')
+  }
+}
+
   const copyActivationSQL = (email: string, reference: string) => {
     const productSlug = getProductSlugFromReference(reference)
     const sqlCommand = `UPDATE users 

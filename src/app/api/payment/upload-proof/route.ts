@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { readFile, writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { existsSync } from 'fs'
 
 // Initialize Supabase client for storage
 const supabase = createClient(
@@ -13,16 +10,17 @@ const supabase = createClient(
 interface PaymentSubmission {
   payment_reference: string
   user_email: string
-  transaction_id: string | null
-  notes: string | null
+  transaction_id?: string
+  notes?: string
   filename: string
   file_url: string
   file_size: number
   file_type: string
+  product?: string
+  plan?: string
+  amount?: number
+  status: string
   submitted_at: string
-  status: 'pending_verification' | 'verified' | 'rejected'
-  verified_at: string | null
-  verified_by: string | null
 }
 
 export async function POST(request: NextRequest) {
@@ -69,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`📤 Uploading: ${filename} (${(file.size / 1024).toFixed(2)} KB)`)
 
-    // Convert File to ArrayBuffer for Supabase ✅
+    // Convert File to ArrayBuffer for Supabase
     const arrayBuffer = await file.arrayBuffer()
     const buffer = new Uint8Array(arrayBuffer)
 
@@ -86,7 +84,7 @@ export async function POST(request: NextRequest) {
       throw new Error(`Storage upload failed: ${uploadError.message}`)
     }
 
-    // Get public URL ✅
+    // Get public URL
     const { data: urlData } = supabase.storage
       .from('payment-proofs')
       .getPublicUrl(filename)
@@ -95,30 +93,42 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Uploaded to Supabase Storage: ${fileUrl}`)
 
-    // Create submission record
-    const submissionData: PaymentSubmission = {
-      payment_reference: paymentReference,
-      user_email: userEmail,
-      transaction_id: transactionId,
-      notes: notes,
-      filename: filename,
-      file_url: fileUrl,  // ✅ Supabase public URL
-      file_size: file.size,
-      file_type: file.type,
-      submitted_at: new Date().toISOString(),
-      status: 'pending_verification',
-      verified_at: null,
-      verified_by: null
-    }
+    // Extract product info from payment reference
+    const product = paymentReference.startsWith('HUM-') ? 'AI Humanizer' : 'InfoIshai Search'
+    
+    // Save to database ✅
+    const { data: dbData, error: dbError } = await supabase
+      .from('payment_submissions')
+      .insert({
+        payment_reference: paymentReference,
+        user_email: userEmail,
+        transaction_id: transactionId,
+        notes: notes,
+        filename: filename,
+        file_url: fileUrl,
+        file_size: file.size,
+        file_type: file.type,
+        product: product,
+        status: 'pending_verification',
+        submitted_at: new Date().toISOString()
+      })
+      .select()
+      .single()
 
-    // Save to JSON file (for tracking)
-    await saveSubmissionToFile(submissionData)
+    if (dbError) {
+      console.error('❌ Database insert error:', dbError)
+      // Don't fail - file was uploaded successfully
+      console.warn('File uploaded but database insert failed')
+    } else {
+      console.log('✅ Saved to database:', dbData)
+    }
 
     // Log for admin notification
     console.log('')
     console.log('📧 [NEW PAYMENT PROOF SUBMITTED]')
     console.log('================================')
     console.log(`Reference: ${paymentReference}`)
+    console.log(`Product: ${product}`)
     console.log(`User: ${userEmail}`)
     console.log(`Transaction ID: ${transactionId || 'Not provided'}`)
     console.log(`File: ${filename}`)
@@ -134,7 +144,7 @@ export async function POST(request: NextRequest) {
       message: 'Payment proof uploaded successfully',
       reference: paymentReference,
       filename: filename,
-      file_url: fileUrl,  // ✅ Return Supabase URL
+      file_url: fileUrl,
       next_steps: [
         '✅ Your payment proof has been submitted',
         '⏳ We will verify your payment within 2-4 hours',
@@ -156,44 +166,5 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     )
-  }
-}
-
-async function saveSubmissionToFile(submissionData: PaymentSubmission): Promise<void> {
-  try {
-    // In production (Vercel), use /tmp directory
-    const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production'
-    const dataDir = isProduction ? '/tmp' : join(process.cwd(), 'data')
-    const submissionsFile = join(dataDir, 'payment-submissions.json')
-    
-    // Create data directory if it doesn't exist (only works locally)
-    if (!isProduction && !existsSync(dataDir)) {
-      await mkdir(dataDir, { recursive: true })
-    }
-
-    // Read existing submissions
-    let submissions: PaymentSubmission[] = []
-    
-    if (existsSync(submissionsFile)) {
-      try {
-        const existingData = await readFile(submissionsFile, 'utf8')
-        submissions = JSON.parse(existingData) as PaymentSubmission[]
-      } catch (parseError) {
-        console.warn('⚠️ Could not parse existing submissions, starting fresh')
-        submissions = []
-      }
-    }
-
-    // Add new submission
-    submissions.push(submissionData)
-
-    // Save updated submissions
-    await writeFile(submissionsFile, JSON.stringify(submissions, null, 2), 'utf8')
-    
-    console.log(`💾 Submission saved to: ${submissionsFile}`)
-    console.log(`📊 Total submissions: ${submissions.length}`)
-  } catch (error) {
-    console.error('❌ Error saving submission to file:', error)
-    // Don't throw - upload succeeded even if JSON logging failed
   }
 }

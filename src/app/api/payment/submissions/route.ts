@@ -1,23 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import { join } from 'path'
-import { existsSync } from 'fs'
+import { createClient } from '@supabase/supabase-js'
 
-interface PaymentSubmission {
-  payment_reference: string
-  user_email: string
-  transaction_id: string | null
-  notes: string | null
-  filename: string
-  file_path?: string  // Old format (backward compatibility)
-  file_url?: string   // New format ✅
-  file_size: number
-  file_type: string
-  submitted_at: string
-  status: string
-  verified_at: string | null
-  verified_by: string | null
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,81 +13,47 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const queryToken = searchParams.get('token')
     
-    // Get expected token from environment
     const adminToken = process.env.ADMIN_TOKEN || 'infoishai-admin-secret-2025-change-this-in-production'
     
-    // Get provided token
+    // Check both authorization methods
     const providedToken = authHeader?.replace('Bearer ', '') || queryToken
     
-    // DEBUG LOGGING ✅
-    console.log('=====================================')
-    console.log('🔐 Admin Token Check:')
-    console.log('=====================================')
-    console.log('Expected token:', adminToken)
-    console.log('Expected length:', adminToken.length)
-    console.log('-------------------------------------')
-    console.log('Provided token:', providedToken)
-    console.log('Provided length:', providedToken?.length || 0)
-    console.log('-------------------------------------')
-    console.log('Tokens match:', providedToken === adminToken)
-    console.log('From query param:', !!queryToken)
-    console.log('From auth header:', !!authHeader)
-    console.log('=====================================')
-    
-    // Check if tokens match
     if (providedToken !== adminToken) {
       return NextResponse.json(
-        { 
-          error: 'Unauthorized',
-          hint: 'Token mismatch',
-          debug: process.env.NODE_ENV === 'development' ? {
-            expected_token_start: adminToken.substring(0, 10) + '...',
-            provided_token_start: providedToken?.substring(0, 10) + '...',
-            expected_length: adminToken.length,
-            provided_length: providedToken?.length || 0,
-            tokens_match: providedToken === adminToken
-          } : undefined
-        },
+        { error: 'Unauthorized', hint: 'Invalid admin token' },
         { status: 401 }
       )
     }
 
-    const dataDir = join(process.cwd(), 'data')
-    const submissionsFile = join(dataDir, 'payment-submissions.json')
-    
-    if (!existsSync(submissionsFile)) {
-      return NextResponse.json({
-        success: true,
-        submissions: [],
-        total: 0,
-        pending: 0,
-        verified: 0,
-        rejected: 0,
-        message: 'No submissions yet'
-      })
+    // Get all submissions from database ✅
+    const { data: submissions, error } = await supabase
+      .from('payment_submissions')
+      .select('*')
+      .order('submitted_at', { ascending: false })
+
+    if (error) {
+      console.error('Database query error:', error)
+      throw error
     }
 
-    const data = await readFile(submissionsFile, 'utf8')
-    const submissions = JSON.parse(data) as PaymentSubmission[]
-    
-    // Sort by most recent first
-    submissions.sort((a, b) => 
-      new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
-    )
+    // Calculate stats
+    const stats = {
+      total: submissions?.length || 0,
+      pending: submissions?.filter(s => s.status === 'pending_verification').length || 0,
+      verified: submissions?.filter(s => s.status === 'verified').length || 0,
+      rejected: submissions?.filter(s => s.status === 'rejected').length || 0
+    }
 
-    console.log('✅ Auth successful! Returning', submissions.length, 'submissions')
+    console.log(`📊 Admin Panel: Fetched ${stats.total} submissions (${stats.pending} pending)`)
 
     return NextResponse.json({
       success: true,
-      submissions,
-      total: submissions.length,
-      pending: submissions.filter(s => s.status === 'pending_verification').length,
-      verified: submissions.filter(s => s.status === 'verified').length,
-      rejected: submissions.filter(s => s.status === 'rejected').length
+      submissions: submissions || [],
+      ...stats
     })
 
   } catch (error) {
-    console.error('❌ Error in submissions API:', error)
+    console.error('Error fetching submissions:', error)
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     
