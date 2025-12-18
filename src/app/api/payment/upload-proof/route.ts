@@ -3,6 +3,15 @@ import { writeFile, mkdir, readFile } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
 
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '4mb' // Set to 4MB to be safe
+    }
+  }
+}
+
 interface PaymentSubmission {
   payment_reference: string
   user_email: string
@@ -53,15 +62,18 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024 // 5MB
+
+    // ⭐ Validate file size - STRICT 4MB limit for Vercel ✅
+    const maxSize = 4 * 1024 * 1024 // 4MB
     if (file.size > maxSize) {
       return NextResponse.json({ 
-        error: 'File too large. Maximum size is 5MB.',
+        error: 'File too large. Maximum size is 4MB.',
         file_size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-        max_size: '5MB'
-      }, { status: 400 })
+        max_size: '4MB',
+        hint: 'Please compress your image or take a smaller screenshot'
+      }, { status: 413 }) // 413 = Payload Too Large
     }
+
 
     // Create upload directory
     const uploadDir = join(process.cwd(), 'public', 'uploads', 'payment-proofs')
