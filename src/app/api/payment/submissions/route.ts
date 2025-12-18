@@ -9,7 +9,8 @@ interface PaymentSubmission {
   transaction_id: string | null
   notes: string | null
   filename: string
-  file_path: string
+  file_path?: string  // Old format (backward compatibility)
+  file_url?: string   // New format ✅
   file_size: number
   file_type: string
   submitted_at: string

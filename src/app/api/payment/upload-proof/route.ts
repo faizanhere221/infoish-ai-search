@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir, readFile } from 'fs/promises'
+import { createClient } from '@supabase/supabase-js'
+import { readFile, writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
 
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '4mb' // Set to 4MB to be safe
-    }
-  }
-}
+// Initialize Supabase client for storage
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 interface PaymentSubmission {
   payment_reference: string
@@ -18,22 +16,13 @@ interface PaymentSubmission {
   transaction_id: string | null
   notes: string | null
   filename: string
-  file_path: string
+  file_url: string
   file_size: number
   file_type: string
   submitted_at: string
   status: 'pending_verification' | 'verified' | 'rejected'
   verified_at: string | null
   verified_by: string | null
-}
-
-interface UploadResponse {
-  success: boolean
-  message: string
-  reference: string
-  filename: string
-  file_url: string
-  next_steps: string[]
 }
 
 export async function POST(request: NextRequest) {
@@ -62,37 +51,49 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-
-    // ⭐ Validate file size - STRICT 4MB limit for Vercel ✅
-    const maxSize = 4 * 1024 * 1024 // 4MB
+    // Validate file size (4MB max)
+    const maxSize = 4 * 1024 * 1024
     if (file.size > maxSize) {
       return NextResponse.json({ 
         error: 'File too large. Maximum size is 4MB.',
         file_size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
         max_size: '4MB',
         hint: 'Please compress your image or take a smaller screenshot'
-      }, { status: 413 }) // 413 = Payload Too Large
-    }
-
-
-    // Create upload directory
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'payment-proofs')
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
+      }, { status: 413 })
     }
 
     // Generate unique filename
     const timestamp = Date.now()
     const extension = file.name.split('.').pop() || 'jpg'
     const filename = `${paymentReference}-${timestamp}.${extension}`
-    const filepath = join(uploadDir, filename)
 
-    // Save file
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    await writeFile(filepath, buffer)
+    console.log(`📤 Uploading: ${filename} (${(file.size / 1024).toFixed(2)} KB)`)
 
-    console.log(`✅ File saved: ${filepath}`)
+    // Convert File to ArrayBuffer for Supabase ✅
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = new Uint8Array(arrayBuffer)
+
+    // Upload to Supabase Storage ✅
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('payment-proofs')
+      .upload(filename, buffer, {
+        contentType: file.type,
+        upsert: false
+      })
+
+    if (uploadError) {
+      console.error('❌ Supabase upload error:', uploadError)
+      throw new Error(`Storage upload failed: ${uploadError.message}`)
+    }
+
+    // Get public URL ✅
+    const { data: urlData } = supabase.storage
+      .from('payment-proofs')
+      .getPublicUrl(filename)
+
+    const fileUrl = urlData.publicUrl
+
+    console.log(`✅ Uploaded to Supabase Storage: ${fileUrl}`)
 
     // Create submission record
     const submissionData: PaymentSubmission = {
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
       transaction_id: transactionId,
       notes: notes,
       filename: filename,
-      file_path: filepath,
+      file_url: fileUrl,  // ✅ Supabase public URL
       file_size: file.size,
       file_type: file.type,
       submitted_at: new Date().toISOString(),
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
       verified_by: null
     }
 
-    // Save to JSON file
+    // Save to JSON file (for tracking)
     await saveSubmissionToFile(submissionData)
 
     // Log for admin notification
@@ -124,25 +125,23 @@ export async function POST(request: NextRequest) {
     console.log(`File Size: ${(file.size / 1024).toFixed(2)} KB`)
     console.log(`Notes: ${notes || 'None'}`)
     console.log(`Time: ${new Date().toLocaleString()}`)
-    console.log(`View file: http://localhost:3000/uploads/payment-proofs/${filename}`)
+    console.log(`View file: ${fileUrl}`)
     console.log('================================')
     console.log('')
 
-    const response: UploadResponse = {
+    return NextResponse.json({
       success: true,
       message: 'Payment proof uploaded successfully',
       reference: paymentReference,
       filename: filename,
-      file_url: `/uploads/payment-proofs/${filename}`,
+      file_url: fileUrl,  // ✅ Return Supabase URL
       next_steps: [
         '✅ Your payment proof has been submitted',
         '⏳ We will verify your payment within 2-4 hours',
         '📧 You will receive an email confirmation once verified',
         '🎉 Your subscription will be activated automatically'
       ]
-    }
-
-    return NextResponse.json(response)
+    })
 
   } catch (error) {
     console.error('❌ [Proof Upload Error]:', error)
@@ -152,7 +151,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Upload failed',
-        details: process.env.NODE_ENV === 'development' ? errorMessage : 'Internal server error'
+        details: process.env.NODE_ENV === 'development' ? errorMessage : 'Internal server error',
+        hint: 'Please try again or contact support if the issue persists'
       },
       { status: 500 }
     )
@@ -161,11 +161,13 @@ export async function POST(request: NextRequest) {
 
 async function saveSubmissionToFile(submissionData: PaymentSubmission): Promise<void> {
   try {
-    const dataDir = join(process.cwd(), 'data')
+    // In production (Vercel), use /tmp directory
+    const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production'
+    const dataDir = isProduction ? '/tmp' : join(process.cwd(), 'data')
     const submissionsFile = join(dataDir, 'payment-submissions.json')
     
-    // Create data directory if it doesn't exist
-    if (!existsSync(dataDir)) {
+    // Create data directory if it doesn't exist (only works locally)
+    if (!isProduction && !existsSync(dataDir)) {
       await mkdir(dataDir, { recursive: true })
     }
 
@@ -191,7 +193,7 @@ async function saveSubmissionToFile(submissionData: PaymentSubmission): Promise<
     console.log(`💾 Submission saved to: ${submissionsFile}`)
     console.log(`📊 Total submissions: ${submissions.length}`)
   } catch (error) {
-    console.error('❌ Error saving submission:', error)
-    // Don't throw - file saved successfully even if JSON logging fails
+    console.error('❌ Error saving submission to file:', error)
+    // Don't throw - upload succeeded even if JSON logging failed
   }
 }
