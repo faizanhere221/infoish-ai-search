@@ -1,17 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Check, X, Clock, Eye, RefreshCw, Download, Search } from 'lucide-react'
+import { Check, X, Clock, Eye, RefreshCw, Download, Search, Zap } from 'lucide-react'
 
 interface PaymentSubmission {
+  id?: string
   payment_reference: string
   user_email: string
   transaction_id: string | null
   notes: string | null
   filename: string
-  file_path: string
+  file_path?: string  // Old format (backward compatibility)
+  file_url?: string   // New format (Supabase Storage)
   file_size: number
   file_type: string
+  product?: string
+  plan?: string
+  amount?: number
   submitted_at: string
   status: 'pending_verification' | 'verified' | 'rejected'
   verified_at: string | null
@@ -82,6 +87,9 @@ export default function AdminPaymentsPage() {
       }
 
       const data = await response.json()
+      
+      console.log('📊 Fetched submissions:', data.submissions?.length || 0)
+      
       setSubmissions(data.submissions || [])
       setStats({
         total: data.total || 0,
@@ -122,44 +130,45 @@ export default function AdminPaymentsPage() {
     return true
   })
 
-
   const activateSubscription = async (email: string, reference: string) => {
-  const confirmed = confirm(
-    `Activate subscription for ${email}?\n\nThis will immediately grant access.`
-  )
-  
-  if (!confirmed) return
-  
-  try {
-    const productSlug = getProductSlugFromReference(reference)
+    const confirmed = confirm(
+      `Activate subscription for ${email}?\n\nThis will immediately grant access.`
+    )
     
-    const response = await fetch('/api/admin/activate-subscription', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${adminToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        user_email: email,
-        product_slug: productSlug,
-        tier: 'starter', // Default to starter
-        payment_reference: reference  // ✅ Add this
+    if (!confirmed) return
+    
+    try {
+      const productSlug = getProductSlugFromReference(reference)
+      
+      console.log('Activating subscription...', { email, productSlug, reference })
+      
+      const response = await fetch('/api/admin/activate-subscription', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${adminToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_email: email,
+          product_slug: productSlug,
+          tier: 'starter', // Default to starter
+          payment_reference: reference
+        })
       })
-    })
-    
-    const data = await response.json()
-    
-    if (response.ok) {
-      alert(`✅ Subscription activated for ${email}!`)
-      fetchSubmissions() // Refresh the list
-    } else {
-      alert(`❌ Activation failed: ${data.error}`)
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        alert(`✅ Subscription activated for ${email}!`)
+        fetchSubmissions() // Refresh the list
+      } else {
+        alert(`❌ Activation failed: ${data.error}`)
+      }
+    } catch (error) {
+      console.error('Activation error:', error)
+      alert('❌ Failed to activate subscription')
     }
-  } catch (error) {
-    console.error('Activation error:', error)
-    alert('❌ Failed to activate subscription')
   }
-}
 
   const copyActivationSQL = (email: string, reference: string) => {
     const productSlug = getProductSlugFromReference(reference)
@@ -177,6 +186,34 @@ SELECT email, tool_subscriptions FROM users WHERE email = '${email}';`
     navigator.clipboard.writeText(sqlCommand)
     alert('✅ SQL command copied to clipboard!\n\nPaste and run in Supabase SQL Editor.')
   }
+
+  // Get file URL (supports both old file_path and new file_url)
+  // Get file URL (supports both old file_path and new file_url)
+const getFileUrl = (submission: PaymentSubmission): string => {
+  // Priority 1: Use file_url if available (Supabase Storage)
+  if (submission.file_url) {
+    console.log('Using file_url:', submission.file_url)
+    return submission.file_url
+  }
+  
+  // Priority 2: Use file_path if available
+  if (submission.file_path) {
+    console.log('Using file_path:', submission.file_path)
+    return `/uploads/payment-proofs/${submission.filename}`
+  }
+  
+  // Priority 3: Construct Supabase URL from filename
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (supabaseUrl && submission.filename) {
+    const constructedUrl = `${supabaseUrl}/storage/v1/object/public/payment-proofs/${submission.filename}`
+    console.log('Constructed URL:', constructedUrl)
+    return constructedUrl
+  }
+  
+  // Fallback (shouldn't happen)
+  console.warn('No valid file URL found for:', submission.payment_reference)
+  return `/uploads/payment-proofs/${submission.filename}`
+}
 
   // Login Screen
   if (!isAuthenticated) {
@@ -403,7 +440,7 @@ SELECT email, tool_subscriptions FROM users WHERE email = '${email}';`
           <div className="space-y-4">
             {filteredSubmissions.map((submission, index) => (
               <div
-                key={`${submission.payment_reference}-${submission.submitted_at}-${index}`}
+                key={`submission-${submission.id || submission.payment_reference}-${index}`}
                 className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition"
               >
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -421,8 +458,13 @@ SELECT email, tool_subscriptions FROM users WHERE email = '${email}';`
                         {submission.status === 'pending_verification' ? 'Pending' : submission.status}
                       </span>
                       <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                        {getProductFromReference(submission.payment_reference)}
+                        {submission.product || getProductFromReference(submission.payment_reference)}
                       </span>
+                      {submission.amount && (
+                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                          PKR {submission.amount.toLocaleString()}
+                        </span>
+                      )}
                     </div>
                     
                     <h3 className="text-lg font-bold text-gray-900 mb-1">{submission.user_email}</h3>
@@ -443,8 +485,9 @@ SELECT email, tool_subscriptions FROM users WHERE email = '${email}';`
 
                   {/* Right Section */}
                   <div className="flex flex-col gap-2 min-w-[200px]">
+                    
                     <a
-                      href={`/uploads/payment-proofs/${submission.filename}`}
+                      href={getFileUrl(submission)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -454,13 +497,23 @@ SELECT email, tool_subscriptions FROM users WHERE email = '${email}';`
                     </a>
                     
                     {submission.status === 'pending_verification' && (
-                      <button
-                        onClick={() => copyActivationSQL(submission.user_email, submission.payment_reference)}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                      >
-                        <Check className="w-4 h-4" />
-                        Copy SQL
-                      </button>
+                      <>
+                        <button
+                          onClick={() => activateSubscription(submission.user_email, submission.payment_reference)}
+                          className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                        >
+                          <Zap className="w-4 h-4" />
+                          Activate Now
+                        </button>
+                        
+                        <button
+                          onClick={() => copyActivationSQL(submission.user_email, submission.payment_reference)}
+                          className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition text-sm"
+                        >
+                          <Check className="w-4 h-4" />
+                          Copy SQL
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
