@@ -1,129 +1,164 @@
-// src/app/payment/page.tsx
 'use client'
 
 import React, { useState, useEffect } from 'react';
 import { Copy, Clock, Shield, CheckCircle, Upload } from 'lucide-react';
 
-interface PaymentDetails {
-  payment_reference: string;
-  amount: number;
-  currency: string;
-  plan_details: {
-    name: string;
-    description: string;
-    billing_cycle: string;
-  };
-  bank_details: {
-    account_title: string;
-    account_number: string;
-    bank_name: string;
-    iban: string;
-    branch_code: string;
-  };
-  instructions: string[];
-  expires_in_days: number;
+// ✅ Properly typed User interface
+interface User {
+  email?: string
+  name?: string
+  id?: string
+  subscription_tier?: string
+  humanizer_tier?: string
+  tool_subscriptions?: Record<string, string>
+  created_at?: string
+  updated_at?: string
 }
 
+// ✅ Properly typed PaymentDetails interface
+interface PaymentDetails {
+  payment_reference: string
+  amount: number
+  currency: string
+  product: string
+  product_slug?: string
+  plan?: string
+  plan_details: {
+    name: string
+    description: string
+    billing_cycle: string
+  }
+  bank_details: {
+    account_title: string
+    account_number: string
+    bank_name: string
+    iban: string
+    branch_code: string
+  }
+  instructions: string[]
+  expires_in_days: number
+}
+
+
+
 const PaymentPage: React.FC = () => {
-  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [transactionId, setTransactionId] = useState('');
-  const [notes, setNotes] = useState('');
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
-  const [user, setUser] = useState<any>(null);
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [transactionId, setTransactionId] = useState('')
+  const [notes, setNotes] = useState('')
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
     // Get payment details from URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const paymentData = urlParams.get('payment_data');
-    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+    const urlParams = new URLSearchParams(window.location.search)
+    const paymentData = urlParams.get('payment_data')
     
-    setUser(userData);
+    try {
+      const userData = localStorage.getItem('user_data')
+      if (userData) {
+        setUser(JSON.parse(userData) as User)
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error)
+      setUser(null)
+    }
     
     if (paymentData) {
       try {
-        setPaymentDetails(JSON.parse(decodeURIComponent(paymentData)));
+        setPaymentDetails(JSON.parse(decodeURIComponent(paymentData)) as PaymentDetails)
       } catch (error) {
-        console.error('Error parsing payment data:', error);
+        console.error('Error parsing payment data:', error)
         // Redirect back to pricing if no valid data
-        window.location.href = '/pricing';
+        window.location.href = '/pricing'
       }
     } else {
       // Redirect to pricing if no payment data
-      window.location.href = '/pricing';
+      window.location.href = '/pricing'
     }
-  }, []);
+  }, [])
 
   const copyToClipboard = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
-      // You could add a toast notification here
-      alert('Copied to clipboard!');
+      await navigator.clipboard.writeText(text)
+      alert('Copied to clipboard!')
     } catch (error) {
       // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      alert('Copied to clipboard!');
+      const textArea = document.createElement('textarea')
+      textArea.value = text
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      alert('Copied to clipboard!')
     }
-  };
+  }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
       // Validate file
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf']
       if (!allowedTypes.includes(file.type)) {
-        alert('Please select a JPG, PNG, WEBP, or PDF file');
-        return;
+        alert('Please select a JPG, PNG, WEBP, or PDF file')
+        return
       }
       
       if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
-        return;
+        alert('File size must be less than 5MB')
+        return
       }
       
-      setSelectedFile(file);
+      setSelectedFile(file)
     }
-  };
+  }
 
   const handleUploadProof = async () => {
-  if (!selectedFile || !paymentDetails) {
-    alert('Please select a file first');
-    return;
-  }
-
-  setUploadStatus('uploading');
-  
-  try {
-    const formData = new FormData();
-    formData.append('proof', selectedFile);
-    formData.append('payment_reference', paymentDetails.payment_reference);
-    formData.append('user_email', user?.email || '');
-    formData.append('transaction_id', transactionId);
-    formData.append('notes', notes);
-
-    const response = await fetch('/api/payment/upload-proof', {
-      method: 'POST',
-      body: formData
-    });
-
-    const result = await response.json();
-
-    if (response.ok && result.success) {
-      setUploadStatus('success');
-    } else {
-      throw new Error(result.error || 'Upload failed');
+    if (!selectedFile || !paymentDetails) {
+      alert('Please select a file first')
+      return
     }
-  } catch (error: any) {
-    console.error('Upload error:', error);
-    setUploadStatus('error');
-    alert('Upload failed: ' + error.message);
+
+    setUploadStatus('uploading')
+    
+    try {
+      const formData = new FormData()
+      formData.append('proof', selectedFile)
+      formData.append('payment_reference', paymentDetails.payment_reference)
+      formData.append('user_email', user?.email || '')
+      formData.append('transaction_id', transactionId)
+      formData.append('notes', notes)
+      
+      // ✅ Add complete payment data for proper tracking
+      formData.append('payment_data', JSON.stringify({
+        product_slug: paymentDetails.product_slug,
+        product: paymentDetails.product,
+        plan: paymentDetails.plan,
+        amount: paymentDetails.amount,
+        billing_cycle: paymentDetails.plan_details?.billing_cycle
+      }))
+
+      const response = await fetch('/api/payment/upload-proof', {
+        method: 'POST',
+        body: formData
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setUploadStatus('success')
+      } else {
+        throw new Error(result.error || 'Upload failed')
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      setUploadStatus('error')
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed'
+      alert('Upload failed: ' + errorMessage)
+    }
   }
-};
+
+  // Rest of your component code stays the same...
 
   if (!paymentDetails) {
     return (
@@ -145,7 +180,7 @@ const PaymentPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Payment Proof Submitted!</h2>
           <p className="text-gray-600 mb-6">
-            Thank you! We've received your payment proof. Your subscription will be activated within 24 hours after verification.
+            Thank you! We have received your payment proof. Your subscription will be activated within 24 hours after verification.
           </p>
           <div className="space-y-3 text-sm text-left bg-gray-50 p-4 rounded-lg mb-6">
             <p><strong>Reference:</strong> {paymentDetails.payment_reference}</p>

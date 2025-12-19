@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { updateUserSubscription } from '@/utils/admin'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+// Calculate subscription end date
+function calculateEndDate(billingCycle: 'monthly' | 'yearly' = 'monthly'): Date {
+  const now = new Date()
+  if (billingCycle === 'yearly') {
+    now.setFullYear(now.getFullYear() + 1)
+  } else {
+    now.setMonth(now.getMonth() + 1)
+  }
+  return now
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,13 +24,10 @@ export async function POST(req: NextRequest) {
     const adminToken = process.env.ADMIN_TOKEN
     
     if (authHeader !== `Bearer ${adminToken}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { user_email, product_slug, tier, payment_reference } = await req.json()
+    const { user_email, product_slug, tier, payment_reference, billing_cycle = 'monthly', amount } = await req.json()
 
     // Validate inputs
     if (!user_email || !product_slug || !tier) {
@@ -30,12 +37,67 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Update subscription
-    await updateUserSubscription(user_email, product_slug, tier)
+    // Get user
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, email, tool_subscriptions')
+      .eq('email', user_email)
+      .single()
 
-    // Update submission status in database ✅
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: `User not found: ${user_email}` },
+        { status: 404 }
+      )
+    }
+
+    // Calculate dates ✅
+    const startDate = new Date()
+    const endDate = calculateEndDate(billing_cycle as 'monthly' | 'yearly')
+    
+    // Update tool_subscriptions
+    const updatedSubscriptions = {
+      ...(user.tool_subscriptions || {}),
+      [product_slug]: tier
+    }
+
+    // Update user with subscription info ✅
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        tool_subscriptions: updatedSubscriptions,
+        subscription_start_date: startDate.toISOString(),
+        subscription_end_date: endDate.toISOString(),
+        subscription_status: 'active',
+        last_payment_date: startDate.toISOString(),
+        next_billing_date: endDate.toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('email', user_email)
+
+    if (updateError) {
+      throw updateError
+    }
+
+    // Log to subscription history ✅
+    await supabase
+      .from('subscription_history')
+      .insert({
+        user_id: user.id,
+        user_email: user_email,
+        product_slug: product_slug,
+        plan: tier,
+        action: 'activated',
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+        payment_reference: payment_reference,
+        amount: amount,
+        notes: `Activated via admin panel`
+      })
+
+    // Update payment submission status
     if (payment_reference) {
-      const { error: updateError } = await supabase
+      await supabase
         .from('payment_submissions')
         .update({
           status: 'verified',
@@ -43,22 +105,21 @@ export async function POST(req: NextRequest) {
           verified_by: 'admin'
         })
         .eq('payment_reference', payment_reference)
-
-      if (updateError) {
-        console.error('Failed to update submission status:', updateError)
-      } else {
-        console.log(`✅ Updated submission status for ${payment_reference}`)
-      }
     }
 
     console.log(`✅ Activated ${tier} for ${user_email} (${product_slug})`)
+    console.log(`   Start: ${startDate.toISOString()}`)
+    console.log(`   End: ${endDate.toISOString()}`)
 
     return NextResponse.json({
       success: true,
       message: `Successfully activated ${tier} tier for ${user_email}`,
       user_email,
       product_slug,
-      tier
+      tier,
+      subscription_start: startDate.toISOString(),
+      subscription_end: endDate.toISOString(),
+      billing_cycle
     })
 
   } catch (error) {
@@ -67,10 +128,7 @@ export async function POST(req: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     
     return NextResponse.json(
-      { 
-        error: 'Activation failed',
-        details: errorMessage
-      },
+      { error: 'Activation failed', details: errorMessage },
       { status: 500 }
     )
   }

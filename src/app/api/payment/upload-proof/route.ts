@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
     console.log(`✅ Uploaded to Supabase Storage: ${fileUrl}`)
 
     // Extract product info from payment reference
+    const productSlug = paymentReference.startsWith('HUM-') ? 'ai_humanizer' : 'infoishai_search'
     const product = paymentReference.startsWith('HUM-') ? 'AI Humanizer' : 'InfoIshai Search'
     
     // Save to database ✅

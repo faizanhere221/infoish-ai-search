@@ -130,45 +130,49 @@ export default function AdminPaymentsPage() {
     return true
   })
 
-  const activateSubscription = async (email: string, reference: string) => {
-    const confirmed = confirm(
-      `Activate subscription for ${email}?\n\nThis will immediately grant access.`
-    )
+  const activateSubscription = async (email: string, reference: string, amount?: number) => {
+  const confirmed = confirm(
+    `Activate subscription for ${email}?\n\nThis will immediately grant access.`
+  )
+  
+  if (!confirmed) return
+  
+  try {
+    const productSlug = getProductSlugFromReference(reference)
     
-    if (!confirmed) return
+    // Determine billing cycle from amount (if available)
+    const billingCycle = 'monthly'
+    // You can add logic to detect yearly vs monthly from amount
     
-    try {
-      const productSlug = getProductSlugFromReference(reference)
-      
-      console.log('Activating subscription...', { email, productSlug, reference })
-      
-      const response = await fetch('/api/admin/activate-subscription', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${adminToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_email: email,
-          product_slug: productSlug,
-          tier: 'starter', // Default to starter
-          payment_reference: reference
-        })
+    const response = await fetch('/api/admin/activate-subscription', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${adminToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user_email: email,
+        product_slug: productSlug,
+        tier: 'starter',
+        payment_reference: reference,
+        billing_cycle: billingCycle,  // ✅ Add billing cycle
+        amount: amount                 // ✅ Add amount
       })
-      
-      const data = await response.json()
-      
-      if (response.ok) {
-        alert(`✅ Subscription activated for ${email}!`)
-        fetchSubmissions() // Refresh the list
-      } else {
-        alert(`❌ Activation failed: ${data.error}`)
-      }
-    } catch (error) {
-      console.error('Activation error:', error)
-      alert('❌ Failed to activate subscription')
+    })
+    
+    const data = await response.json()
+    
+    if (response.ok) {
+      alert(`✅ Subscription activated!\n\nExpires: ${data.subscription_end}`)
+      fetchSubmissions()
+    } else {
+      alert(`❌ Activation failed: ${data.error}`)
     }
+  } catch (error) {
+    console.error('Activation error:', error)
+    alert('❌ Failed to activate subscription')
   }
+}
 
   const copyActivationSQL = (email: string, reference: string) => {
     const productSlug = getProductSlugFromReference(reference)
@@ -460,6 +464,12 @@ const getFileUrl = (submission: PaymentSubmission): string => {
                       <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
                         {submission.product || getProductFromReference(submission.payment_reference)}
                       </span>
+                      {/* Show plan */}
+{submission.plan && (
+  <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+    {submission.plan.charAt(0).toUpperCase() + submission.plan.slice(1)}
+  </span>
+)}
                       {submission.amount && (
                         <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
                           PKR {submission.amount.toLocaleString()}

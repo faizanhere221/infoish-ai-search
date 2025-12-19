@@ -59,21 +59,28 @@ const PricingPage: React.FC = () => {
   const handleUpgrade = async (planId: string, product: ProductTab): Promise<void> => {
   if (planId === 'free') return;
   
-  // Require login for payments ✅
-  if (!user || !user.email) {
-    const shouldLogin = confirm('You need to be logged in to upgrade. Would you like to login now?');
-    if (shouldLogin) {
-      // Save the intended plan for after login
-      localStorage.setItem('intended_plan', JSON.stringify({ planId, product, billingCycle }));
-      window.location.href = '/login?redirect=/pricing';
-    }
-    return;
-  }
-  
   setLoading(prev => ({ ...prev, [`${product}_${planId}`]: true }));
   
   try {
     const token = localStorage.getItem('auth_token');
+    
+    // Get plan details for this specific product
+    const plans = product === 'infoishai' ? infoishaiPlans : humanizerPlans;
+    const selectedPlan = plans.find(p => p.id === planId);
+    
+    if (!selectedPlan) {
+      throw new Error('Invalid plan selected');
+    }
+    
+    // Calculate amount based on billing cycle
+    const amount = selectedPlan.price[billingCycle];
+    
+    console.log('Creating payment order:', {
+      plan: planId,
+      product: product,
+      billing_cycle: billingCycle,
+      amount: amount
+    });
     
     const response = await fetch('/api/payment/create-manual-order', {
       method: 'POST',
@@ -82,21 +89,23 @@ const PricingPage: React.FC = () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ 
-        plan: planId,
-        billing_cycle: billingCycle,
-        user_email: user.email,
-        user_name: user.name || 'User',
-        product: product
+        plan: planId,                    // ✅ starter or pro
+        billing_cycle: billingCycle,     // ✅ monthly or yearly
+        product: product,                // ✅ infoishai or humanizer
+        user_email: user?.email || '',
+        user_name: user?.name || ''
       })
     });
     
-    const paymentData = await response.json();
-    
     if (!response.ok) {
-      throw new Error(paymentData.error || 'Failed to create payment order');
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to create payment order');
     }
     
+    const paymentData = await response.json();
+    
     if (paymentData.success) {
+      console.log('✅ Payment order created:', paymentData);
       const encodedData = encodeURIComponent(JSON.stringify(paymentData));
       window.location.href = `/payment?payment_data=${encodedData}`;
     } else {
@@ -104,8 +113,9 @@ const PricingPage: React.FC = () => {
     }
     
   } catch (error) {
-    console.error('Payment Error:', error);
-    alert('Payment setup failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Payment error:', errorMessage);
+    alert('Payment setup failed: ' + errorMessage);
   } finally {
     setLoading(prev => ({ ...prev, [`${product}_${planId}`]: false }));
   }

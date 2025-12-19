@@ -1,134 +1,177 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Define proper types ✅
+type ProductType = 'infoishai' | 'humanizer'
 type PlanType = 'starter' | 'pro'
-type BillingCycle = 'monthly' | 'yearly'
-type ProductType = 'infoishai' | 'ai_humanizer'
+type BillingCycleType = 'monthly' | 'yearly'
 
-interface PlanDetails {
-  name: string
-  description: string
-  monthly_price: number
-  yearly_price: number
+interface PlanPrice {
+  monthly: number
+  yearly: number
 }
 
-interface CreateOrderRequest {
-  plan: PlanType
-  billing_cycle: BillingCycle
-  product: ProductType
-  user_email: string
-  user_name: string
+interface ProductPricing {
+  starter: PlanPrice
+  pro: PlanPrice
 }
 
-interface BankDetails {
-  account_title: string
-  account_number: string
-  bank_name: string
-  iban: string
-  branch_code: string
-}
-
-interface PaymentOrderResponse {
-  success: boolean
-  payment_reference: string
-  amount: number
-  currency: string
+interface RequestBody {
+  plan: string
+  billing_cycle: string
   product: string
-  plan_details: {
-    name: string
-    description: string
-    billing_cycle: BillingCycle
-  }
-  bank_details: BankDetails
-  instructions: string[]
-  expires_in_days: number
+  user_email: string
+  user_name?: string
 }
 
-// Plans for each product
-const INFOISHAI_PLANS: Record<PlanType, PlanDetails> = {
-  starter: {
-    name: 'InfoIshai Starter',
-    description: '30 Searches Per Month, Unlimited Results, Advanced Filters',
-    monthly_price: 2999,
-    yearly_price: 29990,
+// Complete pricing structure
+const PRICING: Record<ProductType, ProductPricing> = {
+  infoishai: {
+    starter: {
+      monthly: 2999,
+      yearly: 29990
+    },
+    pro: {
+      monthly: 6999,
+      yearly: 69990
+    }
   },
-  pro: {
-    name: 'InfoIshai Pro', 
-    description: 'Unlimited Searches, Unlimited Results, Advanced Filters, Priority Support',
-    monthly_price: 6999,
-    yearly_price: 69990,
+  humanizer: {
+    starter: {
+      monthly: 999,
+      yearly: 9990
+    },
+    pro: {
+      monthly: 2499,
+      yearly: 24990
+    }
   }
 }
 
-const HUMANIZER_PLANS: Record<PlanType, PlanDetails> = {
-  starter: {
-    name: 'AI Humanizer Starter',
-    description: '50 Humanizations/Month, 1,000 Words, GPT-4o Model',
-    monthly_price: 999,
-    yearly_price: 9990,
+// Plan descriptions
+const PLAN_DESCRIPTIONS: Record<ProductType, Record<PlanType, string>> = {
+  infoishai: {
+    starter: '30 Searches Per Month, Unlimited Results, Advanced Filters',
+    pro: 'Unlimited Searches, Complete Database Access, Priority Support'
   },
-  pro: {
-    name: 'AI Humanizer Pro', 
-    description: '150 Humanizations/Month, 3,000 Words, API Access',
-    monthly_price: 2999,
-    yearly_price: 29990,
+  humanizer: {
+    starter: '50 AI Humanizations Per Month, 1000 Words Per Use, GPT-4o Model',
+    pro: '150 AI Humanizations Per Month, 2500 Words Per Use, API Access'
   }
+}
+
+// Plan names
+const PLAN_NAMES: Record<ProductType, Record<PlanType, string>> = {
+  infoishai: {
+    starter: 'InfoIshai Starter',
+    pro: 'InfoIshai Pro'
+  },
+  humanizer: {
+    starter: 'AI Humanizer Starter',
+    pro: 'AI Humanizer Pro'
+  }
+}
+
+// Product display names
+const PRODUCT_NAMES: Record<ProductType, string> = {
+  infoishai: 'InfoIshai Search',
+  humanizer: 'AI Humanizer'
+}
+
+function isValidProduct(product: string): product is ProductType {
+  return product === 'infoishai' || product === 'humanizer'
+}
+
+function isValidPlan(plan: string): plan is PlanType {
+  return plan === 'starter' || plan === 'pro'
+}
+
+function isValidBillingCycle(cycle: string): cycle is BillingCycleType {
+  return cycle === 'monthly' || cycle === 'yearly'
 }
 
 function generatePaymentReference(product: ProductType): string {
   const timestamp = Date.now()
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
-  const productPrefix = product === 'ai_humanizer' ? 'HUM' : 'INF'
+  const random = Math.floor(Math.random() * 100000).toString().padStart(5, '0')
+  const productPrefix = product === 'humanizer' ? 'HUM' : 'INF'
   return `${productPrefix}-${timestamp}-${random}`
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as CreateOrderRequest
+    const body = await request.json() as RequestBody
     const { plan, billing_cycle, product, user_email, user_name } = body
+
+    console.log('📝 Payment order request:', {
+      plan,
+      billing_cycle,
+      product,
+      user_email
+    })
 
     // Validation
     if (!plan || !billing_cycle || !product || !user_email) {
-      return NextResponse.json({ 
-        error: 'Missing required fields',
-        required: ['plan', 'billing_cycle', 'product', 'user_email']
-      }, { status: 400 })
+      return NextResponse.json(
+        { 
+          error: 'Missing required fields',
+          required: ['plan', 'billing_cycle', 'product', 'user_email']
+        },
+        { status: 400 }
+      )
     }
 
-    // Get the right plan set based on product
-    const PLANS = product === 'ai_humanizer' ? HUMANIZER_PLANS : INFOISHAI_PLANS
-
-    if (!PLANS[plan]) {
-      return NextResponse.json({ 
-        error: 'Invalid plan selected',
-        available_plans: Object.keys(PLANS)
-      }, { status: 400 })
+    // Validate and type-guard product
+    if (!isValidProduct(product)) {
+      return NextResponse.json(
+        { error: 'Invalid product. Must be "infoishai" or "humanizer"' },
+        { status: 400 }
+      )
     }
 
-    const selectedPlan = PLANS[plan]
-    const isYearly = billing_cycle === 'yearly'
-    const amount = isYearly ? selectedPlan.yearly_price : selectedPlan.monthly_price
+    // Validate and type-guard plan
+    if (!isValidPlan(plan)) {
+      return NextResponse.json(
+        { error: 'Invalid plan. Must be "starter" or "pro"' },
+        { status: 400 }
+      )
+    }
+
+    // Validate and type-guard billing cycle
+    if (!isValidBillingCycle(billing_cycle)) {
+      return NextResponse.json(
+        { error: 'Invalid billing cycle. Must be "monthly" or "yearly"' },
+        { status: 400 }
+      )
+    }
+
+    // Now TypeScript knows these are the correct types
+    const amount = PRICING[product][plan][billing_cycle]
+    const planName = PLAN_NAMES[product][plan]
+    const planDescription = PLAN_DESCRIPTIONS[product][plan]
+    const productName = PRODUCT_NAMES[product]
+
+    // Generate payment reference
     const paymentReference = generatePaymentReference(product)
 
-    // Get bank details from env
-    const bankDetails: BankDetails = {
-      account_title: process.env.BANK_ACCOUNT_TITLE || "Faizan Islam",
-      account_number: process.env.BANK_ACCOUNT_NUMBER || "14860010141071090013",
-      bank_name: process.env.BANK_NAME || "Allied Bank",
-      iban: process.env.BANK_IBAN || "PK69ABPA0010141071090013",
-      branch_code: process.env.BANK_BRANCH_CODE || "1486"
+    // Bank details
+    const bankDetails = {
+      account_title: process.env.BANK_ACCOUNT_TITLE || 'Faizan Islam',
+      account_number: process.env.BANK_ACCOUNT_NUMBER || '14860010141071090013',
+      bank_name: process.env.BANK_NAME || 'Allied Bank',
+      iban: process.env.BANK_IBAN || 'PK69ABPA0010141071090013',
+      branch_code: process.env.BANK_BRANCH_CODE || '1486'
     }
 
-    const response: PaymentOrderResponse = {
+    const paymentData = {
       success: true,
       payment_reference: paymentReference,
-      amount,
+      amount: amount,
       currency: 'PKR',
-      product: product === 'ai_humanizer' ? 'AI Humanizer' : 'InfoIshai Search',
+      product: productName,
+      product_slug: product,
+      plan: plan,
       plan_details: {
-        name: selectedPlan.name,
-        description: selectedPlan.description,
-        billing_cycle
+        name: planName,
+        description: planDescription,
+        billing_cycle: billing_cycle
       },
       bank_details: bankDetails,
       instructions: [
@@ -141,27 +184,24 @@ export async function POST(request: NextRequest) {
       expires_in_days: 7
     }
 
-    // Log for admin tracking
-    console.log('💰 [Payment Order Created]')
-    console.log('========================')
-    console.log(`Reference: ${paymentReference}`)
-    console.log(`Product: ${product}`)
-    console.log(`Plan: ${plan} (${billing_cycle})`)
-    console.log(`Amount: PKR ${amount}`)
-    console.log(`User: ${user_name} (${user_email})`)
-    console.log(`Created: ${new Date().toISOString()}`)
-    console.log('========================')
+    console.log('✅ Payment order created:', {
+      reference: paymentReference,
+      product: productName,
+      plan: planName,
+      amount: amount,
+      billing_cycle: billing_cycle
+    })
 
-    return NextResponse.json(response)
+    return NextResponse.json(paymentData)
 
   } catch (error) {
-    console.error('❌ [Payment Order Error]:', error)
+    console.error('❌ Payment order error:', error)
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     
     return NextResponse.json(
-      {
-        error: 'Payment order creation failed',
+      { 
+        error: 'Failed to create payment order',
         details: process.env.NODE_ENV === 'development' ? errorMessage : 'Internal server error'
       },
       { status: 500 }
