@@ -24,18 +24,27 @@ export default function NewsletterAdminPage() {
   }, []);
 
   const loadSubscriptions = async () => {
-    try {
-      const response = await fetch('/api/admin/newsletter-subscriptions');
-      if (response.ok) {
-        const data = await response.json();
-        setSubscriptions(data.subscriptions || []);
+  try {
+    const token = localStorage.getItem('admin_token') || 'infoishai-admin-secret-2025-change-this-in-production'
+    
+    const response = await fetch(`/api/admin/newsletter-subscriptions?token=${token}`)
+    
+    if (response.ok) {
+      const data = await response.json()
+      setSubscriptions(data.subscriptions || [])
+    } else {
+      console.error('Failed to load subscriptions:', response.status)
+      if (response.status === 401) {
+        alert('Unauthorized. Please check your admin token.')
       }
-    } catch (error) {
-      console.error('Error loading subscriptions:', error);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (error) {
+    console.error('Error loading subscriptions:', error)
+    alert('Failed to load subscriptions. Check console for details.')
+  } finally {
+    setLoading(false)
+  }
+}
 
   const exportSubscriptions = () => {
     const filteredSubs = getFilteredSubscriptions();
