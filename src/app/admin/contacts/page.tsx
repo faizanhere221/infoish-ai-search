@@ -25,10 +25,14 @@ const ContactAdminDashboard: React.FC = () => {
 
   const loadSubmissions = async () => {
     try {
-      const response = await fetch('/api/admin/contact-submissions');
+      const token = localStorage.getItem('admin_token') || 'Kakayrao1029?!'
+      const response = await fetch(`/api/admin/contact-submissions?token=${token}`)
       if (response.ok) {
         const data = await response.json();
         setSubmissions(data.submissions || []);
+      }
+      else {
+        console.error('Failed to fetch submissions:', response.statusText);
       }
     } catch (error) {
       console.error('Error loading submissions:', error);
@@ -184,7 +188,7 @@ const ContactAdminDashboard: React.FC = () => {
             {['all', 'new', 'read', 'replied'].map((filterOption) => (
               <button
                 key={filterOption}
-                onClick={() => setFilter(filterOption as any)}
+                onClick={() => setFilter(filterOption as 'all' | 'new' | 'read' | 'replied')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filter === filterOption
                     ? 'bg-blue-600 text-white'
