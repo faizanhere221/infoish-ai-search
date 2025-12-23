@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { getTierConfig, getUserTierForProduct} from '@/config/product'
+import { createClient } from '@supabase/supabase-js'
+import { jwtVerify } from 'jose'
+import { getTierConfig, getUserTierForProduct } from '@/config/product'
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production'
 
 // Advanced humanization system prompt
 const HUMANIZATION_SYSTEM_PROMPT = `You are an advanced AI text humanizer that rewrites content to bypass AI detectors like ZeroGPT, GPTZero, and Turnitin. Your goal is to achieve 60-70% human detection (30-40% AI).
@@ -156,32 +166,90 @@ OUTPUT RULES:
 - NO mention of changes made
 - Text should read slightly awkwardly but remain comprehensible
 - Target: 100% human detection (0% AI detection)
+- IMPORTANT: Output should be approximately the same length as the input text
+- DO NOT add extra content or continue writing beyond the original text's scope
 
 CRITICAL: Make text sound like someone translated it from another language or wrote quickly without perfect editing - grammatically acceptable but imperfect, with intentional awkwardness.`
 
-// NEW: Type definitions for multi-product subscriptions ✅
+// Type definitions
 type UserTier = 'free' | 'starter' | 'pro' | 'premium'
 
-interface TierLimits {
-  daily?: number
-  monthly?: number
-  wordLimit: number
-  model: string
-}
-
-
-
-// NEW: Updated UserData interface ✅
 interface UserData {
   id: string
   email: string
-  subscription_tier: string  // Legacy field
-  tool_subscriptions?: Record<string, string>  // NEW: Multi-product subscriptions ✅
+  subscription_tier: string
+  tool_subscriptions?: Record<string, string>
+  humanizer_tier?: string
 }
 
-
-
 const PRODUCT_SLUG = 'ai_humanizer'
+
+// ✅ Verify FastAPI JWT token and get email
+async function verifyFastAPIToken(token: string): Promise<string | null> {
+  try {
+    const secret = new TextEncoder().encode(JWT_SECRET)
+    const { payload } = await jwtVerify(token, secret, {
+      algorithms: ['HS256']
+    })
+    const email = payload.sub as string
+    console.log('[AI Humanizer] ✅ JWT verified for:', email)
+    return email
+  } catch (error) {
+    console.log('[AI Humanizer] ❌ JWT verification failed:', error)
+    return null
+  }
+}
+
+// ✅ Get user tier directly from Supabase
+async function getUserTierFromSupabase(email: string): Promise<UserTier> {
+  try {
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('tool_subscriptions, humanizer_tier')
+      .eq('email', email)
+      .single()
+
+    if (error || !userData) {
+      console.log('[AI Humanizer] User not found in Supabase:', email)
+      return 'free'
+    }
+
+    // Parse tool_subscriptions
+    let toolSubs = userData.tool_subscriptions
+    if (typeof toolSubs === 'string') {
+      try {
+        toolSubs = JSON.parse(toolSubs)
+      } catch {
+        toolSubs = null
+      }
+    }
+
+    // Check tool_subscriptions first, then humanizer_tier
+    if (toolSubs?.ai_humanizer) {
+      console.log('[AI Humanizer] Tier from tool_subscriptions:', toolSubs.ai_humanizer)
+      return toolSubs.ai_humanizer as UserTier
+    } else if (userData.humanizer_tier) {
+      console.log('[AI Humanizer] Tier from humanizer_tier:', userData.humanizer_tier)
+      return userData.humanizer_tier as UserTier
+    }
+
+    return 'free'
+  } catch (error) {
+    console.error('[AI Humanizer] Supabase error:', error)
+    return 'free'
+  }
+}
+
+// ✅ Get word limit for tier
+function getWordLimitForTier(tier: UserTier): number {
+  const limits: Record<UserTier, number> = {
+    free: 300,
+    starter: 1000,
+    pro: 3000,
+    premium: 3000
+  }
+  return limits[tier] || 300
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -196,60 +264,68 @@ export async function POST(req: NextRequest) {
 
     const authHeader = req.headers.get('authorization')
     let userTier: UserTier = 'free'
-    let userId: string | null = null
     let userEmail: string | null = null
 
+    // ✅ Authentication - Try multiple methods
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7)
       
-      try {
-        const backendUrl = process.env.NODE_ENV === 'production'
-          ? 'https://infoish-ai-search-production.up.railway.app'
-          : 'http://127.0.0.1:8000'
+      // Method 1: Verify JWT directly and get tier from Supabase
+      const email = await verifyFastAPIToken(token)
+      if (email) {
+        userEmail = email
+        userTier = await getUserTierFromSupabase(email)
+        console.log(`[AI Humanizer] Direct auth - Email: ${email}, Tier: ${userTier}`)
+      }
+      
+      // Method 2: Fallback to FastAPI backend if direct auth failed
+      if (userTier === 'free' && !email) {
+        try {
+          const backendUrl = process.env.NODE_ENV === 'production'
+            ? 'https://infoish-ai-search-production.up.railway.app'
+            : 'http://127.0.0.1:8000'
+            
+          const userResponse = await fetch(`${backendUrl}/auth/me`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
           
-        const userResponse = await fetch(`${backendUrl}/auth/me`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
-        
-        if (userResponse.ok) {
-          const userData: UserData = await userResponse.json()
-          
-          // Get tier using helper function ✅
-          userTier = getUserTierForProduct(
-            userData.tool_subscriptions || {},
-            PRODUCT_SLUG
-          )
-          
-          userId = userData.id
-          userEmail = userData.email
-          
-          console.log(`[AI Humanizer] User: ${userEmail}, Tier: ${userTier}`)
+          if (userResponse.ok) {
+            const userData: UserData = await userResponse.json()
+            userEmail = userData.email
+            
+            // Get tier from response
+            userTier = getUserTierForProduct(
+              userData.tool_subscriptions || {},
+              PRODUCT_SLUG
+            )
+            
+            // Fallback to humanizer_tier if tool_subscriptions doesn't have it
+            if (userTier === 'free' && userData.humanizer_tier) {
+              userTier = userData.humanizer_tier as UserTier
+            }
+            
+            console.log(`[AI Humanizer] Backend auth - Email: ${userEmail}, Tier: ${userTier}`)
+          }
+        } catch (error) {
+          console.error('[AI Humanizer] Backend auth failed:', error)
         }
-      } catch (error) {
-        console.error('[AI Humanizer] Auth verification failed:', error)
       }
     }
 
-    // Get config using safe getter ✅
-    const tierConfig = getTierConfig(PRODUCT_SLUG, userTier)
-    
-    if (!tierConfig) {
-      console.error(`[AI Humanizer] Invalid tier config for: ${userTier}`)
-      return NextResponse.json(
-        { error: 'Invalid subscription tier' },
-        { status: 400 }
-      )
-    }
-    
-    const wordLimit = tierConfig.wordLimit || 500
+    // ✅ Get word limit based on tier
+    const wordLimit = getWordLimitForTier(userTier)
     const wordCount = text.trim().split(/\s+/).length
 
+    console.log(`[AI Humanizer] Processing - Tier: ${userTier}, Words: ${wordCount}, Limit: ${wordLimit}`)
+
+    // ✅ Check word limit
     if (wordCount > wordLimit) {
       return NextResponse.json(
         { 
-          error: `Text too long for ${userTier} tier. Maximum ${wordLimit} words. You have ${wordCount} words.`,
+          error: `Text too long for ${userTier} tier. Maximum ${wordLimit} words allowed. Your text has ${wordCount} words.`,
           wordCount,
           wordLimit,
+          tier: userTier,
           upgrade: userTier === 'free' 
             ? 'Upgrade to Starter (PKR 999/month) for 1,000 words' 
             : (userTier === 'starter')
@@ -260,8 +336,15 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    console.log(`[AI Humanizer] Processing ${wordCount} words for ${userTier} user`)
+    // ✅ Calculate appropriate max_tokens - prevent runaway generation
+    // Approximately 1.3 tokens per word, with buffer for humanization expansion
+    const estimatedTokens = Math.ceil(wordCount * 1.5)
+    const maxTokensCap = userTier === 'free' ? 600 : userTier === 'starter' ? 2000 : 5000
+    const finalMaxTokens = Math.min(Math.ceil(estimatedTokens * 1.5), maxTokensCap)
 
+    console.log(`[AI Humanizer] OpenAI params - Max tokens: ${finalMaxTokens}, Word count: ${wordCount}`)
+
+    // ✅ Call OpenAI with controlled parameters
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
@@ -271,13 +354,14 @@ export async function POST(req: NextRequest) {
         },
         {
           role: "user",
-          content: `Rewrite this text following ALL the rules above:\n\n${text}`
+          content: `Rewrite the following text. Output ONLY the rewritten version with similar length to the original. Do not add any extra content, explanations, or continue beyond what is provided:\n\n${text}`
         }
       ],
-      temperature: 0.9,
-      max_tokens: Math.ceil(wordCount * 2.5),
-      presence_penalty: 0.6,
-      frequency_penalty: 0.3,
+      temperature: 0.85,
+      max_tokens: finalMaxTokens,
+      presence_penalty: 0.3,
+      frequency_penalty: 0.2,
+      stop: ["\n\n\n", "---", "Note:", "Explanation:"]
     })
 
     const humanizedText = completion.choices[0].message.content
@@ -286,18 +370,25 @@ export async function POST(req: NextRequest) {
       throw new Error('No response from OpenAI')
     }
 
+    // ✅ Trim any trailing gibberish (safety measure)
+    const cleanedText = humanizedText
+      .replace(/\s+$/, '') // Remove trailing whitespace
+      .replace(/[^\w\s.,!?;:'"()-]+$/g, '') // Remove trailing special characters
+      .trim()
+
     const tokensUsed = completion.usage?.total_tokens || 0
     const estimatedCost = (tokensUsed / 1000000) * 12.50
 
-    console.log(`[AI Humanizer] Success! Tokens: ${tokensUsed}, Cost: $${estimatedCost.toFixed(4)}`)
+    console.log(`[AI Humanizer] ✅ Success! Tokens: ${tokensUsed}, Cost: $${estimatedCost.toFixed(4)}, Output words: ${cleanedText.split(/\s+/).length}`)
 
     return NextResponse.json({
       success: true,
-      humanizedText,
+      humanizedText: cleanedText,
       tier: userTier,
       model: 'gpt-4o',
       tokensUsed,
       wordCount,
+      outputWordCount: cleanedText.split(/\s+/).length,
       estimatedCost: estimatedCost.toFixed(4)
     })
 

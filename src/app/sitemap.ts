@@ -32,7 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // Hashtag Generator Blog Post
     {
       url: `${baseUrl}/blog/free-instagram-hashtag-generator-complete-guide`,
-      lastModified: new Date('2024-12-01').toISOString(),
+      lastModified: new Date('2025-12-01').toISOString(),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
@@ -48,7 +48,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // Profile Analyzer Blog Post
     {
       url: `${baseUrl}/blog/free-instagram-profile-analyzer-complete-guide`,
-      lastModified: new Date('2024-11-29').toISOString(),
+      lastModified: new Date('2025-11-29').toISOString(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+
+
+    // AI Humanizer Tool
+    {
+      url: `${baseUrl}/tools/ai-humanizer`,
+      lastModified: today,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    
+    // AI Humanizer Tool Blog Post
+    {
+      url: `${baseUrl}/blog/free-instagram-profile-analyzer-complete-guide`,
+      lastModified: new Date('2025-11-29').toISOString(),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
