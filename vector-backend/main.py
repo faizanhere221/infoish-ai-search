@@ -342,16 +342,27 @@ async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db
 @app.get("/auth/me")
 async def get_current_user_profile(current_user: User = Depends(AuthService.get_current_user)):
     """Get current user profile"""
+    
+    # ✅ Parse tool_subscriptions if it's a string
+    tool_subs = getattr(current_user, 'tool_subscriptions', None)
+    if isinstance(tool_subs, str):
+        import json
+        try:
+            tool_subs = json.loads(tool_subs)
+        except:
+            tool_subs = {}
+    
     return {
         "id": current_user.id,
         "email": current_user.email,
         "full_name": current_user.full_name,
         "profile_picture": current_user.profile_picture,
         "subscription_tier": current_user.subscription_tier,
+        "tool_subscriptions": tool_subs,  # ✅ NEW: Include tool_subscriptions
         "search_count": current_user.search_count,
         "monthly_searches": current_user.monthly_searches,
         "search_limit": current_user.search_limit,
-        "created_at": current_user.created_at.isoformat()
+        "created_at": current_user.created_at.isoformat() if current_user.created_at else None
     }
 
 @app.post("/auth/google/callback")

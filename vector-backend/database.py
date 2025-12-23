@@ -105,12 +105,40 @@ class InfluencerAuth(Base):
 
 
 # User Model - Simplified to Match Prisma
+# User Model - Complete to match Supabase users table
 class User(Base):
     __tablename__ = "users"
     
-    id = Column(String, primary_key=True)  # @default(cuid())
+    id = Column(String, primary_key=True)
     email = Column(String, unique=True, nullable=False)
+    full_name = Column(String, nullable=True)
+    profile_picture = Column(String, nullable=True)
+    google_id = Column(String, nullable=True)
+    is_google_user = Column(Boolean, default=False)
+    hashed_password = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    last_login = Column(DateTime, nullable=True)
+    
+    # Subscription fields
+    subscription_tier = Column(String, default="free")
+    search_count = Column(Integer, default=0)
+    monthly_searches = Column(Integer, default=0)
+    search_limit = Column(Integer, default=10)
+    
+    # ✅ NEW: Tool-specific subscriptions (JSONB in Supabase)
+    humanizer_tier = Column(String, default="free")
+    tool_subscriptions = Column(JSON, nullable=True)  # {"ai_humanizer": "pro", "infoishai_search": "pro"}
+    
+    # Subscription dates
+    subscription_start_date = Column(DateTime, nullable=True)
+    subscription_end_date = Column(DateTime, nullable=True)
+    subscription_status = Column(String, default="inactive")
+    auto_renew = Column(Boolean, default=False)
+    last_payment_date = Column(DateTime, nullable=True)
+    next_billing_date = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
 
 # Extended User model for authentication (add columns as needed)

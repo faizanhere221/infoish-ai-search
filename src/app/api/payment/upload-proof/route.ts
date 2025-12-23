@@ -96,6 +96,22 @@ export async function POST(request: NextRequest) {
     // Extract product info from payment reference
     const productSlug = paymentReference.startsWith('HUM-') ? 'ai_humanizer' : 'infoishai_search'
     const product = paymentReference.startsWith('HUM-') ? 'AI Humanizer' : 'InfoIshai Search'
+
+
+    let plan = 'starter' // Default
+let amount = null
+
+// Parse payment data if available from form
+const paymentDataStr = formData.get('payment_data') as string | null
+if (paymentDataStr) {
+  try {
+    const paymentData = JSON.parse(paymentDataStr)
+    plan = paymentData.plan || 'starter'
+    amount = paymentData.amount || null
+  } catch (e) {
+    console.warn('Could not parse payment_data from upload')
+  }
+}
     
     // Save to database ✅
     const { data: dbData, error: dbError } = await supabase
@@ -110,6 +126,8 @@ export async function POST(request: NextRequest) {
         file_size: file.size,
         file_type: file.type,
         product: product,
+        plan: plan,                 // ✅ Plan (starter/pro)
+        amount: amount,    
         status: 'pending_verification',
         submitted_at: new Date().toISOString()
       })

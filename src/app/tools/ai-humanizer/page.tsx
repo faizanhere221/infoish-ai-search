@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Wand2, Copy, Download, RotateCcw, Check, AlertCircle, Sparkles, TrendingUp, Zap, FileText, Shield, Gauge, Crown } from 'lucide-react'
 
-type UserTier = 'free' | 'starter' | 'premium'
+type UserTier = 'free' | 'starter' | 'pro' | 'premium' 
 
 interface UsageInfo {
   tier: UserTier
@@ -66,24 +66,58 @@ export default function AIHumanizerTool() {
     }))
   }, [inputText])
 
+  // ✅ Helper function to get auth token from localStorage
+  const getAuthToken = (): string | null => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem('auth_token')
+  }
+
+  // ✅ Helper function to get auth headers
+  const getAuthHeaders = (): HeadersInit => {
+    const token = getAuthToken()
+    const headers: HeadersInit = {}
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+      console.log('🔑 Using auth token from localStorage')
+    } else {
+      console.log('⚠️ No auth token found in localStorage')
+    }
+    
+    return headers
+  }
+
   const checkUsage = async () => {
     setIsLoadingUsage(true)
     try {
-      const token = localStorage.getItem('auth_token')
-      const headers: HeadersInit = {}
+      console.log('🔍 Checking usage...')
+      
+      // ✅ Get token from localStorage (FastAPI token)
+      const token = getAuthToken()
       
       if (token) {
-        headers['Authorization'] = `Bearer ${token}`
+        console.log('✅ Found auth token in localStorage')
+        console.log('🔑 Token preview:', token.substring(0, 30) + '...')
+      } else {
+        console.log('⚠️ No auth token - user not logged in')
       }
       
+      const headers = getAuthHeaders()
+      
+      console.log('📡 Calling /api/humanize-ai/usage...')
       const response = await fetch('/api/humanize-ai/usage', { headers })
       
       if (response.ok) {
         const data: UsageInfo = await response.json()
+        console.log('✅ Usage data received:', data)
         setUsage(data)
+      } else {
+        console.error('❌ API returned error:', response.status)
+        const errorData = await response.json()
+        console.error('Error details:', errorData)
       }
     } catch (error) {
-      console.error('Failed to check usage:', error)
+      console.error('❌ Failed to check usage:', error)
     } finally {
       setIsLoadingUsage(false)
     }
@@ -174,6 +208,7 @@ export default function AIHumanizerTool() {
     const limits: Record<UserTier, number> = {
       free: 300,
       starter: 1000,
+      pro: 3000,
       premium: 3000 
     }
     
@@ -194,11 +229,10 @@ export default function AIHumanizerTool() {
     setIsHumanizing(true)
 
     try {
-      const token = localStorage.getItem('auth_token')
-      const headers: HeadersInit = { 'Content-Type': 'application/json' }
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
+      // ✅ Use localStorage token
+      const headers: HeadersInit = { 
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
       }
       
       const response = await fetch('/api/humanize-ai', {
@@ -215,9 +249,10 @@ export default function AIHumanizerTool() {
       const data = await response.json()
       const humanized = data.humanizedText
       
+      // Track usage
       await fetch('/api/humanize-ai/usage', {
         method: 'POST',
-        headers
+        headers: getAuthHeaders()
       })
       
       await checkUsage()
@@ -306,11 +341,11 @@ export default function AIHumanizerTool() {
             <div className="flex items-center gap-3">
               {usage.tier !== 'free' && (
                 <span className={`px-4 py-2 rounded-full text-sm font-bold ${
-                  usage.tier === 'premium' 
+                  usage.tier === 'premium' || usage.tier === 'pro'
                     ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white'
                     : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
                 }`}>
-                  {usage.tier === 'premium' ? '👑 PRO' : '⭐ STARTER'}
+                  {usage.tier === 'premium' || usage.tier === 'pro' ? '👑 PRO' : '⭐ STARTER'}
                 </span>
               )}
             </div>
@@ -396,7 +431,7 @@ export default function AIHumanizerTool() {
             
             <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
               <div className="text-2xl font-bold text-blue-600 mb-1">
-                {usage.tier === 'free' ? '2/day' : usage.tier === 'starter' ? '50/mo' : '150/mo'}
+                {usage.tier === 'free' ? '3/day' : usage.tier === 'starter' ? '50/mo' : '150/mo'}
               </div>
               <div className="text-xs text-gray-600">AI humanizations</div>
             </div>
@@ -447,11 +482,13 @@ export default function AIHumanizerTool() {
                 AI-Generated Text
               </h2>
               <span className={`text-xs sm:text-sm font-medium ${
-
                 stats.originalWords > MAX_WORDS ? 'text-red-600' : 'text-gray-500'
               }`}>
                 {stats.originalWords} / {
-                  usage.tier === 'free' ? '300' : usage.tier === 'starter' ? '1,000' : '3,000'
+                  usage.tier === 'free' ? '300' : 
+                  usage.tier === 'starter' ? '1,000' :
+                  usage.tier === 'pro' ? '3,000' :
+                  '3,000'
                 } words
               </span>
             </div>
@@ -462,7 +499,12 @@ export default function AIHumanizerTool() {
               className="w-full h-64 sm:h-80 p-4 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all resize-none text-sm sm:text-base"
               disabled={isHumanizing}
             />
-            {stats.originalWords > (usage.tier === 'free' ? 300 : usage.tier === 'starter' ? 1000 : 3000) && (
+            {stats.originalWords > (
+              usage.tier === 'free' ? 300 : 
+              usage.tier === 'starter' ? 1000 : 
+              usage.tier === 'pro' ? 3000 :
+              3000
+            ) && (
               <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-red-700">

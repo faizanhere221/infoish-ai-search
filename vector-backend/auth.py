@@ -1,4 +1,5 @@
 # vector-backend/auth.py - UPDATED TO MATCH PRISMA SCHEMA
+import email
 from fastapi import HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -145,8 +146,7 @@ class AuthService:
         # Try to get extended auth info
         auth_user = db.query(AuthUser).filter(AuthUser.id == user.id).first()
         
-        # Combine the data
-        user.subscription_tier = getattr(auth_user, 'subscription_tier', 'free')
+        # Combine the data from auth_user
         user.search_count = getattr(auth_user, 'search_count', 0)
         user.monthly_searches = getattr(auth_user, 'monthly_searches', 0)
         user.search_limit = getattr(auth_user, 'search_limit', 15)
@@ -155,7 +155,39 @@ class AuthService:
         user.google_id = getattr(auth_user, 'google_id', None)
         user.is_verified = getattr(auth_user, 'is_verified', False)
         
+        # ✅ NEW: Get tool_subscriptions from users table (it's stored there)
+        user.tool_subscriptions = getattr(user, 'tool_subscriptions', None)
+        
+        # ✅ NEW: Determine subscription_tier from tool_subscriptions first
+        subscription_tier = 'free'
+        
+        if user.tool_subscriptions:
+            # Parse if it's a string
+            tool_subs = user.tool_subscriptions
+            if isinstance(tool_subs, str):
+                import json
+                try:
+                    tool_subs = json.loads(tool_subs)
+                except:
+                    tool_subs = {}
+            
+            # Get infoishai_search tier from tool_subscriptions
+            if isinstance(tool_subs, dict) and tool_subs.get('infoishai_search'):
+                subscription_tier = tool_subs.get('infoishai_search')
+                logger.info(f"User {email} tier from tool_subscriptions: {subscription_tier}")
+        
+        # Fallback to auth_user subscription_tier if tool_subscriptions doesn't have it
+        if subscription_tier == 'free' and auth_user:
+            subscription_tier = getattr(auth_user, 'subscription_tier', 'free')
+        
+        user.subscription_tier = subscription_tier
+        
+        # ✅ Update search_limit based on actual tier
+        user.search_limit = AuthService.get_search_limit_for_tier(subscription_tier)
+        
         return user
+
+
     
     @staticmethod
     def verify_google_token(google_token: str) -> Optional[dict]:
