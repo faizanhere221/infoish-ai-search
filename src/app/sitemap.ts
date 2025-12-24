@@ -64,7 +64,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     
     // AI Humanizer Tool Blog Post
     {
-      url: `${baseUrl}/blog/free-instagram-profile-analyzer-complete-guide`,
+      url: `${baseUrl}/blog/ai-humanizer-tool-make-ai-text-human-2025`,
       lastModified: new Date('2025-11-29').toISOString(),
       changeFrequency: 'monthly',
       priority: 0.8,
