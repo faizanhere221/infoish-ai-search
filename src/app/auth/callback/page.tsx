@@ -1,7 +1,9 @@
+// src/app/auth/callback/page.tsx
 'use client'
 
 import { useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { trackSignupComplete, trackLogin, identifyUser, trackTrialStarted } from '@/lib/analytics'
 
 function AuthCallbackContent() {
   const searchParams = useSearchParams()
@@ -49,6 +51,29 @@ function AuthCallbackContent() {
         if (response.ok && data.access_token) {
           localStorage.setItem('auth_token', data.access_token)
           localStorage.setItem('user_data', JSON.stringify(data.user))
+          
+          // ✅ ANALYTICS: Track signup/login
+          const isNewUser = data.is_new_user // Check if backend returns this flag
+          
+          if (isNewUser) {
+            // New user signup
+            trackSignupComplete('google')
+            trackTrialStarted('free')
+            console.log('📊 Tracked: New user signup')
+          } else {
+            // Existing user login
+            trackLogin('google')
+            console.log('📊 Tracked: User login')
+          }
+          
+          // Identify user for future events
+          if (data.user) {
+            identifyUser(
+              data.user.id || data.user.email,
+              data.user.email,
+              data.user.subscription_tier || 'free'
+            )
+          }
           
           console.log('Authentication successful, redirecting to search...')
           router.push('/search')

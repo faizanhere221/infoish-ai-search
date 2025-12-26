@@ -1,6 +1,8 @@
+// src/app/pricing/page.tsx
 'use client'
 import React, { useState, useEffect } from 'react';
 import { Check, X, Search, Zap, Crown, Shield, CreditCard, Clock, Wand2, Sparkles } from 'lucide-react';
+import { trackViewPricing, trackPlanSelected, trackPaymentInitiated } from '@/lib/analytics';
 
 interface User {
   subscription_tier?: 'free' | 'starter' | 'pro';
@@ -44,6 +46,10 @@ const PricingPage: React.FC = () => {
   const [loading, setLoading] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    // ✅ ANALYTICS: Track pricing page view on mount
+    trackViewPricing('direct');
+    console.log('📊 Tracked: Pricing page viewed');
+    
     try {
       const userDataString = localStorage.getItem('user_data');
       if (userDataString) {
@@ -57,69 +63,83 @@ const PricingPage: React.FC = () => {
   }, []);
 
   const handleUpgrade = async (planId: string, product: ProductTab): Promise<void> => {
-  if (planId === 'free') return;
-  
-  setLoading(prev => ({ ...prev, [`${product}_${planId}`]: true }));
-  
-  try {
-    const token = localStorage.getItem('auth_token');
+    if (planId === 'free') return;
     
-    // Get plan details for this specific product
-    const plans = product === 'infoishai' ? infoishaiPlans : humanizerPlans;
-    const selectedPlan = plans.find(p => p.id === planId);
+    setLoading(prev => ({ ...prev, [`${product}_${planId}`]: true }));
     
-    if (!selectedPlan) {
-      throw new Error('Invalid plan selected');
+    try {
+      const token = localStorage.getItem('auth_token');
+      
+      // Get plan details for this specific product
+      const plans = product === 'infoishai' ? infoishaiPlans : humanizerPlans;
+      const selectedPlan = plans.find(p => p.id === planId);
+      
+      if (!selectedPlan) {
+        throw new Error('Invalid plan selected');
+      }
+      
+      // Calculate amount based on billing cycle
+      const amount = selectedPlan.price[billingCycle];
+      
+      // ✅ ANALYTICS: Track plan selection
+      trackPlanSelected(
+        planId as 'starter' | 'pro',
+        product,
+        billingCycle,
+        amount
+      );
+      console.log('📊 Tracked: Plan selected -', planId, product, billingCycle);
+      
+      console.log('Creating payment order:', {
+        plan: planId,
+        product: product,
+        billing_cycle: billingCycle,
+        amount: amount
+      });
+      
+      const response = await fetch('/api/payment/create-manual-order', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          plan: planId,
+          billing_cycle: billingCycle,
+          product: product,
+          user_email: user?.email || '',
+          user_name: user?.name || ''
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create payment order');
+      }
+      
+      const paymentData = await response.json();
+      
+      if (paymentData.success) {
+        console.log('✅ Payment order created:', paymentData);
+        
+        // ✅ ANALYTICS: Track payment initiated
+        trackPaymentInitiated(planId, product, amount);
+        console.log('📊 Tracked: Payment initiated');
+        
+        const encodedData = encodeURIComponent(JSON.stringify(paymentData));
+        window.location.href = `/payment?payment_data=${encodedData}`;
+      } else {
+        throw new Error(paymentData.error || 'Failed to create payment');
+      }
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Payment error:', errorMessage);
+      alert('Payment setup failed: ' + errorMessage);
+    } finally {
+      setLoading(prev => ({ ...prev, [`${product}_${planId}`]: false }));
     }
-    
-    // Calculate amount based on billing cycle
-    const amount = selectedPlan.price[billingCycle];
-    
-    console.log('Creating payment order:', {
-      plan: planId,
-      product: product,
-      billing_cycle: billingCycle,
-      amount: amount
-    });
-    
-    const response = await fetch('/api/payment/create-manual-order', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ 
-        plan: planId,                    // ✅ starter or pro
-        billing_cycle: billingCycle,     // ✅ monthly or yearly
-        product: product,                // ✅ infoishai or humanizer
-        user_email: user?.email || '',
-        user_name: user?.name || ''
-      })
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to create payment order');
-    }
-    
-    const paymentData = await response.json();
-    
-    if (paymentData.success) {
-      console.log('✅ Payment order created:', paymentData);
-      const encodedData = encodeURIComponent(JSON.stringify(paymentData));
-      window.location.href = `/payment?payment_data=${encodedData}`;
-    } else {
-      throw new Error(paymentData.error || 'Failed to create payment');
-    }
-    
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Payment error:', errorMessage);
-    alert('Payment setup failed: ' + errorMessage);
-  } finally {
-    setLoading(prev => ({ ...prev, [`${product}_${planId}`]: false }));
-  }
-};
+  };
 
   // InfoIshai Plans
   const infoishaiPlans: Plan[] = [
@@ -528,11 +548,6 @@ const PricingPage: React.FC = () => {
             </button>
           </div>
         </div>
-
-        {/* Rest of sections remain the same... */}
-        {/* I'll skip repeating Payment Methods, How It Works, FAQ, Contact sections to save space */}
-        {/* They remain exactly as before */}
-
       </div>
     </div>
   );

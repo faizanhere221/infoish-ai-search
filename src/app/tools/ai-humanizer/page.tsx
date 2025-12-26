@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Wand2, Copy, Download, RotateCcw, Check, AlertCircle, Sparkles, TrendingUp, Zap, FileText, Shield, Gauge, Crown } from 'lucide-react'
+import { trackHumanizerUsage, trackError, trackCTAClick } from '@/lib/analytics'
+
 
 type UserTier = 'free' | 'starter' | 'pro' | 'premium' 
 
@@ -198,86 +200,98 @@ export default function AIHumanizerTool() {
   }
 
   const handleHumanize = async () => {
-    if (!inputText.trim()) {
-      alert('Please enter some text to humanize!')
-      return
-    }
-
-    const wordCount = countWords(inputText)
-    
-    const limits: Record<UserTier, number> = {
-      free: 300,
-      starter: 1000,
-      pro: 3000,
-      premium: 3000 
-    }
-    
-    if (wordCount > limits[usage.tier]) {
-      alert(`Text too long for ${usage.tier} tier. Maximum ${limits[usage.tier]} words allowed. Your text has ${wordCount} words.`)
-      return
-    }
-    
-    if (usage.remaining <= 0) {
-      const message = usage.tier === 'free'
-        ? `You've used all ${usage.limit} AI humanizations for today. Resets in ${usage.resetIn}.\n\nUpgrade to Starter for 50 monthly uses!`
-        : `You've used all ${usage.limit} AI humanizations this month. Resets in ${usage.resetIn}.`
-      
-      alert(message)
-      return
-    }
-
-    setIsHumanizing(true)
-
-    try {
-      // ✅ Use localStorage token
-      const headers: HeadersInit = { 
-        'Content-Type': 'application/json',
-        ...getAuthHeaders()
-      }
-      
-      const response = await fetch('/api/humanize-ai', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ text: inputText })
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'AI humanization failed')
-      }
-
-      const data = await response.json()
-      const humanized = data.humanizedText
-      
-      // Track usage
-      await fetch('/api/humanize-ai/usage', {
-        method: 'POST',
-        headers: getAuthHeaders()
-      })
-      
-      await checkUsage()
-      
-      setOutputText(humanized)
-
-      const readability = calculateReadability(humanized)
-      const plagiarism = calculatePlagiarismScore(inputText, humanized)
-
-      setStats({
-        originalWords: countWords(inputText),
-        humanizedWords: countWords(humanized),
-        aiPatternsRemoved: 999,
-        readabilityScore: readability,
-        plagiarismScore: plagiarism,
-      })
-
-    } catch (error) {
-      console.error('Humanization error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to humanize text. Please try again.'
-      alert(errorMessage)
-    } finally {
-      setIsHumanizing(false)
-    }
+  if (!inputText.trim()) {
+    alert('Please enter some text to humanize!')
+    return
   }
+
+  const wordCount = countWords(inputText)
+  
+  const limits: Record<UserTier, number> = {
+    free: 300,
+    starter: 1000,
+    pro: 3000,
+    premium: 3000 
+  }
+  
+  if (wordCount > limits[usage.tier]) {
+    alert(`Text too long for ${usage.tier} tier. Maximum ${limits[usage.tier]} words allowed. Your text has ${wordCount} words.`)
+    return
+  }
+  
+  if (usage.remaining <= 0) {
+    const message = usage.tier === 'free'
+      ? `You've used all ${usage.limit} AI humanizations for today. Resets in ${usage.resetIn}.\n\nUpgrade to Starter for 50 monthly uses!`
+      : `You've used all ${usage.limit} AI humanizations this month. Resets in ${usage.resetIn}.`
+    
+    alert(message)
+    return
+  }
+
+  setIsHumanizing(true)
+
+  try {
+    // ✅ Use localStorage token
+    const headers: HeadersInit = { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    }
+    
+    const response = await fetch('/api/humanize-ai', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ text: inputText })
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'AI humanization failed')
+    }
+
+    const data = await response.json()
+    const humanized = data.humanizedText
+    
+    // Track usage
+    await fetch('/api/humanize-ai/usage', {
+      method: 'POST',
+      headers: getAuthHeaders()
+    })
+    
+    await checkUsage()
+    
+    setOutputText(humanized)
+
+    const readability = calculateReadability(humanized)
+    const plagiarism = calculatePlagiarismScore(inputText, humanized)
+
+    setStats({
+      originalWords: countWords(inputText),
+      humanizedWords: countWords(humanized),
+      aiPatternsRemoved: 999,
+      readabilityScore: readability,
+      plagiarismScore: plagiarism,
+    })
+
+    // ✅ ANALYTICS: Track successful humanization
+    const tierForTracking = usage.tier === 'premium' ? 'pro' : usage.tier
+    trackHumanizerUsage(tierForTracking as 'free' | 'starter' | 'pro', wordCount, true)
+  console.log('📊 Tracked: AI Humanizer used successfully -', usage.tier, wordCount, 'words')
+
+  } catch (error) {
+    console.error('Humanization error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to humanize text. Please try again.'
+    
+    // ✅ ANALYTICS: Track failed humanization
+    const tierForTracking = usage.tier === 'premium' ? 'pro' : usage.tier
+  trackHumanizerUsage(tierForTracking as 'free' | 'starter' | 'pro', wordCount, false)
+  trackError('humanizer_error', errorMessage, 'ai_humanizer_tool')
+  console.log('📊 Tracked: AI Humanizer error -', errorMessage)
+    
+    alert(errorMessage)
+  } finally {
+    setIsHumanizing(false)
+  }
+}
 
   const handleCopy = () => {
     if (!outputText) return
@@ -567,6 +581,8 @@ export default function AIHumanizerTool() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <button
             onClick={handleHumanize}
+            
+
             disabled={!inputText.trim() || isHumanizing || usage.remaining <= 0}
             className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
           >
@@ -582,6 +598,7 @@ export default function AIHumanizerTool() {
               </>
             )}
           </button>
+          
 
           {(inputText || outputText) && (
             <button
@@ -669,7 +686,9 @@ export default function AIHumanizerTool() {
               </div>
             </div>
           </div>
+          
         )}
+        
 
       </div>
     </div>

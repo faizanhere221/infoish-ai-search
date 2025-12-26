@@ -6,7 +6,10 @@ import Header from '@/components/header'
 import {Mail, Youtube, Eye, Search, Filter, Download, ChevronLeft, ChevronRight, Heart, ExternalLink, X, Bookmark, Share2 } from 'lucide-react'
 
 import { exportToCSV } from '@/lib/utils'
-
+import { trackSearch, trackSearchNoResults, trackError } from '@/lib/analytics'
+import { trackInfluencerView } from '@/lib/analytics'
+import { trackInfluencerSaved } from '@/lib/analytics'
+import { trackExport } from '@/lib/analytics'
 interface InfluencerResult {
   id: string;
   username: string;
@@ -280,39 +283,32 @@ useEffect(() => {
     if (data.success !== false) {
       const searchResults = data.results || []
 
-
       let displayTotal = data.total || data.total_found || 0
       let displayPages = Math.ceil(displayTotal / RESULTS_PER_PAGE)
       
-      // If user is free and we got exactly 5 results, adjust display
-      {user?.subscription_tier === 'free' && results.length >= 5 && !showSaved && (
-  <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
-    <div className="flex items-center justify-between">
-      <div>
-        <h3 className="font-bold text-blue-900 mb-2">Want to see all {totalResults}+ results?</h3>
-        <p className="text-blue-700 text-sm mb-3">
-          Free accounts are limited to 5 results per search. Upgrade to see unlimited results and export data.
-        </p>
-        <div className="flex items-center gap-4 text-sm">
-          <span className="text-blue-600">✓ Unlimited search results</span>
-          <span className="text-blue-600">✓ Export to CSV</span>
-          <span className="text-blue-600">✓ Advanced filters</span>
-        </div>
-      </div>
-      <button 
-        onClick={() => router.push('/pricing')}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all"
-      >
-        Upgrade Now
-      </button>
-    </div>
-  </div>
-)}
-      
       setResults(searchResults)
-      setTotalResults(displayTotal)  // Use adjusted total
-      setTotalPages(displayPages)    // Use adjusted pages
+      setTotalResults(displayTotal)
+      setTotalPages(displayPages)
       setSearchInsights(data.search_insights || null)
+      
+      // ✅ ANALYTICS: Track search event
+      if (searchResults.length > 0) {
+        // Build filters object for tracking (only active filters)
+        const activeFilters: Record<string, any> = {}
+        if (filters.platform) activeFilters.platform = filters.platform
+        if (filters.category) activeFilters.category = filters.category
+        if (filters.minFollowers) activeFilters.minFollowers = filters.minFollowers
+        if (filters.maxFollowers) activeFilters.maxFollowers = filters.maxFollowers
+        if (filters.engagementMin) activeFilters.engagementMin = filters.engagementMin
+        if (filters.verified) activeFilters.verified = filters.verified
+        
+        trackSearch(query.trim() || 'filter_only', searchResults.length, activeFilters)
+        console.log('📊 Tracked: Search performed -', query, searchResults.length, 'results')
+      } else {
+        // Track search with no results
+        trackSearchNoResults(query.trim() || 'filter_only')
+        console.log('📊 Tracked: Search with no results -', query)
+      }
       
       // Update user state immediately after successful search
       if (data.user_info && user) {
@@ -345,7 +341,13 @@ useEffect(() => {
     }
   } catch (err) {
     console.error('Search error:', err)
-    setError(err instanceof Error ? err.message : 'Search failed')
+    const errorMessage = err instanceof Error ? err.message : 'Search failed'
+    
+    // ✅ ANALYTICS: Track search error
+    trackError('search_error', errorMessage, 'search_page')
+    console.log('📊 Tracked: Search error -', errorMessage)
+    
+    setError(errorMessage)
     setResults([])
   } finally {
     setSearching(false)
@@ -390,7 +392,7 @@ useEffect(() => {
   const handleSaveInfluencer = (influencer: InfluencerResult) => {
   const isCurrentlySaved = savedInfluencers.some(saved => saved.id === influencer.id)
   
-  let updatedSaved = isCurrentlySaved
+  const updatedSaved = isCurrentlySaved
     ? savedInfluencers.filter(saved => saved.id !== influencer.id)
     : [...savedInfluencers, { ...influencer, is_saved: true }]
 
@@ -406,7 +408,12 @@ useEffect(() => {
     )
   )
 
-  // Optional: Show a brief toast notification
+  // ✅ ANALYTICS: Track influencer saved (only when saving, not unsaving)
+  if (!isCurrentlySaved) {
+    trackInfluencerSaved(influencer.id, influencer.full_name || influencer.username)
+    console.log('📊 Tracked: Influencer saved -', influencer.username)
+  }
+
   const action = isCurrentlySaved ? 'removed from' : 'added to'
   console.log(`${influencer.full_name || influencer.username} ${action} saved list`)
 }
@@ -536,7 +543,13 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
       
       // Now export all results
       exportToCSV(allResults, false)
-      
+       // ✅ ANALYTICS: Track export
+  trackExport(
+    exportSaved ? 'saved_list' : 'search_results', 
+    allResults.length, 
+    'csv'
+  )
+  console.log('📊 Tracked: Export -', exportSaved ? 'saved_list' : 'search_results', allResults.length)
       alert(`Successfully exported ${allResults.length} influencers to CSV`)
     } else {
       // Get error details
@@ -644,9 +657,17 @@ const handleFavoriteWithPersistence = (influencerId: string, currentlyFavorited:
   }
 
   const handleViewDetails = (influencer: InfluencerResult) => {
-     console.log('View Details clicked for:', influencer.username)
-    setSelectedInfluencer(influencer)
-  }
+  console.log('View Details clicked for:', influencer.username)
+  setSelectedInfluencer(influencer)
+  
+  // ✅ ANALYTICS: Track influencer profile view
+  trackInfluencerView(
+    influencer.id, 
+    influencer.full_name || influencer.username, 
+    filters.platform || 'all'
+  )
+  console.log('📊 Tracked: Influencer viewed -', influencer.username)
+}
 
   const closeDetailsModal = () => {
     setSelectedInfluencer(null)
