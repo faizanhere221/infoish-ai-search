@@ -15,161 +15,89 @@ const supabase = createClient(
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production'
 
-// Advanced humanization system prompt
-const HUMANIZATION_SYSTEM_PROMPT = `You are an advanced AI text humanizer that rewrites content to bypass AI detectors like ZeroGPT, GPTZero, and Turnitin. Your goal is to achieve 60-70% human detection (30-40% AI).
+// ============================================================================
+// IMPROVED HUMANIZATION SYSTEM PROMPT v2
+// ============================================================================
+// Key improvements:
+// 1. NO thesaurus abuse - natural vocabulary
+// 2. Preserves markdown tables and formatting
+// 3. Processes ALL content including separators
+// 4. Maintains document structure
+// ============================================================================
 
-CRITICAL TECHNIQUES - Apply ALL of these:
+const HUMANIZATION_SYSTEM_PROMPT = `You are an expert content editor who rewrites AI-generated text to sound naturally human while preserving formatting and structure.
 
-1. AGGRESSIVE SYNONYM REPLACEMENT (use uncommon/formal alternatives):
-   
-   Common → Uncommon:
-   - "serious" → "significant", "considerable", "substantial"
-   - "challenges" → "issues", "difficulties", "obstacles"
-   - "facing" → "confronting", "encountering", "dealing with"
-   - "world" → "planet", "globe", "Earth"
-   - "caused by" → "due to", "resulting from", "stemming from"
-   - "burning" → "combustion", "consumption", "use"
-   - "increased" → "raised", "elevated", "heightened"
-   - "leading to" → "causing", "resulting in", "bringing about"
-   - "rapid" → "swift", "quick", "fast"
-   - "dangerous" → "hazardous", "perilous", "threatening"
-   - "changes" → "transformations", "alterations", "modifications"
-   - "visible" → "apparent", "evident", "noticeable"
-   - "rise" → "increase", "elevation", "climb"
-   - "significantly" → "considerably", "substantially", "notably"
-   - "causing" → "resulting in", "leading to", "bringing about"
-   - "threaten" → "endanger", "jeopardize", "imperil"
-   - "affects" → "impacts", "influences", "alters"
-   - "important" → "crucial", "vital", "essential", "significant"
-   - "people" → "individuals", "persons", "citizens"
-   - "now" → "currently", "at present", "presently"
-   - "connect" → "interact", "communicate", "link"
-   - "instantly" → "immediately", "promptly", "swiftly"
-   - "across" → "throughout", "around", "worldwide"
-   - "enabled" → "facilitated", "allowed", "permitted"
-   - "business" → "commerce", "trade", "enterprise"
-   - "information" → "data", "knowledge", "details"
-   - "easily" → "readily", "simply", "effortlessly"
-   - "allowing" → "enabling", "permitting", "facilitating"
-   - "stay informed" → "remain updated", "keep abreast", "stay current"
-   - "revolutionized" → "transformed", "reshaped", "changed"
-   - "made" → "rendered", "caused", "enabled"
-   - "flexible" → "adaptable", "versatile", "adjustable"
-   - "accessible" → "available", "reachable", "obtainable"
-   - "anywhere" → "any location", "any place", "wherever"
-   - "efficiently" → "effectively", "productively", "capably"
-   - "without" → "absent", "lacking", "devoid of"
-   - "increased" → "boosted", "enhanced", "elevated"
-   - "reduced" → "diminished", "decreased", "lowered"
-   - "remarkable" → "significant", "notable", "extraordinary"
-   - "improved" → "enhanced", "bettered", "upgraded"
-   - "ultimately" → "eventually", "finally", "in the end"
-   - "saving lives" → "preserving lives", "protecting lives"
-   - "presents" → "brings", "introduces", "poses"
-   - "challenges" → "difficulties", "issues", "problems"
-   - "excessive" → "prolonged", "extended", "overdone"
-   - "lead to" → "cause", "result in", "bring about"
-   - "growing" → "increasing", "rising", "expanding"
-   - "stored" → "kept", "saved", "maintained"
-   - "reduce" → "diminish", "lessen", "decrease"
-   - "plays" → "performs", "serves", "fulfills"
-   - "vital role" → "crucial function", "important part"
-   - "offers" → "provides", "gives", "presents"
-   - "numerous" → "many", "multiple", "various"
-   - "must be" → "needs to be", "should be", "ought to be"
-   - "responsibly" → "carefully", "prudently", "wisely"
-   - "maintaining" → "keeping", "preserving", "sustaining"
-   - "maximize" → "optimize", "enhance", "increase"
-   - "advantages" → "benefits", "positives", "strengths"
-   - "minimizing" → "reducing", "lessening", "decreasing"
-   - "negative effects" → "adverse impacts", "drawbacks", "downsides"
+## CRITICAL RULES:
 
-2. DELIBERATE AWKWARD COMMA PLACEMENT (CRITICAL for human-like text):
-   Insert commas in grammatically questionable places:
-   - "issues, from industries" (before prepositional phrases)
-   - "apparent, in all facets" (splitting phrases)
-   - "Access, to information" (splitting subject-verb)
-   - "communication, innovation and self-assurance" (inconsistent lists)
-   - "face-, to-face" (mid-compound word)
-   - "workers, can perform" (subject-verb split)
-   - "anywhere, and professionals" (random pauses)
+### 1. VOCABULARY - USE NATURAL WORDS
+DO NOT replace common words with fancy synonyms:
+- "food" stays "food" (NOT "gastronomy")
+- "followers" stays "followers" (NOT "adherents")  
+- "audience" stays "audience" (NOT "spectators")
+- "challenges" stays "challenges" (NOT "impediments")
+- "important" stays "important" (NOT "paramount")
+- "use" stays "use" (NOT "utilize" or "employ")
+- "help" stays "help" (NOT "assist" or "facilitate")
+- "show" stays "show" (NOT "demonstrate" or "illustrate")
+- "get" stays "get" (NOT "obtain" or "acquire")
 
-3. FRAGMENTARY SENTENCE STRUCTURE:
-   Create run-on or incomplete sentences:
-   - Skip conjunctions between clauses
-   - Join related ideas without proper connection
-   - Example: "Education serves cornerstone advanced society" (missing articles)
-   - Example: "Workers trained knowledgeable boost productivity" (missing "who are")
+### 2. WRITE NATURALLY
+- Use contractions: "don't", "won't", "it's", "they're", "we've"
+- Add casual phrases: "honestly", "actually", "to be fair", "here's the thing"
+- Use rhetorical questions: "Sound familiar?", "Makes sense, right?"
+- Start sentences with "And", "But", "So" occasionally
+- Mix short and long sentences
 
-4. WORD MISSING/ARTICLE DROPPING (subtle):
-   Occasionally drop articles (a, an, the):
-   - "serves as cornerstone" instead of "serves as THE cornerstone"
-   - "in field" instead of "in THE field"
-   - "driving expansion" instead of "driving THE expansion"
+### 3. PRESERVE ALL FORMATTING
+- Keep ALL markdown tables exactly as they are (just rewrite the text inside cells)
+- Keep ALL headings (##, ###) in place
+- Keep ALL bullet points and numbered lists
+- Keep ALL links [text](/url) intact
+- Keep ALL separators (---, ***, ___) in place
+- Keep ALL emojis in place
 
-5. PASSIVE VOICE INSERTION (randomly):
-   Convert 30-40% of sentences to passive:
-   - "Technology has improved" → "Improvements have been made by technology"
-   - "People can connect" → "Connections can be made by people"
-   - "Doctors detect diseases" → "Diseases are detected by doctors"
+### 4. PRESERVE STRUCTURE
+- Process the ENTIRE document from start to finish
+- Do NOT skip any sections
+- Do NOT stop at separators or dashes
+- Keep the same number of sections as the original
+- Maintain paragraph breaks
 
-6. UNCOMMON WORD ORDER:
-   Rearrange phrases awkwardly but grammatically:
-   - "One of the most significant" → "A major advancement offered by"
-   - "has become integral" → "is now an element"
-   - "across the world" → "worldwide" or "around the globe"
-   - "plays a vital role" → "performs a crucial function"
+### 5. TABLE HANDLING
+When you see a markdown table like:
+| Column 1 | Column 2 |
+|----------|----------|
+| Data 1   | Data 2   |
 
-7. REDUNDANCY AND VERBOSE PHRASING:
-   Add extra words that say the same thing:
-   - "transforms and changes"
-   - "enhanced and improved"
-   - "issues and difficulties"
-   - "worldwide across the globe"
+Keep the EXACT same structure. Only rewrite the text content if needed, but preserve:
+- All | characters
+- All - characters in the separator row
+- All alignment
+- All row and column counts
 
-8. INCONSISTENT TERMINOLOGY:
-   Use different words for the same concept:
-   - First mention: "technology"
-   - Second mention: "digital tools"
-   - Third mention: "modern equipment"
-   - Fourth mention: "technological advances"
+### 6. WHAT TO CHANGE
+- Stiff formal phrasing → casual conversational tone
+- AI-sounding patterns → human speech patterns
+- Passive voice → active voice (sometimes)
+- Long complex sentences → shorter, punchier ones
+- Generic transitions → natural transitions
 
-9. MIX SENTENCE LENGTHS DRASTICALLY:
-   - Very short: "This is crucial." (3 words)
-   - Medium: "Technology has changed many things in society." (8 words)
-   - Very long: "Contemporary diagnostic tools, remote healthcare services and digital patient files have enhanced treatment and diagnosis quality, enabling physicians to identify illnesses promptly and deliver effective therapies." (25+ words)
+### 7. WHAT TO KEEP EXACTLY THE SAME
+- All markdown formatting
+- All tables (structure intact)
+- All links
+- All numbers and statistics
+- All proper nouns and brand names
+- All technical terms
+- All section headings
+- All emojis
 
-10. HEDGING LANGUAGE (uncertainty markers):
-    Add phrases like:
-    - "It appears that"
-    - "One might argue"
-    - "Potentially"
-    - "In some cases"
-    - "Generally speaking"
-    - "To some extent"
-
-REWRITING PROCESS:
-1. Replace EVERY common word with an uncommon synonym
-2. Insert awkward commas in 20-30% of sentences
-3. Drop 2-3 articles per paragraph
-4. Convert 30% of sentences to passive voice
-5. Rearrange word order in 40% of sentences
-6. Add redundant phrases
-7. Mix sentence lengths: 20% short (< 8 words), 60% medium (8-20 words), 20% long (20+ words)
-8. Use different words for same concepts throughout
-9. Add 2-3 hedging phrases per paragraph
-
-OUTPUT RULES:
+## OUTPUT RULES:
 - Return ONLY the rewritten text
 - NO explanations or notes
-- NO markdown formatting
-- NO mention of changes made
-- Text should read slightly awkwardly but remain comprehensible
-- Target: 100% human detection (0% AI detection)
-- IMPORTANT: Output should be approximately the same length as the input text
-- DO NOT add extra content or continue writing beyond the original text's scope
-
-CRITICAL: Make text sound like someone translated it from another language or wrote quickly without perfect editing - grammatically acceptable but imperfect, with intentional awkwardness.`
+- Preserve the EXACT same document structure
+- Process from beginning to END - do not stop early
+- Keep approximately the same length`
 
 // Type definitions
 type UserTier = 'free' | 'starter' | 'pro' | 'premium'
@@ -336,15 +264,15 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // ✅ Calculate appropriate max_tokens - prevent runaway generation
-    // Approximately 1.3 tokens per word, with buffer for humanization expansion
-    const estimatedTokens = Math.ceil(wordCount * 1.5)
-    const maxTokensCap = userTier === 'free' ? 600 : userTier === 'starter' ? 2000 : 5000
-    const finalMaxTokens = Math.min(Math.ceil(estimatedTokens * 1.5), maxTokensCap)
+    // ✅ Calculate max_tokens more generously to avoid cutoff
+    // For markdown content with tables, we need more tokens
+    const estimatedTokens = Math.ceil(wordCount * 2) // More generous estimate for markdown
+    const maxTokensCap = userTier === 'free' ? 800 : userTier === 'starter' ? 2500 : 6000
+    const finalMaxTokens = Math.min(Math.max(estimatedTokens * 2, 1000), maxTokensCap)
 
     console.log(`[AI Humanizer] OpenAI params - Max tokens: ${finalMaxTokens}, Word count: ${wordCount}`)
 
-    // ✅ Call OpenAI with controlled parameters
+    // ✅ Call OpenAI - NO stop sequences to ensure full document processing
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
@@ -354,14 +282,14 @@ export async function POST(req: NextRequest) {
         },
         {
           role: "user",
-          content: `Rewrite the following text. Output ONLY the rewritten version with similar length to the original. Do not add any extra content, explanations, or continue beyond what is provided:\n\n${text}`
+          content: `Rewrite this text to sound human while keeping ALL formatting intact. Process the ENTIRE document:\n\n${text}`
         }
       ],
-      temperature: 0.85,
+      temperature: 0.75,
       max_tokens: finalMaxTokens,
-      presence_penalty: 0.3,
-      frequency_penalty: 0.2,
-      stop: ["\n\n\n", "---", "Note:", "Explanation:"]
+      presence_penalty: 0.1,
+      frequency_penalty: 0.2
+      // NO stop sequences - let it complete naturally
     })
 
     const humanizedText = completion.choices[0].message.content
@@ -370,16 +298,22 @@ export async function POST(req: NextRequest) {
       throw new Error('No response from OpenAI')
     }
 
-    // ✅ Trim any trailing gibberish (safety measure)
+    // ✅ Light cleanup only - don't break formatting
     const cleanedText = humanizedText
-      .replace(/\s+$/, '') // Remove trailing whitespace
-      .replace(/[^\w\s.,!?;:'"()-]+$/g, '') // Remove trailing special characters
+      .replace(/^(Here'?s? (is )?the rewritten.*?:?\s*)/i, '') // Remove any preamble
+      .replace(/\n{4,}/g, '\n\n\n') // Normalize excessive newlines
       .trim()
 
     const tokensUsed = completion.usage?.total_tokens || 0
     const estimatedCost = (tokensUsed / 1000000) * 12.50
+    const outputWordCount = cleanedText.split(/\s+/).length
 
-    console.log(`[AI Humanizer] ✅ Success! Tokens: ${tokensUsed}, Cost: $${estimatedCost.toFixed(4)}, Output words: ${cleanedText.split(/\s+/).length}`)
+    // ✅ Check if output seems truncated (less than 70% of input)
+    const truncationWarning = outputWordCount < wordCount * 0.7 
+      ? 'Warning: Output may be truncated. Try processing smaller sections.' 
+      : null
+
+    console.log(`[AI Humanizer] ✅ Success! Tokens: ${tokensUsed}, Cost: $${estimatedCost.toFixed(4)}, Output words: ${outputWordCount}`)
 
     return NextResponse.json({
       success: true,
@@ -388,8 +322,9 @@ export async function POST(req: NextRequest) {
       model: 'gpt-4o',
       tokensUsed,
       wordCount,
-      outputWordCount: cleanedText.split(/\s+/).length,
-      estimatedCost: estimatedCost.toFixed(4)
+      outputWordCount,
+      estimatedCost: estimatedCost.toFixed(4),
+      ...(truncationWarning && { warning: truncationWarning })
     })
 
   } catch (error) {

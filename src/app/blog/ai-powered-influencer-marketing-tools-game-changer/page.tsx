@@ -3,6 +3,32 @@
 import Header from '@/components/header'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, User, Clock, CheckCircle, AlertCircle } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: '5 AI Tools That Help Pakistani Brands Find Influencers 10x Faster | Infoishai',
+  description: 'Discover the best AI-powered influencer marketing tools for Pakistani brands in 2025. Find verified creators, check fake followers, and launch campaigns faster.',
+  keywords: [
+    'ai influencer marketing tools',
+    'find influencers pakistan',
+    'influencer discovery platform',
+    'ai influencer search',
+    'pakistani influencer tools',
+    'influencer marketing software',
+    'find instagram influencers',
+    'influencer verification tool',
+    'ai marketing tools pakistan',
+    'influencer campaign tools'
+  ],
+  openGraph: {
+    title: '5 AI Tools That Help Pakistani Brands Find Influencers 10x Faster',
+    description: 'Discover AI-powered tools that help Pakistani brands find verified influencers in seconds.',
+    type: 'article',
+  },
+  alternates: {
+    canonical: 'https://infoishai.com/blog/ai-powered-influencer-marketing-tools-pakistan'
+  }
+}
 
 export default function AIPoweredInfluencerMarketingPage() {
   return (
@@ -31,11 +57,11 @@ export default function AIPoweredInfluencerMarketingPage() {
           </div>
           
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            AI-Powered Influencer Marketing Tools: A Game Changer for Pakistani Brands
+            AI Tool That Help Pakistani Brands Find Influencers 10x Faster
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            Influencer marketing isn't new — but AI is rewriting the playbook. Are you a Pakistani brand trying to cut through crowded feeds and build trust? AI-powered influencer marketing tools are becoming the secret weapon. This blog explains why they matter, what they do, and how Pakistani marketers can use them right now.
+            Still manually scrolling Instagram to find influencers? Pakistani brands are switching to AI-powered tools that discover verified creators in seconds — not hours. Here are the 5 tools changing the game in 2025.
           </p>
           
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">
@@ -53,6 +79,9 @@ export default function AIPoweredInfluencerMarketingPage() {
             </div>
           </div>
         </header>
+
+
+    
 
         {/* Article Content */}
         <div className="prose prose-lg max-w-none">

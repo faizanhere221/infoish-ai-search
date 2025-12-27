@@ -3,6 +3,33 @@
 import Header from '@/components/header'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, User, Clock, Share2, Bookmark } from 'lucide-react'
+import { Metadata } from 'next'
+
+
+export const metadata: Metadata = {
+  title: 'Influencer Marketing in Pakistan: The Only Guide You Need (2025) | Infoishai',
+  description: 'Complete guide to influencer marketing for Pakistani brands. Learn pricing, find creators, measure ROI, and avoid fake followers. Real budgets included.',
+  keywords: [
+    'influencer marketing pakistan',
+    'influencer marketing guide',
+    'how to do influencer marketing',
+    'influencer pricing pakistan',
+    'instagram marketing pakistan',
+    'find influencers pakistan',
+    'influencer campaign strategy',
+    'influencer marketing budget',
+    'pakistani influencers rates',
+    'brand collaboration pakistan'
+  ],
+  openGraph: {
+    title: 'Influencer Marketing in Pakistan: The Only Guide You Need (2025)',
+    description: 'Everything Pakistani brands need to know about influencer marketing. Real budgets, strategies, and tools.',
+    type: 'article',
+  },
+  alternates: {
+    canonical: 'https://infoishai.com/blog/complete-guide-influencer-marketing-pakistan-2025'
+  }
+}
 
 export default function CompleteGuideInfluencerMarketing() {
   return (
@@ -35,7 +62,7 @@ export default function CompleteGuideInfluencerMarketing() {
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            Master influencer marketing with our comprehensive guide covering strategies, budgets, and ROI optimization specifically for Pakistani brands.
+            From finding the right creators to measuring ROI — everything Pakistani brands need to know about influencer marketing in 2025. Includes real budgets, platform comparisons, and proven strategies.
           </p>
           
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">

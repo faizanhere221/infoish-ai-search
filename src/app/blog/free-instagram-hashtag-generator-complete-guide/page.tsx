@@ -7,38 +7,37 @@ import { Metadata } from 'next'
 
 // SEO Metadata
 export const metadata: Metadata = {
-  title: 'Free Instagram Hashtag Generator 2025 (100% Free Forever) | Infoishai',
-  description: 'Generate AI-powered Instagram hashtags for Posts, Reels & Stories. Free forever, no signup required. Get 5-15 targeted hashtags instantly to boost reach and engagement.',
+  title: 'Free Instagram Hashtag Generator — Get Viral Hashtags in Seconds | Infoishai',
+  description: 'Generate trending Instagram hashtags for Reels, Posts & Stories. AI-powered, 100% free forever. No signup required — boost your reach instantly.',
   keywords: [
-    'free instagram hashtag generator',
-    'instagram hashtag generator 2025',
+    'instagram hashtag generator',
+    'free hashtag generator',
+    'instagram hashtags 2025',
+    'hashtags for reels',
+    'viral instagram hashtags',
+    'trending hashtags instagram',
+    'instagram hashtag finder',
+    'best hashtags for likes',
+    'hashtag generator free online',
+    'instagram growth hashtags',
+    'reels hashtags 2025',
+    'pakistani instagram hashtags',
+    'hashtag strategy instagram',
     'ai hashtag generator',
-    'instagram hashtags for reels',
-    'best hashtags for instagram',
-    'hashtag generator free',
-    'instagram hashtag tool',
-    'trending instagram hashtags 2025',
-    'instagram hashtags for followers',
-    'hashtag finder instagram',
-    'instagram hashtags pakistan',
-    'viral hashtags instagram',
-    'instagram reels hashtags',
-    'instagram story hashtags',
-    'how to use hashtags on instagram',
-    'instagram hashtag strategy 2025'
+    'instagram hashtags for followers'
   ],
   openGraph: {
-    title: 'Free Instagram Hashtag Generator 2025 (100% Free Forever)',
-    description: 'Generate AI-powered Instagram hashtags for Posts, Reels & Stories. Free forever, no signup required. Boost your reach instantly.',
+    title: 'Free Instagram Hashtag Generator — Get Viral Hashtags in Seconds',
+    description: 'AI-powered hashtag generator for Instagram Reels, Posts & Stories. 100% free, no signup. Boost your reach instantly.',
     type: 'article',
     publishedTime: '2024-12-23T00:00:00.000Z',
     authors: ['Infoishai Team'],
-    tags: ['Instagram', 'Hashtags', 'Social Media', 'AI Tool', 'Free Tool'],
+    tags: ['Instagram', 'Hashtags', 'Social Media', 'Free Tool', 'Growth'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free Instagram Hashtag Generator 2025',
-    description: 'Generate AI-powered hashtags for Instagram Posts, Reels & Stories. 100% free forever.',
+    title: 'Free Instagram Hashtag Generator — Viral Hashtags in Seconds',
+    description: 'AI-powered hashtags for Reels, Posts & Stories. 100% free forever.',
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/free-instagram-hashtag-generator-2025'
@@ -151,11 +150,12 @@ export default function FreeInstagramHashtagGenerator2025() {
           </div>
           
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            Free Instagram Hashtag Generator 2025 (100% Free Forever)
+             Free Instagram Hashtag Generator — Get Viral Hashtags in Seconds
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            Generate AI-powered Instagram hashtags for Posts, Reels & Stories. No signup, no payment, no limits. Get 5-15 targeted hashtags instantly to boost your reach and engagement.
+            Stop guessing which hashtags work. Our AI analyzes millions of posts to generate the perfect hashtag mix for your Reels, Posts, and Stories. 100% free, forever — no signup required.
+
           </p>
           
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">

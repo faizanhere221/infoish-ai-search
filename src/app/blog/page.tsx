@@ -3,7 +3,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
-import { Calendar, User, ArrowRight, TrendingUp, Star, Sparkles, Hash, PenTool } from 'lucide-react'
+import { Calendar, User, ArrowRight, TrendingUp, Star, Sparkles, Hash, PenTool, Users } from 'lucide-react'
 import { useState } from 'react'
 
 interface BlogPost {
@@ -22,9 +22,22 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '0',
+    title: 'Micro-Influencers in Pakistan: Why They Outperform Celebrities (+ How to Find Them)',
+    excerpt: 'Micro-influencers deliver 3x higher engagement than celebrities at a fraction of the cost. Real pricing data (PKR 5,000-25,000/post), engagement benchmarks, and how to find verified micro-creators.',
+    date: '2025-12-27',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '10 min read',
+    slug: 'micro-influencers-pakistan-guide',
+    featured: true,
+    views: '1.2K',
+    isNew: true
+  },
+  {
     id: '1',
-    title: 'AI Humanizer Tool: Make AI Text 100% Human-Like in 2025',
-    excerpt: 'Free AI humanizer tool to convert ChatGPT, Gemini & Claude text into natural human writing. Bypass AI detectors, improve readability. No signup, instant results.',
+    title: 'Best Free AI Humanizer Tool 2025 — Bypass AI Detection Instantly',
+    excerpt: 'Transform ChatGPT, Claude & Gemini text into undetectable human writing. Our free AI humanizer bypasses Turnitin, GPTZero & more. No signup, instant results.',
     date: '2024-12-23',
     author: 'Infoishai Team',
     category: 'Tools',
@@ -36,7 +49,7 @@ const blogPosts: BlogPost[] = [
   },
   {
     id: '2',
-    title: 'Free Instagram Hashtag Generator 2025 (100% Free Forever)',
+    title: 'Free Instagram Hashtag Generator — Get Viral Hashtags in Seconds',
     excerpt: 'Generate AI-powered Instagram hashtags for Posts, Reels & Stories. Free forever, no signup required. Get 5-15 targeted hashtags instantly to boost reach and engagement.',
     date: '2024-12-23',
     author: 'Infoishai Team',
@@ -49,34 +62,34 @@ const blogPosts: BlogPost[] = [
   },
   {
     id: '3',
-    title: 'Free Instagram Profile Analyzer: Complete Guide to Evaluating Influencers 2024',
-    excerpt: 'Learn how to analyze Instagram profiles for free, detect fake influencers, and evaluate engagement rates. Complete guide for Pakistani brands with benchmarks and tools.',
+    title: 'Free Instagram Profile Analyzer — Spot Fake Influencers Instantly',
+    excerpt: 'Analyze any Instagram profile for free. Check engagement rates, detect fake followers, and verify influencers before you pay. Complete guide for Pakistani brands.',
     date: '2024-12-23',
     author: 'Infoishai Team',
     category: 'Tools',
     readTime: '12 min read',
-    slug: 'free-instagram-profile-analyzer-guide-2024',
+    slug: 'free-instagram-profile-analyzer-complete-guide',
     featured: true,
     views: '2.1K',
     isNew: true
   },
   {
     id: '4',
-    title: 'Complete Guide to Influencer Marketing in Pakistan 2025',
-    excerpt: 'Master influencer marketing with our comprehensive guide covering strategies, budgets, and ROI optimization specifically for Pakistani brands.',
-    date: '2024-10-16',
+    title: 'Influencer Marketing in Pakistan: The Only Guide You\'ll Need (2025)',
+    excerpt: 'From finding the right creators to measuring ROI — everything Pakistani brands need to know about influencer marketing in 2025. Includes real budgets and proven strategies.',
+    date: '2024-12-16',
     author: 'Laiba Razzaq',
     category: 'Marketing',
-    readTime: '10 min read',
+    readTime: '12 min read',
     slug: 'complete-guide-influencer-marketing-pakistan-2025',
     featured: true,
     views: '4.5K'
   },
   {
     id: '5',
-    title: 'How to Find the Right Pakistani Influencers for Your Brand',
-    excerpt: 'Step-by-step framework for discovering, evaluating, and partnering with Pakistani influencers who deliver real results for your campaigns.',
-    date: '2024-10-18',
+    title: 'How to Find Pakistani Influencers (Without Wasting Hours on Instagram)',
+    excerpt: 'Stop scrolling through thousands of profiles. Here\'s the exact 5-step process Pakistani brands use to find verified influencers in under 10 minutes.',
+    date: '2024-12-18',
     author: 'Laiba Razzaq',
     category: 'Strategy',
     readTime: '8 min read',
@@ -86,13 +99,13 @@ const blogPosts: BlogPost[] = [
   },
   {
     id: '6',
-    title: 'AI-powered Influencer Marketing Tools: A Game Changer for Pakistani Brands',
-    excerpt: 'Discover how AI is transforming influencer marketing in Pakistan. Learn about smart discovery, fraud detection, and ROI measurement tools that help brands run smarter campaigns.',
-    date: '2024-11-01',
+    title: '5 AI Tools That Help Pakistani Brands Find Influencers 10x Faster',
+    excerpt: 'Still manually scrolling Instagram to find influencers? Pakistani brands are switching to AI-powered tools that discover verified creators in seconds — not hours.',
+    date: '2024-12-20',
     author: 'Laiba Razzaq',
     category: 'Technology',
     readTime: '9 min read',
-    slug: 'ai-powered-influencer-marketing-tools-game-changer',
+    slug: 'ai-powered-influencer-marketing-tools-pakistan',
     featured: false,
     views: '2.9K'
   }
@@ -167,7 +180,7 @@ export default function BlogPage() {
                 AI Humanizer
               </Link>
               <Link 
-                href="/tools/instagram-hashtag-generator"
+                href="/tools/hashtag-generator"
                 className="bg-white/20 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-white/30 transition-colors"
               >
                 Hashtag Generator
@@ -191,6 +204,9 @@ export default function BlogPage() {
               {category}
               {category === 'Tools' && (
                 <span className="ml-2 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">3</span>
+              )}
+              {category === 'Strategy' && (
+                <span className="ml-2 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">2</span>
               )}
             </button>
           ))}
@@ -239,6 +255,8 @@ export default function BlogPage() {
                             <Hash className="w-8 h-8 text-purple-600" />
                           ) : post.slug.includes('analyzer') ? (
                             <TrendingUp className="w-8 h-8 text-pink-600" />
+                          ) : post.slug.includes('micro-influencers') ? (
+                            <Users className="w-8 h-8 text-green-600" />
                           ) : (
                             <span className={`text-2xl font-bold ${
                               post.category === 'Tools' ? 'text-purple-600' :
@@ -249,7 +267,9 @@ export default function BlogPage() {
                           )}
                         </div>
                         <span className="text-sm font-medium text-gray-600">
-                          {post.category === 'Tools' ? 'Free Tool Guide' : `${post.category} Guide`}
+                          {post.category === 'Tools' ? 'Free Tool Guide' : 
+                           post.category === 'Strategy' ? 'Strategy Guide' :
+                           `${post.category} Guide`}
                         </span>
                       </div>
                     </div>
@@ -292,6 +312,8 @@ export default function BlogPage() {
                       className={`inline-flex items-center gap-2 font-medium px-6 py-3 rounded-xl transition-all transform hover:scale-105 shadow-lg ${
                         post.category === 'Tools' 
                           ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+                          : post.category === 'Strategy'
+                          ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
                           : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
                       }`}
                     >
@@ -374,7 +396,7 @@ export default function BlogPage() {
             </Link>
             
             <Link 
-              href="/tools/instagram-hashtag-generator"
+              href="/tools/hashtag-generator"
               className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-6 text-white hover:shadow-xl transition-all transform hover:scale-105"
             >
               <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
@@ -413,7 +435,7 @@ export default function BlogPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">We're Working on More Content!</h3>
               <p className="text-gray-600 mb-6">
-                Our team is creating in-depth guides on topics like micro vs macro influencers, platform comparisons, ROI optimization, Instagram Bio Generator, and niche-specific influencer lists. Subscribe to stay updated!
+                Our team is creating in-depth guides on topics like influencer pricing benchmarks, platform comparisons, ROI optimization, Instagram Bio Generator, and niche-specific influencer lists. Subscribe to stay updated!
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link 

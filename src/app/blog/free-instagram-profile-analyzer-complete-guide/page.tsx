@@ -7,36 +7,37 @@ import { Metadata } from 'next'
 
 // SEO Metadata
 export const metadata: Metadata = {
-  title: 'Free Instagram Profile Analyzer: Complete Guide to Evaluating Influencers 2025 | Infoishai',
-  description: 'Learn how to analyze Instagram profiles for free, detect fake influencers, and evaluate engagement rates. Complete guide for Pakistani brands with benchmarks and tools.',
+  title: 'Free Instagram Profile Analyzer — Spot Fake Influencers Instantly | Infoishai',
+  description: 'Analyze any Instagram profile for free. Check engagement rates, detect fake followers, and verify influencers before you pay. Complete guide for Pakistani brands.',
   keywords: [
-    'free instagram profile analyzer',
-    'instagram engagement rate calculator',
-    'fake influencer detector',
-    'instagram influencer marketing pakistan',
-    'how to check fake followers instagram',
-    'instagram engagement rate checker',
+    'instagram profile analyzer',
+    'fake follower checker',
+    'instagram engagement calculator',
     'influencer verification tool',
+    'detect fake influencers',
     'instagram analytics free',
-    'pakistani instagram influencers',
-    'influencer marketing guide pakistan',
+    'check fake followers',
+    'engagement rate checker',
+    'influencer audit tool',
     'instagram profile checker',
-    'engagement rate benchmark pakistan',
-    'detect fake instagram followers',
-    'instagram influencer pricing pakistan'
+    'fake influencer detector',
+    'pakistani influencer verification',
+    'instagram follower analysis',
+    'influencer authenticity check',
+    'free instagram analyzer'
   ],
   openGraph: {
-    title: 'Free Instagram Profile Analyzer: Complete Guide to Evaluating Influencers 2025',
-    description: 'Learn how to analyze Instagram profiles for free, detect fake influencers, and evaluate engagement rates. Complete guide for Pakistani brands.',
+    title: 'Free Instagram Profile Analyzer — Spot Fake Influencers Instantly',
+    description: 'Check engagement rates, detect fake followers, and verify influencers before paying. Free tool for Pakistani brands.',
     type: 'article',
     publishedTime: '2025-12-23T00:00:00.000Z',
     authors: ['Infoishai Team'],
-    tags: ['Instagram', 'Influencer Marketing', 'Analytics', 'Pakistan', 'Social Media'],
+    tags: ['Instagram', 'Influencer Verification', 'Fake Followers', 'Analytics', 'Free Tool'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free Instagram Profile Analyzer Guide 2025',
-    description: 'Complete guide to evaluating Instagram influencers with free tools and benchmarks for Pakistani brands.',
+    title: 'Free Instagram Profile Analyzer — Spot Fake Influencers',
+    description: 'Detect fake followers and verify influencers before you pay. Free for Pakistani brands.',
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/free-instagram-profile-analyzer-complete-guide'
@@ -105,11 +106,11 @@ export default function FreeInstagramProfileAnalyzerGuide() {
           </div>
           
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            Free Instagram Profile Analyzer: A Comprehensive Guide to Evaluating Influencers in 2025
+            Free Instagram Profile Analyzer — Spot Fake Influencers Instantly
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            Learn how to analyze Instagram profiles for free, detect fake influencers, and evaluate engagement rates. Complete guide for Pakistani brands with benchmarks and tools.
+            Before you pay an influencer, make sure they're real. Our free analyzer checks engagement rates, detects fake followers, and reveals the truth about any Instagram profile. Perfect for Pakistani brands tired of wasting money on bots.
           </p>
           
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">

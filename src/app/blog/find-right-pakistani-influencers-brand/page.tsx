@@ -3,6 +3,32 @@
 import Header from '@/components/header'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, User, Clock, Share2, Bookmark } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'How to Find Pakistani Influencers (Without Wasting Hours) | Infoishai',
+  description: 'The exact 5-step process to find verified Pakistani influencers in under 10 minutes. Stop scrolling Instagram manually — use this proven method.',
+  keywords: [
+    'find pakistani influencers',
+    'how to find influencers',
+    'instagram influencers pakistan',
+    'find influencers for brand',
+    'influencer search pakistan',
+    'pakistani content creators',
+    'find micro influencers',
+    'influencer outreach pakistan',
+    'brand ambassador pakistan',
+    'youtube influencers pakistan'
+  ],
+  openGraph: {
+    title: 'How to Find Pakistani Influencers (Without Wasting Hours)',
+    description: 'The exact 5-step process to find verified Pakistani influencers in under 10 minutes.',
+    type: 'article',
+  },
+  alternates: {
+    canonical: 'https://infoishai.com/blog/find-right-pakistani-influencers-brand'
+  }
+}
 
 export default function FindRightInfluencersPage() {
   return (
@@ -35,7 +61,7 @@ export default function FindRightInfluencersPage() {
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            In today's digital world, influencer marketing has become a powerful tool for brands to connect with their target audience. Whether you're promoting a product, service, or cause, finding the right Pakistani influencer can make all the difference.
+             Stop scrolling through thousands of profiles hoping to find the right creator. Here's the exact 5-step process Pakistani brands use to find verified influencers in under 10 minutes.
           </p>
           
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">
