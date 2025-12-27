@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Calendar, User, ArrowRight, TrendingUp, Star, Sparkles, Hash, PenTool, Users } from 'lucide-react'
 import { useState } from 'react'
 
+
 interface BlogPost {
   id: string
   title: string
@@ -99,13 +100,13 @@ const blogPosts: BlogPost[] = [
   },
   {
     id: '6',
-    title: '5 AI Tools That Help Pakistani Brands Find Influencers 10x Faster',
+    title: 'AI Tool That Help Pakistani Brands Find Influencers 10x Faster',
     excerpt: 'Still manually scrolling Instagram to find influencers? Pakistani brands are switching to AI-powered tools that discover verified creators in seconds — not hours.',
     date: '2024-12-20',
     author: 'Laiba Razzaq',
     category: 'Technology',
     readTime: '9 min read',
-    slug: 'ai-powered-influencer-marketing-tools-pakistan',
+    slug: 'ai-powered-influencer-marketing-tools-game-changer',
     featured: false,
     views: '2.9K'
   }

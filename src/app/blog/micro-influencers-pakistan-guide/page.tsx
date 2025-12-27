@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
+import Header from '@/components/header'
 import { 
   User, 
   Calendar, 
@@ -73,7 +74,12 @@ export const metadata: Metadata = {
 
 export default function MicroInfluencersPakistanBlog() {
   return (
+    
+    
+
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+        <Header />
+        
       {/* Navigation */}
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 backdrop-blur-lg bg-white/90">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

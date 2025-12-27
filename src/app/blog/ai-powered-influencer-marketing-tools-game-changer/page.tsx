@@ -6,7 +6,7 @@ import { ArrowLeft, Calendar, User, Clock, CheckCircle, AlertCircle } from 'luci
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: '5 AI Tools That Help Pakistani Brands Find Influencers 10x Faster | Infoishai',
+  title: 'AI Tool That Help Pakistani Brands Find Influencers 10x Faster | Infoishai',
   description: 'Discover the best AI-powered influencer marketing tools for Pakistani brands in 2025. Find verified creators, check fake followers, and launch campaigns faster.',
   keywords: [
     'ai influencer marketing tools',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     type: 'article',
   },
   alternates: {
-    canonical: 'https://infoishai.com/blog/ai-powered-influencer-marketing-tools-pakistan'
+    canonical: 'https://infoishai.com/blog/ai-powered-influencer-marketing-tools-game-changer'
   }
 }
 
