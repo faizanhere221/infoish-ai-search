@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/header'
 import Head from 'next/head'
 import Link from 'next/link'
+import { trackCTAClick, trackViewPricing } from '@/lib/analytics'
 
 import { 
   Search, 
@@ -26,7 +27,30 @@ import {
   Rocket,
   Clock,
   Filter,
-  Database
+  Database,
+  XCircle,
+  MessageCircle,
+  DollarSign,
+  Instagram,
+  Youtube,
+  Hash,
+  Wand2,
+  UserCheck,
+  ChevronRight,
+  BadgeCheck,
+  Timer,
+  Crown,
+  Heart,
+  ThumbsUp,
+  AlertTriangle,
+  TrendingDown,
+  ArrowUpRight,
+  Play,
+  Check,
+  X,
+  MousePointer,
+  Layers,
+  Gift
 } from 'lucide-react'
 
 interface User {
@@ -39,505 +63,622 @@ interface User {
   search_limit: number
 }
 
-import React from 'react';
+// ============================================================================
+// ANIMATED COUNTER COMPONENT
+// ============================================================================
+function AnimatedCounter({ end, duration = 2000, suffix = '' }: { end: number; duration?: number; suffix?: string }) {
+  const [count, setCount] = useState(0)
+  const countRef = useRef<HTMLSpanElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    if (countRef.current) {
+      observer.observe(countRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!isVisible) return
+
+    let startTime: number
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime
+      const progress = Math.min((currentTime - startTime) / duration, 1)
+      setCount(Math.floor(progress * end))
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      }
+    }
+    requestAnimationFrame(animate)
+  }, [isVisible, end, duration])
+
+  return <span ref={countRef}>{count.toLocaleString()}{suffix}</span>
+}
+
+// ============================================================================
+// LOADING FALLBACK
+// ============================================================================
 function LoadingFallback() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+    <div className="min-h-screen bg-[#fafbfc] flex items-center justify-center">
       <div className="text-center">
-        <div className="relative mb-8">
-          <div className="w-20 h-20 border-4 border-blue-200 rounded-full animate-spin mx-auto">
-            <div className="w-4 h-4 bg-blue-600 rounded-full absolute top-0 left-1/2 transform -translate-x-1/2"></div>
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">AI</span>
-            </div>
-          </div>
+        <div className="relative mb-6">
+          <div className="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
         </div>
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Loading Infoishai
-          </h2>
-          <p className="text-gray-600 max-w-md mx-auto">
-            Preparing your personalized dashboard...
-          </p>
-          <div className="flex justify-center gap-2 mt-6">
-            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-          </div>
-        </div>
+        <p className="text-gray-500 font-medium">Loading Infoishai...</p>
       </div>
     </div>
   )
 }
 
-// Hero Section for Landing Page - ENHANCED GLOBAL VERSION
+// ============================================================================
+// HERO SECTION - STUNNING & CONVERSION OPTIMIZED
+// ============================================================================
 function LandingHeroSection() {
   const router = useRouter()
-  const [currentStat, setCurrentStat] = useState(0)
+  const [currentTestimonial, setCurrentTestimonial] = useState(0)
 
-  const stats = [
-    { number: "1,800+", label: "Verified Creators", icon: "👥", color: "from-blue-500 to-cyan-500" },
-    { number: "5+", label: "Countries Soon", icon: "🌍", color: "from-green-500 to-emerald-500" },
-    { number: "3", label: "Social Platforms", icon: "📱", color: "from-purple-500 to-pink-500" },
-    { number: "<3s", label: "Search Speed", icon: "⚡", color: "from-orange-500 to-red-500" }
+  const testimonials = [
+    { text: "Found 20 perfect influencers in 10 minutes!", author: "Marketing Manager" },
+    { text: "Finally, real Pakistani creators with actual engagement.", author: "Brand Owner" },
+    { text: "Saved us hours of manual searching.", author: "Agency Director" }
   ]
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentStat((prev) => (prev + 1) % stats.length)
-    }, 3000)
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)
+    }, 4000)
     return () => clearInterval(interval)
   }, [])
 
+  const handleCTAClick = (ctaName: string, destination: string) => {
+    trackCTAClick(ctaName, 'hero_section', destination)
+    router.push(destination)
+  }
+
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/50 to-indigo-100/50 pt-20 pb-32">
-      {/* Advanced Background Effects */}
+    <div className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/50 to-indigo-50/30">
+      {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-48 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-1/3 -right-48 w-96 h-96 bg-green-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-blob animation-delay-4000"></div>
+        {/* Gradient Mesh */}
+        <div className="absolute top-0 left-0 w-full h-full">
+          <div className="absolute top-20 -left-20 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 -right-20 w-96 h-96 bg-gradient-to-r from-violet-400/20 to-fuchsia-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-emerald-400/10 to-teal-400/10 rounded-full blur-3xl"></div>
+        </div>
+
+        {/* Floating Elements */}
+        <div className="absolute top-32 left-[10%] animate-float">
+          <div className="w-14 h-14 bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl flex items-center justify-center border border-white/50">
+            <Instagram className="w-7 h-7 text-pink-500" />
+          </div>
+        </div>
+        <div className="absolute top-48 right-[15%] animate-float-delayed">
+          <div className="w-14 h-14 bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl flex items-center justify-center border border-white/50">
+            <Youtube className="w-7 h-7 text-red-500" />
+          </div>
+        </div>
+        <div className="absolute bottom-32 left-[20%] animate-float-slow">
+          <div className="w-12 h-12 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg flex items-center justify-center border border-white/50">
+            <TrendingUp className="w-6 h-6 text-emerald-500" />
+          </div>
+        </div>
+        <div className="absolute bottom-48 right-[10%] animate-float-delayed-2">
+          <div className="w-12 h-12 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg flex items-center justify-center border border-white/50">
+            <Heart className="w-6 h-6 text-rose-500" />
+          </div>
+        </div>
+
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
+        }}></div>
       </div>
 
-      {/* Floating Icon Elements */}
-      <div className="absolute top-24 left-12 hidden lg:block">
-        <div className="w-20 h-20 bg-white/30 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-xl animate-float border border-white/40">
-          <Search className="w-10 h-10 text-blue-600" />
-        </div>
-      </div>
-      <div className="absolute top-48 right-16 hidden lg:block">
-        <div className="w-20 h-20 bg-white/30 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-xl animate-float-delayed border border-white/40">
-          <Globe className="w-10 h-10 text-green-600" />
-        </div>
-      </div>
-      <div className="absolute bottom-48 left-24 hidden lg:block">
-        <div className="w-20 h-20 bg-white/30 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-xl animate-float-delayed-2 border border-white/40">
-          <Rocket className="w-10 h-10 text-purple-600" />
-        </div>
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-12">
+      <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           
-          {/* Global Platform Badge */}
-          <div className="flex justify-center">
-            <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-xl px-8 py-4 rounded-full border-2 border-white/60 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105">
-              <div className="relative">
-                <Globe className="w-6 h-6 text-blue-600" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse border-2 border-white"></div>
-              </div>
-              <span className="text-sm font-bold bg-gradient-to-r from-blue-600 via-green-600 to-purple-600 bg-clip-text text-transparent">
-                Global Influencer Discovery Platform
-              </span>
-            </div>
-          </div>
-
-          {/* Main Headline - ENHANCED */}
+          {/* Left Column - Content */}
           <div className="space-y-8">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-gray-900 leading-tight tracking-tight">
-              <span className="inline-block animate-fade-in-up">
-                Discover
-              </span>{' '}
-              <span className="inline-block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-fade-in-up animation-delay-200 animate-gradient-x">
-                Perfect Influencers
+            {/* Live Badge */}
+            <div className="inline-flex items-center gap-3 bg-white/90 backdrop-blur-xl px-5 py-2.5 rounded-full border border-gray-200/50 shadow-lg shadow-gray-200/50">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
-              <br />
-              <span className="inline-block animate-fade-in-up animation-delay-400">
-                With
-              </span>{' '}
-              <span className="inline-block bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent animate-fade-in-up animation-delay-600 animate-gradient-x">
-                AI Advanced Search
+              <span className="text-sm font-semibold text-gray-700">
+                <span className="text-emerald-600">1,847</span> verified creators ready to collaborate
               </span>
-            </h1>
-
-            <p className="text-xl sm:text-2xl lg:text-3xl text-gray-700 max-w-5xl mx-auto leading-relaxed font-medium">
-              AI-powered search across{' '}
-              <span className="font-bold text-blue-600">Instagram</span>,{' '}
-              <span className="font-bold text-red-600">YouTube</span>, and{' '}
-              <span className="font-bold text-purple-600">TikTok</span>.
-              <br className="hidden sm:block" />
-              <span className="text-gray-600">
-                1,800+ verified creators. Free campaign management system included.
-              </span>
-            </p>
-
-            {/* Campaign Management Feature Highlight */}
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-white/90 backdrop-blur-2xl rounded-3xl p-8 shadow-2xl border-2 border-white/50">
-                <div className="text-center mb-6">
-                  <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-100 to-purple-100 px-6 py-3 rounded-full mb-4">
-                    <BarChart3 className="w-6 h-6 text-blue-600" />
-                    <span className="text-sm font-black text-gray-900 uppercase tracking-wide">Free Campaign Management</span>
-                  </div>
-                  <h3 className="text-2xl font-black text-gray-900 mb-2">
-                    Everything You Need to Run Successful Campaigns
-                  </h3>
-                  <p className="text-gray-600">
-                    Complete campaign management tools included at no extra cost
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Feature 1 */}
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border-2 border-blue-200 transform hover:scale-105 transition-all duration-300">
-                    <div className="text-center">
-                      <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <Target className="w-8 h-8 text-white" />
-                      </div>
-                      <h4 className="text-sm font-bold text-gray-900 mb-2">Campaign Tracking</h4>
-                      <p className="text-xs text-gray-600">Monitor all your influencer campaigns in one dashboard</p>
-                    </div>
-                  </div>
-
-                  {/* Feature 2 */}
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border-2 border-purple-200 transform hover:scale-105 transition-all duration-300">
-                    <div className="text-center">
-                      <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <Users className="w-8 h-8 text-white" />
-                      </div>
-                      <h4 className="text-sm font-bold text-gray-900 mb-2">Influencer Management</h4>
-                      <p className="text-xs text-gray-600">Save, organize, and communicate with creators</p>
-                    </div>
-                  </div>
-
-                  {/* Feature 3 */}
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200 transform hover:scale-105 transition-all duration-300">
-                    <div className="text-center">
-                      <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <BarChart3 className="w-8 h-8 text-white" />
-                      </div>
-                      <h4 className="text-sm font-bold text-gray-900 mb-2">Performance Analytics</h4>
-                      <p className="text-xs text-gray-600">Track ROI and engagement metrics in real-time</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 text-center">
-                  <p className="text-sm text-gray-600">
-                    <span className="font-bold text-gray-900">🎁 Bonus:</span> Campaign templates, saved searches, and export tools - all free forever
-                  </p>
-                </div>
-              </div>
             </div>
-          </div>
 
-          {/* Animated Stats Carousel */}
-          <div className="flex justify-center">
-            <div className="bg-white/95 backdrop-blur-2xl rounded-3xl p-10 shadow-2xl border-2 border-white/60 max-w-md transform hover:scale-105 transition-all duration-300">
-              <div className="text-center">
-                <div className={`text-6xl mb-6 transition-all duration-500 transform ${currentStat % 2 === 0 ? 'scale-110' : 'scale-100'}`}>
-                  {stats[currentStat].icon}
-                </div>
-                <div className={`text-5xl font-black bg-gradient-to-r ${stats[currentStat].color} bg-clip-text text-transparent mb-3 transition-all duration-500`}>
-                  {stats[currentStat].number}
-                </div>
-                <div className="text-gray-700 font-bold text-lg transition-all duration-500">
-                  {stats[currentStat].label}
-                </div>
-              </div>
-              <div className="flex justify-center gap-2 mt-8">
-                {stats.map((_, idx) => (
-                  <div
-                    key={idx}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      idx === currentStat ? 'bg-blue-600 w-8' : 'bg-gray-300 w-2'
-                    }`}
-                  />
-                ))}
-              </div>
+            {/* Main Headline */}
+            <div className="space-y-5">
+              <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-gray-900 leading-[1.1] tracking-tight">
+                Find Pakistani Influencers
+                <br />
+                <span className="relative">
+                  <span className="bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                    That Actually Convert
+                  </span>
+                  <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
+                    <path d="M2 10C50 4 100 4 150 7C200 10 250 6 298 2" stroke="url(#gradient)" strokeWidth="3" strokeLinecap="round"/>
+                    <defs>
+                      <linearGradient id="gradient" x1="0" y1="0" x2="300" y2="0">
+                        <stop offset="0%" stopColor="#2563eb"/>
+                        <stop offset="50%" stopColor="#7c3aed"/>
+                        <stop offset="100%" stopColor="#c026d3"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </span>
+              </h1>
+              
+              <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl">
+                Stop wasting hours on fake followers and ghost DMs. 
+                <span className="font-semibold text-gray-800"> Our AI finds verified creators</span> who actually drive results for your brand.
+              </p>
             </div>
-          </div>
 
-          {/* CTA Buttons - ENHANCED */}
-          <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={() => router.push('/login')}
-                className="group relative bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-black py-7 px-14 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center gap-4 overflow-hidden"
+                onClick={() => handleCTAClick('Try Free Hero', '/login')}
+                className="group relative bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-semibold py-4 px-8 rounded-2xl shadow-xl shadow-blue-500/25 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 flex items-center justify-center gap-3 overflow-hidden"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
-                <span className="text-xl relative z-10">Start Free Search</span>
-                <ArrowRight className="w-7 h-7 group-hover:translate-x-2 transition-transform duration-300 relative z-10" />
+                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
+                <span className="relative text-lg">Start Free — No Card Needed</span>
+                <ArrowRight className="w-5 h-5 relative group-hover:translate-x-1 transition-transform" />
               </button>
               
               <button
                 onClick={() => document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group bg-white/95 backdrop-blur-2xl hover:bg-white text-gray-900 font-black py-7 px-14 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border-2 border-gray-200 hover:border-blue-500 flex items-center justify-center gap-4 transform hover:scale-105"
+                className="group bg-white hover:bg-gray-50 text-gray-700 font-semibold py-4 px-8 rounded-2xl border-2 border-gray-200 hover:border-gray-300 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
               >
-                <PlayCircle className="w-7 h-7 text-blue-600 group-hover:text-purple-600 transition-colors duration-300" />
-                <span className="text-xl">Watch Demo</span>
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-violet-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Play className="w-4 h-4 text-white ml-0.5" />
+                </div>
+                <span>Watch Demo</span>
               </button>
             </div>
-            
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-6 lg:gap-12">
-              <div className="flex items-center gap-3 bg-white/60 backdrop-blur-xl px-6 py-3 rounded-full border border-white/40 shadow-lg">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-bold text-gray-800">1,847 creators online</span>
+
+          
+          </div>
+
+          {/* Right Column - Visual */}
+          <div className="relative lg:pl-8">
+            {/* Main Card */}
+            <div className="relative bg-white rounded-3xl shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+              {/* Browser Header */}
+              <div className="bg-gray-50 border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-amber-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
+                </div>
+                <div className="flex-1 bg-white rounded-lg px-3 py-1.5 text-sm text-gray-400 border border-gray-200">
+                  infoishai.com/search
+                </div>
               </div>
-              <div className="flex items-center gap-3 bg-white/60 backdrop-blur-xl px-6 py-3 rounded-full border border-white/40 shadow-lg">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-sm font-bold text-gray-800">Free forever plan</span>
+
+              {/* Search UI Mock */}
+              <div className="p-6 space-y-4">
+                {/* Search Bar */}
+                <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3 border border-gray-200">
+                  <Search className="w-5 h-5 text-gray-400" />
+                  <span className="text-gray-600 font-medium">fashion influencers lahore</span>
+                  <div className="ml-auto bg-gradient-to-r from-blue-600 to-violet-600 text-white text-sm font-semibold px-4 py-2 rounded-lg">
+                    Search
+                  </div>
+                </div>
+
+                {/* Filters */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium border border-blue-200">
+                    Instagram
+                  </span>
+                  <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium border border-emerald-200">
+                    10K-100K followers
+                  </span>
+                  <span className="px-3 py-1.5 bg-violet-50 text-violet-700 rounded-lg text-sm font-medium border border-violet-200">
+                    5%+ engagement
+                  </span>
+                </div>
+
+                {/* Results Preview */}
+                <div className="space-y-3 pt-2">
+                  {[
+                    { name: "Ayesha K.", handle: "@ayesha.style", followers: "89K", engagement: "6.2%", verified: true },
+                    { name: "Fatima Z.", handle: "@fatimazfashion", followers: "45K", engagement: "8.1%", verified: true },
+                    { name: "Sara A.", handle: "@sara.aesthetic", followers: "67K", engagement: "5.8%", verified: true }
+                  ].map((influencer, i) => (
+                    <div key={i} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl hover:bg-blue-50/50 transition-colors cursor-pointer group">
+                      <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-rose-500 rounded-xl flex items-center justify-center text-white font-bold">
+                        {influencer.name.charAt(0)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-gray-900">{influencer.name}</span>
+                          {influencer.verified && (
+                            <BadgeCheck className="w-4 h-4 text-blue-500" />
+                          )}
+                        </div>
+                        <span className="text-sm text-gray-500">{influencer.handle}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-gray-900">{influencer.followers}</div>
+                        <div className="text-sm text-emerald-600 font-medium">{influencer.engagement}</div>
+                      </div>
+                      <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Results Count */}
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-sm text-gray-500">
+                    Showing <span className="font-semibold text-gray-700">247 verified</span> influencers
+                  </span>
+                  <span className="text-sm text-blue-600 font-medium flex items-center gap-1">
+                    View all <ChevronRight className="w-4 h-4" />
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-3 bg-white/60 backdrop-blur-xl px-6 py-3 rounded-full border border-white/40 shadow-lg">
-                <Shield className="w-5 h-5 text-blue-600" />
-                <span className="text-sm font-bold text-gray-800">100% verified profiles</span>
+            </div>
+
+            {/* Floating Stats Cards */}
+            <div className="absolute -left-8 top-1/4 bg-white rounded-2xl shadow-xl p-4 border border-gray-100 animate-float-slow hidden lg:block">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">&lt;3s</div>
+                  <div className="text-xs text-gray-500">Search time</div>
+                </div>
               </div>
-              <div className="flex items-center gap-3 bg-white/60 backdrop-blur-xl px-6 py-3 rounded-full border border-white/40 shadow-lg">
-                <Rocket className="w-5 h-5 text-purple-600" />
-                <span className="text-sm font-bold text-gray-800">Going global in 30 days</span>
+            </div>
+
+            <div className="absolute -right-4 bottom-1/4 bg-white rounded-2xl shadow-xl p-4 border border-gray-100 animate-float-delayed hidden lg:block">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">100%</div>
+                  <div className="text-xs text-gray-500">Verified</div>
+                </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Platform Logos */}
+        <div className="mt-16 pt-12 border-t border-gray-200/50">
+          <p className="text-center text-sm text-gray-500 mb-6">Search across all major platforms</p>
+          <div className="flex justify-center items-center gap-8 sm:gap-12">
+            <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
+              <div className="w-10 h-10 bg-gradient-to-br from-pink-500 via-red-500 to-yellow-500 rounded-xl flex items-center justify-center">
+                <Instagram className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-semibold text-gray-700 hidden sm:block">Instagram</span>
+            </div>
+            <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
+              <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center">
+                <Youtube className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-semibold text-gray-700 hidden sm:block">YouTube</span>
+            </div>
+            <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
+              <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                </svg>
+              </div>
+              <span className="font-semibold text-gray-700 hidden sm:block">TikTok</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Custom Animations */}
+      {/* CSS Animations */}
       <style jsx>{`
-        @keyframes blob {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-        }
         @keyframes float {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(5deg); }
+          50% { transform: translateY(-15px) rotate(3deg); }
         }
         @keyframes float-delayed {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-25px) rotate(-5deg); }
+          50% { transform: translateY(-20px) rotate(-3deg); }
+        }
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
         }
         @keyframes float-delayed-2 {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-30px) rotate(10deg); }
+          50% { transform: translateY(-12px) rotate(5deg); }
         }
-        @keyframes gradient-x {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        .animate-float-delayed {
-          animation: float-delayed 6s ease-in-out infinite;
-          animation-delay: 1s;
-        }
-        .animate-float-delayed-2 {
-          animation: float-delayed-2 6s ease-in-out infinite;
-          animation-delay: 2s;
-        }
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradient-x 3s ease infinite;
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.8s ease-out forwards;
-        }
-        .animation-delay-200 {
-          animation-delay: 0.2s;
-          opacity: 0;
-        }
-        .animation-delay-400 {
-          animation-delay: 0.4s;
-          opacity: 0;
-        }
-        .animation-delay-600 {
-          animation-delay: 0.6s;
-          opacity: 0;
-        }
+        .animate-float { animation: float 5s ease-in-out infinite; }
+        .animate-float-delayed { animation: float-delayed 6s ease-in-out infinite; animation-delay: 1s; }
+        .animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
+        .animate-float-delayed-2 { animation: float-delayed-2 5.5s ease-in-out infinite; animation-delay: 0.5s; }
       `}</style>
     </div>
   )
 }
 
-// Features Section - ENHANCED GLOBAL FOCUS
-function FeaturesSection() {
-  const features = [
+// ============================================================================
+// PROBLEM/PAIN POINTS SECTION
+// ============================================================================
+function ProblemSection() {
+  const problems = [
     {
-      icon: Search,
-      title: "AI-Powered Global Search",
-      description: "Advanced semantic search finds creators worldwide by content style, audience demographics, engagement patterns, and niche across 5+ countries.",
-      color: "from-blue-500 to-cyan-500",
-      bgColor: "bg-blue-50",
-      stats: "Multi-country",
-      badge: "Most Popular"
+      icon: AlertTriangle,
+      title: "Fake Followers Epidemic",
+      description: "80% of influencers inflate their numbers with bots. You're paying for reach that doesn't exist.",
+      stat: "80%",
+      statLabel: "have fake followers",
+      color: "red"
     },
     {
-      icon: Database,
-      title: "Cross-Platform Discovery",
-      description: "Search across Instagram, YouTube, and TikTok simultaneously. One platform to discover creators on all major social networks globally.",
-      color: "from-purple-500 to-pink-500",
-      bgColor: "bg-purple-50",
-      stats: "3 platforms",
-      badge: "Comprehensive"
+      icon: Clock,
+      title: "Hours of Manual Work",
+      description: "Scrolling Instagram, checking profiles one by one, creating spreadsheets... Sound familiar?",
+      stat: "10+",
+      statLabel: "hours wasted weekly",
+      color: "orange"
     },
     {
-      icon: BarChart3,
-      title: "Real-Time Analytics",
-      description: "Live data updated daily with engagement rates, follower growth, audience demographics, and performance metrics across all markets.",
-      color: "from-green-500 to-emerald-500",
-      bgColor: "bg-green-50",
-      stats: "Daily updates",
-      badge: "Data-Driven"
+      icon: MessageCircle,
+      title: "Ghost DMs & No Replies",
+      description: "You find the perfect influencer, send a DM, and... crickets. No verified contact info anywhere.",
+      stat: "70%",
+      statLabel: "DMs go unanswered",
+      color: "yellow"
     },
     {
-      icon: Shield,
-      title: "Verified Profiles Only",
-      description: "Every profile manually verified with authentic contact information, active social presence, and genuine engagement validation globally.",
-      color: "from-orange-500 to-red-500",
-      bgColor: "bg-orange-50",
-      stats: "100% verified",
-      badge: "Trusted"
-    },
-    {
-      icon: Filter,
-      title: "Advanced Multi-Filter",
-      description: "Precision targeting with 7+ filters including country, platform, niche, followers, engagement rate, verified status, and content type.",
-      color: "from-indigo-500 to-purple-500",
-      bgColor: "bg-indigo-50",
-      stats: "7+ filters",
-      badge: "Precise"
-    },
-    {
-      icon: Zap,
-      title: "Instant Results",
-      description: "Lightning-fast search powered by optimized infrastructure. Get comprehensive global influencer matches in under 3 seconds.",
-      color: "from-yellow-500 to-orange-500",
-      bgColor: "bg-yellow-50",
-      stats: "<3s response",
-      badge: "Fastest"
+      icon: DollarSign,
+      title: "Agencies Overcharge",
+      description: "Marketing agencies take 30-50% commission. That's money that could go to actual creators.",
+      stat: "50%",
+      statLabel: "agency fees",
+      color: "purple"
     }
   ]
 
-  return (
-    <section className="py-32 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, #000 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }}></div>
-      </div>
+  const colorClasses = {
+    red: { bg: 'bg-red-50', border: 'border-red-100', icon: 'bg-red-100 text-red-600', stat: 'text-red-600' },
+    orange: { bg: 'bg-orange-50', border: 'border-orange-100', icon: 'bg-orange-100 text-orange-600', stat: 'text-orange-600' },
+    yellow: { bg: 'bg-amber-50', border: 'border-amber-100', icon: 'bg-amber-100 text-amber-600', stat: 'text-amber-600' },
+    purple: { bg: 'bg-purple-50', border: 'border-purple-100', icon: 'bg-purple-100 text-purple-600', stat: 'text-purple-600' }
+  }
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 px-8 py-4 rounded-full mb-8 shadow-lg">
-            <Award className="w-6 h-6 text-blue-600" />
-            <span className="text-sm font-black text-gray-900 uppercase tracking-wide">Platform Features</span>
+  return (
+    <section className="py-20 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-[0.015]" style={{
+        backgroundImage: `radial-gradient(circle at 1px 1px, #000 1px, transparent 0)`,
+        backgroundSize: '24px 24px'
+      }}></div>
+
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 bg-red-50 border border-red-100 px-4 py-2 rounded-full mb-6">
+            <TrendingDown className="w-4 h-4 text-red-500" />
+            <span className="text-sm font-semibold text-red-700">The Problem</span>
           </div>
-          <h2 className="text-5xl sm:text-6xl font-black text-gray-900 mb-6">
-            Why Brands Choose Infoishai
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            Influencer Marketing is <span className="text-red-500">Broken</span>
           </h2>
-          <p className="text-2xl text-gray-600 max-w-4xl mx-auto font-medium">
-            Built for worldwide reach with cutting-edge AI and deep local insights
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Pakistani brands waste thousands on influencers who don't deliver. Here's why:
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="group relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-3 border-2 border-gray-100 hover:border-gray-200 overflow-hidden"
-            >
-              {/* Gradient Glow Effect */}
-              <div className={`absolute inset-0 bg-gradient-to-r ${feature.color} opacity-0 group-hover:opacity-5 blur-2xl transition-opacity duration-500`}></div>
-              
-              {/* Badge */}
-              <div className="absolute top-4 right-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                {feature.badge}
-              </div>
-              
-              <div className="relative z-10">
-                <div className={`w-20 h-20 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-lg`}>
-                  <feature.icon className="w-10 h-10 text-white" />
-                </div>
-                
-                <h3 className="text-2xl font-black text-gray-900 mb-4">{feature.title}</h3>
-                
-                <p className="text-gray-600 leading-relaxed mb-6 text-base">{feature.description}</p>
-                
-                <div className={`inline-flex items-center gap-2 bg-gradient-to-r ${feature.color} bg-opacity-10 px-4 py-2 rounded-full`}>
-                  <div className="w-2 h-2 bg-current rounded-full animate-pulse"></div>
-                  <span className="text-sm font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                    {feature.stats}
-                  </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {problems.map((problem, index) => {
+            const colors = colorClasses[problem.color as keyof typeof colorClasses]
+            return (
+              <div 
+                key={index}
+                className={`${colors.bg} ${colors.border} border-2 rounded-3xl p-6 sm:p-8 hover:shadow-xl transition-all duration-300 group`}
+              >
+                <div className="flex items-start gap-5">
+                  <div className={`${colors.icon} w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+                    <problem.icon className="w-7 h-7" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{problem.title}</h3>
+                    <p className="text-gray-600 mb-4">{problem.description}</p>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-3xl font-black ${colors.stat}`}>{problem.stat}</span>
+                      <span className="text-sm text-gray-500">{problem.statLabel}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
+            )
+          })}
+        </div>
+
+        {/* Solution Teaser */}
+        <div className="mt-16 text-center">
+          <div className="inline-flex flex-col sm:flex-row items-center gap-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200 px-8 py-6 rounded-3xl">
+            <div className="w-14 h-14 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center">
+              <Sparkles className="w-7 h-7 text-white" />
             </div>
-          ))}
+            <div className="text-center sm:text-left">
+              <h3 className="text-xl font-bold text-gray-900">There's a better way.</h3>
+              <p className="text-emerald-700">Infoishai solves all of this with AI-powered verification.</p>
+            </div>
+            <ArrowRight className="w-6 h-6 text-emerald-500 animate-bounce-x hidden sm:block" />
+          </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes bounce-x {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(5px); }
+        }
+        .animate-bounce-x { animation: bounce-x 1s ease-in-out infinite; }
+      `}</style>
     </section>
   )
 }
 
-// Demo Section - ENHANCED
-function DemoSection() {
+// ============================================================================
+// HOW IT WORKS SECTION - WITH VIDEO
+// ============================================================================
+function HowItWorksSection() {
   const [isPlaying, setIsPlaying] = useState(false)
+  const [activeStep, setActiveStep] = useState(0)
+  
+  const steps = [
+    {
+      number: "01",
+      title: "Search Your Niche",
+      description: "Type what you're looking for. Our AI understands context — 'fashion micro-influencers in Karachi' just works.",
+      icon: Search,
+      color: "from-blue-500 to-cyan-500"
+    },
+    {
+      number: "02",
+      title: "Filter & Refine",
+      description: "Narrow down by platform, follower count, engagement rate, location, and verified status.",
+      icon: Filter,
+      color: "from-violet-500 to-purple-500"
+    },
+    {
+      number: "03",
+      title: "Get Verified Results",
+      description: "Instantly see profiles with real engagement data, verified contact info, and audience insights.",
+      icon: BadgeCheck,
+      color: "from-emerald-500 to-teal-500"
+    }
+  ]
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % steps.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
-    <section id="demo-section" className="py-32 bg-white relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-100 to-pink-100 px-8 py-4 rounded-full mb-8 shadow-lg">
-            <PlayCircle className="w-6 h-6 text-purple-600" />
-            <span className="text-sm font-black text-gray-900 uppercase tracking-wide">See It In Action</span>
+    <section id="demo-section" className="py-24 bg-white relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-gray-50 to-transparent"></div>
+      
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-4 py-2 rounded-full mb-6">
+            <Layers className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-semibold text-blue-700">How It Works</span>
           </div>
-          <h2 className="text-5xl sm:text-6xl font-black text-gray-900 mb-6">
-            Watch How It Works
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            Find Influencers in <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">3 Simple Steps</span>
           </h2>
-          <p className="text-2xl text-gray-600 max-w-4xl mx-auto">
-            See how easy it is to find and connect with global influencers in seconds
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            No complicated setup. No learning curve. Just results in under 30 seconds.
           </p>
         </div>
 
-        <div className="max-w-5xl mx-auto">
-          <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl p-6 sm:p-10 shadow-3xl">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="flex gap-2">
-                <div className="w-4 h-4 bg-red-500 rounded-full shadow-lg"></div>
-                <div className="w-4 h-4 bg-yellow-500 rounded-full shadow-lg"></div>
-                <div className="w-4 h-4 bg-green-500 rounded-full shadow-lg"></div>
+        {/* Steps */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+          {steps.map((step, index) => (
+            <div 
+              key={index}
+              className={`relative p-8 rounded-3xl transition-all duration-500 cursor-pointer ${
+                activeStep === index 
+                  ? 'bg-gradient-to-br from-gray-900 to-gray-800 text-white shadow-2xl scale-105' 
+                  : 'bg-white border-2 border-gray-100 hover:border-gray-200 hover:shadow-lg'
+              }`}
+              onClick={() => setActiveStep(index)}
+            >
+              {/* Step Number */}
+              <div className={`absolute -top-4 left-8 px-4 py-1 rounded-full text-sm font-bold ${
+                activeStep === index
+                  ? 'bg-white text-gray-900'
+                  : 'bg-gray-100 text-gray-500'
+              }`}>
+                Step {step.number}
               </div>
-              <div className="flex-1 bg-gray-700 rounded-xl px-6 py-3 text-gray-300 text-sm font-medium shadow-inner">
-                https://infoishai.com
+
+              <div className="pt-4">
+                <div className={`w-16 h-16 bg-gradient-to-r ${step.color} rounded-2xl flex items-center justify-center mb-6 ${
+                  activeStep === index ? 'shadow-lg' : ''
+                }`}>
+                  <step.icon className="w-8 h-8 text-white" />
+                </div>
+
+                <h3 className={`text-xl font-bold mb-3 ${activeStep === index ? 'text-white' : 'text-gray-900'}`}>
+                  {step.title}
+                </h3>
+                <p className={activeStep === index ? 'text-gray-300' : 'text-gray-600'}>
+                  {step.description}
+                </p>
+              </div>
+
+              {/* Progress Indicator */}
+              {activeStep === index && (
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-700 rounded-b-3xl overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-500 to-violet-500 animate-progress"></div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Video Demo */}
+        <div className="max-w-4xl mx-auto">
+          <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl p-3 sm:p-4 shadow-2xl">
+            {/* Browser Chrome */}
+            <div className="flex items-center gap-3 mb-3 px-2">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+              </div>
+              <div className="flex-1 bg-gray-700/50 rounded-lg px-4 py-1.5 text-gray-400 text-sm">
+                infoishai.com/search
               </div>
             </div>
             
-            <div className="bg-gray-100 rounded-2xl aspect-video relative overflow-hidden shadow-2xl">
+            {/* Video Container */}
+            <div className="relative bg-gradient-to-br from-blue-600/10 to-violet-600/10 rounded-2xl aspect-video overflow-hidden">
               {!isPlaying ? (
                 <div 
-                  className="absolute inset-0 bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-pink-500/30 flex items-center justify-center cursor-pointer group backdrop-blur-sm"
+                  className="absolute inset-0 flex items-center justify-center cursor-pointer group"
                   onClick={() => setIsPlaying(true)}
                 >
-                  <div className="relative text-center">
-                    <div className="w-32 h-32 bg-white/95 backdrop-blur-xl rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-2xl">
-                      <PlayCircle className="w-20 h-20 text-blue-600" />
+                  {/* Thumbnail Background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 to-violet-900/80"></div>
+                  
+                  {/* Play Button */}
+                  <div className="relative z-10 text-center">
+                    <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                      <Play className="w-10 h-10 text-blue-600 ml-1" />
                     </div>
-                    <p className="text-white font-black text-2xl mb-2 drop-shadow-lg">Watch Platform Demo</p>
-                    <p className="text-white/90 text-lg drop-shadow-lg">2 minutes • Real search results</p>
+                    <h3 className="text-2xl font-bold text-white mb-2">See Infoishai in Action</h3>
+                    <p className="text-blue-200">2 minute demo • Real search results</p>
                   </div>
+
+                  {/* Decorative Elements */}
+                  <div className="absolute top-8 left-8 w-20 h-20 border border-white/20 rounded-2xl"></div>
+                  <div className="absolute bottom-8 right-8 w-32 h-32 border border-white/10 rounded-full"></div>
                 </div>
               ) : (
                 <video
@@ -552,163 +693,328 @@ function DemoSection() {
                 </video>
               )}
             </div>
+          </div>
+        </div>
+      </div>
 
-            <div className="mt-8 grid grid-cols-3 gap-4">
-              <div className="text-center bg-gray-800/50 rounded-xl p-4 backdrop-blur-lg">
-                <div className="text-3xl font-black text-white mb-1">Step 1</div>
-                <div className="text-sm text-gray-300">Enter keywords</div>
+      <style jsx>{`
+        @keyframes progress {
+          from { width: 0%; }
+          to { width: 100%; }
+        }
+        .animate-progress {
+          animation: progress 3s linear;
+        }
+      `}</style>
+    </section>
+  )
+}
+
+// ============================================================================
+// FREE TOOLS SECTION
+// ============================================================================
+function FreeToolsSection() {
+  const router = useRouter()
+  
+  const tools = [
+    {
+      icon: User,
+      title: "Instagram Profile Analyzer",
+      description: "Analyze any profile's engagement rate, authenticity score, and audience quality instantly.",
+      href: "/tools/instagram-profile-analyzer",
+      gradient: "from-pink-500 to-rose-500",
+      bgGradient: "from-pink-50 to-rose-50",
+      borderColor: "border-pink-200",
+      stats: "10K+ analyses"
+    },
+    {
+      icon: Hash,
+      title: "Hashtag Generator",
+      description: "Generate trending, niche-specific hashtags to maximize your content reach.",
+      href: "/tools/hashtag-generator",
+      gradient: "from-violet-500 to-purple-500",
+      bgGradient: "from-violet-50 to-purple-50",
+      borderColor: "border-violet-200",
+      stats: "Free forever"
+    },
+    {
+      icon: Wand2,
+      title: "AI Text Humanizer",
+      description: "Transform AI-generated content into natural, human-like text that bypasses detectors.",
+      href: "/tools/ai-humanizer",
+      gradient: "from-blue-500 to-cyan-500",
+      bgGradient: "from-blue-50 to-cyan-50",
+      borderColor: "border-blue-200",
+      stats: "99% accuracy"
+    }
+  ]
+
+  const handleToolClick = (toolName: string, href: string) => {
+    trackCTAClick(`Free Tool - ${toolName}`, 'free_tools_section', href)
+    router.push(href)
+  }
+
+  return (
+    <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-full mb-6">
+            <Gift className="w-4 h-4 text-emerald-600" />
+            <span className="text-sm font-semibold text-emerald-700">Free Tools</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Boost Your Marketing — <span className="text-emerald-600">Free</span>
+          </h2>
+          <p className="text-lg text-gray-600 max-w-xl mx-auto">
+            Powerful tools to level up your influencer marketing. No signup required.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {tools.map((tool, index) => (
+            <div
+              key={index}
+              onClick={() => handleToolClick(tool.title, tool.href)}
+              className={`group bg-gradient-to-br ${tool.bgGradient} rounded-3xl p-6 border-2 ${tool.borderColor} hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1`}
+            >
+              <div className={`w-14 h-14 bg-gradient-to-r ${tool.gradient} rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
+                <tool.icon className="w-7 h-7 text-white" />
               </div>
-              <div className="text-center bg-gray-800/50 rounded-xl p-4 backdrop-blur-lg">
-                <div className="text-3xl font-black text-white mb-1">Step 2</div>
-                <div className="text-sm text-gray-300">Apply filters</div>
-              </div>
-              <div className="text-center bg-gray-800/50 rounded-xl p-4 backdrop-blur-lg">
-                <div className="text-3xl font-black text-white mb-1">Step 3</div>
-                <div className="text-sm text-gray-300">Get results</div>
+              
+              <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                {tool.title}
+              </h3>
+              <p className="text-gray-600 mb-4 text-sm">{tool.description}</p>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-gray-500 bg-white/80 px-3 py-1 rounded-full">
+                  {tool.stats}
+                </span>
+                <div className="flex items-center text-blue-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                  <span>Try free</span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
               </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>
   )
 }
 
-// Pricing Preview Section - UNCHANGED (keeping as requested)
-function PricingPreviewSection() {
-  const router = useRouter()
-  
+// ============================================================================
+// FEATURES SECTION
+// ============================================================================
+function FeaturesSection() {
+  const features = [
+    {
+      icon: Search,
+      title: "AI-Powered Search",
+      description: "Natural language search that understands context. Find exactly what you need.",
+      gradient: "from-blue-500 to-cyan-500"
+    },
+    {
+      icon: Shield,
+      title: "100% Verified",
+      description: "Every profile manually verified. Real followers, real engagement, real contact info.",
+      gradient: "from-emerald-500 to-teal-500"
+    },
+    {
+      icon: Filter,
+      title: "Smart Filters",
+      description: "7+ filters including platform, followers, engagement, niche, and location.",
+      gradient: "from-violet-500 to-purple-500"
+    },
+    {
+      icon: Zap,
+      title: "Instant Results",
+      description: "Get comprehensive results in under 3 seconds. No waiting around.",
+      gradient: "from-amber-500 to-orange-500"
+    },
+    {
+      icon: BarChart3,
+      title: "Real Analytics",
+      description: "Engagement rates, growth trends, and audience demographics at a glance.",
+      gradient: "from-pink-500 to-rose-500"
+    },
+    {
+      icon: Target,
+      title: "Campaign Tools",
+      description: "Save influencers, create lists, and manage campaigns. Free forever.",
+      gradient: "from-indigo-500 to-blue-500"
+    }
+  ]
+
   return (
-    <section className="py-24 bg-gradient-to-br from-white via-blue-50/30 to-green-50/30 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-24 bg-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6">
-            Simple, Global Pricing
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            Everything You Need to <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">Win</span>
           </h2>
-          <p className="text-xl text-black/70 max-w-3xl mx-auto">
-            One platform. Multiple countries. Transparent pricing for brands worldwide.
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Built specifically for Pakistani brands. Features that actually matter.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {/* Free Plan */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-black mb-2">Free</h3>
-              <div className="text-4xl font-bold text-black mb-4">PKR 0</div>
-              <p className="text-black/60 mb-6">Perfect for trying out</p>
-              
-              <div className="space-y-3 mb-8 text-left">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">10 searches per month</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">5 results per search</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">Basic influencer data</span>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, index) => (
+            <div 
+              key={index} 
+              className="group p-6 rounded-2xl hover:bg-gray-50 transition-all duration-300"
+            >
+              <div className={`w-14 h-14 bg-gradient-to-r ${feature.gradient} rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-all shadow-lg`}>
+                <feature.icon className="w-7 h-7 text-white" />
               </div>
-              
-              <button
-                onClick={() => router.push('/login')}
-                className="w-full bg-white/60 hover:bg-white backdrop-blur-lg border border-black/20 hover:border-blue-500/50 text-black font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:shadow-lg"
-              >
-                Start Free
-              </button>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
+              <p className="text-gray-600">{feature.description}</p>
             </div>
-          </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
 
-          {/* Starter Plan */}
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-blue-500 relative transform scale-105 hover:scale-110 transition-all duration-300">
-            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <span className="bg-gradient-to-r from-blue-500 to-green-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
-                Most Popular
-              </span>
-            </div>
-            
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-black mb-2">Starter</h3>
-              <div className="text-4xl font-bold text-black mb-1">PKR 2,999</div>
-              <div className="text-black/60 mb-6">/month</div>
-              
-              <div className="space-y-3 mb-8 text-left">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">30 searches per month</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">Unlimited results</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">Export to CSV/Excel</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">Advanced filters</span>
-                </div>
-              </div>
-              
-              <button
-                onClick={() => router.push('/pricing')}
-                className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-              >
-                Get Started
-              </button>
-            </div>
-          </div>
+// ============================================================================
+// STATS/SOCIAL PROOF SECTION
+// ============================================================================
+function SocialProofSection() {
+  return (
+    <section className="py-20 bg-gradient-to-r from-blue-600 via-violet-600 to-purple-600 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+          backgroundSize: '32px 32px'
+        }}></div>
+      </div>
 
-          {/* Pro Plan */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-black/10 relative hover:shadow-2xl transition-all duration-300 hover:scale-105">
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-black mb-2">Pro</h3>
-              <div className="text-4xl font-bold text-black mb-1">PKR 6,999</div>
-              <div className="text-black/60 mb-6">/month</div>
-              
-              <div className="space-y-3 mb-8 text-left">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">Unlimited Searches</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">Unlimited Results</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">Multi-country access</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">Priority support</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-black/80">Direct Consultation</span>
-                </div>
-              </div>
-              
-              <button
-                onClick={() => router.push('/pricing')}
-                className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-              >
-                Upgrade to Pro
-              </button>
-            </div>
-          </div>
+      {/* Floating Elements */}
+      <div className="absolute top-10 left-10 w-20 h-20 border border-white/20 rounded-full animate-pulse"></div>
+      <div className="absolute bottom-10 right-10 w-32 h-32 border border-white/10 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3">
+            Pakistan's First AI-Powered Influencer Platform
+          </h2>
+          <p className="text-blue-100 text-lg">
+            Built by Pakistanis, for Pakistani brands 🇵🇰
+          </p>
         </div>
 
-        <div className="text-center mt-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[
+            { number: 1800, suffix: '+', label: 'Verified Influencers' },
+            { number: 3, suffix: '', label: 'Platforms Covered' },
+            { number: 3, suffix: 's', label: 'Average Search Time', prefix: '<' },
+            { number: 100, suffix: '%', label: 'Pakistani Creators' }
+          ].map((stat, index) => (
+            <div key={index} className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6 hover:bg-white/20 transition-colors">
+              <div className="text-4xl sm:text-5xl font-black text-white mb-2">
+                {stat.prefix}<AnimatedCounter end={stat.number} suffix={stat.suffix} />
+              </div>
+              <div className="text-blue-100 font-medium">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
+// PRICING PREVIEW SECTION
+// ============================================================================
+function PricingPreviewSection() {
+  const router = useRouter()
+
+  const handleViewPricing = () => {
+    trackViewPricing('homepage_preview')
+    router.push('/pricing')
+  }
+
+  const plans = [
+    {
+      name: 'Free',
+      price: '0',
+      period: 'forever',
+      features: ['5 searches/month', 'Basic filters', 'Free tools access'],
+      highlighted: false
+    },
+    {
+      name: 'Starter',
+      price: '2,999',
+      period: '/month',
+      features: ['50 searches/month', 'All filters', 'Export to CSV', 'Email support'],
+      highlighted: true
+    },
+    {
+      name: 'Pro',
+      price: '6,999',
+      period: '/month',
+      features: ['Unlimited searches', 'Priority support', 'API access', 'Custom reports'],
+      highlighted: false
+    }
+  ]
+
+  return (
+    <section className="py-24 bg-gray-50">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Simple, Honest Pricing
+          </h2>
+          <p className="text-lg text-gray-600">
+            Start free. Upgrade when you need more. Cancel anytime.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          {plans.map((plan, index) => (
+            <div 
+              key={index}
+              className={`relative rounded-3xl p-6 transition-all duration-300 ${
+                plan.highlighted 
+                  ? 'bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-2xl scale-105' 
+                  : 'bg-white border-2 border-gray-100 hover:border-gray-200 hover:shadow-lg'
+              }`}
+            >
+              {plan.highlighted && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-900 text-xs font-bold px-4 py-1 rounded-full">
+                  Most Popular
+                </div>
+              )}
+
+              <div className="text-lg font-bold mb-2">{plan.name}</div>
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-sm">PKR</span>
+                <span className="text-4xl font-black">{plan.price}</span>
+                <span className={`text-sm ${plan.highlighted ? 'text-blue-100' : 'text-gray-500'}`}>
+                  {plan.period}
+                </span>
+              </div>
+
+              <ul className="space-y-3">
+                {plan.features.map((feature, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm">
+                    <Check className={`w-4 h-4 flex-shrink-0 ${plan.highlighted ? 'text-blue-200' : 'text-emerald-500'}`} />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center">
           <button
-            onClick={() => router.push('/pricing')}
-            className="inline-flex items-center gap-2 text-blue-500 hover:text-green-500 font-medium transition-colors duration-200"
+            onClick={handleViewPricing}
+            className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all shadow-lg hover:shadow-xl"
           >
-            View detailed pricing
+            <span>View Full Pricing Details</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -717,134 +1023,150 @@ function PricingPreviewSection() {
   )
 }
 
-// Influencer Registration Section - UNCHANGED (keeping as requested)
+// ============================================================================
+// INFLUENCER REGISTRATION SECTION
+// ============================================================================
 function InfluencerSection() {
   return (
-    <section className="py-20 bg-gradient-to-r from-purple-50 to-pink-50">
-      <div className="container mx-auto px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-block p-3 bg-purple-100 rounded-full mb-4">
-            <Sparkles className="w-8 h-8 text-purple-600" />
-          </div>
-          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+    <section className="py-20 bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 relative overflow-hidden">
+      {/* Decorative Elements */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-violet-200/50 to-fuchsia-200/50 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-purple-200/50 to-pink-200/50 rounded-full blur-3xl"></div>
+
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-2xl mb-6 shadow-lg">
+          <Sparkles className="w-8 h-8 text-white" />
+        </div>
+
+        <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+          <span className="bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
             Are You an Influencer?
-          </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Join Infoishai and get discovered by brands worldwide. 
-            Create your profile, showcase your work, and grow your influence globally.
-          </p>
+          </span>
+        </h2>
+        <p className="text-lg text-gray-600 mb-10 max-w-2xl mx-auto">
+          Join 1,800+ Pakistani creators. Get discovered by top brands. 
+          <span className="font-semibold text-gray-800"> It's completely free.</span>
+        </p>
+        
+        <div className="grid md:grid-cols-3 gap-6 mb-10">
+          {[
+            { icon: Eye, title: 'Get Discovered', desc: 'Brands actively searching for creators like you' },
+            { icon: TrendingUp, title: 'Grow Faster', desc: 'More visibility means more collaborations' },
+            { icon: DollarSign, title: 'Earn More', desc: 'Direct brand deals without agency fees' }
+          ].map((item, i) => (
+            <div key={i} className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/50">
+              <div className="w-12 h-12 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <item.icon className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="font-bold text-gray-900 mb-1">{item.title}</h3>
+              <p className="text-sm text-gray-600">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link 
+            href="/register-influencer"
+            className="group bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-semibold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2"
+          >
+            Join as Influencer
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
           
-          <div className="grid md:grid-cols-3 gap-6 mb-10">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <Users className="w-12 h-12 text-purple-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Get Discovered Globally</h3>
-              <p className="text-sm text-gray-600">Be found by brands searching for creators worldwide</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <TrendingUp className="w-12 h-12 text-purple-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Manage Your Profile</h3>
-              <p className="text-sm text-gray-600">Update your stats, portfolio, and contact info anytime</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <Globe className="w-12 h-12 text-purple-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Connect Internationally</h3>
-              <p className="text-sm text-gray-600">Receive collaboration opportunities from global brands</p>
-            </div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link 
-              href="/register-influencer"
-              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
-            >
-              Register as Influencer
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            
-            <Link 
-              href="/influencer/login"
-              className="px-8 py-4 bg-white text-purple-600 border-2 border-purple-600 rounded-full font-semibold text-lg hover:bg-purple-50 transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
-            >
-              <User className="w-5 h-5" />
-              Already Registered? Login
-            </Link>
-          </div>
+          <Link 
+            href="/influencer/login"
+            className="bg-white hover:bg-gray-50 text-violet-600 font-semibold py-4 px-8 rounded-2xl border-2 border-violet-200 hover:border-violet-300 transition-all flex items-center justify-center gap-2"
+          >
+            <User className="w-5 h-5" />
+            Already Registered?
+          </Link>
         </div>
       </div>
     </section>
   )
 }
 
-// Final CTA Section - ENHANCED
+// ============================================================================
+// FINAL CTA SECTION
+// ============================================================================
 function FinalCTASection() {
   const router = useRouter()
+
+  const handleCTAClick = (ctaName: string, destination: string) => {
+    trackCTAClick(ctaName, 'final_cta_section', destination)
+    router.push(destination)
+  }
   
   return (
-    <section className="py-32 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+    <section className="py-24 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-violet-500/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative max-w-5xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-        <div className="space-y-10">
-          <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-2xl px-8 py-4 rounded-full border-2 border-white/30 shadow-2xl">
-            <Rocket className="w-6 h-6 text-white" />
-            <span className="text-sm font-black text-white uppercase tracking-wide">Launch Your Global Campaign</span>
-          </div>
+      {/* Grid Pattern */}
+      <div className="absolute inset-0 opacity-5" style={{
+        backgroundImage: `linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)`,
+        backgroundSize: '40px 40px'
+      }}></div>
+
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-xl px-5 py-2 rounded-full border border-white/20 mb-8">
+          <Rocket className="w-4 h-4 text-blue-400" />
+          <span className="text-sm font-semibold text-white">Ready to Get Started?</span>
+        </div>
+
+        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+          Your Perfect Influencer is
+          <br />
+          <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+            30 Seconds Away
+          </span>
+        </h2>
+
+        <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+          Join 100+ Pakistani brands already finding verified influencers with Infoishai.
+        </p>
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <button
+            onClick={() => handleCTAClick('Start Free Final', '/login')}
+            className="group bg-white hover:bg-gray-100 text-gray-900 font-bold py-5 px-10 rounded-2xl shadow-2xl hover:shadow-3xl transition-all flex items-center justify-center gap-3"
+          >
+            <span className="text-lg">Start Your Free Search</span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </button>
           
-          <h2 className="text-5xl sm:text-7xl font-black text-white leading-tight">
-            Ready to Find Your
-            <br />
-            Perfect Influencers?
-          </h2>
-          
-          <p className="text-2xl sm:text-3xl text-white/95 max-w-4xl mx-auto leading-relaxed font-medium">
-            Start discovering authentic creators who align with your brand.
-            <br />
-            <span className="text-white font-black">Get your first results in under 30 seconds.</span>
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-6 justify-center pt-8">
-            <button
-              onClick={() => router.push('/login')}
-              className="group bg-white hover:bg-gray-50 text-gray-900 font-black py-7 px-14 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center gap-4"
-            >
-              <span className="text-xl">Start Free Search</span>
-              <ArrowRight className="w-7 h-7 group-hover:translate-x-2 transition-transform duration-300" />
-            </button>
-            
-            <button
-              onClick={() => router.push('/pricing')}
-              className="group border-3 border-white hover:bg-white hover:text-purple-600 text-white font-black py-7 px-14 rounded-2xl transition-all duration-300 flex items-center justify-center gap-4 hover:scale-105 transform backdrop-blur-2xl"
-            >
-              <Eye className="w-7 h-7" />
-              <span className="text-xl">View Plans</span>
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-16 max-w-3xl mx-auto">
-            <div className="text-center bg-white/10 backdrop-blur-2xl rounded-2xl p-8 border-2 border-white/20 shadow-xl">
-              <div className="text-4xl font-black text-white mb-3">Free</div>
-              <div className="text-white/90 font-medium">No credit card</div>
+          <button
+            onClick={() => handleCTAClick('View Pricing Final', '/pricing')}
+            className="group border-2 border-white/30 hover:bg-white/10 text-white font-semibold py-5 px-10 rounded-2xl transition-all flex items-center justify-center gap-3"
+          >
+            <Eye className="w-5 h-5" />
+            <span>View Pricing</span>
+          </button>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-8 text-gray-400">
+          {[
+            { icon: CheckCircle, text: 'Free forever plan' },
+            { icon: Shield, text: 'No credit card required' },
+            { icon: Clock, text: 'Setup in 30 seconds' }
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <item.icon className="w-5 h-5 text-emerald-400" />
+              <span>{item.text}</span>
             </div>
-            <div className="text-center bg-white/10 backdrop-blur-2xl rounded-2xl p-8 border-2 border-white/20 shadow-xl">
-              <div className="text-4xl font-black text-white mb-3">&lt;3s</div>
-              <div className="text-white/90 font-medium">Search time</div>
-            </div>
-            <div className="text-center bg-white/10 backdrop-blur-2xl rounded-2xl p-8 border-2 border-white/20 shadow-xl">
-              <div className="text-4xl font-black text-white mb-3">24/7</div>
-              <div className="text-white/90 font-medium">Live data</div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>
   )
 }
 
-// User Dashboard Section (for authenticated users) - UNCHANGED
+// ============================================================================
+// USER DASHBOARD SECTION (Authenticated Users)
+// ============================================================================
 function UserDashboardSection({ user }: { user: User }) {
   const router = useRouter()
 
@@ -855,167 +1177,107 @@ function UserDashboardSection({ user }: { user: User }) {
   }
 
   return (
-    <div className="relative overflow-hidden bg-white py-8 sm:py-16">
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="space-y-6 sm:space-y-8">
-          
-          {/* User Dashboard Card - Compact */}
-          <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-5 sm:p-6 max-w-4xl mx-auto border border-black/10 shadow-xl">
-            
-            {/* Header Section - Fixed Layout */}
-            <div className="flex flex-col gap-4 mb-6">
-              {/* User Info Row */}
-              <div className="flex items-center gap-3">
-                {user.profile_picture ? (
-                  <img
-                    src={user.profile_picture}
-                    alt={user.full_name || 'User'}
-                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 border-blue-500/30 object-cover shadow-lg"
-                  />
-                ) : (
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-xl flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg">
-                    {(user.full_name || user.email).charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="flex-1">
-                  <h2 className="text-lg sm:text-xl font-bold text-black mb-1">
-                    Welcome back, {user.full_name?.split(' ')[0] || user.email.split('@')[0]}!
-                  </h2>
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold border ${
-                    user.subscription_tier === 'developer' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                    user.subscription_tier === 'pro' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
-                    user.subscription_tier === 'starter' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
-                    'bg-black/10 text-black border-black/20'
+    <div className="bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 py-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Welcome Card */}
+        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-8 mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              {user.profile_picture ? (
+                <img
+                  src={user.profile_picture}
+                  alt={user.full_name || 'User'}
+                  className="w-16 h-16 rounded-2xl border-2 border-blue-100 object-cover shadow-lg"
+                />
+              ) : (
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-violet-500 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+                  {(user.full_name || user.email).charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Welcome back, {user.full_name?.split(' ')[0] || user.email.split('@')[0]}! 👋
+                </h2>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${
+                    user.subscription_tier === 'pro' || user.subscription_tier === 'developer' 
+                      ? 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700' 
+                      : user.subscription_tier === 'starter'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-gray-100 text-gray-700'
                   }`}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${
-                      user.subscription_tier === 'developer' ? 'bg-green-500' :
-                      user.subscription_tier === 'pro' ? 'bg-blue-500' :
-                      user.subscription_tier === 'starter' ? 'bg-blue-500' :
-                      'bg-black'
-                    }`}></div>
-                    {user.subscription_tier === 'developer' ? 'Developer' :
-                     user.subscription_tier === 'pro' ? 'Pro' :
-                     user.subscription_tier === 'starter' ? 'Starter' :
-                     'Free'} Account
+                    {user.subscription_tier === 'pro' ? '👑 Pro' : 
+                     user.subscription_tier === 'starter' ? '⚡ Starter' : 
+                     user.subscription_tier === 'developer' ? '🔧 Developer' : '🆓 Free'}
+                  </span>
+                  <span className="text-gray-500">
+                    {getSearchesRemaining() === 'unlimited' 
+                      ? '∞ searches remaining' 
+                      : `${getSearchesRemaining()} searches left this month`}
                   </span>
                 </div>
               </div>
-              
-              {/* CTA Button Row - Full Width on Mobile */}
-              <button
-                onClick={() => router.push('/search')}
-                disabled={getSearchesRemaining() === 0 && user.subscription_tier === 'free'}
-                className={`w-full px-5 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
-                  getSearchesRemaining() === 0 && user.subscription_tier === 'free'
-                    ? 'bg-black/20 text-black/50 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white'
-                }`}
-              >
-                {getSearchesRemaining() === 0 && user.subscription_tier === 'free' ? 'Limit Reached - Upgrade to Continue' : 'Start Searching Global Influencers'}
-              </button>
             </div>
-
-            {/* Usage Statistics - Compact Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              
-              {/* Searches This Month */}
-              <div className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 rounded-xl p-4 text-center border border-blue-500/20 backdrop-blur-lg">
-                <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-1">
-                  {user.subscription_tier === 'pro' || user.subscription_tier === 'developer' ? 
-                    user.monthly_searches : 
-                    `${user.monthly_searches}/${user.search_limit}`
-                  }
-                </div>
-                <div className="text-xs text-blue-600 font-medium">Searches This Month</div>
-              </div>
-
-              {/* Searches Remaining - Only show for limited plans */}
-              {(user.subscription_tier === 'free' || user.subscription_tier === 'starter') && (
-                <div className="bg-gradient-to-br from-green-500/5 to-green-500/10 rounded-xl p-4 text-center border border-green-500/20 backdrop-blur-lg">
-                  <div className="text-xl sm:text-2xl font-bold text-green-600 mb-1">
-                    {getSearchesRemaining()}
-                  </div>
-                  <div className="text-xs text-green-600 font-medium">Searches Remaining</div>
-                </div>
-              )}
-
-              {/* Account Type */}
-              <div className={`bg-gradient-to-br rounded-xl p-4 text-center border backdrop-blur-lg ${
-                user.subscription_tier === 'pro' || user.subscription_tier === 'developer' 
-                  ? 'from-green-500/5 to-green-500/10 border-green-500/20' 
-                  : 'from-black/5 to-black/10 border-black/20'
-              } ${(user.subscription_tier === 'free' || user.subscription_tier === 'starter') ? '' : 'lg:col-span-1 sm:col-span-2'}`}>
-                <div className="text-xl sm:text-2xl mb-1">
-                  {user.subscription_tier === 'developer' ? '🔧' :
-                   user.subscription_tier === 'pro' ? '👑' :
-                   user.subscription_tier === 'starter' ? '⚡' : '🆓'}
-                </div>
-                <div className={`text-xs font-medium ${
-                  user.subscription_tier === 'pro' || user.subscription_tier === 'developer' 
-                    ? 'text-green-600' 
-                    : 'text-black/80'
-                }`}>
-                  {user.subscription_tier.charAt(0).toUpperCase() + user.subscription_tier.slice(1)} Plan
-                </div>
-              </div>
-            </div>
-
-            {/* Upgrade CTA for Free Users - Compact */}
-            {user.subscription_tier === 'free' && (
-              <div className="mt-5 bg-gradient-to-r from-blue-500/10 to-green-500/10 rounded-xl p-4 border border-blue-500/20">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                  <div>
-                    <h3 className="font-bold text-black mb-1 text-sm">Ready for unlimited global searches?</h3>
-                    <p className="text-black/70 text-xs">Upgrade to unlock all features and remove search limits.</p>
-                  </div>
-                  <button
-                    onClick={() => router.push('/pricing')}
-                    className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-5 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg text-sm"
-                  >
-                    Upgrade Now
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Main headline for authenticated users - Mobile Optimized */}
-          <div className="text-center space-y-6">
-            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-black leading-tight">
-              Find{' '}
-              <span className="bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">
-                Global Influencers
-              </span>
-              <br />
-              With AI-Powered Search
-            </h1>
-            <p className="text-lg sm:text-xl text-black/70 max-w-3xl mx-auto leading-relaxed">
-              Search through verified creators worldwide with your personalized dashboard.
-            </p>
             
-            {/* Quick Action Buttons - Mobile Responsive */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <button
-                onClick={() => router.push('/search')}
-                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-              >
-                Start Searching Now
-              </button>
+            <button
+              onClick={() => router.push('/search')}
+              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
+            >
+              <Search className="w-5 h-5" />
+              <span>Search Influencers</span>
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: 'Searches Used', value: user.monthly_searches, icon: Search, color: 'blue' },
+            { label: 'Remaining', value: getSearchesRemaining() === 'unlimited' ? '∞' : getSearchesRemaining(), icon: Zap, color: 'emerald' },
+            { label: 'Influencers', value: '1,800+', icon: Users, color: 'violet' },
+            { label: 'Platforms', value: '3', icon: Layers, color: 'amber' }
+          ].map((stat, i) => (
+            <div key={i} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+              <div className={`w-10 h-10 bg-${stat.color}-100 rounded-xl flex items-center justify-center mb-3`}>
+                <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
+              </div>
+              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+              <div className="text-sm text-gray-500">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Upgrade CTA */}
+        {user.subscription_tier === 'free' && (
+          <div className="bg-gradient-to-r from-blue-600 to-violet-600 rounded-3xl p-6 sm:p-8 text-white">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <Crown className="w-7 h-7 text-amber-300" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Upgrade for Unlimited Power</h3>
+                  <p className="text-blue-100">Get unlimited searches, CSV export, and priority support.</p>
+                </div>
+              </div>
               <button
                 onClick={() => router.push('/pricing')}
-                className="bg-white/80 backdrop-blur-lg hover:bg-white text-black px-8 py-4 rounded-2xl font-semibold transition-all duration-300 border border-black/10 hover:border-blue-500/30"
+                className="w-full sm:w-auto bg-white text-blue-600 font-bold py-4 px-8 rounded-2xl hover:bg-blue-50 transition-colors shadow-lg"
               >
                 View Plans
               </button>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
 }
 
-// Main page component
+// ============================================================================
+// MAIN PAGE COMPONENT
+// ============================================================================
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -1037,10 +1299,7 @@ export default function HomePage() {
     }
 
     window.addEventListener('searchCompleted', handleSearchUpdate as EventListener)
-    
-    return () => {
-      window.removeEventListener('searchCompleted', handleSearchUpdate as EventListener)
-    }
+    return () => window.removeEventListener('searchCompleted', handleSearchUpdate as EventListener)
   }, [user])
 
   const checkAuthStatus = async () => {
@@ -1082,43 +1341,29 @@ export default function HomePage() {
     }
   }
 
-  if (isLoading) {
-    return <LoadingFallback />
-  }
+  if (isLoading) return <LoadingFallback />
 
   return (
     <>
       <Head>
-        <title>Infoishai - Global Influencer Discovery Platform | AI-Powered Search</title>
-        <meta name="description" content="Discover verified influencers worldwide using AI-powered search. 1,800+ Pakistani creators on Instagram, YouTube, TikTok. Free campaign management system included." />
-        <meta name="keywords" content="influencer marketing, influencer discovery, find influencers, instagram influencers, youtube creators, tiktok creators, global influencer platform, AI influencer search, Pakistani influencers, USA influencers, UK influencers, Australian influencers, Canadian influencers, UAE influencers" />
+        <title>Find Verified Pakistani Influencers That Convert | Infoishai</title>
+        <meta name="description" content="AI-powered influencer search for brands, agencies & startups in Pakistan. 1,800+ verified creators on Instagram, YouTube, TikTok. Stop wasting time on fake followers. Try free." />
+        <meta name="keywords" content="Pakistani influencers, find influencers Pakistan, Instagram influencers Pakistan, YouTube creators Pakistan, TikTok influencers, influencer marketing Pakistan, verified influencers" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+        <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://infoishai.com" />
         
-        {/* Open Graph */}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Infoishai - Global Influencer Discovery Platform" />
-        <meta property="og:description" content="Discover verified influencers worldwide using AI-powered search. 1,800+ Pakistani creators on Instagram, YouTube, TikTok. Free campaign management system included." />
-        <meta property="og:site_name" content="Infoishai" />
+        <meta property="og:title" content="Find Verified Pakistani Influencers That Convert | Infoishai" />
+        <meta property="og:description" content="AI-powered influencer search. 1,800+ verified Pakistani creators. Stop wasting time on fake followers." />
+        <meta property="og:url" content="https://infoishai.com" />
         <meta property="og:image" content="https://infoishai.com/og-image.jpg" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
         
-        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Infoishai - Global Influencer Discovery Platform" />
-       <meta name="twitter:description" content="AI-powered influencer search across Instagram, YouTube, TikTok. Find authentic creators worldwide. Free campaign management included." />
-        <meta name="twitter:image" content="https://infoishai.com/twitter-image.jpg" />
-        
-        {/* Additional SEO */}
-        <meta name="geo.region" content="PK" />
-        <meta name="geo.placename" content="Pakistan" />
-        <meta name="language" content="English" />
-        <meta name="author" content="Infoishai" />
+        <meta name="twitter:title" content="Find Verified Pakistani Influencers That Convert" />
+        <meta name="twitter:description" content="AI-powered influencer search. 1,800+ verified Pakistani creators." />
       </Head>
 
-      {/* JSON-LD Structured Data - ENHANCED */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -1126,55 +1371,37 @@ export default function HomePage() {
             "@context": "https://schema.org",
             "@type": "WebApplication",
             "name": "Infoishai",
-            "description": "Global influencer discovery platform with AI-powered search across Instagram, YouTube, and TikTok. Find verified creators worldwide.",
+            "description": "AI-powered influencer discovery platform for Pakistan",
             "url": "https://infoishai.com",
             "applicationCategory": "BusinessApplication",
-            "operatingSystem": "Any",
             "offers": {
               "@type": "AggregateOffer",
               "lowPrice": "0",
               "highPrice": "6999",
-              "priceCurrency": "PKR",
-              "offerCount": "3"
-            },
-            "featureList": [
-              "AI-powered influencer search",
-              "Multi-platform discovery (Instagram, YouTube, TikTok)",
-              "Real-time analytics",
-              "Verified profiles only",
-              "Advanced filtering (50+ filters)",
-              "Global database expansion"
-            ],
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": "4.8",
-              "ratingCount": "256",
-              "bestRating": "5",
-              "worstRating": "1"
-            },
-            "availableCountry": ["PK", "US", "GB", "AU", "CA", "AE"],
-            "inLanguage": "en"
+              "priceCurrency": "PKR"
+            }
           })
         }}
       />
 
       <Header />
 
-      {/* Conditional Content */}
       {user ? (
-        // Authenticated user sees dashboard
         <>
           <UserDashboardSection user={user} />
           <FeaturesSection />
+          <FreeToolsSection />
         </>
       ) : (
-        // Visitors see landing page
         <>
           <LandingHeroSection />
+          <ProblemSection />
+          <HowItWorksSection />
+          <FreeToolsSection />
           <FeaturesSection />
-          <DemoSection />
-          <InfluencerSection />
+          <SocialProofSection />
           <PricingPreviewSection />
+          <InfluencerSection />
           <FinalCTASection />
         </>
       )}
