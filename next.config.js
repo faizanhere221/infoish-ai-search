@@ -26,8 +26,24 @@ const nextConfig = {
   
   // Image optimization settings
   images: {
-    domains: ['localhost'],
-    unoptimized: false,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+    ],
   },
 
   // Redirect www to non-www (backup in case Vercel redirect fails)

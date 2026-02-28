@@ -1,6 +1,6 @@
 // src/app/blog/ai-humanizer-tool-make-ai-text-human-2025/page.tsx
 
-import Header from '@/components/header'
+
 import Link from 'next/link'
 import { ArrowLeft, Calendar, User, Clock, CheckCircle, Zap, Shield, FileText, Users, Sparkles, PenTool, Target, XCircle } from 'lucide-react'
 import { Metadata } from 'next'

@@ -283,8 +283,8 @@ useEffect(() => {
     if (data.success !== false) {
       const searchResults = data.results || []
 
-      let displayTotal = data.total || data.total_found || 0
-      let displayPages = Math.ceil(displayTotal / RESULTS_PER_PAGE)
+      const displayTotal = data.total || data.total_found || 0
+      const displayPages = Math.ceil(displayTotal / RESULTS_PER_PAGE)
       
       setResults(searchResults)
       setTotalResults(displayTotal)
