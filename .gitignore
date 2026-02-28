@@ -1,107 +1,80 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# Dependencies
 /node_modules
 /.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+.pnp.js
+.yarn/install-state.gz
 
-# testing
+# Testing
 /coverage
 
-# next.js
+# Next.js
 /.next/
 /out/
 
-# production
+# Production
 /build
 
-# misc
+# Misc
 .DS_Store
 *.pem
+Thumbs.db
 
-# debug
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Local env files
+.env
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# vercel.
+# Vercel
 .vercel
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-# Python backend
-vector-backend/__pycache__/
-vector-backend/.pytest_cache/
-*.pyc
-*.pyo
-*.pyd
-__pycache__/
-*.so
-.Python
-env/
-venv/
-.venv/
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-influencer.db
-
-# CSV files with sensitive data
-*.csv
-!sample_data.csv
-
 # IDE
-.vscode/
 .idea/
+.vscode/
 *.swp
 *.swo
 
 # Logs
+logs
 *.log
-logs/
 
-# Uploads
-uploads/
-public/uploads/
-data/
-
-# OS specific
+# OS generated files
+.DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db
 
-# Temporary
-*.tmp
-*.temp
-temp/
+# Optional npm cache
+.npm
 
-# API Keys backup
-api_keys_backup.json
+# Optional eslint cache
+.eslintcache
 
-# Railway & deployment
-.railway/
+# Turbo
+.turbo
 
+# PWA files
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+**/public/sw.js.map
+**/public/workbox-*.js.map
 
-# Payment data
-/data/payment-submissions.json
-/public/uploads/payment-proofs/*
-!public/uploads/payment-proofs/.gitkeep
+# Sentry
+.sentryclirc
 
-# Keep directory structure
-!public/uploads/payment-proofs/.gitkeep
+# Supabase
+supabase/.branches
+supabase/.temp
