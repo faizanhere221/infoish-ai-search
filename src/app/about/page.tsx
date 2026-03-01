@@ -1,305 +1,431 @@
-// src/app/about/page.tsx
+import { Metadata } from 'next'
+import Link from 'next/link'
+import Image from 'next/image'
+import { 
+  Users, 
+  Search, 
+  BarChart3, 
+  Shield, 
+  Target, 
+  Zap, 
+  Globe, 
+  TrendingUp,
+  Sparkles,
+  CheckCircle,
+  ArrowRight,
+  Youtube,
+  Twitter,
+  Linkedin,
+  Github,
+  Mail,
+  Mic,
+  BookOpen,
+  Wrench,
+  Menu,
+  X
+} from 'lucide-react'
+import { Navigation, Footer } from '@/components/landing'
 
-import Header from '@/components/header'
-import { Users, Search, BarChart3, Shield, Target, Zap, Globe, TrendingUp } from 'lucide-react'
-import TeamSection from '@/components/TeamSection'
-
-export const metadata = {
-  title: 'About Infoishai - Global Influencer Discovery Platform | Our Story',
-  description: 'Learn about Infoishai, the AI-powered global influencer discovery platform. Starting with 1,800+ Pakistani creators, expanding to India, UAE, and worldwide. Our mission to democratize influencer marketing.',
-  keywords: 'about infoishai, influencer platform story, global creator discovery, influencer marketing platform, ai search tool',
+// ============================================================================
+// SEO METADATA
+// ============================================================================
+export const metadata: Metadata = {
+  title: 'About Infoishai - Tech Influencer Marketplace | Find AI & SaaS Creators',
+  description: 'Learn about Infoishai, the #1 tech influencer marketplace. We connect B2B brands with verified AI, SaaS, and developer content creators across YouTube, Twitter, LinkedIn, and more.',
+  keywords: [
+    'about infoishai',
+    'tech influencer platform',
+    'b2b creator marketplace',
+    'ai influencer marketing',
+    'saas content creators',
+    'developer influencers',
+    'tech creator discovery',
+  ],
   openGraph: {
-    title: 'About Infoishai - Global Influencer Discovery Platform',
-    description: 'AI-powered platform connecting brands with verified creators worldwide. Starting with Pakistan, expanding globally.',
+    title: 'About Infoishai - Tech Influencer Marketplace',
+    description: 'The #1 marketplace connecting B2B brands with verified tech creators. 2,000+ creators across AI, SaaS, DevOps, and more.',
     url: 'https://infoishai.com/about',
-  }
+  },
 }
 
+// ============================================================================
+// TEAM DATA - UPDATE THESE WITH YOUR REAL SOCIAL LINKS
+// ============================================================================
+const team = [
+  {
+    name: 'Faizan Islam',
+    role: 'Founder & CEO',
+    bio: 'CS student at BZU, President of Zakariyan Tech Society. Building the future of creator economy.',
+    image: '/images/team/founder.jpg',
+    linkedin: 'https://www.linkedin.com/in/faizan-islam-here/', // UPDATE THIS
+    twitter: 'https://twitter.com/faizanhere221', // UPDATE THIS
+  },
+  {
+    name: 'Farhan',
+    role: 'Co-Founder & CTO',
+    bio: 'Full-stack developer with expertise in Next.js, Python, and AI. Building scalable tech solutions.',
+    image: '/images/team/cto.jpg',
+    linkedin: 'https://www.linkedin.com/in/farhan-cto/', // UPDATE THIS
+    twitter: 'https://twitter.com/farhan', // UPDATE THIS
+  },
+  {
+    name: 'Israr',
+    role: 'Digital Marketing Expert',
+    bio: 'Growth specialist helping creators and brands maximize their reach and engagement.',
+    image: '/images/team/marketing.jpg',
+    linkedin: 'https://www.linkedin.com/in/israr-marketing/', // UPDATE THIS
+    twitter: 'https://twitter.com/israr', // UPDATE THIS
+  },
+]
+
+// ============================================================================
+// STATS DATA
+// ============================================================================
+const stats = [
+  { value: '2,000+', label: 'Verified Creators', icon: Users },
+  { value: '6', label: 'Platforms Covered', icon: Globe },
+  { value: '50M+', label: 'Total Audience Reach', icon: TrendingUp },
+  { value: '15+', label: 'Tech Niches', icon: Target },
+]
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-white">
-      <Header isSearchPage={false} />
+      <Navigation />
       
-      <div className="max-w-7xl mx-auto px-4 py-16">
-        {/* Hero Section - Global Positioning */}
-        <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-green-100 px-6 py-3 rounded-full mb-6">
-            <Globe className="w-5 h-5 text-blue-600" />
-            <span className="text-sm font-semibold text-blue-800">Global Influencer Discovery Platform</span>
-          </div>
-          
-          <h1 className="text-4xl md:text-6xl font-bold text-black mb-6 leading-tight">
-            About{' '}
-            <span className="bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">
-              Infoishai
-            </span>
-          </h1>
-          
-          <p className="text-xl text-black/70 max-w-4xl mx-auto leading-relaxed mb-8">
-            We're revolutionizing how businesses worldwide connect with content creators. 
-            Our AI-powered platform makes influencer marketing accessible, data-driven, and results-focused.
-          </p>
-          
-          {/* Global Expansion Badge */}
-          <div className="inline-flex flex-wrap items-center justify-center gap-4 bg-white/80 backdrop-blur-xl border border-blue-500/20 rounded-2xl px-8 py-4 shadow-lg">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🇵🇰</span>
-              <div className="text-left">
-                <div className="text-sm font-bold text-black">Currently Available</div>
-                <div className="text-xs text-black/60">Pakistan - 1,800+ Creators</div>
-              </div>
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 bg-gradient-to-br from-violet-50 via-white to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-100 text-violet-700 rounded-full text-sm font-medium mb-6">
+              <Sparkles className="w-4 h-4" />
+              <span>#1 Tech Creator Marketplace</span>
             </div>
-            <div className="h-8 w-px bg-gray-300 hidden sm:block"></div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🔜</span>
-              <div className="text-left">
-                <div className="text-sm font-bold text-black">Expanding Soon</div>
-                <div className="text-xs text-black/60">India • UAE • Bangladesh</div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Mission Section - Global Focus */}
-        <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
-          <div>
-            <h2 className="text-3xl font-bold text-black mb-6">Our Global Mission</h2>
-            <p className="text-lg text-black/80 mb-6 leading-relaxed">
-              To empower businesses worldwide to harness the power of influencer marketing. 
-              We believe every brand—from Karachi to Dubai, Mumbai to Dhaka—deserves access to the right creators 
-              who can authentically represent their values and reach their target audience.
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+              About{' '}
+              <span className="bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
+                Infoishai
+              </span>
+            </h1>
+            
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-10">
+              We're revolutionizing how <strong>B2B tech brands</strong> connect with content creators. 
+              Our AI-powered marketplace makes finding <strong>AI, SaaS, and developer influencers</strong> 
+              fast, transparent, and results-driven.
             </p>
-            <p className="text-lg text-black/80 mb-6 leading-relaxed">
-              Starting with Pakistan's most comprehensive creator database, we're expanding across South Asia, 
-              the Middle East, and beyond. Our vision: become the world's most trusted global influencer 
-              discovery platform.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl px-4 py-2">
-                <div className="text-sm font-semibold text-blue-600">Multi-Country</div>
+
+            {/* Platform Badges */}
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              {[
+                { icon: Youtube, name: 'YouTube', color: 'bg-red-500' },
+                { icon: Twitter, name: 'Twitter/X', color: 'bg-gray-900' },
+                { icon: Linkedin, name: 'LinkedIn', color: 'bg-blue-600' },
+                { icon: Github, name: 'GitHub', color: 'bg-gray-800' },
+                { icon: Mail, name: 'Newsletter', color: 'bg-emerald-500' },
+                { icon: Mic, name: 'Podcast', color: 'bg-purple-500' },
+              ].map((platform, index) => (
+                <div key={index} className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-gray-100">
+                  <div className={`w-6 h-6 ${platform.color} rounded-full flex items-center justify-center`}>
+                    <platform.icon className="w-3 h-3 text-white" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">{platform.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 bg-white border-y border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <stat.icon className="w-7 h-7 text-violet-600" />
+                </div>
+                <p className="text-3xl lg:text-4xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-gray-500">{stat.label}</p>
               </div>
-              <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-2">
-                <div className="text-sm font-semibold text-green-600">AI-Powered</div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Mission Section */}
+      <section className="py-20 lg:py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
+                Our Mission
+              </h2>
+              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+                To become the <strong>world's leading marketplace for tech influencers</strong>. 
+                We believe every B2B brand—from early-stage startups to enterprise companies—deserves 
+                access to authentic creators who can communicate complex products simply.
+              </p>
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                Traditional influencer marketing focuses on lifestyle and consumer brands. 
+                We focus exclusively on <strong>technology: AI, SaaS, DevOps, cybersecurity, 
+                developer tools, and startups</strong>. This specialization means better matches, 
+                higher engagement, and real business results.
+              </p>
+              
+              <div className="flex flex-wrap gap-3">
+                <span className="px-4 py-2 bg-violet-100 text-violet-700 rounded-full text-sm font-medium">
+                  Tech-Focused
+                </span>
+                <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                  B2B Specialized
+                </span>
+                <span className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                  Verified Creators
+                </span>
               </div>
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl px-4 py-2">
-                <div className="text-sm font-semibold text-blue-600">Data-Driven</div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-violet-100 to-blue-100 rounded-3xl p-8 lg:p-12">
+              <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">What Makes Us Different</h3>
+              <div className="space-y-6">
+                {[
+                  'Only tech & B2B creators (no lifestyle influencers)',
+                  'Multi-platform: YouTube, Twitter, LinkedIn, GitHub, Newsletters, Podcasts',
+                  'Verified metrics and authentic engagement',
+                  'Escrow payment protection for safe deals',
+                  'Direct messaging with creators',
+                  'Free to join for both brands and creators',
+                ].map((item, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700">{item}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Story Section */}
+      <section className="py-20 lg:py-32 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-12">
+            Our Story
+          </h2>
           
-          <div className="bg-gradient-to-br from-blue-500/10 to-green-500/10 backdrop-blur-xl rounded-3xl p-8 border border-blue-500/20">
-            <div className="grid grid-cols-2 gap-8 text-center">
-              <div>
-                <div className="text-3xl font-bold text-green-500 mb-2">1,800+</div>
-                <div className="text-black/70 text-sm">Verified Creators</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-blue-500 mb-2">4</div>
-                <div className="text-black/70 text-sm">Countries (Growing)</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-green-500 mb-2">50M+</div>
-                <div className="text-black/70 text-sm">Total Reach</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-blue-500 mb-2">15+</div>
-                <div className="text-black/70 text-sm">Content Categories</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Global Roadmap Section - NEW */}
-        <div className="mb-20 bg-gradient-to-br from-blue-500/5 to-green-500/5 backdrop-blur-xl rounded-3xl p-12 border border-blue-500/20">
-          <h2 className="text-3xl font-bold text-center text-black mb-12">Global Expansion Roadmap</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-3xl">✓</span>
-              </div>
-              <h3 className="text-xl font-bold text-black mb-3">Phase 1: Pakistan</h3>
-              <div className="text-sm text-green-600 font-semibold mb-3">LIVE NOW</div>
-              <p className="text-black/70">1,800+ verified creators across Instagram, YouTube, TikTok</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-20 h-20 bg-blue-500/20 border-4 border-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="w-10 h-10 text-blue-500" />
-              </div>
-              <h3 className="text-xl font-bold text-black mb-3">Phase 2: South Asia</h3>
-              <div className="text-sm text-blue-600 font-semibold mb-3">Q2 2025</div>
-              <p className="text-black/70">Expanding to India, Bangladesh with 10,000+ creators</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-20 h-20 bg-black/10 border-4 border-black/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Globe className="w-10 h-10 text-black/40" />
-              </div>
-              <h3 className="text-xl font-bold text-black mb-3">Phase 3: Middle East & Global</h3>
-              <div className="text-sm text-black/60 font-semibold mb-3">Q4 2025</div>
-              <p className="text-black/70">UAE, Saudi Arabia, and 20+ countries worldwide</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Values Section */}
-        <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center text-black mb-12">Our Core Values</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-xl text-center border border-black/10 hover:border-blue-500/30 transition-all duration-300">
-              <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Shield className="w-8 h-8 text-blue-500" />
-              </div>
-              <h3 className="text-xl font-bold text-black mb-4">Transparency</h3>
-              <p className="text-black/70 leading-relaxed">
-                We provide accurate, up-to-date data about every influencer worldwide. No hidden metrics, 
-                no inflated numbers—just honest insights to help you make informed decisions.
-              </p>
-            </div>
-            
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-xl text-center border border-black/10 hover:border-green-500/30 transition-all duration-300">
-              <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Target className="w-8 h-8 text-green-500" />
-              </div>
-              <h3 className="text-xl font-bold text-black mb-4">Precision</h3>
-              <p className="text-black/70 leading-relaxed">
-                Our advanced AI algorithms help you find the perfect match for your brand across any country, 
-                considering audience demographics, engagement rates, and content quality.
-              </p>
-            </div>
-            
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-xl text-center border border-black/10 hover:border-blue-500/30 transition-all duration-300">
-              <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Zap className="w-8 h-8 text-blue-500" />
-              </div>
-              <h3 className="text-xl font-bold text-black mb-4">Innovation</h3>
-              <p className="text-black/70 leading-relaxed">
-                We continuously evolve our platform with cutting-edge features like cross-country analytics, 
-                multilingual search, and AI-powered campaign predictions.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Story Section - Updated */}
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mb-20 border border-black/10">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-center text-black mb-8">Our Story</h2>
-            <div className="prose prose-lg mx-auto text-black/80">
+          <div className="bg-white rounded-3xl shadow-xl p-8 lg:p-12 border border-gray-100">
+            <div className="prose prose-lg max-w-none text-gray-600">
               <p className="text-lg leading-relaxed mb-6">
-                Infoishai was born from a global vision with local roots. As entrepreneurs in Pakistan's 
-                rapidly growing digital economy, we experienced firsthand the challenges of finding the right 
-                influencers. Businesses were spending weeks manually researching creators, often missing perfect 
-                matches or working with inflated metrics.
+                Infoishai was born from frustration. As tech creators ourselves, we experienced 
+                firsthand how broken the influencer marketing space was for technology products. 
+                Brands were using platforms designed for beauty and fashion influencers to find 
+                developers and AI experts. It didn't work.
               </p>
               <p className="text-lg leading-relaxed mb-6">
-                We realized this wasn't just a Pakistani problem—it was a global challenge. From startups in 
-                Karachi to enterprises in Dubai, from D2C brands in Mumbai to agencies in Dhaka, everyone 
-                struggled with the same issue: <strong>discovering authentic creators at scale</strong>.
+                We realized that <strong>tech influencer marketing is fundamentally different</strong>. 
+                A SaaS company doesn't need millions of followers—they need 10,000 developers who 
+                trust a specific creator's recommendations. A startup launching an AI tool doesn't 
+                need viral TikToks—they need thoughtful YouTube reviews from ML practitioners.
               </p>
               <p className="text-lg leading-relaxed mb-6">
-                That's when we decided to build something bigger than a local tool. We built Infoishai as a 
-                <strong> global influencer discovery platform</strong>, starting with Pakistan's most comprehensive 
-                database and expanding worldwide.
+                So we built Infoishai: a marketplace specifically designed for tech creators and 
+                B2B brands. We started by analyzing thousands of tech influencers across platforms, 
+                verifying their metrics, and understanding their audiences.
               </p>
               <p className="text-lg leading-relaxed">
-                Today, we've created the foundation for what will become the world's largest verified creator 
-                marketplace. We're just getting started on our mission to democratize influencer marketing 
-                across continents.
+                Today, we have <strong>2,000+ verified tech creators</strong> across AI, SaaS, DevOps, 
+                cybersecurity, and more. We're just getting started on our mission to become the 
+                world's most trusted platform for tech influencer marketing.
               </p>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Features Section - Global Enhanced */}
-        <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center text-black mb-12">Why Global Brands Choose Us</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            
-            <div className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 backdrop-blur-xl rounded-3xl p-8 border border-blue-500/20 hover:shadow-xl transition-all duration-300">
-              <Search className="w-12 h-12 text-blue-500 mb-6" />
-              <h3 className="text-xl font-bold text-black mb-4">AI-Powered Global Search</h3>
-              <p className="text-black/70">
-                Our advanced algorithms analyze content, engagement patterns, and audience data across 
-                multiple countries to find your perfect influencer matches in seconds.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-500/5 to-green-500/10 backdrop-blur-xl rounded-3xl p-8 border border-green-500/20 hover:shadow-xl transition-all duration-300">
-              <BarChart3 className="w-12 h-12 text-green-500 mb-6" />
-              <h3 className="text-xl font-bold text-black mb-4">Cross-Country Analytics</h3>
-              <p className="text-black/70">
-                Compare creators across different markets. Get insights on engagement rates, audience 
-                demographics, and regional performance metrics.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-blue-500/5 to-green-500/5 backdrop-blur-xl rounded-3xl p-8 border border-blue-500/20 hover:shadow-xl transition-all duration-300">
-              <Users className="w-12 h-12 text-blue-500 mb-6" />
-              <h3 className="text-xl font-bold text-black mb-4">Verified Global Database</h3>
-              <p className="text-black/70">
-                Every influencer is manually verified. We ensure accurate follower counts, authentic 
-                engagement, and verified contact information worldwide.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-500/5 to-blue-500/5 backdrop-blur-xl rounded-3xl p-8 border border-green-500/20 hover:shadow-xl transition-all duration-300">
-              <Target className="w-12 h-12 text-green-500 mb-6" />
-              <h3 className="text-xl font-bold text-black mb-4">Multi-Platform Coverage</h3>
-              <p className="text-black/70">
-                Find influencers across Instagram, YouTube, TikTok, and emerging platforms. 
-                Compare cross-platform performance in one unified dashboard.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-blue-500/5 to-green-500/5 backdrop-blur-xl rounded-3xl p-8 border border-blue-500/20 hover:shadow-xl transition-all duration-300">
-              <Globe className="w-12 h-12 text-blue-500 mb-6" />
-              <h3 className="text-xl font-bold text-black mb-4">International Reach</h3>
-              <p className="text-black/70">
-                Access creators across Pakistan, India, UAE, Bangladesh, and expanding to 20+ countries. 
-                One platform for all your global campaigns.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-500/5 to-blue-500/5 backdrop-blur-xl rounded-3xl p-8 border border-green-500/20 hover:shadow-xl transition-all duration-300">
-              <Zap className="w-12 h-12 text-green-500 mb-6" />
-              <h3 className="text-xl font-bold text-black mb-4">Real-Time Updates</h3>
-              <p className="text-black/70">
-                Our database is updated daily with new creators and fresh metrics from multiple countries. 
-                You always get the most current global information.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Team Section */}
-        <TeamSection />
-
-        {/* CTA Section - Global */}
-        <div className="text-center bg-gradient-to-r from-blue-500/5 to-green-500/5 backdrop-blur-xl rounded-3xl p-12 border border-blue-500/20">
-          <h2 className="text-3xl font-bold text-black mb-4">
-            Ready to Go Global with Your Marketing?
+      {/* Values Section */}
+      <section className="py-20 lg:py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-12">
+            Our Core Values
           </h2>
-          <p className="text-xl text-black/70 mb-8 max-w-2xl mx-auto">
-            Join businesses worldwide using Infoishai to discover verified creators across Pakistan, 
-            India, UAE, and beyond
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
-              href="/login" 
-              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white py-4 px-8 rounded-2xl font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            >
-              Start Free Search
-            </a>
-            <a 
-              href="/contact" 
-              className="border-2 border-blue-500 text-blue-500 hover:bg-blue-500/10 py-4 px-8 rounded-2xl font-semibold transition-all duration-300"
-            >
-              Get in Touch
-            </a>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Shield,
+                title: 'Transparency',
+                description: 'We provide accurate, verified data about every creator. No fake followers, no inflated metrics—just honest insights to help you make informed decisions.',
+                color: 'bg-violet-100 text-violet-600',
+              },
+              {
+                icon: Target,
+                title: 'Precision',
+                description: 'Our AI algorithms help you find the perfect creator match based on niche expertise, audience demographics, engagement quality, and content style.',
+                color: 'bg-blue-100 text-blue-600',
+              },
+              {
+                icon: Zap,
+                title: 'Innovation',
+                description: 'We continuously evolve our platform with cutting-edge features like AI-powered matching, cross-platform analytics, and predictive campaign insights.',
+                color: 'bg-emerald-100 text-emerald-600',
+              },
+            ].map((value, index) => (
+              <div key={index} className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-violet-300 hover:shadow-lg transition-all text-center">
+                <div className={`w-16 h-16 ${value.color} rounded-2xl flex items-center justify-center mx-auto mb-6`}>
+                  <value.icon className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">{value.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{value.description}</p>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Team Section */}
+      <section className="py-20 lg:py-32 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Meet the Team
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              We're a small team of builders, creators, and marketers passionate about 
+              connecting tech brands with authentic voices.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {team.map((member, index) => (
+              <div key={index} className="bg-white rounded-2xl p-8 border border-gray-200 text-center hover:shadow-lg transition-all">
+                {/* Team Image with gradient background fallback */}
+                <div className="w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden border-4 border-violet-100 bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
+                  <Image 
+                    src={member.image} 
+                    alt={member.name}
+                    width={96}
+                    height={96}
+                    className="w-full h-full object-cover"
+                    unoptimized
+                  />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">{member.name}</h3>
+                <p className="text-violet-600 font-medium mb-4">{member.role}</p>
+                <p className="text-gray-600 text-sm leading-relaxed mb-6">{member.bio}</p>
+                <div className="flex items-center justify-center gap-4">
+                  <a 
+                    href={member.linkedin} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-violet-100 hover:text-violet-600 transition-colors"
+                  >
+                    <Linkedin className="w-5 h-5" />
+                  </a>
+                  <a 
+                    href={member.twitter} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-violet-100 hover:text-violet-600 transition-colors"
+                  >
+                    <Twitter className="w-5 h-5" />
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us Section */}
+      <section className="py-20 lg:py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-12">
+            Why Brands Choose Infoishai
+          </h2>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Search,
+                title: 'AI-Powered Discovery',
+                description: 'Find the perfect tech creator in seconds with our advanced search and filtering.',
+              },
+              {
+                icon: BarChart3,
+                title: 'Verified Metrics',
+                description: 'Every creator is manually verified. Real followers, real engagement, real results.',
+              },
+              {
+                icon: Users,
+                title: 'Tech-Only Focus',
+                description: 'We specialize in AI, SaaS, DevOps, and developer content creators exclusively.',
+              },
+              {
+                icon: Shield,
+                title: 'Escrow Protection',
+                description: 'Safe payments held until work is delivered and approved by both parties.',
+              },
+              {
+                icon: Globe,
+                title: 'Multi-Platform',
+                description: 'YouTube, Twitter, LinkedIn, GitHub, Newsletters, Podcasts—all in one place.',
+              },
+              {
+                icon: Zap,
+                title: 'Direct Communication',
+                description: 'Message creators directly. No middlemen, no delays, no complicated processes.',
+              },
+            ].map((feature, index) => (
+              <div key={index} className="flex gap-4">
+                <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <feature.icon className="w-6 h-6 text-violet-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 lg:py-32 bg-gradient-to-br from-violet-600 to-blue-600 text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl lg:text-4xl font-bold mb-6">
+            Ready to Find Your Perfect Tech Creator?
+          </h2>
+          <p className="text-xl text-violet-100 mb-10 max-w-2xl mx-auto">
+            Join hundreds of brands using Infoishai to connect with verified tech influencers. 
+            Free to start, no credit card required.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link 
+              href="/creators"
+              className="w-full sm:w-auto px-8 py-4 bg-white text-violet-600 rounded-full font-semibold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+            >
+              Browse Creators
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link 
+              href="/signup"
+              className="w-full sm:w-auto px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/30 text-white rounded-full font-semibold text-lg hover:bg-white/20 transition-all"
+            >
+              Get Started Free
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   )
 }
