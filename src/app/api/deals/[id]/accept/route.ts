@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { createNotification, getUserIdFromBrand } from '@/lib/notifications'
 
 interface RouteParams {
   params: { id: string }
@@ -87,6 +88,18 @@ export async function POST(
           is_system_message: true,
           attachments: [],
         })
+    }
+
+    // Notify the brand that the creator accepted
+    const brandUserId = await getUserIdFromBrand(supabase, deal.brand_id)
+    if (brandUserId) {
+      await createNotification(supabase, {
+        userId: brandUserId,
+        type: 'deal_accepted',
+        title: 'Deal accepted',
+        message: `Your deal "${deal.title}" has been accepted. Work is now in progress.`,
+        link: `/dashboard/deals/${id}`,
+      })
     }
 
     return NextResponse.json({

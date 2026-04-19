@@ -53,8 +53,17 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
         setUnreadMessages(unread)
       }
 
-      // TODO: Fetch unread notifications when implemented
-      setUnreadNotifications(0)
+      // Fetch unread notification count
+      const authToken = localStorage.getItem('auth_token')
+      if (authToken) {
+        const notifRes = await fetch('/api/notifications?unread=true&limit=1', {
+          headers: { Authorization: `Bearer ${authToken}` },
+        })
+        if (notifRes.ok) {
+          const notifData = await notifRes.json()
+          setUnreadNotifications(notifData.unread_count ?? 0)
+        }
+      }
     } catch (err) {
       console.error('Error fetching unread counts:', err)
     }
@@ -123,7 +132,9 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
             >
               <Bell className="w-5 h-5" />
               {unreadNotifications > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-xs rounded-full font-bold border-2 border-white">
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                </span>
               )}
             </Link>
 

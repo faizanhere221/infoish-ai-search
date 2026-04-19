@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
 
 interface RouteParams {
   params: { id: string }
 }
 
-// POST /api/deals/[id]/approve - Brand approves delivery and releases payment
+// POST /api/deals/[id]/approve - Brand approves delivery
 export async function POST(
   request: NextRequest,
   { params }: RouteParams
@@ -54,16 +55,7 @@ export async function POST(
         { status: 400 }
       )
     }
-    
-    // TODO: Process Stripe payout to creator
-    // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-    // await stripe.transfers.create({
-    //   amount: deal.creator_payout_cents,
-    //   currency: 'usd',
-    //   destination: creator.stripe_account_id,
-    //   transfer_group: deal.id,
-    // })
-    
+
     // Update deal status
     const { data: updatedDeal, error } = await supabase
       .from('deals')
@@ -76,7 +68,7 @@ export async function POST(
       .eq('id', id)
       .select()
       .single()
-    
+
     if (error) {
       console.error('Error approving deal:', error)
       return NextResponse.json(
@@ -84,41 +76,41 @@ export async function POST(
         { status: 500 }
       )
     }
-    
+
     // Update creator stats
     const { data: creator } = await supabase
       .from('creators')
       .select('total_deals_completed, total_earnings')
       .eq('id', deal.creator_id)
       .single()
-    
+
     if (creator) {
       await supabase
         .from('creators')
         .update({
           total_deals_completed: (creator.total_deals_completed || 0) + 1,
-          total_earnings: (creator.total_earnings || 0) + deal.creator_payout_cents,
+          total_earnings: (creator.total_earnings || 0) + (deal.creator_payout_cents || 0),
         })
         .eq('id', deal.creator_id)
     }
-    
+
     // Update brand stats
     const { data: brand } = await supabase
       .from('brands')
       .select('total_deals, total_spent')
       .eq('id', deal.brand_id)
       .single()
-    
+
     if (brand) {
       await supabase
         .from('brands')
         .update({
           total_deals: (brand.total_deals || 0) + 1,
-          total_spent: (brand.total_spent || 0) + deal.amount_cents,
+          total_spent: (brand.total_spent || 0) + (deal.amount_cents || 0),
         })
         .eq('id', deal.brand_id)
     }
-    
+
     // Create system message in conversation
     if (deal.conversation_id) {
       await supabase
@@ -127,19 +119,29 @@ export async function POST(
           conversation_id: deal.conversation_id,
           sender_id: deal.brand_id,
           sender_type: 'brand',
-          content: `✅ Deal completed! Payment of ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(deal.creator_payout_cents / 100)} has been released.`,
+          content: `✅ Deal completed! "${deal.title}" has been approved.`,
           is_system_message: true,
           attachments: [],
         })
     }
-    
-    // TODO: Send email notifications
-    
+
+    // Notify the creator that the deal is approved and completed
+    const creatorUserId = await getUserIdFromCreator(supabase, deal.creator_id)
+    if (creatorUserId) {
+      await createNotification(supabase, {
+        userId: creatorUserId,
+        type: 'deal_approved',
+        title: 'Deal completed!',
+        message: `"${deal.title}" has been approved by the brand. Great work!`,
+        link: `/dashboard/deals/${id}`,
+      })
+    }
+
     return NextResponse.json({
-      message: 'Deal approved and payment released',
+      message: 'Deal approved and completed',
       deal: updatedDeal,
     })
-    
+
   } catch (error) {
     console.error('Error approving deal:', error)
     return NextResponse.json(
