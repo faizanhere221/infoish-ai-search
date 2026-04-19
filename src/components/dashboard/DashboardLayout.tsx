@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { 
   Sparkles, 
   LayoutDashboard, 
@@ -41,8 +41,16 @@ export default function DashboardLayout({
   unreadMessages = 0 
 }: DashboardLayoutProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
+    localStorage.removeItem('auth_profile')
+    router.push('/login')
+  }
 
   const creatorNavItems = [
     { href: '/dashboard/creator', label: 'Dashboard', icon: LayoutDashboard },
@@ -240,8 +248,8 @@ export default function DashboardLayout({
                     <button 
                       className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full"
                       onClick={() => {
-                        // TODO: Implement logout
                         setProfileDropdownOpen(false)
+                        handleLogout()
                       }}
                     >
                       <LogOut className="w-4 h-4" />
