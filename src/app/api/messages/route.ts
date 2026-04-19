@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { createNotification, getUserIdFromCreator, getUserIdFromBrand } from '@/lib/notifications'
 
 // Contact info detection patterns
 const CONTACT_PATTERNS = [
@@ -168,8 +169,34 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', conversation_id)
     
-    // TODO: Send push notification / email to recipient
-    
+    // Notify the recipient of the new message (fire-and-forget)
+    const conversationLink = `/messages/${conversation_id}`
+    if (sender_type === 'creator') {
+      // Creator sent → notify brand
+      const recipientUserId = await getUserIdFromBrand(supabase, conversation.brand_id)
+      if (recipientUserId) {
+        await createNotification(supabase, {
+          userId: recipientUserId,
+          type: 'new_message',
+          title: 'New message',
+          message: content.length > 80 ? content.substring(0, 80) + '…' : content,
+          link: conversationLink,
+        })
+      }
+    } else {
+      // Brand sent → notify creator
+      const recipientUserId = await getUserIdFromCreator(supabase, conversation.creator_id)
+      if (recipientUserId) {
+        await createNotification(supabase, {
+          userId: recipientUserId,
+          type: 'new_message',
+          title: 'New message',
+          message: content.length > 80 ? content.substring(0, 80) + '…' : content,
+          link: conversationLink,
+        })
+      }
+    }
+
     return NextResponse.json({
       message,
       warning: hasContactInfo ? 'Contact information detected. Remember to keep transactions on-platform for secure payments.' : null,

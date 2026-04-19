@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
 import { z } from 'zod'
 
 const CreateDealSchema = z.object({
@@ -29,8 +30,8 @@ export async function GET(request: NextRequest) {
     const creatorId = searchParams.get('creator_id')
     const brandId = searchParams.get('brand_id')
     const status = searchParams.get('status')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50)
-    const offset = Math.max(parseInt(searchParams.get('offset') || '0'), 0)
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20') || 20, 1), 50)
+    const offset = Math.max(parseInt(searchParams.get('offset') || '0') || 0, 0)
 
     // Caller must scope the query to their own profile — prevents fetching all deals
     const callerProfileId = request.headers.get('x-profile-id')
@@ -75,8 +76,6 @@ export async function GET(request: NextRequest) {
         { status: 500 }
       )
     }
-
-    console.log(`Found ${deals?.length || 0} deals`)
 
     if (!deals || deals.length === 0) {
       return NextResponse.json({ deals: [] })
@@ -201,6 +200,18 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to create deal' },
         { status: 500 }
       )
+    }
+
+    // Notify the creator that they have a new deal offer
+    const creatorUserId = await getUserIdFromCreator(supabase, creator_id)
+    if (creatorUserId) {
+      await createNotification(supabase, {
+        userId: creatorUserId,
+        type: 'deal_created',
+        title: 'New deal offer',
+        message: `You received a new deal offer: "${title}"`,
+        link: `/dashboard/deals/${deal.id}`,
+      })
     }
 
     return NextResponse.json({

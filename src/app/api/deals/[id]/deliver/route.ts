@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { createNotification, getUserIdFromBrand } from '@/lib/notifications'
 
 interface RouteParams {
   params: { id: string }
@@ -14,9 +15,9 @@ export async function POST(
     const { id } = params
     const body = await request.json()
     const { message } = body // Optional delivery message
-    
+
     const supabase = createServerSupabase()
-    
+
     // Verify caller is a creator
     const callerProfileId = request.headers.get('x-profile-id')
     const callerUserType = request.headers.get('x-user-type')
@@ -56,7 +57,7 @@ export async function POST(
         { status: 400 }
       )
     }
-    
+
     // Define deliverable type
     interface DeliverableItem {
       id: string
@@ -64,18 +65,18 @@ export async function POST(
       is_completed: boolean
       completed_at?: string
     }
-    
+
     // Check all deliverables are marked complete
     const deliverables = (deal.deliverables || []) as DeliverableItem[]
     const incompleteDeliverables = deliverables.filter((d: DeliverableItem) => !d.is_completed)
-    
+
     if (incompleteDeliverables.length > 0) {
       return NextResponse.json(
         { error: 'All deliverables must be marked as complete before submitting' },
         { status: 400 }
       )
     }
-    
+
     // Update deal status
     const { data: updatedDeal, error } = await supabase
       .from('deals')
@@ -87,7 +88,7 @@ export async function POST(
       .eq('id', id)
       .select()
       .single()
-    
+
     if (error) {
       console.error('Error delivering deal:', error)
       return NextResponse.json(
@@ -95,13 +96,13 @@ export async function POST(
         { status: 500 }
       )
     }
-    
+
     // Create system message in conversation
     if (deal.conversation_id) {
-      const deliveryMessage = message 
+      const deliveryMessage = message
         ? `📦 Delivery submitted for "${deal.title}"\n\nMessage: ${message}`
         : `📦 Delivery submitted for "${deal.title}". Please review and approve.`
-      
+
       await supabase
         .from('messages')
         .insert({
@@ -113,14 +114,24 @@ export async function POST(
           attachments: [],
         })
     }
-    
-    // TODO: Send email notification to brand
-    
+
+    // Notify the brand that the delivery is ready for review
+    const brandUserId = await getUserIdFromBrand(supabase, deal.brand_id)
+    if (brandUserId) {
+      await createNotification(supabase, {
+        userId: brandUserId,
+        type: 'deal_delivered',
+        title: 'Delivery ready for review',
+        message: `"${deal.title}" has been delivered. Please review and approve.`,
+        link: `/dashboard/deals/${id}`,
+      })
+    }
+
     return NextResponse.json({
       message: 'Delivery submitted successfully',
       deal: updatedDeal,
     })
-    
+
   } catch (error) {
     console.error('Error delivering deal:', error)
     return NextResponse.json(
