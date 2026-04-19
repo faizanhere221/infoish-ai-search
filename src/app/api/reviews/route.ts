@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     
     const creatorId = searchParams.get('creator_id')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50)
-    const page = parseInt(searchParams.get('page') || '1')
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '10') || 10, 1), 50)
+    const page = Math.max(parseInt(searchParams.get('page') || '1') || 1, 1)
     
     if (!creatorId) {
       return NextResponse.json(

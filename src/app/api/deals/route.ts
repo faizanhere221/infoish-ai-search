@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('Error fetching deals:', error)
       return NextResponse.json(
-        { error: 'Failed to fetch deals', details: error.message },
+        { error: 'Failed to fetch deals' },
         { status: 500 }
       )
     }
@@ -86,8 +86,10 @@ export async function GET(request: NextRequest) {
     const creatorIds = [...new Set(deals.map(d => d.creator_id).filter(Boolean))]
     const brandIds = [...new Set(deals.map(d => d.brand_id).filter(Boolean))]
 
-    let creators: any[] = []
-    let brands: any[] = []
+    type CreatorRow = { id: string; username: string; display_name: string; profile_photo_url: string | null }
+    type BrandRow = { id: string; company_name: string; logo_url: string | null }
+    let creators: CreatorRow[] = []
+    let brands: BrandRow[] = []
 
     if (creatorIds.length > 0) {
       const { data } = await supabase

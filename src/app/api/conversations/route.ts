@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('Error fetching conversations:', error)
       return NextResponse.json(
-        { error: 'Failed to fetch conversations', details: error.message },
+        { error: 'Failed to fetch conversations' },
         { status: 500 }
       )
     }
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating conversation:', error)
       return NextResponse.json(
-        { error: 'Failed to create conversation', details: error.message },
+        { error: 'Failed to create conversation' },
         { status: 500 }
       )
     }
