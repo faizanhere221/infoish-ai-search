@@ -26,27 +26,40 @@ const CreateDealSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('user_id')
     const creatorId = searchParams.get('creator_id')
     const brandId = searchParams.get('brand_id')
     const status = searchParams.get('status')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50)
+    const offset = Math.max(parseInt(searchParams.get('offset') || '0'), 0)
+
+    // Caller must scope the query to their own profile — prevents fetching all deals
+    const callerProfileId = request.headers.get('x-profile-id')
+    const callerUserType = request.headers.get('x-user-type')
+    const effectiveCreatorId = callerUserType === 'creator' ? callerProfileId : creatorId
+    const effectiveBrandId = callerUserType === 'brand' ? callerProfileId : brandId
+
+    if (!effectiveCreatorId && !effectiveBrandId) {
+      return NextResponse.json(
+        { error: 'creator_id or brand_id filter is required' },
+        { status: 400 }
+      )
+    }
 
     const supabase = createServerSupabase()
-
-    console.log('Fetching deals...', { creatorId, brandId, status })
 
     // Fetch deals without relations first
     let query = supabase
       .from('deals')
       .select('*')
       .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
 
-    if (creatorId) {
-      query = query.eq('creator_id', creatorId)
+    if (effectiveCreatorId) {
+      query = query.eq('creator_id', effectiveCreatorId)
     }
 
-    if (brandId) {
-      query = query.eq('brand_id', brandId)
+    if (effectiveBrandId) {
+      query = query.eq('brand_id', effectiveBrandId)
     }
 
     if (status) {

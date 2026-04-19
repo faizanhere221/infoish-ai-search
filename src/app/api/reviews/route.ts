@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { z } from 'zod'
+
+const CreateReviewSchema = z.object({
+  deal_id: z.string().uuid(),
+  reviewer_id: z.string().uuid(),
+  reviewee_id: z.string().uuid(),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().min(1).max(2000),
+  communication_rating: z.number().int().min(1).max(5).optional().nullable(),
+  quality_rating: z.number().int().min(1).max(5).optional().nullable(),
+  was_on_time: z.boolean().optional().nullable(),
+  would_work_again: z.boolean().optional().nullable(),
+})
 
 // GET /api/reviews - Get reviews for a creator
 export async function GET(request: NextRequest) {
@@ -87,6 +100,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const parsed = CreateReviewSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+
     const {
       deal_id,
       reviewer_id,
@@ -97,24 +118,17 @@ export async function POST(request: NextRequest) {
       quality_rating,
       was_on_time,
       would_work_again,
-    } = body
-    
-    // Validate required fields
-    if (!deal_id || !reviewer_id || !reviewee_id || !rating || !comment) {
+    } = parsed.data
+
+    // Caller must be the reviewer — prevent submitting reviews on behalf of others
+    const callerProfileId = request.headers.get('x-profile-id')
+    if (callerProfileId !== reviewer_id) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
+        { error: 'You can only submit reviews as yourself' },
+        { status: 403 }
       )
     }
-    
-    // Validate rating
-    if (rating < 1 || rating > 5) {
-      return NextResponse.json(
-        { error: 'Rating must be between 1 and 5' },
-        { status: 400 }
-      )
-    }
-    
+
     const supabase = createServerSupabase()
     
     // Verify deal exists and is completed

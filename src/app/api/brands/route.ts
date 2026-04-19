@@ -1,18 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { z } from 'zod'
 
-// GET - List brands
+const CreateBrandSchema = z.object({
+  user_id: z.string().uuid(),
+  company_name: z.string().min(1).max(200),
+  company_website: z.string().url().max(500).optional().nullable(),
+  logo_url: z.string().url().max(500).optional().nullable(),
+  description: z.string().max(2000).optional().nullable(),
+  industry: z.string().max(100).optional().nullable(),
+  company_size: z.string().max(50).optional().nullable(),
+  country: z.string().min(1).max(100),
+  contact_name: z.string().min(1).max(200),
+  contact_role: z.string().max(100).optional().nullable(),
+})
+
+// Public fields safe to expose in list views
+const PUBLIC_BRAND_FIELDS = 'id, company_name, logo_url, industry, country, contact_name, verification_status, created_at'
+
+// GET - List brands (public fields only, capped limit)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50)
+    const offset = Math.max(parseInt(searchParams.get('offset') || '0'), 0)
 
     const supabase = createServerSupabase()
 
     const { data: brands, error, count } = await supabase
       .from('brands')
-      .select('*', { count: 'exact' })
+      .select(PUBLIC_BRAND_FIELDS, { count: 'exact' })
       .range(offset, offset + limit - 1)
       .order('created_at', { ascending: false })
 
@@ -24,12 +41,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({
-      brands,
-      total: count,
-      limit,
-      offset,
-    })
+    return NextResponse.json({ brands, total: count, limit, offset })
 
   } catch (error) {
     console.error('Brands fetch error:', error)
@@ -44,8 +56,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
-    console.log('Creating brand with data:', body)
+    const parsed = CreateBrandSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
 
     const {
       user_id,
@@ -58,32 +75,32 @@ export async function POST(request: NextRequest) {
       country,
       contact_name,
       contact_role,
-    } = body
+    } = parsed.data
 
-    // Validate required fields
-    if (!user_id || !company_name || !country || !contact_name) {
+    // Verify caller is creating their own brand profile
+    const callerUserId = request.headers.get('x-user-id')
+    if (callerUserId !== user_id) {
       return NextResponse.json(
-        { error: 'Missing required fields: user_id, company_name, country, contact_name' },
-        { status: 400 }
+        { error: 'You can only create a brand profile for your own account' },
+        { status: 403 }
       )
     }
 
     const supabase = createServerSupabase()
 
-    // Create brand profile
     const { data: brand, error } = await supabase
       .from('brands')
       .insert({
         user_id,
         company_name,
-        company_website: company_website || null,
-        logo_url: logo_url || null,
-        description: description || null,
-        industry: industry || null,
-        company_size: company_size || null,
+        company_website: company_website ?? null,
+        logo_url: logo_url ?? null,
+        description: description ?? null,
+        industry: industry ?? null,
+        company_size: company_size ?? null,
         country,
         contact_name,
-        contact_role: contact_role || null,
+        contact_role: contact_role ?? null,
         verification_status: 'pending',
         total_deals: 0,
         total_spent: 0,
@@ -98,8 +115,6 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
-
-    console.log('Brand created successfully:', brand)
 
     return NextResponse.json({
       message: 'Brand profile created successfully',

@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { z } from 'zod'
+
+const UpdateBrandSchema = z.object({
+  company_name: z.string().min(1).max(200).optional(),
+  company_website: z.string().url().max(500).optional().nullable(),
+  logo_url: z.string().url().max(500).optional().nullable(),
+  description: z.string().max(2000).optional().nullable(),
+  industry: z.string().max(100).optional().nullable(),
+  company_size: z.string().max(50).optional().nullable(),
+  country: z.string().min(1).max(100).optional(),
+  contact_name: z.string().min(1).max(200).optional(),
+  contact_role: z.string().max(100).optional().nullable(),
+})
 
 // GET - Get brand by ID
 export async function GET(
@@ -12,7 +25,7 @@ export async function GET(
 
     const { data: brand, error } = await supabase
       .from('brands')
-      .select('*')
+      .select('id, company_name, logo_url, industry, country, contact_name, contact_role, description, company_website, company_size, verification_status, created_at, updated_at')
       .eq('id', id)
       .single()
 
@@ -42,23 +55,39 @@ export async function PUT(
   try {
     const { id } = params
     const body = await request.json()
-    
+
+    const parsed = UpdateBrandSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+
     const supabase = createServerSupabase()
+
+    // Verify ownership: caller's user_id must match brand's user_id
+    const callerUserId = request.headers.get('x-user-id')
+    const { data: existing } = await supabase
+      .from('brands')
+      .select('user_id')
+      .eq('id', id)
+      .single()
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Brand not found' }, { status: 404 })
+    }
+
+    if (existing.user_id !== callerUserId) {
+      return NextResponse.json(
+        { error: 'You are not authorized to update this brand profile' },
+        { status: 403 }
+      )
+    }
 
     const { data: brand, error } = await supabase
       .from('brands')
-      .update({
-        company_name: body.company_name,
-        company_website: body.company_website,
-        logo_url: body.logo_url,
-        description: body.description,
-        industry: body.industry,
-        company_size: body.company_size,
-        country: body.country,
-        contact_name: body.contact_name,
-        contact_role: body.contact_role,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ ...parsed.data, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
       .single()
