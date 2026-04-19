@@ -17,20 +17,38 @@ export async function POST(
     
     const supabase = createServerSupabase()
     
+    // Verify caller is a creator
+    const callerProfileId = request.headers.get('x-profile-id')
+    const callerUserType = request.headers.get('x-user-type')
+    if (!callerProfileId || callerUserType !== 'creator') {
+      return NextResponse.json(
+        { error: 'Only creators can submit deliveries' },
+        { status: 403 }
+      )
+    }
+
     // Get the deal
     const { data: deal } = await supabase
       .from('deals')
       .select('*')
       .eq('id', id)
       .single()
-    
+
     if (!deal) {
       return NextResponse.json(
         { error: 'Deal not found' },
         { status: 404 }
       )
     }
-    
+
+    // Verify caller owns this deal
+    if (deal.creator_id !== callerProfileId) {
+      return NextResponse.json(
+        { error: 'You are not authorized to deliver this deal' },
+        { status: 403 }
+      )
+    }
+
     // Verify deal is in correct status
     if (!['in_progress', 'revision'].includes(deal.status)) {
       return NextResponse.json(
@@ -38,8 +56,6 @@ export async function POST(
         { status: 400 }
       )
     }
-    
-    // TODO: Verify the requester is the creator of this deal
     
     // Define deliverable type
     interface DeliverableItem {

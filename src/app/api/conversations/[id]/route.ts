@@ -71,6 +71,28 @@ export async function DELETE(
     const { id } = params
     const supabase = createServerSupabase()
 
+    // Fetch conversation first to verify ownership
+    const { data: conversation } = await supabase
+      .from('conversations')
+      .select('creator_id, brand_id')
+      .eq('id', id)
+      .single()
+
+    if (!conversation) {
+      return NextResponse.json(
+        { error: 'Conversation not found' },
+        { status: 404 }
+      )
+    }
+
+    const callerProfileId = request.headers.get('x-profile-id')
+    if (callerProfileId !== conversation.creator_id && callerProfileId !== conversation.brand_id) {
+      return NextResponse.json(
+        { error: 'You are not authorized to delete this conversation' },
+        { status: 403 }
+      )
+    }
+
     const { error } = await supabase
       .from('conversations')
       .delete()

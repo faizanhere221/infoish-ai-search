@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { rateLimit } from '@/lib/rate-limit'
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET
@@ -11,6 +12,15 @@ function getJwtSecret(): string {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+    const { allowed, retryAfterMs } = rateLimit(`login:${ip}`, 5, 15 * 60 * 1000)
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many login attempts. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } }
+      )
+    }
+
     const body = await request.json()
     const { email, password } = body
 

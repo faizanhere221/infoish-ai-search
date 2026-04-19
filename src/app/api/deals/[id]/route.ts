@@ -69,14 +69,23 @@ export async function PUT(
       .select('*')
       .eq('id', id)
       .single()
-    
+
     if (!currentDeal) {
       return NextResponse.json(
         { error: 'Deal not found' },
         { status: 404 }
       )
     }
-    
+
+    // Verify caller is a party to this deal
+    const callerProfileId = request.headers.get('x-profile-id')
+    if (callerProfileId !== currentDeal.creator_id && callerProfileId !== currentDeal.brand_id) {
+      return NextResponse.json(
+        { error: 'You are not authorized to update this deal' },
+        { status: 403 }
+      )
+    }
+
     // Build update object
     interface DeliverableItem {
       id: string
