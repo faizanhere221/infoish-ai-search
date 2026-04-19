@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { z } from 'zod'
+
+const UpdateCreatorSchema = z.object({
+  display_name: z.string().min(1).max(100).optional(),
+  bio: z.string().max(2000).optional().nullable(),
+  location: z.string().max(100).optional().nullable(),
+  website_url: z.string().url().max(500).optional().nullable(),
+  is_available: z.boolean().optional(),
+  min_rate: z.number().nonnegative().optional().nullable(),
+  max_rate: z.number().nonnegative().optional().nullable(),
+  categories: z.array(z.string()).optional(),
+  profile_photo_url: z.string().url().max(500).optional().nullable(),
+})
 
 // GET - Get creator by ID or username
 export async function GET(
@@ -101,14 +114,41 @@ export async function PUT(
 ) {
   try {
     const { id } = params
-    const body = await request.json()
-    
     const supabase = createServerSupabase()
+
+    // Validate and whitelist input fields
+    const body = await request.json()
+    const parsed = UpdateCreatorSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+
+    // Verify ownership: the caller's user_id must match the creator's user_id
+    const callerUserId = request.headers.get('x-user-id')
+    const { data: existing } = await supabase
+      .from('creators')
+      .select('user_id')
+      .eq('id', id)
+      .single()
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Creator not found' }, { status: 404 })
+    }
+
+    if (existing.user_id !== callerUserId) {
+      return NextResponse.json(
+        { error: 'You are not authorized to update this profile' },
+        { status: 403 }
+      )
+    }
 
     const { data: creator, error } = await supabase
       .from('creators')
       .update({
-        ...body,
+        ...parsed.data,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)

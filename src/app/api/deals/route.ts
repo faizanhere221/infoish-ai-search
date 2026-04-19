@@ -1,5 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { z } from 'zod'
+
+const CreateDealSchema = z.object({
+  creator_id: z.string().uuid(),
+  brand_id: z.string().uuid(),
+  service_id: z.string().uuid().optional().nullable(),
+  title: z.string().min(3).max(200),
+  description: z.string().max(2000).optional().nullable(),
+  content_type: z.string().max(100).optional().nullable(),
+  platform: z.string().max(100).optional().nullable(),
+  requirements: z.string().max(5000).optional().nullable(),
+  deliverables: z.array(z.object({
+    id: z.string(),
+    description: z.string(),
+    is_completed: z.boolean(),
+  })).optional(),
+  amount: z.number().positive().max(1_000_000),
+  deadline: z.string().datetime().optional().nullable(),
+  delivery_days: z.number().int().min(1).max(365).optional(),
+  revisions_allowed: z.number().int().min(0).max(10).optional(),
+})
 
 // GET - List deals for current user
 export async function GET(request: NextRequest) {
@@ -93,6 +114,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const parsed = CreateDealSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+
     const {
       creator_id,
       brand_id,
@@ -107,13 +136,15 @@ export async function POST(request: NextRequest) {
       deadline,
       delivery_days,
       revisions_allowed,
-    } = body
+    } = parsed.data
 
-    // Validate required fields
-    if (!creator_id || !brand_id || !title || !amount) {
+    // Ensure the authenticated brand is creating the deal for themselves
+    const callerProfileId = request.headers.get('x-profile-id')
+    const callerUserType = request.headers.get('x-user-type')
+    if (callerUserType !== 'brand' || callerProfileId !== brand_id) {
       return NextResponse.json(
-        { error: 'creator_id, brand_id, title, and amount are required' },
-        { status: 400 }
+        { error: 'You can only create deals as your own brand' },
+        { status: 403 }
       )
     }
 
