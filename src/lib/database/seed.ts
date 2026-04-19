@@ -67,14 +67,14 @@ export async function addSampleSocialAccounts() {
     const sampleAccounts = [
       {
         influencer_id: influencers.rows[0]?.id,
-        platform_id: platforms.rows.find(p => p.name === 'instagram')?.id,
+        platform_id: platforms.rows.find((p: { name: string; id: unknown }) => p.name === 'instagram')?.id,
         platform_username: 'fashionista_sarah',
         followers_count: 150000,
         engagement_rate: 4.2
       },
       {
         influencer_id: influencers.rows[1]?.id,
-        platform_id: platforms.rows.find(p => p.name === 'youtube')?.id,
+        platform_id: platforms.rows.find((p: { name: string; id: unknown }) => p.name === 'youtube')?.id,
         platform_username: 'TechGuruMike',
         followers_count: 85000,
         engagement_rate: 6.8

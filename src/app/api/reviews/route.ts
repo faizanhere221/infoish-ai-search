@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     // Get brand info
     const brandIds = [...new Set(deals?.map(d => d.brand_id) || [])]
     const { data: brands } = await supabase
-      .from('brand_profiles')
+      .from('brands')
       .select('id, company_name, logo_url')
       .in('id', brandIds)
     
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
       const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
       
       await supabase
-        .from('creator_profiles')
+        .from('creators')
         .update({
           avg_rating: Math.round(avgRating * 10) / 10,
           total_reviews: allReviews.length,

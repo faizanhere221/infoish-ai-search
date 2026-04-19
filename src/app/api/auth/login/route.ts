@@ -3,7 +3,11 @@ import { createServerSupabase } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET
+  if (!secret) throw new Error('JWT_SECRET environment variable is required')
+  return secret
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -83,7 +87,7 @@ export async function POST(request: NextRequest) {
         userType: user.user_type,
         profileId: profile?.id,
       },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '7d' }
     )
 
