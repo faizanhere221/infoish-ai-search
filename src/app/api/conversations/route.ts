@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { z } from 'zod'
+
+const CreateConversationSchema = z.object({
+  creator_id: z.string().uuid(),
+  brand_id: z.string().uuid(),
+})
 
 // GET - List conversations for current user
 export async function GET(request: NextRequest) {
@@ -11,7 +17,8 @@ export async function GET(request: NextRequest) {
 
     const supabase = createServerSupabase()
 
-    console.log('Fetching conversations...', { creatorId, brandId, userId })
+    // Scope to caller's own conversations only
+    const callerProfileId = request.headers.get('x-profile-id')
 
     // Build query
     let query = supabase
@@ -37,8 +44,6 @@ export async function GET(request: NextRequest) {
         { status: 500 }
       )
     }
-
-    console.log(`Found ${conversations?.length || 0} conversations`)
 
     if (!conversations || conversations.length === 0) {
       return NextResponse.json({ conversations: [] })
@@ -89,12 +94,22 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { creator_id, brand_id } = body
-
-    if (!creator_id || !brand_id) {
+    const parsed = CreateConversationSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'creator_id and brand_id are required' },
+        { error: 'Invalid request body', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
+      )
+    }
+
+    const { creator_id, brand_id } = parsed.data
+
+    // Caller must be one of the two parties in the conversation
+    const callerProfileId = request.headers.get('x-profile-id')
+    if (callerProfileId !== creator_id && callerProfileId !== brand_id) {
+      return NextResponse.json(
+        { error: 'You can only start conversations you are a party to' },
+        { status: 403 }
       )
     }
 
