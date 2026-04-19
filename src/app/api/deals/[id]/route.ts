@@ -29,8 +29,8 @@ export async function GET(
     
     // Fetch related profiles
     const [{ data: creator }, { data: brand }, { data: review }] = await Promise.all([
-      supabase.from('creator_profiles').select('*').eq('id', deal.creator_id).single(),
-      supabase.from('brand_profiles').select('*').eq('id', deal.brand_id).single(),
+      supabase.from('creators').select('*').eq('id', deal.creator_id).single(),
+      supabase.from('brands').select('*').eq('id', deal.brand_id).single(),
       supabase.from('reviews').select('*').eq('deal_id', deal.id).single(),
     ])
     

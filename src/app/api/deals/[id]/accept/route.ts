@@ -13,21 +13,40 @@ export async function POST(
   try {
     const { id } = params
     const supabase = createServerSupabase()
-    
+
+    // Get authenticated creator's profile ID from middleware-injected header
+    const callerProfileId = request.headers.get('x-profile-id')
+    const callerUserType = request.headers.get('x-user-type')
+
+    if (!callerProfileId || callerUserType !== 'creator') {
+      return NextResponse.json(
+        { error: 'Only creators can accept deals' },
+        { status: 403 }
+      )
+    }
+
     // Get the deal
     const { data: deal } = await supabase
       .from('deals')
       .select('*')
       .eq('id', id)
       .single()
-    
+
     if (!deal) {
       return NextResponse.json(
         { error: 'Deal not found' },
         { status: 404 }
       )
     }
-    
+
+    // Verify the authenticated user is the creator on this deal
+    if (deal.creator_id !== callerProfileId) {
+      return NextResponse.json(
+        { error: 'You are not authorized to accept this deal' },
+        { status: 403 }
+      )
+    }
+
     // Verify deal is in pending status
     if (deal.status !== 'pending') {
       return NextResponse.json(
@@ -35,9 +54,7 @@ export async function POST(
         { status: 400 }
       )
     }
-    
-    // TODO: Verify the requester is the creator of this deal
-    
+
     // Update deal status
     const { data: updatedDeal, error } = await supabase
       .from('deals')
@@ -49,7 +66,7 @@ export async function POST(
       .eq('id', id)
       .select()
       .single()
-    
+
     if (error) {
       console.error('Error accepting deal:', error)
       return NextResponse.json(
@@ -57,7 +74,7 @@ export async function POST(
         { status: 500 }
       )
     }
-    
+
     // Create system message in conversation
     if (deal.conversation_id) {
       await supabase
@@ -71,14 +88,12 @@ export async function POST(
           attachments: [],
         })
     }
-    
-    // TODO: Trigger payment processing (create Stripe PaymentIntent)
-    
+
     return NextResponse.json({
       message: 'Deal accepted successfully',
       deal: updatedDeal,
     })
-    
+
   } catch (error) {
     console.error('Error accepting deal:', error)
     return NextResponse.json(
