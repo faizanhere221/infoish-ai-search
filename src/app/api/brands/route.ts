@@ -22,8 +22,8 @@ const PUBLIC_BRAND_FIELDS = 'id, company_name, logo_url, industry, country, cont
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50)
-    const offset = Math.max(parseInt(searchParams.get('offset') || '0'), 0)
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20') || 20, 1), 50)
+    const offset = Math.max(parseInt(searchParams.get('offset') || '0') || 0, 0)
 
     const supabase = createServerSupabase()
 
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating brand:', error)
       return NextResponse.json(
-        { error: 'Failed to create brand profile', details: error.message },
+        { error: 'Failed to create brand profile' },
         { status: 500 }
       )
     }

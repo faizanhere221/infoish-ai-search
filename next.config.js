@@ -39,10 +39,8 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'avatars.githubusercontent.com',
       },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-      },
+      // localhost allowed in development only
+      ...(process.env.NODE_ENV === 'development' ? [{ protocol: 'http', hostname: 'localhost' }] : []),
     ],
   },
 

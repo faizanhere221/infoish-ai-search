@@ -108,7 +108,6 @@ export async function POST(request: NextRequest) {
       message: 'Login successful',
       user: safeUser,
       profile,
-      token,
     })
 
     // Set HTTP-only cookie
