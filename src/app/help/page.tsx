@@ -1,47 +1,113 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import {
   Sparkles,
   HelpCircle,
   MessageSquare,
   Mail,
   FileText,
-  ChevronRight,
-  ArrowLeft
+  ChevronDown,
+  ArrowLeft,
+  User,
+  Handshake,
 } from 'lucide-react'
 
-const HELP_TOPICS = [
+const FAQS: { category: string; icon: React.ElementType; items: { q: string; a: string }[] }[] = [
   {
-    title: 'Getting Started',
-    description: 'Learn how to set up your account and get started',
+    category: 'Getting Started',
     icon: Sparkles,
-    href: '#',
+    items: [
+      {
+        q: 'How do I create an account?',
+        a: 'Click "Sign Up" on the homepage and choose whether you\'re a Creator or a Brand. Creators complete a 3-step profile setup (account → profile → content niches). Brands fill in their company details. Both are approved instantly.',
+      },
+      {
+        q: 'Is Infoishai free to use?',
+        a: 'Yes — the platform is completely free. Brands can browse and contact creators at no charge. Creators list their services for free.',
+      },
+      {
+        q: 'How do I find influencers?',
+        a: 'Go to the Creators page and use the search and filter tools to find influencers by niche, platform, country, and follower range. Click a profile to view their full details and services.',
+      },
+    ],
   },
   {
-    title: 'Managing Deals',
-    description: 'How to create, manage, and complete deals',
-    icon: FileText,
-    href: '#',
+    category: 'Creator Profiles',
+    icon: User,
+    items: [
+      {
+        q: 'How do I update my profile after signing up?',
+        a: 'Go to Settings from your dashboard. You can update your bio, add platform links, adjust your niches, and set your rate card at any time.',
+      },
+      {
+        q: 'How do I add my social media follower counts?',
+        a: 'In Settings → Platforms, add each platform (Instagram, TikTok, YouTube, etc.) along with your profile URL and follower count. This information is shown to brands browsing your profile.',
+      },
+      {
+        q: 'Can brands contact me directly?',
+        a: 'Yes. Brands can send you a deal proposal directly from your profile page. You\'ll receive a notification and can accept or decline from your Deals dashboard.',
+      },
+    ],
   },
   {
-    title: 'Messaging',
-    description: 'Communication tips and messaging features',
+    category: 'Managing Deals',
+    icon: Handshake,
+    items: [
+      {
+        q: 'How does the deals flow work?',
+        a: 'A brand sends a deal proposal to a creator. The creator accepts or declines. Once accepted, the creator completes the deliverables and submits. The brand reviews and can approve (completing the deal) or request a revision (up to the agreed number of revisions).',
+      },
+      {
+        q: 'How many revisions can I request?',
+        a: 'Each deal has a maximum revision count set when the deal is created (default: 2). Once that limit is reached, the brand must approve the delivered work.',
+      },
+      {
+        q: 'What happens after a deal is completed?',
+        a: 'Both parties can leave a review for each other. Reviews are visible on creator profiles and help build trust on the platform.',
+      },
+      {
+        q: 'Can I cancel a deal?',
+        a: 'Deals can be declined before they are accepted. Once a deal is in progress, contact the other party via the deal\'s message thread and reach out to support if needed.',
+      },
+    ],
+  },
+  {
+    category: 'Messaging',
     icon: MessageSquare,
-    href: '#',
-  },
-  {
-    title: 'Payments & Billing',
-    description: 'Payment methods, invoices, and payouts',
-    icon: HelpCircle,
-    href: '#',
+    items: [
+      {
+        q: 'How do I message a creator or brand?',
+        a: 'From any deal page, click "Send Message" in the sidebar to open your conversation. You can also go to Messages from the dashboard navigation.',
+      },
+      {
+        q: 'Are messages private?',
+        a: 'Yes. Messages are only visible to the two parties in the conversation. System messages (deal accepted, revision requested, etc.) are automatically added to keep both parties informed.',
+      },
+    ],
   },
 ]
+
+function FAQItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="border-b border-gray-100 last:border-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between py-4 text-left gap-4"
+      >
+        <span className="font-medium text-gray-900">{q}</span>
+        <ChevronDown className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && <p className="pb-4 text-gray-600 text-sm leading-relaxed">{a}</p>}
+    </div>
+  )
+}
 
 export default function HelpPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -58,49 +124,32 @@ export default function HelpPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search */}
-        <div className="mb-8">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search help articles..."
-              className="w-full px-4 py-3 pl-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
-            />
-            <HelpCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {FAQS.map(({ category, icon: Icon, items }) => (
+          <div key={category} className="bg-white rounded-2xl border border-gray-100 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-9 h-9 bg-violet-100 rounded-lg flex items-center justify-center">
+                <Icon className="w-5 h-5 text-violet-600" />
+              </div>
+              <h2 className="font-semibold text-gray-900">{category}</h2>
+            </div>
+            <div>
+              {items.map((item) => (
+                <FAQItem key={item.q} q={item.q} a={item.a} />
+              ))}
+            </div>
           </div>
-        </div>
+        ))}
 
-        {/* Help Topics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {HELP_TOPICS.map((topic) => {
-            const Icon = topic.icon
-            return (
-              <Link
-                key={topic.title}
-                href={topic.href}
-                className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:border-violet-300 hover:shadow-md transition-all"
-              >
-                <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center text-violet-600 flex-shrink-0">
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{topic.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{topic.description}</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
-              </Link>
-            )
-          })}
-        </div>
-
-        {/* Contact Support */}
-        <div className="bg-gradient-to-r from-violet-600 to-blue-600 rounded-xl p-6 text-white">
-          <h2 className="text-xl font-semibold">Need more help?</h2>
-          <p className="text-violet-100 mt-2">
-            Our support team is here to help you with any questions or issues.
+        <div className="bg-gradient-to-r from-violet-600 to-blue-600 rounded-2xl p-6 text-white">
+          <div className="flex items-center gap-3 mb-2">
+            <HelpCircle className="w-6 h-6" />
+            <h2 className="text-xl font-semibold">Still need help?</h2>
+          </div>
+          <p className="text-violet-100 mb-4">
+            Our support team typically responds within 24 hours.
           </p>
-          <div className="flex flex-wrap gap-4 mt-4">
+          <div className="flex flex-wrap gap-4">
             <a
               href="mailto:support@infoishai.com"
               className="inline-flex items-center gap-2 px-4 py-2 bg-white text-violet-600 rounded-lg font-medium hover:bg-violet-50"
@@ -113,7 +162,7 @@ export default function HelpPage() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30"
             >
               <MessageSquare className="w-5 h-5" />
-              Live Chat
+              Message Us
             </Link>
           </div>
         </div>
