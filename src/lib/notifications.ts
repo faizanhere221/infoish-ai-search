@@ -7,6 +7,7 @@ export type NotificationType =
   | 'deal_delivered'
   | 'deal_approved'
   | 'deal_completed'
+  | 'deal_revision'
   | 'new_message'
 
 interface NotificationPayload {
