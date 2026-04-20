@@ -4,8 +4,8 @@ import { z } from 'zod'
 
 const UpdateBrandSchema = z.object({
   company_name: z.string().min(1).max(200).optional(),
-  company_website: z.string().url().max(500).optional().nullable(),
-  logo_url: z.string().url().max(500).optional().nullable(),
+  company_website: z.string().max(500).optional().nullable(),
+  logo_url: z.string().max(500).optional().nullable(),
   description: z.string().max(2000).optional().nullable(),
   industry: z.string().max(100).optional().nullable(),
   company_size: z.string().max(50).optional().nullable(),
