@@ -171,10 +171,14 @@ export default function CreatorProfilePage() {
 
     setContacting(true)
     try {
+      const token = localStorage.getItem('auth_token')
       // Create or get conversation
       const res = await fetch('/api/conversations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           creator_id: creator.id,
           brand_id: brandProfile.id,

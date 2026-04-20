@@ -62,8 +62,8 @@ export async function POST(
       )
     }
 
-    const currentRevisions = deal.revision_count || 0
-    const maxRevisions = deal.max_revisions || 2
+    const currentRevisions = deal.revisions_used || 0
+    const maxRevisions = deal.revisions_allowed || 2
 
     if (currentRevisions >= maxRevisions) {
       return NextResponse.json(
@@ -76,7 +76,7 @@ export async function POST(
       .from('deals')
       .update({
         status: 'revision',
-        revision_count: currentRevisions + 1,
+        revisions_used: currentRevisions + 1,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)

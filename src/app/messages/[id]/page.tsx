@@ -81,8 +81,9 @@ export default function ConversationPage() {
     try {
       const userStr = localStorage.getItem('auth_user')
       const profileStr = localStorage.getItem('auth_profile')
+      const token = localStorage.getItem('auth_token')
 
-      if (!userStr) {
+      if (!userStr || !token) {
         router.push('/login')
         return
       }
@@ -95,15 +96,20 @@ export default function ConversationPage() {
         setProfile(JSON.parse(profileStr))
       }
 
+      const authHeader = { Authorization: `Bearer ${token}` }
+
       // Fetch conversation with messages
-      const res = await fetch(`/api/conversations/${conversationId}`)
+      const res = await fetch(`/api/conversations/${conversationId}`, { headers: authHeader })
       if (res.ok) {
         const data = await res.json()
         setConversation(data.conversation)
         setMessages(data.conversation.messages || [])
-        
+
         // Mark messages as read
-        await fetch(`/api/conversations/${conversationId}/messages?mark_as_read=true&user_id=${user.id}`)
+        await fetch(
+          `/api/conversations/${conversationId}/messages?mark_as_read=true&user_id=${user.id}`,
+          { headers: authHeader }
+        )
       } else {
         console.error('Failed to fetch conversation')
       }
@@ -118,11 +124,15 @@ export default function ConversationPage() {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || sending || !userId) return
 
+    const token = localStorage.getItem('auth_token')
     setSending(true)
     try {
       const res = await fetch(`/api/conversations/${conversationId}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           sender_id: userId,
           content: newMessage.trim(),

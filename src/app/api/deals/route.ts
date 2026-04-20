@@ -3,22 +3,25 @@ import { createServerSupabase } from '@/lib/db'
 import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
 import { z } from 'zod'
 
+const CONTENT_TYPES = ['instagram_post','instagram_story','instagram_reel','youtube_video',
+  'tiktok_video','twitter_post','facebook_post','linkedin_post','blog_post','podcast','other'] as const
+
 const CreateDealSchema = z.object({
   creator_id: z.string().uuid(),
   brand_id: z.string().uuid(),
   service_id: z.string().uuid().optional().nullable(),
   title: z.string().min(3).max(200),
   description: z.string().max(2000).optional().nullable(),
-  content_type: z.string().max(100).optional().nullable(),
-  platform: z.string().max(100).optional().nullable(),
+  content_type: z.enum(CONTENT_TYPES).default('other'),
+  platform: z.string().min(1).max(100).default('other'),
   requirements: z.string().max(5000).optional().nullable(),
   deliverables: z.array(z.object({
     id: z.string(),
     description: z.string(),
     is_completed: z.boolean(),
   })).optional(),
-  amount: z.number().positive().max(1_000_000),
-  deadline: z.string().datetime().optional().nullable(),
+  amount: z.number().positive().max(100_000_000),
+  deadline: z.string().optional().nullable(),
   delivery_days: z.number().int().min(1).max(365).optional(),
   revisions_allowed: z.number().int().min(0).max(10).optional(),
 })
@@ -161,8 +164,8 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerSupabase()
 
-    // Calculate platform fee (10%)
-    const platformFee = amount * 0.10
+    // Calculate platform fee (10%) — amount is stored in cents
+    const platformFee = Math.round(amount * 0.10)
     const creatorPayout = amount - platformFee
 
     const { data: deal, error } = await supabase
@@ -173,8 +176,8 @@ export async function POST(request: NextRequest) {
         service_id: service_id || null,
         title,
         description: description || null,
-        content_type: content_type || null,
-        platform: platform || null,
+        content_type,
+        platform,
         requirements: requirements || null,
         deliverables: deliverables || [],
         amount,
