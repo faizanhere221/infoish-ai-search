@@ -147,6 +147,12 @@ export default function BrandSignupPage() {
         return
       }
 
+      // Normalise website: add https:// if the user omitted the protocol
+      const rawWebsite = formData.website.trim()
+      const website = rawWebsite
+        ? rawWebsite.match(/^https?:\/\//i) ? rawWebsite : `https://${rawWebsite}`
+        : null
+
       // Step 3: Create brand profile using the auth token
       const profileRes = await fetch('/api/brands', {
         method: 'POST',
@@ -157,7 +163,7 @@ export default function BrandSignupPage() {
         body: JSON.stringify({
           user_id: registerData.user.id,
           company_name: formData.companyName,
-          company_website: formData.website || null,
+          company_website: website,
           industry: formData.industry || null,
           company_size: formData.companySize || null,
           country: formData.country,
