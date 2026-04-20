@@ -128,10 +128,32 @@ export default function BrandSignupPage() {
         return
       }
 
-      // Step 2: Create brand profile
-      const profileRes = await fetch('/api/brands', {
+      // Step 2: Login to get auth token before creating profile
+      const loginRes = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const loginData = await loginRes.json()
+
+      if (!loginRes.ok) {
+        setError('Account created but login failed — please sign in manually.')
+        setIsLoading(false)
+        router.push('/login')
+        return
+      }
+
+      // Step 3: Create brand profile using the auth token
+      const profileRes = await fetch('/api/brands', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${loginData.token}`,
+        },
         body: JSON.stringify({
           user_id: registerData.user.id,
           company_name: formData.companyName,
@@ -153,23 +175,10 @@ export default function BrandSignupPage() {
         return
       }
 
-      // Step 3: Auto-login
-      const loginRes = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      })
-
-      const loginData = await loginRes.json()
-
-      if (loginRes.ok) {
-        localStorage.setItem('auth_token', loginData.token)
-        localStorage.setItem('auth_user', JSON.stringify(loginData.user))
-        localStorage.setItem('auth_profile', JSON.stringify(profileData.brand))
-      }
+      // Save to localStorage with the fully-populated login response
+      localStorage.setItem('auth_token', loginData.token)
+      localStorage.setItem('auth_user', JSON.stringify(loginData.user))
+      localStorage.setItem('auth_profile', JSON.stringify(profileData.brand))
 
       // Redirect to dashboard
       router.push('/dashboard/brand')
