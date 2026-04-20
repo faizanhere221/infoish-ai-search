@@ -40,10 +40,7 @@ export async function GET(request: NextRequest) {
     const effectiveBrandId = callerUserType === 'brand' ? callerProfileId : brandId
 
     if (!effectiveCreatorId && !effectiveBrandId) {
-      return NextResponse.json(
-        { error: 'creator_id or brand_id filter is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ deals: [] })
     }
 
     const supabase = createServerSupabase()
