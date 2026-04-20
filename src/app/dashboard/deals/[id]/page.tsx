@@ -297,12 +297,13 @@ export default function DealDetailPage() {
   const canDecline = isCreator && deal.creator_id === profileId && deal.status === 'pending'
   const canDeliver = isCreator && deal.creator_id === profileId && (deal.status === 'in_progress' || deal.status === 'revision')
   const canApprove = isBrand && deal.brand_id === profileId && deal.status === 'delivered'
-  const canRequestRevision = isBrand && deal.brand_id === profileId && deal.status === 'delivered' && (deal.revision_count ?? 0) < (deal.max_revisions ?? 2)
+  const canRequestRevision = isBrand && deal.brand_id === profileId && deal.status === 'delivered' && (deal.revisions_used ?? 0) < (deal.revisions_allowed ?? 2)
   const canLeaveReview = deal.status === 'completed' && !deal.review
 
+  const isAccepted = ['in_progress', 'delivered', 'revision', 'approved', 'completed'].includes(deal.status)
   const timelineSteps = [
     { title: 'Deal Created', date: deal.created_at, status: 'completed' },
-    { title: 'Deal Accepted', date: deal.accepted_at, status: deal.accepted_at ? 'completed' : deal.status === 'pending' ? 'active' : 'pending' },
+    { title: 'Deal Accepted', date: undefined, status: isAccepted ? 'completed' : deal.status === 'pending' ? 'active' : 'pending' },
     { title: 'Work Delivered', date: deal.delivered_at, status: deal.delivered_at ? 'completed' : ['in_progress', 'revision'].includes(deal.status) ? 'active' : 'pending' },
     { title: 'Approved & Completed', date: deal.completed_at, status: deal.completed_at ? 'completed' : deal.status === 'delivered' ? 'active' : 'pending' },
   ]
@@ -321,7 +322,7 @@ export default function DealDetailPage() {
               </Link>
               <div>
                 <h1 className="font-semibold text-gray-900">
-                  Deal {deal.deal_number ? `#${deal.deal_number}` : ''}
+                  Deal #{deal.id.slice(0, 8).toUpperCase()}
                 </h1>
                 <p className="text-xs text-gray-500">Created {formatDate(deal.created_at)}</p>
               </div>
@@ -469,7 +470,7 @@ export default function DealDetailPage() {
                       )}
                     </div>
                     <p className="text-sm text-gray-500 text-center">
-                      {deal.revision_count ?? 0} of {deal.max_revisions ?? 2} revisions used
+                      {deal.revisions_used ?? 0} of {deal.revisions_allowed ?? 2} revisions used
                     </p>
                   </div>
                 )}
@@ -509,18 +510,18 @@ export default function DealDetailPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">Deal Amount</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(deal.amount_cents)}</span>
+                  <span className="font-medium text-gray-900">{formatCurrency(deal.amount)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">Platform Fee (10%)</span>
-                  <span className="text-gray-600">-{formatCurrency(deal.platform_fee_cents)}</span>
+                  <span className="text-gray-600">-{formatCurrency(deal.platform_fee)}</span>
                 </div>
                 <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
                   <span className="font-medium text-gray-900">
                     {isCreator ? 'You Receive' : 'Creator Receives'}
                   </span>
                   <span className="text-lg font-bold text-emerald-600">
-                    {formatCurrency(deal.creator_payout_cents)}
+                    {formatCurrency(deal.creator_payout)}
                   </span>
                 </div>
               </div>
@@ -702,7 +703,7 @@ export default function DealDetailPage() {
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-3 text-center">
-                {(deal.max_revisions ?? 2) - (deal.revision_count ?? 0) - 1} revision{(deal.max_revisions ?? 2) - (deal.revision_count ?? 0) - 1 !== 1 ? 's' : ''} remaining after this
+                {(deal.revisions_allowed ?? 2) - (deal.revisions_used ?? 0) - 1} revision{(deal.revisions_allowed ?? 2) - (deal.revisions_used ?? 0) - 1 !== 1 ? 's' : ''} remaining after this
               </p>
             </div>
           </div>

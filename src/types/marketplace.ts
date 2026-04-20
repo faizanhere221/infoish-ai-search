@@ -168,29 +168,28 @@ export interface Deliverable {
 // Deal
 export interface Deal {
   id: string
-  deal_number: number
   conversation_id?: string
   creator_id: string
   brand_id: string
   title: string
   description?: string
+  platform: string
+  content_type: string
   deliverables: Deliverable[]
-  services: Service[]
-  amount_cents: number
-  platform_fee_cents: number
-  creator_payout_cents: number
+  services?: Service[]
+  amount: number
+  platform_fee: number
+  creator_payout: number
   currency: string
   stripe_payment_intent_id?: string
-  stripe_transfer_id?: string
   status: DealStatus
   deadline?: string
-  accepted_at?: string
   delivered_at?: string
-  approved_at?: string
   completed_at?: string
   cancelled_at?: string
-  revision_count: number
-  max_revisions: number
+  revisions_used: number
+  revisions_allowed: number
+  delivery_days: number
   created_at: string
   updated_at: string
   // Joined data

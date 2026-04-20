@@ -211,9 +211,16 @@ export default function CreatorSignupPage() {
         return
       }
 
-      // Save to localStorage with the fully-populated login response
-      localStorage.setItem('auth_token', loginData.token)
-      localStorage.setItem('auth_user', JSON.stringify(loginData.user))
+      // Re-login to get a fresh JWT that includes the new profileId
+      const reLoginRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      })
+      const freshAuth = reLoginRes.ok ? await reLoginRes.json() : loginData
+
+      localStorage.setItem('auth_token', freshAuth.token)
+      localStorage.setItem('auth_user', JSON.stringify(freshAuth.user))
       localStorage.setItem('auth_profile', JSON.stringify(creatorData.creator))
 
       // Redirect to dashboard
