@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2, DollarSign, Calendar, FileText, Plus, Trash2 } from 'lucide-react'
@@ -13,6 +13,18 @@ interface Deliverable {
 }
 
 export default function NewDealPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+      </div>
+    }>
+      <NewDealPageContent />
+    </Suspense>
+  )
+}
+
+function NewDealPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const prefilledCreatorId = searchParams.get('creator_id') ?? ''
