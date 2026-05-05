@@ -1,31 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 
-const PUBLIC_API_PREFIXES = [
-  '/api/auth/',
-  '/api/creators',  // public read
-  '/api/brands',    // public read
-]
-
-function isPublicRoute(pathname: string, method: string): boolean {
+function isPublicApiRoute(pathname: string, method: string): boolean {
   if (pathname.startsWith('/api/auth/')) return true
-  // Allow GET on creators and brands (public search)
+  if (pathname.startsWith('/api/admin/auth/')) return true
   if (method === 'GET' && (pathname.startsWith('/api/creators') || pathname.startsWith('/api/brands'))) return true
   return false
-}
-
-function isProtectedApiRoute(pathname: string): boolean {
-  return pathname.startsWith('/api/')
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const method = request.method
-
-  if (!isProtectedApiRoute(pathname)) return NextResponse.next()
-  if (isPublicRoute(pathname, method)) return NextResponse.next()
-
   const secret = process.env.JWT_SECRET
+
+  // ── Admin page routes ───────────────────────────────────────────────────────
+  if (pathname.startsWith('/admin/')) {
+    if (pathname === '/admin/login') return NextResponse.next()
+
+    if (!secret) return NextResponse.redirect(new URL('/admin/login', request.url))
+
+    const cookieToken = request.cookies.get('auth_token')?.value
+    if (!cookieToken) return NextResponse.redirect(new URL('/admin/login', request.url))
+
+    try {
+      const { payload } = await jwtVerify(cookieToken, new TextEncoder().encode(secret))
+      const role = String(payload.role ?? '')
+      if (role !== 'admin' && role !== 'super_admin') {
+        return NextResponse.redirect(new URL('/admin/login', request.url))
+      }
+      return NextResponse.next()
+    } catch {
+      return NextResponse.redirect(new URL('/admin/login', request.url))
+    }
+  }
+
+  // ── API routes ──────────────────────────────────────────────────────────────
+  if (!pathname.startsWith('/api/')) return NextResponse.next()
+  if (isPublicApiRoute(pathname, method)) return NextResponse.next()
+
   if (!secret) {
     return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 })
   }
@@ -41,10 +53,19 @@ export async function middleware(request: NextRequest) {
   try {
     const { payload } = await jwtVerify(token, new TextEncoder().encode(secret))
 
+    // Admin-only API routes require admin or super_admin role
+    if (pathname.startsWith('/api/admin/')) {
+      const role = String(payload.role ?? '')
+      if (role !== 'admin' && role !== 'super_admin') {
+        return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+      }
+    }
+
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-user-id', String(payload.userId ?? ''))
     requestHeaders.set('x-user-type', String(payload.userType ?? ''))
     requestHeaders.set('x-profile-id', String(payload.profileId ?? ''))
+    requestHeaders.set('x-user-role', String(payload.role ?? 'user'))
 
     return NextResponse.next({ request: { headers: requestHeaders } })
   } catch {
@@ -53,5 +74,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/api/:path*',
+  matcher: ['/api/:path*', '/admin/:path*'],
 }

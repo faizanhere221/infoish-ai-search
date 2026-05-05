@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { rateLimit } from '@/lib/rate-limit'
+import { logActivity } from '@/lib/activity'
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET
@@ -71,6 +72,16 @@ export async function POST(request: NextRequest) {
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', user.id)
 
+    void logActivity({
+      userId: user.id,
+      action: 'login',
+      entityType: 'user',
+      entityId: user.id,
+      details: { email: user.email, user_type: user.user_type },
+      ipAddress: ip,
+      userAgent: request.headers.get('user-agent') ?? undefined,
+    })
+
     // Get profile based on user type
     let profile = null
     if (user.user_type === 'creator') {
@@ -95,6 +106,7 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         email: user.email,
         userType: user.user_type,
+        role: user.role ?? 'user',
         profileId: profile?.id,
       },
       getJwtSecret(),
