@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { rateLimit } from '@/lib/rate-limit'
+import { logActivity } from '@/lib/activity'
 
 export async function POST(request: NextRequest) {
   try {
@@ -89,6 +90,16 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    void logActivity({
+      userId: user.id,
+      action: 'register',
+      entityType: 'user',
+      entityId: user.id,
+      details: { email: user.email, user_type },
+      ipAddress: ip,
+      userAgent: request.headers.get('user-agent') ?? undefined,
+    })
 
     // Return user without sensitive data
     const { password_hash: _, ...safeUser } = user
