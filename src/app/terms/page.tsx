@@ -5,7 +5,7 @@ import Header from '@/components/header'
 
 export const metadata: Metadata = {
   title: 'Terms of Service | Infoishai',
-  description: 'Read the Terms of Service for Infoishai, the B2B tech influencer marketplace connecting brands with verified content creators.',
+  description: 'The rules and conditions for using Infoishai — account eligibility, creator and brand obligations, escrow payments, and platform usage policies.',
   robots: {
     index: true,
     follow: true,

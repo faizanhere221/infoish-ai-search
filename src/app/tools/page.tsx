@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { Instagram, Search, TrendingUp, Sparkles, ArrowRight, CheckCircle, Zap, Target, Hash, Wand2 } from 'lucide-react'
+import { Instagram, Search, TrendingUp, Sparkles, ArrowRight, CheckCircle, Zap, Target, Hash } from 'lucide-react'
 
 export default function ToolsPage() {
   const tools = [
@@ -41,24 +41,6 @@ export default function ToolsPage() {
       ],
       badge: 'New',
       badgeColor: 'bg-green-100 text-green-700'
-    },
-    {
-      id: 'ai-humanizer',
-      name: 'AI Humanizer',
-      description: 'Transform AI-generated text to bypass detection. Convert AI written into Humanize and pass AI detection tools.',
-      icon: Wand2,
-      href: '/tools/ai-humanizer',
-      color: 'from-blue-500 to-cyan-500',
-      bgColor: 'from-blue-50 to-cyan-50',
-      stats: ['AI-Powered', '3 Free/Day', '500-2,500 Words'],
-      features: [
-        'Bypass AI Detectors',
-        '15-25% AI Detection',
-        'Instant Results',
-        'Copy & Download'
-      ],
-      badge: 'New',
-      badgeColor: 'bg-blue-100 text-blue-700'
     }
   ]
 

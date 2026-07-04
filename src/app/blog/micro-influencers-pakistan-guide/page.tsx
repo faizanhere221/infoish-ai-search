@@ -470,7 +470,7 @@ export default function MicroInfluencersPakistanBlog() {
                       Platforms like <strong>Infoishai</strong> let you search <strong>1,800+ verified Pakistani influencers</strong> by niche, city, follower count, and engagement rate. Find the perfect micro-influencers in seconds instead of spending hours scrolling.
                     </p>
                     <Link 
-                      href="/search"
+                      href="/creators"
                       className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors shadow-lg hover:shadow-xl"
                     >
                       Try Infoishai Free
@@ -638,7 +638,7 @@ export default function MicroInfluencersPakistanBlog() {
               Search <strong>1,800+ verified Pakistani influencers</strong> by niche, city, and engagement rate. Find your ideal micro-influencers in seconds, not hours.
             </p>
             <Link 
-              href="/search"
+              href="/creators"
               className="inline-flex items-center gap-3 bg-white text-blue-600 font-bold px-8 py-4 rounded-xl hover:bg-blue-50 transition-colors shadow-xl text-lg"
             >
               Start Free Search

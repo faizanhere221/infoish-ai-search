@@ -40,7 +40,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/tools`, lastModified: today, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/tools/instagram-hashtag-generator`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/tools/instagram-profile-analyzer`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${baseUrl}/tools/ai-humanizer`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
 
     // Blog
     { url: `${baseUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },

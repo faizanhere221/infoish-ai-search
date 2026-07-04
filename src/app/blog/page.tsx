@@ -170,21 +170,21 @@ export default function BlogPage() {
               </div>
               <div>
                 <h3 className="font-bold text-lg">🎉 New Free Tools Released!</h3>
-                <p className="text-purple-100 text-sm">AI Humanizer, Hashtag Generator & Profile Analyzer - All 100% Free</p>
+                <p className="text-purple-100 text-sm">Hashtag Generator & Profile Analyzer - All 100% Free</p>
               </div>
             </div>
             <div className="flex gap-3">
-              <Link 
-                href="/tools/ai-humanizer"
+              <Link
+                href="/tools/instagram-hashtag-generator"
                 className="bg-white text-purple-600 px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors"
               >
-                AI Humanizer
+                Hashtag Generator
               </Link>
-              <Link 
-                href="/tools/hashtag-generator"
+              <Link
+                href="/tools/instagram-profile-analyzer"
                 className="bg-white/20 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-white/30 transition-colors"
               >
-                Hashtag Generator
+                Profile Analyzer
               </Link>
             </div>
           </div>
@@ -204,7 +204,7 @@ export default function BlogPage() {
             >
               {category}
               {category === 'Tools' && (
-                <span className="ml-2 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">3</span>
+                <span className="ml-2 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">2</span>
               )}
               {category === 'Strategy' && (
                 <span className="ml-2 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">2</span>
@@ -381,23 +381,9 @@ export default function BlogPage() {
             <Sparkles className="w-6 h-6 text-purple-500" />
             Free Tools - Try Now
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link 
-              href="/tools/ai-humanizer"
-              className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 text-white hover:shadow-xl transition-all transform hover:scale-105"
-            >
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                <PenTool className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">AI Humanizer</h3>
-              <p className="text-blue-100 text-sm mb-4">Convert AI text to human-like writing. Bypass detectors instantly.</p>
-              <span className="inline-flex items-center gap-1 text-sm font-medium">
-                Try Free <ArrowRight className="w-4 h-4" />
-              </span>
-            </Link>
-            
-            <Link 
-              href="/tools/hashtag-generator"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Link
+              href="/tools/instagram-hashtag-generator"
               className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-6 text-white hover:shadow-xl transition-all transform hover:scale-105"
             >
               <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
@@ -484,17 +470,17 @@ export default function BlogPage() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
-                href="/search"
+                href="/creators"
                 className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
               >
                 Start Searching Now
                 <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link 
-                href="/pricing"
+              <Link
+                href="/signup"
                 className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-900 px-8 py-4 rounded-xl font-semibold border-2 border-gray-200 hover:border-gray-300 transition-all"
               >
-                View Pricing Plans
+                Get Started Free
               </Link>
             </div>
             

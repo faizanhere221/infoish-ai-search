@@ -355,16 +355,16 @@ export default function AIPoweredInfluencerMarketingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
-              href="/search"
+              href="/creators"
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
             >
               Try AI Search Now (Free)
             </Link>
-            <Link 
-              href="/pricing"
+            <Link
+              href="/signup"
               className="bg-white hover:bg-gray-50 text-blue-600 px-8 py-3 rounded-lg font-medium border border-blue-300 transition-colors"
             >
-              View Plans & Pricing
+              Get Started Free
             </Link>
           </div>
           <p className="text-sm text-blue-700 mt-4">No credit card required • 1,800+ verified influencers • Instant results</p>

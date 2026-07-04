@@ -5,7 +5,7 @@ import Header from '@/components/header'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Infoishai',
-  description: 'Read the Privacy Policy for Infoishai, the B2B tech influencer marketplace connecting brands with verified content creators.',
+  description: 'How Infoishai collects, uses, and protects your personal data, including account information, payment details, and creator profile data.',
   robots: {
     index: true,
     follow: true,
