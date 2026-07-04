@@ -123,26 +123,6 @@ const structuredData = {
   },
 }
 
-const organizationData = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Infoishai',
-  url: 'https://infoishai.com',
-  logo: 'https://infoishai.com/logo.png',
-  description: 'The #1 marketplace for finding tech influencers. Connect AI, SaaS, and tech brands with authentic content creators.',
-  foundingDate: '2024',
-  contactPoint: {
-    '@type': 'ContactPoint',
-    contactType: 'customer support',
-    email: 'support@infoishai.com',
-  },
-  sameAs: [
-    'https://twitter.com/infoishai',
-    'https://linkedin.com/company/infoishai',
-    'https://youtube.com/@infoishai',
-  ],
-}
-
 const faqData = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -221,10 +201,6 @@ export default function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationData) }}
       />
       <script
         type="application/ld+json"

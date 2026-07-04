@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import {
   User,
@@ -74,9 +75,11 @@ export default function ProfileDropdown({
         {/* Avatar */}
         <div className="relative">
           {profile?.profile_photo_url || profile?.logo_url ? (
-            <img 
+            <Image
               src={profile?.profile_photo_url || profile?.logo_url}
               alt={displayName}
+              width={32}
+              height={32}
               className="w-8 h-8 rounded-full object-cover"
             />
           ) : (
@@ -99,9 +102,11 @@ export default function ProfileDropdown({
           <div className="px-4 py-3 border-b border-gray-100">
             <div className="flex items-center gap-3">
               {profile?.profile_photo_url || profile?.logo_url ? (
-                <img 
+                <Image
                   src={profile?.profile_photo_url || profile?.logo_url}
                   alt={displayName}
+                  width={40}
+                  height={40}
                   className="w-10 h-10 rounded-full object-cover"
                 />
               ) : (

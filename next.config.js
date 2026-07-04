@@ -39,6 +39,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'avatars.githubusercontent.com',
       },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
       // localhost allowed in development only
       ...(process.env.NODE_ENV === 'development' ? [{ protocol: 'http', hostname: 'localhost' }] : []),
     ],
@@ -83,7 +87,7 @@ const nextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://api.dicebear.com https://images.unsplash.com https://avatars.githubusercontent.com",
+              "img-src 'self' data: blob: https://api.dicebear.com https://images.unsplash.com https://avatars.githubusercontent.com https://*.supabase.co",
               "connect-src 'self' https://*.supabase.co https://accounts.google.com",
               "frame-src https://accounts.google.com",
               "object-src 'none'",

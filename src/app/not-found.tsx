@@ -1,8 +1,17 @@
-'use client'
-
 import React from 'react'
 import Link from 'next/link'
-import { Home, Search, ArrowLeft, Sparkles, TrendingUp, Instagram, Hash } from 'lucide-react'
+import { Metadata } from 'next'
+import { Home, Search, Sparkles, TrendingUp, Instagram, Hash } from 'lucide-react'
+import { GoBackButton } from '@/components/seo/GoBackButton'
+
+export const metadata: Metadata = {
+  title: '404 - Page Not Found | Infoishai',
+  description: 'The page you are looking for could not be found. Browse Infoishai to find tech influencers, tools, and resources.',
+  robots: {
+    index: false,
+    follow: true,
+  },
+}
 
 export default function NotFound() {
   return (
@@ -54,7 +63,7 @@ export default function NotFound() {
           </Link>
           
           <Link
-            href="/search"
+            href="/creators"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-purple-600 border-2 border-purple-600 font-semibold rounded-xl hover:bg-purple-50 transition-all shadow-md hover:shadow-lg"
           >
             <Search className="w-5 h-5" />
@@ -126,13 +135,7 @@ export default function NotFound() {
 
         {/* Back Link */}
         <div className="mt-8">
-          <button
-            onClick={() => window.history.back()}
-            className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-medium transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Go back to previous page
-          </button>
+          <GoBackButton />
         </div>
 
       </div>

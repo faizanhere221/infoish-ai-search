@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import {
   Search,
@@ -872,9 +873,11 @@ function CreatorCard({ creator }: { creator: Creator }) {
         {/* Avatar */}
         <div className="flex-shrink-0">
           {creator.profile_photo_url ? (
-            <img
+            <Image
               src={creator.profile_photo_url}
               alt={creator.display_name}
+              width={80}
+              height={80}
               className="w-20 h-20 rounded-xl object-cover"
             />
           ) : (

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { OrganizationJsonLd, WebSiteJsonLd, SoftwareApplicationJsonLd } from '@/components/seo/JsonLd'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -19,6 +20,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://infoishai.com'),
   title: {
     default: 'Infoishai - Tech Creator Sponsorship Marketplace',
     template: '%s | Infoishai',
@@ -82,6 +84,9 @@ export const metadata: Metadata = {
     canonical: 'https://infoishai.com',
   },
   category: 'technology',
+  verification: {
+    google: 'ADD_GOOGLE_VERIFICATION_CODE_HERE',
+  },
 }
 
 export default function RootLayout({
@@ -92,6 +97,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-white text-gray-900 antialiased`}>
+        <OrganizationJsonLd />
+        <WebSiteJsonLd />
+        <SoftwareApplicationJsonLd />
+
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg"
