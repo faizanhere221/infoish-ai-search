@@ -216,11 +216,11 @@ export default function AIHumanizerToolBlog() {
                 <h2 className="text-xl font-bold mb-1">Ready to humanize your AI text?</h2>
                 <p className="text-blue-100">Transform robotic content into natural writing instantly</p>
               </div>
-              <Link 
-                href="/tools/ai-humanizer"
+              <Link
+                href="/tools"
                 className="bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors whitespace-nowrap"
               >
-                Try AI Humanizer Free →
+                Explore Our Tools →
               </Link>
             </div>
           </div>
@@ -695,11 +695,11 @@ export default function AIHumanizerToolBlog() {
               <p className="text-blue-100 mb-2 text-lg">Stop fearing AI detection.</p>
               <p className="text-blue-100 mb-6 text-lg">Start creating authentic-sounding content today!</p>
               
-              <Link 
-                href="/tools/ai-humanizer"
+              <Link
+                href="/tools"
                 className="inline-block bg-white text-blue-600 px-10 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors"
               >
-                👉 Use AI Humanizer – Free Forever
+                👉 View All Tools – Free Forever
               </Link>
               <p className="text-blue-200 mt-4 text-sm">
                 No registration • Instant results • Natural writing
@@ -751,11 +751,11 @@ export default function AIHumanizerToolBlog() {
           <p className="text-xl text-gray-700 mb-6">
             Ready to transform your AI content? <strong>Start humanizing today.</strong>
           </p>
-          <Link 
-            href="/tools/ai-humanizer"
+          <Link
+            href="/tools"
             className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-10 py-4 rounded-lg font-bold text-lg transition-colors"
           >
-            Try AI Humanizer Free →
+            View All Tools →
           </Link>
         </div>
       </article>
