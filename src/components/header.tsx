@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
-import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, Heart, LogOut, Instagram, Calculator, Wrench, Wand2 } from 'lucide-react'
+import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, Heart, LogOut, Instagram, Calculator, Wrench } from 'lucide-react'
 
 interface UserProfile {
   id: string
@@ -365,13 +365,6 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
               >
                 About
               </Link>
-              <Link 
-                href="/pricing" 
-                className="px-4 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 font-medium rounded-lg transition-all"
-              >
-                Pricing
-              </Link>
-
               {/* Tools Dropdown */}
 <div className="relative">
   <button
@@ -419,23 +412,6 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
           <div className="flex-1">
             <p className="font-semibold text-sm text-gray-900">Instagram Hashtag Generator</p>
             <p className="text-xs text-gray-500 mt-0.5">Generate hashtags faster</p>
-          </div>
-        </Link>
-
-        <Link
-          href="/tools/ai-humanizer"
-          className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors relative"
-          onClick={() => setShowToolsDropdown(false)}
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Wand2 className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <p className="font-semibold text-sm text-gray-900">AI Humanizer</p>
-              <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded">New</span>
-            </div>
-            <p className="text-xs text-gray-500 mt-0.5">Bypass AI detectors</p>
           </div>
         </Link>
 
@@ -524,7 +500,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                   {userType === 'brand' && (
                     <div className="hidden md:flex items-center gap-2">
                       <Link
-                        href="/search"
+                        href="/creators"
                         className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                         title="Search Influencers"
                       >
@@ -545,17 +521,6 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                         <BarChart3 className="w-5 h-5" />
                       </Link>
                     </div>
-                  )}
-
-                  {/* Upgrade Button */}
-                  {user.subscription_tier === 'free' && (
-                    <Link
-                      href="/pricing"
-                      className="hidden md:flex items-center gap-2 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-4 py-2 rounded-lg font-medium text-sm shadow-md hover:shadow-lg transition-all"
-                    >
-                      <Crown className="w-4 h-4" />
-                      <span className="hidden lg:inline">Upgrade</span>
-                    </Link>
                   )}
 
                   {/* Search Counter */}
@@ -630,15 +595,6 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                                 {getTierIcon()}
                                 {user.subscription_tier.toUpperCase()}
                               </span>
-                              {user.subscription_tier === 'free' && (
-                                <Link
-                                  href="/pricing"
-                                  className="text-sm text-green-600 hover:text-green-700 font-bold transition-colors"
-                                  onClick={() => setShowDropdown(false)}
-                                >
-                                  Upgrade →
-                                </Link>
-                              )}
                             </div>
                           </div>
                           
@@ -664,7 +620,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                             {userType === 'brand' && (
                               <>
                                 <Link
-                                  href="/search"
+                                  href="/creators"
                                   className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-all"
                                   onClick={() => setShowDropdown(false)}
                                 >
@@ -770,7 +726,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                 {isLoggedIn && userType === 'brand' && (
                   <>
                     <Link 
-                      href="/search"
+                      href="/creators"
                       className="flex items-center gap-3 text-gray-700 hover:text-blue-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-blue-50"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -807,16 +763,8 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                 >
                   About
                 </Link>
-                <Link 
-                  href="/pricing" 
-                  className="text-gray-700 hover:text-green-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-gray-50"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Pricing
-                </Link>
-
-                <Link 
-                  href="/tools" 
+                <Link
+                  href="/tools"
                   className="flex items-center gap-2 text-gray-700 hover:text-purple-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-purple-50"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -843,17 +791,6 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                       Contact Support
                     </Link>
 
-                    {user?.subscription_tier === 'free' && (
-                      <Link
-                        href="/pricing"
-                        className="flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-blue-500 text-white px-4 py-3 rounded-lg font-bold text-sm hover:shadow-lg transition-all mt-2"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <Crown className="w-5 h-5" />
-                        Upgrade to Premium
-                      </Link>
-                    )}
-                    
                     <button
                       onClick={() => {
                         handleLogout()

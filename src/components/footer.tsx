@@ -185,11 +185,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="text-white/70 hover:text-green-400 transition-colors">
-                  Pricing
-                </Link>
-              </li>
-              <li>
                 <Link href="/blog/complete-guide-influencer-marketing-pakistan-2025" className="text-white/70 hover:text-green-400 transition-colors">
                   Marketing Guide
                 </Link>
@@ -207,7 +202,7 @@ export default function Footer() {
             <h3 className="font-semibold text-white mb-6">Company</h3>
             <ul className="space-y-4">
               <li>
-                <Link href="/search" className="text-white/70 hover:text-green-400 transition-colors">
+                <Link href="/creators" className="text-white/70 hover:text-green-400 transition-colors">
                   Search Influencers
                 </Link>
               </li>

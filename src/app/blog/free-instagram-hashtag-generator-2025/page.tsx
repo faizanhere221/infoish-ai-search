@@ -657,7 +657,7 @@ export default function FreeInstagramHashtagGenerator2025() {
             </Link>
             
             <Link 
-              href="/search"
+              href="/creators"
               className="bg-white rounded-lg p-6 shadow-sm border hover:shadow-md transition-shadow"
             >
               <span className="text-sm text-blue-600 font-medium">Search Tool</span>

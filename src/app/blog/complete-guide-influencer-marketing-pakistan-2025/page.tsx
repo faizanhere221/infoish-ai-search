@@ -295,7 +295,7 @@ export default function CompleteGuideInfluencerMarketing() {
                   An <strong>influencer search tool</strong> to help you. You can <strong>find influencers in Pakistan</strong> by niche, city and platform.
                 </p>
                 <Link 
-                  href="/search"
+                  href="/creators"
                   className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                 >
                   Try Infoishai
@@ -345,16 +345,16 @@ export default function CompleteGuideInfluencerMarketing() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
-              href="/search"
+              href="/creators"
               className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
             >
               Start Your Free Search Now
             </Link>
-            <Link 
-              href="/pricing"
+            <Link
+              href="/signup"
               className="bg-white hover:bg-gray-50 text-green-600 px-8 py-3 rounded-lg font-medium border border-green-300 transition-colors"
             >
-              View Pricing Plans
+              Get Started Free
             </Link>
           </div>
           <p className="text-sm text-green-700 mt-4">Find your perfect influencer match in under 30 seconds. No credit card required.</p>

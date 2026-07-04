@@ -664,7 +664,7 @@ export default function FreeInstagramProfileAnalyzerGuide() {
               👉 Examine Any Instagram Profile at No Cost
             </Link>
             <Link 
-              href="/search"
+              href="/creators"
               className="bg-white hover:bg-gray-50 text-purple-600 px-8 py-3 rounded-lg font-medium border border-purple-300 transition-colors"
             >
               👉 Find Pre-Vetted Pakistani Influencers
@@ -687,7 +687,7 @@ export default function FreeInstagramProfileAnalyzerGuide() {
             </Link>
             
             <Link 
-              href="/search"
+              href="/creators"
               className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-6 border border-blue-200 hover:shadow-md transition-shadow"
             >
               <span className="text-sm text-green-600 font-medium">Tool</span>
