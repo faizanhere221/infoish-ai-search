@@ -1,6 +1,19 @@
 // src/app/terms/page.tsx
 
+import { Metadata } from 'next'
 import Header from '@/components/header'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | Infoishai',
+  description: 'Read the Terms of Service for Infoishai, the B2B tech influencer marketplace connecting brands with verified content creators.',
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: 'https://infoishai.com/terms',
+  },
+}
 
 export default function TermsOfService() {
   return (

@@ -1,6 +1,19 @@
 // src/app/privacy/page.tsx
 
+import { Metadata } from 'next'
 import Header from '@/components/header'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | Infoishai',
+  description: 'Read the Privacy Policy for Infoishai, the B2B tech influencer marketplace connecting brands with verified content creators.',
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: 'https://infoishai.com/privacy',
+  },
+}
 
 export default function PrivacyPolicy() {
   return (

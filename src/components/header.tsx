@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, Heart, LogOut, Instagram, Calculator, Wrench, Wand2 } from 'lucide-react'
 
@@ -571,9 +572,11 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                       className="flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 transition-all shadow-sm hover:shadow-md"
                     >
                       {user.profile_picture ? (
-                        <img
+                        <Image
                           src={user.profile_picture}
                           alt={getUserDisplayName()}
+                          width={32}
+                          height={32}
                           className="w-8 h-8 rounded-lg border border-gray-200 object-cover"
                         />
                       ) : (
@@ -604,9 +607,11 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                           <div className="p-4 bg-gradient-to-br from-blue-50 to-green-50 border-b border-gray-200">
                             <div className="flex items-center gap-3 mb-3">
                               {user.profile_picture ? (
-                                <img
+                                <Image
                                   src={user.profile_picture}
                                   alt={getUserDisplayName()}
+                                  width={56}
+                                  height={56}
                                   className="w-14 h-14 rounded-xl border-2 border-white shadow-md"
                                 />
                               ) : (

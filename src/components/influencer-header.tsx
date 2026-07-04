@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   Menu, 
   X, 
@@ -187,9 +188,11 @@ export default function InfluencerHeader() {
                     className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border border-purple-200 transition-all duration-200"
                   >
                     {influencer.profile_image_url ? (
-                      <img
+                      <Image
                         src={influencer.profile_image_url}
                         alt={influencer.full_name}
+                        width={40}
+                        height={40}
                         className="w-10 h-10 rounded-xl border-2 border-white/30 object-cover"
                       />
                     ) : (
@@ -218,9 +221,11 @@ export default function InfluencerHeader() {
                         <div className="p-6 border-b border-black/10">
                           <div className="flex items-center gap-4">
                             {influencer.profile_image_url ? (
-                              <img
+                              <Image
                                 src={influencer.profile_image_url}
                                 alt={influencer.full_name}
+                                width={64}
+                                height={64}
                                 className="w-16 h-16 rounded-2xl border-2 border-white/30 object-cover"
                               />
                             ) : (

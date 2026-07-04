@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft,
@@ -337,9 +338,11 @@ export default function CreatorProfilePage() {
                 {/* Avatar */}
                 <div className="flex-shrink-0">
                   {creator.profile_photo_url ? (
-                    <img 
-                      src={creator.profile_photo_url} 
+                    <Image
+                      src={creator.profile_photo_url}
                       alt={creator.display_name}
+                      width={96}
+                      height={96}
                       className="w-24 h-24 rounded-full object-cover"
                     />
                   ) : (

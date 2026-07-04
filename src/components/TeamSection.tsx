@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react';
+import Image from 'next/image';
 import { Linkedin, Twitter, Github, Mail } from 'lucide-react';
 
 interface TeamMember {
@@ -56,9 +57,11 @@ const TeamSection: React.FC = () => {
             {/* Profile Image */}
             <div className="w-32 h-32 mx-auto mb-6">
               <div className="w-full h-full rounded-full overflow-hidden bg-white shadow-lg">
-                <img
+                <Image
                   src={member.image}
                   alt={member.name}
+                  width={128}
+                  height={128}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     // Fallback to emoji if image fails to load
