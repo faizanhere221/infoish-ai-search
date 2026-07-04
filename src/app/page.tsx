@@ -82,7 +82,7 @@ export const metadata: Metadata = {
   },
   category: 'technology',
   verification: {
-    google: 'your-google-verification-code',
+    google: 'google9b21ca159a20a693',
   },
 }
 
