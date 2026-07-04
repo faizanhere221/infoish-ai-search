@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const INDEXNOW_KEY = 'd94ec912c9a1166b2d955b8cd7f61f63'
+const INDEXNOW_KEY = '3bd5616de61c4aa694ca4c2708a83c69'
 const HOST = 'infoishai.com'
 const KEY_LOCATION = `https://${HOST}/${INDEXNOW_KEY}.txt`
 const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow'
