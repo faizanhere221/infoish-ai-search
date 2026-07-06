@@ -1,19 +1,22 @@
 import { Metadata } from 'next'
-import { 
-  Navigation, 
-  HeroSection, 
+import {
+  Navigation,
+  HeroSection,
+  AboutSection,
+  HowInfoishaiWorksSection,
   TrustedBySection,
-  ProblemSection, 
+  ProblemSection,
   SolutionSection,
   PlatformSection,
   CategoriesSection,
-  HowItWorksSection, 
+  HowItWorksSection,
   WhyMarketplaceSection,
   ComparisonSection,
   UseCasesSection,
   FAQSection,
-  FinalCTASection, 
-  Footer 
+  FinalCTASection,
+  NewsletterSection,
+  Footer
 } from '@/components/landing'
 
 // ============================================================================
@@ -129,6 +132,38 @@ const faqData = {
   mainEntity: [
     {
       '@type': 'Question',
+      name: 'What is Infoishai?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Infoishai is a B2B tech influencer marketplace that connects brands with verified tech content creators including YouTubers, Twitter influencers, LinkedIn thought leaders, and more.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How much does Infoishai cost?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Infoishai is free to join for both brands and creators. There are no subscription fees or platform charges.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What types of tech influencers can I find?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'You can find influencers across niches including AI/ML, SaaS, developer tools, cloud computing, cybersecurity, and more. Platforms include YouTube, Twitter, LinkedIn, podcasts, and newsletters.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How do I hire a tech influencer?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Browse our creator directory, filter by niche and platform, view profiles, and send a deal proposal directly through the platform.',
+      },
+    },
+    {
+      '@type': 'Question',
       name: 'What is a tech influencer marketplace?',
       acceptedAnswer: {
         '@type': 'Answer',
@@ -217,7 +252,10 @@ export default function HomePage() {
         
         {/* Hero - Main H1 with primary keyword */}
         <HeroSection />
-        
+
+        {/* About - What Infoishai is, who it's for, key benefits */}
+        <AboutSection />
+
         {/* Social Proof */}
         <TrustedBySection />
         
@@ -233,6 +271,9 @@ export default function HomePage() {
         {/* Tech Influencer Categories - AI, SaaS, Developer, etc. */}
         <CategoriesSection />
         
+        {/* How Infoishai Works - platform mechanics */}
+        <HowInfoishaiWorksSection />
+
         {/* How to Find Tech Influencers - Step by Step */}
         <HowItWorksSection />
         
@@ -250,7 +291,10 @@ export default function HomePage() {
         
         {/* Final CTA */}
         <FinalCTASection />
-        
+
+        {/* Newsletter Signup */}
+        <NewsletterSection />
+
         {/* Footer with links */}
         <Footer />
       </main>

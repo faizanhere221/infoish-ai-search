@@ -208,12 +208,6 @@ export default function CreatorProfilePage() {
     }
   }
 
-  useEffect(() => {
-    if (username) {
-      fetchCreator()
-    }
-  }, [username])
-
   const fetchCreator = async () => {
     try {
       const res = await fetch(`/api/creators/${username}`)
@@ -340,7 +334,7 @@ export default function CreatorProfilePage() {
                   {creator.profile_photo_url ? (
                     <Image
                       src={creator.profile_photo_url}
-                      alt={creator.display_name}
+                      alt={`${creator.display_name} - tech content creator`}
                       width={96}
                       height={96}
                       className="w-24 h-24 rounded-full object-cover"

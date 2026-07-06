@@ -307,13 +307,12 @@ export default function AboutPage() {
               <div key={index} className="bg-white rounded-2xl p-8 border border-gray-200 text-center hover:shadow-lg transition-all">
                 {/* Team Image with gradient background fallback */}
                 <div className="w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden border-4 border-violet-100 bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
-                  <Image 
-                    src={member.image} 
-                    alt={member.name}
+                  <Image
+                    src={member.image}
+                    alt={`${member.name} - ${member.role} at Infoishai`}
                     width={96}
                     height={96}
                     className="w-full h-full object-cover"
-                    unoptimized
                   />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-1">{member.name}</h3>
