@@ -162,7 +162,7 @@ export default function CreatorsPage() {
 
   const fetchCreators = async () => {
     try {
-      const res = await fetch('/api/creators')
+      const res = await fetch('/api/creators?limit=100')
       if (res.ok) {
         const data = await res.json()
         setCreators(data.creators || [])
@@ -417,6 +417,23 @@ export default function CreatorsPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Header - H1 + SEO intro */}
+        <div className="mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+            Find Tech Influencers
+          </h1>
+          <p className="text-gray-600 max-w-3xl leading-relaxed">
+            Search and filter verified tech influencers, YouTubers, and content creators across AI, SaaS,
+            developer tools, and more. Use the filters below to narrow results by niche, platform, country,
+            language, budget, and rating, or search by name and keyword to find the right content creator
+            for your next campaign. Looking to hire? Browse profiles, check verified metrics, and{' '}
+            <Link href="/signup/brand" className="text-violet-600 hover:text-violet-700 font-medium underline">
+              sign up as a brand
+            </Link>{' '}
+            to send a deal directly through the platform.
+          </p>
+        </div>
+
         {/* Search Bar */}
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -875,7 +892,7 @@ function CreatorCard({ creator }: { creator: Creator }) {
           {creator.profile_photo_url ? (
             <Image
               src={creator.profile_photo_url}
-              alt={creator.display_name}
+              alt={`${creator.display_name} - tech content creator`}
               width={80}
               height={80}
               className="w-20 h-20 rounded-xl object-cover"

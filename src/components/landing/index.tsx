@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
+import NewsletterForm from '@/components/NewsletterForm'
+import {
   Sparkles, 
   Search, 
   Shield, 
@@ -222,24 +223,128 @@ export function HeroSection() {
 }
 
 // ============================================================================
-// TRUSTED BY SECTION
+// ABOUT SECTION - What is Infoishai (SEO content block)
 // ============================================================================
-export function TrustedBySection() {
-  const brands = [
-    'Microsoft', 'Google', 'AWS', 'Vercel', 'Supabase', 'OpenAI', 'Stripe', 'MongoDB'
+export function AboutSection() {
+  return (
+    <section className="py-20 lg:py-32 bg-white">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Discover Verified Tech Content Creators
+          </h2>
+        </div>
+
+        <div className="space-y-5 text-lg text-gray-600 leading-relaxed">
+          <p>
+            Infoishai is a <strong>tech influencer marketplace</strong> built to connect ambitious brands
+            with creators who actually understand technology. Unlike generic influencer directories, we
+            focus exclusively on <strong>tech content creators</strong> — YouTubers, Twitter/X voices,
+            LinkedIn thought leaders, newsletter writers, and podcast hosts covering AI, SaaS, developer
+            tools, cloud infrastructure, and cybersecurity.
+          </p>
+          <p>
+            Infoishai is for two audiences: <strong>brands</strong> that need authentic reach inside
+            technical communities, and <strong>creators</strong> who want to monetize their expertise
+            without chasing sponsors manually. As a <strong>B2B influencer platform</strong>, Infoishai
+            removes the guesswork from influencer marketing — brands get searchable access to verified
+            creator profiles with real engagement data, while creators get a home to showcase their work,
+            set their own rates, and get paid safely.
+          </p>
+          <p>
+            Key benefits include verified metrics so you never work with fake followers, advanced
+            filtering by niche, platform, budget, and audience, direct messaging and deal management in
+            one place, and escrow payment protection for both sides of every deal. Whether you're
+            searching for AI influencers, SaaS influencers, or developer advocates, Infoishai's tech
+            influencer marketplace helps you go from discovery to signed deal in days, not weeks.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
+          <Link
+            href="/signup/brand"
+            className="w-full sm:w-auto px-6 py-3 bg-gray-900 text-white rounded-full font-semibold hover:bg-gray-800 transition-colors text-center"
+          >
+            For Brands: Find Creators
+          </Link>
+          <Link
+            href="/signup/creator"
+            className="w-full sm:w-auto px-6 py-3 bg-violet-50 text-violet-700 rounded-full font-semibold hover:bg-violet-100 transition-colors text-center"
+          >
+            For Creators: Join Free
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
+// HOW INFOISHAI WORKS SECTION
+// ============================================================================
+export function HowInfoishaiWorksSection() {
+  const steps = [
+    {
+      icon: Search,
+      title: 'Browse & Filter',
+      description: 'Search verified tech content creators by niche, platform, budget, and audience location.',
+    },
+    {
+      icon: MessageSquare,
+      title: 'Message Directly',
+      description: 'Contact creators through the platform and discuss campaign goals and deliverables.',
+    },
+    {
+      icon: Briefcase,
+      title: 'Send a Deal',
+      description: 'Agree on scope and price, then send a deal proposal with clear terms.',
+    },
+    {
+      icon: Shield,
+      title: 'Pay with Escrow',
+      description: 'Funds are held safely in escrow until the creator delivers and the brand approves.',
+    },
   ]
 
   return (
-    <section className="py-12 bg-gray-50 border-y border-gray-100">
+    <section className="py-20 lg:py-32 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p className="text-center text-sm text-gray-500 mb-8">TRUSTED BY LEADING TECH BRANDS</p>
-        <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-16">
-          {brands.map((brand, index) => (
-            <span key={index} className="text-xl font-semibold text-gray-300 hover:text-gray-400 transition-colors">
-              {brand}
-            </span>
+        <div className="text-center mb-16">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            How Infoishai Works
+          </h2>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            From discovery to a completed collaboration, here's how brands and tech creators work
+            together on Infoishai.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {steps.map((item, index) => (
+            <div key={index} className="p-6 bg-white rounded-2xl border border-gray-200">
+              <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center mb-4">
+                <item.icon className="w-6 h-6 text-violet-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+              <p className="text-gray-600 text-sm">{item.description}</p>
+            </div>
           ))}
         </div>
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
+// TRUSTED BY SECTION
+// ============================================================================
+export function TrustedBySection() {
+  return (
+    <section className="py-12 bg-gray-50 border-y border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <p className="text-center text-sm font-semibold text-gray-500">
+          TRUSTED BY 100+ TECH BRANDS WORLDWIDE
+        </p>
       </div>
     </section>
   )
@@ -474,7 +579,7 @@ export function CategoriesSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-            Top Tech Influencer Categories
+            Browse Tech Influencers by Niche
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Technology influencers specialize in different niches. Discover creators across multiple tech categories.
@@ -790,6 +895,22 @@ export function FAQSection() {
 
   const faqs = [
     {
+      question: 'What is Infoishai?',
+      answer: 'Infoishai is a B2B tech influencer marketplace that connects brands with verified tech content creators including YouTubers, Twitter influencers, LinkedIn thought leaders, and more.',
+    },
+    {
+      question: 'How much does Infoishai cost?',
+      answer: 'Infoishai is free to join for both brands and creators. There are no subscription fees or platform charges.',
+    },
+    {
+      question: 'What types of tech influencers can I find?',
+      answer: 'You can find influencers across niches including AI/ML, SaaS, developer tools, cloud computing, cybersecurity, and more. Platforms include YouTube, Twitter, LinkedIn, podcasts, and newsletters.',
+    },
+    {
+      question: 'How do I hire a tech influencer?',
+      answer: 'Browse our creator directory, filter by niche and platform, view profiles, and send a deal proposal directly through the platform.',
+    },
+    {
       question: 'What is a tech influencer marketplace?',
       answer: 'A tech influencer marketplace is a platform that helps brands discover, analyze, and collaborate with influencers who create content related to technology, AI, SaaS, and developer tools.',
     },
@@ -882,6 +1003,25 @@ export function FinalCTASection() {
             Browse Creators
           </Link>
         </div>
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
+// NEWSLETTER
+// ============================================================================
+export function NewsletterSection() {
+  return (
+    <section className="py-16 bg-gray-900 border-t border-gray-800">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3">
+          Stay Updated
+        </h2>
+        <p className="text-gray-400 mb-8">
+          Get the latest tech influencer marketing tips and platform updates.
+        </p>
+        <NewsletterForm />
       </div>
     </section>
   )
