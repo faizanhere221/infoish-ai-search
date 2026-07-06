@@ -23,6 +23,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '7',
+    title: 'How to Find Tech Influencers for Your B2B Product in 2026',
+    excerpt: 'The complete guide to discovering, vetting, and partnering with tech content creators for your next campaign — where to search, what to look for, rates, and outreach templates.',
+    date: '2026-07-06',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '13 min read',
+    slug: 'how-to-find-tech-influencers-b2b-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '0',
     title: 'Micro-Influencers in Pakistan: Why They Outperform Celebrities (+ How to Find Them)',
     excerpt: 'Micro-influencers deliver 3x higher engagement than celebrities at a fraction of the cost. Real pricing data (PKR 5,000-25,000/post), engagement benchmarks, and how to find verified micro-creators.',
