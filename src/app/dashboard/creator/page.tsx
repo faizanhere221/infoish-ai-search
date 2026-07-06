@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { 
-  DollarSign, 
-  Briefcase, 
-  Star, 
+import {
+  Briefcase,
+  Star,
   Eye,
   MessageSquare,
   Clock,
@@ -151,8 +150,6 @@ export default function CreatorDashboard() {
   // Calculate stats
   const pendingDeals = deals.filter(d => d.status === 'pending')
   const activeDeals = deals.filter(d => ['accepted', 'in_progress'].includes(d.status))
-  const completedDeals = deals.filter(d => d.status === 'completed')
-  const totalEarnings = completedDeals.reduce((sum, d) => sum + (d.amount * 0.9), 0) // 90% after platform fee
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -191,10 +188,10 @@ export default function CreatorDashboard() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
-            icon={DollarSign}
-            label="Total Earnings"
-            value={`$${totalEarnings.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-            subtext="Lifetime"
+            icon={Clock}
+            label="Pending Deals"
+            value={pendingDeals.length.toString()}
+            subtext="Awaiting response"
             color="emerald"
           />
           <StatCard
@@ -335,16 +332,7 @@ export default function CreatorDashboard() {
                   </div>
                   <span className="font-medium text-gray-900">Edit Profile</span>
                 </Link>
-                <Link 
-                  href="/settings?tab=payments"
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                    <DollarSign className="w-5 h-5 text-emerald-600" />
-                  </div>
-                  <span className="font-medium text-gray-900">Payment Settings</span>
-                </Link>
-                <Link 
+                <Link
                   href={`/creators/${profile.username}`}
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >

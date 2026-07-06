@@ -246,16 +246,25 @@ export default function DealsPage() {
             value={completedDeals.length.toString()}
             color="emerald"
           />
-          <StatCard
-            icon={DollarSign}
-            label={userType === 'brand' ? 'Total Spent' : 'Total Earned'}
-            value={`$${totalSpent.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-            color="violet"
-          />
+          {userType === 'brand' ? (
+            <StatCard
+              icon={DollarSign}
+              label="Total Spent"
+              value={`$${totalSpent.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+              color="violet"
+            />
+          ) : (
+            <StatCard
+              icon={Clock}
+              label="Pending"
+              value={statusCounts.pending.toString()}
+              color="violet"
+            />
+          )}
           <StatCard
             icon={Clock}
             label="In Progress"
-            value={`$${inProgress.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+            value={userType === 'brand' ? `$${inProgress.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : activeDeals.length.toString()}
             color="amber"
           />
         </div>
@@ -489,11 +498,6 @@ function DealCard({ deal, userType }: { deal: Deal; userType: 'brand' | 'creator
           <p className="text-xl font-bold text-gray-900">
             ${deal.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </p>
-          {userType === 'creator' && deal.creator_payout && (
-            <p className="text-sm text-gray-500">
-              You receive: ${deal.creator_payout.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-            </p>
-          )}
         </div>
       </div>
     </Link>

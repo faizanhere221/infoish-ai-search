@@ -504,26 +504,28 @@ export default function DealDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Payment Info */}
+            {/* Deal Value */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Payment</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">Deal Value</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">Deal Amount</span>
                   <span className="font-medium text-gray-900">{formatCurrency(deal.amount)}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Platform Fee (10%)</span>
-                  <span className="text-gray-600">-{formatCurrency(deal.platform_fee)}</span>
-                </div>
-                <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
-                  <span className="font-medium text-gray-900">
-                    {isCreator ? 'You Receive' : 'Creator Receives'}
-                  </span>
-                  <span className="text-lg font-bold text-emerald-600">
-                    {formatCurrency(deal.creator_payout)}
-                  </span>
-                </div>
+                {!isCreator && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500">Platform Fee (10%)</span>
+                      <span className="text-gray-600">-{formatCurrency(deal.platform_fee)}</span>
+                    </div>
+                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                      <span className="font-medium text-gray-900">Creator Receives</span>
+                      <span className="text-lg font-bold text-emerald-600">
+                        {formatCurrency(deal.creator_payout)}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="mt-4 pt-4 border-t border-gray-100">

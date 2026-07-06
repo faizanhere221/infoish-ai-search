@@ -1,13 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { 
-  User, 
-  Bell, 
-  CreditCard, 
-  Shield, 
+import {
+  User,
+  Bell,
+  Shield,
   Briefcase,
   LogOut,
   ArrowLeft,
@@ -16,13 +15,11 @@ import {
   Trash2,
   Loader2,
   AlertCircle,
-  Sparkles,
   DollarSign,
-  ExternalLink
 } from 'lucide-react'
 import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES, SERVICE_TYPES } from '@/utils/constants'
 
-type SettingsTab = 'profile' | 'services' | 'platforms' | 'notifications' | 'payments' | 'security'
+type SettingsTab = 'profile' | 'services' | 'platforms' | 'notifications' | 'security'
 
 interface CreatorProfile {
   id: string
@@ -38,8 +35,6 @@ interface CreatorProfile {
   is_available: boolean
   min_budget: number | null
   response_time: string | null
-  stripe_account_id: string | null
-  stripe_onboarding_complete: boolean
 }
 
 interface Platform {
@@ -80,7 +75,6 @@ export default function SettingsPage() {
     { id: 'services' as SettingsTab, label: 'Services & Rates', icon: DollarSign },
     { id: 'platforms' as SettingsTab, label: 'Platforms', icon: Briefcase },
     { id: 'notifications' as SettingsTab, label: 'Notifications', icon: Bell },
-    { id: 'payments' as SettingsTab, label: 'Payments', icon: CreditCard },
     { id: 'security' as SettingsTab, label: 'Security', icon: Shield },
   ]
 
@@ -312,7 +306,6 @@ export default function SettingsPage() {
                 />
               )}
               {activeTab === 'notifications' && <NotificationSettings />}
-              {activeTab === 'payments' && <PaymentSettings profile={profile} />}
               {activeTab === 'security' && <SecuritySettings />}
             </div>
           </main>
@@ -334,8 +327,53 @@ function ProfileSettings({
   setProfile: (p: CreatorProfile) => void
   userEmail: string
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [avatarError, setAvatarError] = useState<string | null>(null)
+
   const updateProfile = (field: keyof CreatorProfile, value: any) => {
     setProfile({ ...profile, [field]: value })
+  }
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+
+    setAvatarError(null)
+    setUploadingAvatar(true)
+
+    try {
+      const token = localStorage.getItem('auth_token')
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch(`/api/creators/${profile.id}/avatar`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: formData,
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setAvatarError(data.error || 'Failed to upload avatar')
+        return
+      }
+
+      updateProfile('profile_photo_url', data.profile_photo_url)
+
+      const profileStr = localStorage.getItem('auth_profile')
+      if (profileStr) {
+        const savedProfile = JSON.parse(profileStr)
+        savedProfile.profile_photo_url = data.profile_photo_url
+        localStorage.setItem('auth_profile', JSON.stringify(savedProfile))
+      }
+    } catch (err) {
+      setAvatarError('Network error. Please try again.')
+    } finally {
+      setUploadingAvatar(false)
+    }
   }
 
   const toggleNiche = (niche: string) => {
@@ -365,14 +403,36 @@ function ProfileSettings({
 
       {/* Avatar */}
       <div className="flex items-center gap-6 pb-6 border-b border-gray-200">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-white text-2xl font-bold">
-          {profile.display_name?.charAt(0) || 'U'}
-        </div>
+        {profile.profile_photo_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={profile.profile_photo_url}
+            alt={profile.display_name || 'Avatar'}
+            className="w-20 h-20 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-white text-2xl font-bold">
+            {profile.display_name?.charAt(0) || 'U'}
+          </div>
+        )}
         <div>
-          <button className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-            Change Avatar
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            onChange={handleAvatarChange}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingAvatar}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {uploadingAvatar ? 'Uploading...' : 'Change Avatar'}
           </button>
           <p className="text-xs text-gray-500 mt-2">JPG, PNG or GIF. Max 2MB.</p>
+          {avatarError && <p className="text-xs text-red-600 mt-1">{avatarError}</p>}
         </div>
       </div>
 
@@ -579,8 +639,6 @@ function ServicesSettings({
     setServices(services.filter((_, i) => i !== index))
   }
 
-  const activePlatforms = platforms.map(p => p.platform)
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -643,7 +701,7 @@ function ServicesSettings({
                     onChange={(e) => updateService(index, 'platform', e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
                   >
-                    {PLATFORMS.filter(p => activePlatforms.includes(p.id) || activePlatforms.length === 0).map((p) => (
+                    {PLATFORMS.map((p) => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
@@ -864,7 +922,6 @@ function NotificationSettings() {
   const [notifications, setNotifications] = useState({
     emailNewDeals: true,
     emailMessages: true,
-    emailPayments: true,
     emailMarketing: false,
   })
 
@@ -891,12 +948,6 @@ function NotificationSettings() {
           description="Get notified when you receive new messages"
           enabled={notifications.emailMessages}
           onToggle={() => toggle('emailMessages')}
-        />
-        <ToggleItem
-          title="Payments"
-          description="Get notified about payment updates and payouts"
-          enabled={notifications.emailPayments}
-          onToggle={() => toggle('emailPayments')}
         />
         <ToggleItem
           title="Marketing & Updates"
@@ -931,52 +982,6 @@ function ToggleItem({ title, description, enabled, onToggle }: {
           enabled ? 'left-7' : 'left-1'
         }`} />
       </button>
-    </div>
-  )
-}
-
-// ============================================================================
-// PAYMENT SETTINGS
-// ============================================================================
-function PaymentSettings({ profile }: { profile: CreatorProfile }) {
-  const [stripeConnected] = useState(!!profile.stripe_account_id)
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900">Payment Settings</h2>
-        <p className="text-sm text-gray-500 mt-1">Manage your payout settings.</p>
-      </div>
-
-      <div className="p-6 bg-gradient-to-br from-violet-50 to-blue-50 rounded-xl border border-violet-100">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-            <CreditCard className="w-6 h-6 text-violet-600" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900">Stripe Connect</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Connect your Stripe account to receive payments directly to your bank account.
-            </p>
-            {stripeConnected ? (
-              <div className="mt-4 flex items-center gap-2 text-emerald-600">
-                <Check className="w-5 h-5" />
-                <span className="font-medium">Connected</span>
-              </div>
-            ) : (
-              <button className="mt-4 px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700">
-                Connect Stripe
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-        <p className="text-sm text-amber-800">
-          <strong>Platform Fee:</strong> We charge a 10% fee on completed deals. This covers payment processing, escrow protection, and platform maintenance.
-        </p>
-      </div>
     </div>
   )
 }

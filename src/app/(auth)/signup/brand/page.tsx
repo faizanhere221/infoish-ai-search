@@ -19,6 +19,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { COUNTRIES, INDUSTRIES, COMPANY_SIZES } from '@/utils/constants'
+import { validateEmail } from '@/utils/validateEmail'
 
 type Step = 1 | 2
 
@@ -44,7 +45,8 @@ export default function BrandSignupPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
-  
+  const [emailWarning, setEmailWarning] = useState<string | null>(null)
+
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -66,6 +68,10 @@ export default function BrandSignupPage() {
   const validateStep1 = (): boolean => {
     if (!formData.email || !formData.password || !formData.confirmPassword) {
       setError('Please fill in all fields')
+      return false
+    }
+    if (!validateEmail(formData.email).valid) {
+      setError('Please enter a valid email address')
       return false
     }
     if (formData.password.length < 8) {
@@ -265,11 +271,29 @@ export default function BrandSignupPage() {
                     <input
                       type="email"
                       value={formData.email}
-                      onChange={(e) => updateField('email', e.target.value)}
+                      onChange={(e) => { updateField('email', e.target.value); setEmailWarning(null) }}
+                      onBlur={() => setEmailWarning(formData.email ? validateEmail(formData.email).warning ?? null : null)}
                       placeholder="you@company.com"
                       className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
+                  {emailWarning && (
+                    <p className="mt-2 text-sm text-amber-600">
+                      {emailWarning}{' '}
+                      {(() => {
+                        const suggestion = validateEmail(formData.email).suggestion
+                        return suggestion ? (
+                          <button
+                            type="button"
+                            onClick={() => { updateField('email', suggestion); setEmailWarning(null) }}
+                            className="underline font-medium hover:text-amber-700"
+                          >
+                            Use {suggestion}
+                          </button>
+                        ) : null
+                      })()}
+                    </p>
+                  )}
                 </div>
 
                 <div>

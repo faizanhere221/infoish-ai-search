@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { rateLimit } from '@/lib/rate-limit'
 import { logActivity } from '@/lib/activity'
+import { validateEmail } from '@/utils/validateEmail'
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET
@@ -29,6 +30,13 @@ export async function POST(request: NextRequest) {
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
+        { status: 400 }
+      )
+    }
+
+    if (!validateEmail(email).valid) {
+      return NextResponse.json(
+        { error: 'Invalid email format' },
         { status: 400 }
       )
     }
