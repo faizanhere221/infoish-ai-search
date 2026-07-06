@@ -6,6 +6,7 @@ import { useState } from 'react'
 import Header from '@/components/header'
 import { Mail, Phone, MapPin, Clock, Send, MessageCircle, HelpCircle, Briefcase } from 'lucide-react'
 import { trackContactFormSubmit, trackError } from '@/lib/analytics'
+import { validateEmail } from '@/utils/validateEmail'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -17,13 +18,21 @@ export default function ContactPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [emailWarning, setEmailWarning] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const emailCheck = validateEmail(formData.email)
+    if (!emailCheck.valid) {
+      alert('Please enter a valid email address')
+      return
+    }
+
     setIsSubmitting(true)
-    
+
     try {
-      const response = await fetch('/api/contact/submit', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,10 +144,28 @@ export default function ContactPage() {
                       name="email"
                       required
                       value={formData.email}
-                      onChange={handleChange}
+                      onChange={(e) => { handleChange(e); setEmailWarning(null) }}
+                      onBlur={() => setEmailWarning(formData.email ? validateEmail(formData.email).warning ?? null : null)}
                       className="w-full px-4 py-3 text-black bg-white/80 backdrop-blur-lg border-2 border-black/20 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                       placeholder="your@email.com"
                     />
+                    {emailWarning && (
+                      <p className="mt-2 text-sm text-amber-600">
+                        {emailWarning}{' '}
+                        {(() => {
+                          const suggestion = validateEmail(formData.email).suggestion
+                          return suggestion ? (
+                            <button
+                              type="button"
+                              onClick={() => { setFormData(prev => ({ ...prev, email: suggestion })); setEmailWarning(null) }}
+                              className="underline font-medium hover:text-amber-700"
+                            >
+                              Use {suggestion}
+                            </button>
+                          ) : null
+                        })()}
+                      </p>
+                    )}
                   </div>
                 </div>
 

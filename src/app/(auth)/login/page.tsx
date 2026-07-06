@@ -3,16 +3,17 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  Loader2, 
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Loader2,
   AlertCircle,
   ArrowRight,
   Sparkles
 } from 'lucide-react'
+import { validateEmail } from '@/utils/validateEmail'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -21,6 +22,21 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [emailWarning, setEmailWarning] = useState<string | null>(null)
+
+  const handleEmailBlur = () => {
+    if (!email) {
+      setEmailWarning(null)
+      return
+    }
+    const result = validateEmail(email)
+    setEmailWarning(result.warning ?? null)
+  }
+
+  const applyEmailSuggestion = (suggestion: string) => {
+    setEmail(suggestion)
+    setEmailWarning(null)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -151,12 +167,30 @@ export default function LoginPage() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => { setEmail(e.target.value); setEmailWarning(null) }}
+                    onBlur={handleEmailBlur}
                     placeholder="you@example.com"
                     required
                     className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                   />
                 </div>
+                {emailWarning && (
+                  <p className="mt-2 text-sm text-amber-600">
+                    {emailWarning}{' '}
+                    {(() => {
+                      const suggestion = validateEmail(email).suggestion
+                      return suggestion ? (
+                        <button
+                          type="button"
+                          onClick={() => applyEmailSuggestion(suggestion)}
+                          className="underline font-medium hover:text-amber-700"
+                        >
+                          Use {suggestion}
+                        </button>
+                      ) : null
+                    })()}
+                  </p>
+                )}
               </div>
 
               {/* Password */}

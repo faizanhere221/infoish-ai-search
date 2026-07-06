@@ -9,8 +9,6 @@ interface NewsletterSubscription {
   email: string;
   date: string;
   source: string;
-  ip_address: string;
-  user_agent: string;
   status: 'active' | 'unsubscribed';
 }
 
@@ -24,27 +22,21 @@ export default function NewsletterAdminPage() {
   }, []);
 
   const loadSubscriptions = async () => {
-  try {
-    const token = localStorage.getItem('admin_token') || 'infoishai-admin-secret-2025-change-this-in-production'
-    
-    const response = await fetch(`/api/admin/newsletter-subscriptions?token=${token}`)
-    
-    if (response.ok) {
-      const data = await response.json()
-      setSubscriptions(data.subscriptions || [])
-    } else {
-      console.error('Failed to load subscriptions:', response.status)
-      if (response.status === 401) {
-        alert('Unauthorized. Please check your admin token.')
+    try {
+      const response = await fetch('/api/admin/newsletter-subscriptions')
+
+      if (response.ok) {
+        const data = await response.json()
+        setSubscriptions(data.subscriptions || [])
+      } else {
+        console.error('Failed to load subscriptions:', response.status)
       }
+    } catch (error) {
+      console.error('Error loading subscriptions:', error)
+    } finally {
+      setLoading(false)
     }
-  } catch (error) {
-    console.error('Error loading subscriptions:', error)
-    alert('Failed to load subscriptions. Check console for details.')
-  } finally {
-    setLoading(false)
   }
-}
 
   const exportSubscriptions = () => {
     const filteredSubs = getFilteredSubscriptions();
@@ -249,9 +241,6 @@ export default function NewsletterAdminPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Subscribed
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      IP Address
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -284,11 +273,6 @@ export default function NewsletterAdminPage() {
                           <Calendar className="w-4 h-4 mr-1" />
                           {new Date(subscription.date).toLocaleDateString()}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-500">
-                          {subscription.ip_address}
-                        </span>
                       </td>
                     </tr>
                   ))}

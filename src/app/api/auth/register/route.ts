@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { rateLimit } from '@/lib/rate-limit'
 import { logActivity } from '@/lib/activity'
+import { validateEmail } from '@/utils/validateEmail'
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,8 +36,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
+    const emailCheck = validateEmail(email)
+    if (!emailCheck.valid) {
       return NextResponse.json(
         { error: 'Invalid email format' },
         { status: 400 }
@@ -107,6 +108,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: 'User registered successfully',
       user: safeUser,
+      emailWarning: emailCheck.warning ?? null,
     }, { status: 201 })
 
   } catch (error) {

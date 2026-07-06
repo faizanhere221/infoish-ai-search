@@ -5,12 +5,13 @@ import { z } from 'zod'
 const UpdateCreatorSchema = z.object({
   display_name: z.string().min(1).max(100).optional(),
   bio: z.string().max(2000).optional().nullable(),
-  location: z.string().max(100).optional().nullable(),
-  website_url: z.string().url().max(500).optional().nullable(),
+  country: z.string().max(2).optional().nullable(),
+  city: z.string().max(100).optional().nullable(),
+  niches: z.array(z.string()).optional(),
+  languages: z.array(z.string()).optional(),
   is_available: z.boolean().optional(),
-  min_rate: z.number().nonnegative().optional().nullable(),
-  max_rate: z.number().nonnegative().optional().nullable(),
-  categories: z.array(z.string()).optional(),
+  min_budget: z.number().nonnegative().optional().nullable(),
+  response_time: z.string().max(50).optional().nullable(),
   profile_photo_url: z.string().url().max(500).optional().nullable(),
 })
 
@@ -22,8 +23,6 @@ export async function GET(
   try {
     const { id } = params
     const supabase = createServerSupabase()
-
-    console.log('Fetching creator:', id)
 
     // Check if it's a UUID or username
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
@@ -84,10 +83,6 @@ export async function GET(
       .select('*')
       .eq('creator_id', creator.id)
       .eq('is_active', true)
-
-    console.log('Found creator:', creator.username)
-    console.log('Found platforms:', platforms?.length || 0)
-    console.log('Found services:', services?.length || 0)
 
     // Combine the data
     const creatorWithRelations = {

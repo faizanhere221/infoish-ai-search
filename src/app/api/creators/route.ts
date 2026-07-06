@@ -16,8 +16,6 @@ export async function GET(request: NextRequest) {
 
     const supabase = createServerSupabase()
 
-    console.log('Fetching creators...')
-
     // First, fetch creators without relations
     let query = supabase
       .from('creators')
@@ -60,8 +58,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log(`Found ${creators?.length || 0} creators`)
-
     // If no creators found, return empty array
     if (!creators || creators.length === 0) {
       return NextResponse.json({
@@ -93,8 +89,6 @@ export async function GET(request: NextRequest) {
       creator_platforms: platforms?.filter(p => p.creator_id === creator.id) || [],
       creator_services: services?.filter(s => s.creator_id === creator.id) || [],
     }))
-
-    console.log(`Returning ${creatorsWithRelations.length} creators with relations`)
 
     return NextResponse.json({
       creators: creatorsWithRelations,

@@ -3,16 +3,13 @@ import { createServerSupabase } from '@/lib/db'
 import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
 import { z } from 'zod'
 
-const CONTENT_TYPES = ['instagram_post','instagram_story','instagram_reel','youtube_video',
-  'tiktok_video','twitter_post','facebook_post','linkedin_post','blog_post','podcast','other'] as const
-
 const CreateDealSchema = z.object({
   creator_id: z.string().uuid(),
   brand_id: z.string().uuid(),
   service_id: z.string().uuid().optional().nullable(),
   title: z.string().min(3).max(200),
   description: z.string().max(2000).optional().nullable(),
-  content_type: z.enum(CONTENT_TYPES).default('other'),
+  content_type: z.string().min(1).max(50).default('other'),
   platform: z.string().min(1).max(100).default('other'),
   requirements: z.string().max(5000).optional().nullable(),
   deliverables: z.array(z.object({

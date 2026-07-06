@@ -25,15 +25,7 @@ const ContactAdminDashboard: React.FC = () => {
 
   const loadSubmissions = async () => {
     try {
-      const token = localStorage.getItem('admin_token')
-      if (!token) {
-        console.error('No admin token found')
-        setLoading(false)
-        return
-      }
-      const response = await fetch('/api/admin/contact-submissions', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const response = await fetch('/api/admin/contact-submissions')
       if (response.ok) {
         const data = await response.json();
         setSubmissions(data.submissions || []);

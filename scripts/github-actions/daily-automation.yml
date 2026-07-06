@@ -1,0 +1,262 @@
+# ============================================
+# INFOISHAI - GitHub Actions Automation
+# This runs in the cloud even when your PC is off
+# ============================================
+
+name: Infoishai Daily Automation
+
+on:
+  # Run daily at 9 AM Pakistan Time (4 AM UTC)
+  schedule:
+    - cron: '0 4 * * *'   # Daily morning check
+    - cron: '0 13 * * *'  # Daily evening check (6 PM PKT)
+    - cron: '0 5 * * 0'   # Weekly review (Sunday 10 AM PKT)
+  
+  # Manual trigger from GitHub
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Task to run'
+        required: true
+        default: 'status'
+        type: choice
+        options:
+          - status
+          - audit
+          - fix-errors
+          - build-check
+
+jobs:
+  # ============================================
+  # Daily Status Check
+  # ============================================
+  daily-status:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 4 * * *' || github.event.inputs.task == 'status'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: 📚 Install dependencies
+        run: npm ci
+      
+      - name: 🔍 TypeScript Check
+        id: typescript
+        continue-on-error: true
+        run: |
+          npx tsc --noEmit 2>&1 | tee typescript-errors.txt
+          ERROR_COUNT=$(grep -c "error TS" typescript-errors.txt || echo "0")
+          echo "error_count=$ERROR_COUNT" >> $GITHUB_OUTPUT
+      
+      - name: 🧹 Lint Check
+        id: lint
+        continue-on-error: true
+        run: |
+          npm run lint 2>&1 | tee lint-errors.txt
+          WARN_COUNT=$(grep -c "warning" lint-errors.txt || echo "0")
+          echo "warning_count=$WARN_COUNT" >> $GITHUB_OUTPUT
+      
+      - name: 🏗️ Build Check
+        id: build
+        continue-on-error: true
+        run: npm run build
+      
+      - name: 📊 Create Status Report
+        run: |
+          cat << EOF > STATUS_REPORT.md
+          # 📊 Daily Status Report
+          **Generated:** $(date '+%Y-%m-%d %H:%M:%S UTC')
+          
+          ## Build Status
+          - TypeScript Errors: ${{ steps.typescript.outputs.error_count }}
+          - Lint Warnings: ${{ steps.lint.outputs.warning_count }}
+          - Build: ${{ steps.build.outcome == 'success' && '✅ Passing' || '❌ Failing' }}
+          
+          ## Action Required
+          ${{ steps.build.outcome != 'success' && '⚠️ Build is failing! Please fix before deployment.' || '✅ All checks passing!' }}
+          EOF
+          
+          cat STATUS_REPORT.md
+      
+      - name: 📤 Upload Status Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: status-report-${{ github.run_number }}
+          path: STATUS_REPORT.md
+
+      - name: 🚨 Create Issue if Build Fails
+        if: steps.build.outcome != 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Daily Build Check Failed - ' + new Date().toISOString().split('T')[0];
+            
+            // Check if similar issue exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'build-failure'
+            });
+            
+            const existingIssue = issues.data.find(i => i.title.includes('Daily Build Check Failed'));
+            
+            if (!existingIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: `## Build Failed! 🔴\n\nThe daily automated build check failed.\n\n**TypeScript Errors:** ${{ steps.typescript.outputs.error_count }}\n**Build Status:** Failed\n\nPlease fix these issues as soon as possible.\n\n[View Workflow Run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+                labels: ['bug', 'build-failure', 'priority-high']
+              });
+            }
+
+  # ============================================
+  # Evening Summary
+  # ============================================
+  evening-summary:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 13 * * *'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for git log
+      
+      - name: 📊 Generate Daily Summary
+        run: |
+          echo "# 📊 Daily Summary - $(date '+%Y-%m-%d')" > DAILY_SUMMARY.md
+          echo "" >> DAILY_SUMMARY.md
+          echo "## Today's Commits" >> DAILY_SUMMARY.md
+          git log --since="24 hours ago" --oneline >> DAILY_SUMMARY.md || echo "No commits today" >> DAILY_SUMMARY.md
+          echo "" >> DAILY_SUMMARY.md
+          echo "## Files Changed" >> DAILY_SUMMARY.md
+          git diff --stat HEAD~5..HEAD 2>/dev/null | tail -10 >> DAILY_SUMMARY.md || echo "No recent changes" >> DAILY_SUMMARY.md
+          
+          cat DAILY_SUMMARY.md
+      
+      - name: 📤 Upload Daily Summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-summary-${{ github.run_number }}
+          path: DAILY_SUMMARY.md
+
+  # ============================================
+  # Weekly Review (Sundays)
+  # ============================================
+  weekly-review:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 5 * * 0'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 📊 Generate Weekly Report
+        run: |
+          WEEK_NUM=$(date '+%V')
+          YEAR=$(date '+%Y')
+          
+          cat << EOF > WEEKLY_REPORT.md
+          # 📊 Weekly Report - Week $WEEK_NUM, $YEAR
+          **Generated:** $(date '+%Y-%m-%d %H:%M:%S UTC')
+          
+          ## This Week's Activity
+          
+          ### Commits This Week
+          $(git log --since="7 days ago" --oneline | head -20)
+          
+          ### Contributors
+          $(git log --since="7 days ago" --format='%an' | sort | uniq -c | sort -rn)
+          
+          ### Files Changed
+          $(git diff --stat HEAD~20..HEAD 2>/dev/null | tail -15)
+          
+          ## Code Stats
+          - Total TypeScript Files: $(find . -name "*.ts" -o -name "*.tsx" | grep -v node_modules | wc -l)
+          - Total Lines of Code: $(find . -name "*.ts" -o -name "*.tsx" | grep -v node_modules | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}')
+          
+          EOF
+          
+          cat WEEKLY_REPORT.md
+      
+      - name: 📤 Upload Weekly Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-report-week-${{ github.run_number }}
+          path: WEEKLY_REPORT.md
+      
+      - name: 📝 Create Weekly Summary Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('WEEKLY_REPORT.md', 'utf8');
+            const weekNum = new Date().toISOString().split('T')[0];
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '📊 Weekly Review - ' + weekNum,
+              body: report,
+              labels: ['weekly-review', 'documentation']
+            });
+
+  # ============================================
+  # Manual Audit
+  # ============================================
+  manual-audit:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task == 'audit'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: 📚 Install dependencies
+        run: npm ci
+      
+      - name: 🔍 Full Audit
+        run: |
+          echo "# 🔍 Project Audit Report" > AUDIT_REPORT.md
+          echo "**Generated:** $(date '+%Y-%m-%d %H:%M:%S UTC')" >> AUDIT_REPORT.md
+          echo "" >> AUDIT_REPORT.md
+          
+          echo "## TypeScript Errors" >> AUDIT_REPORT.md
+          echo '```' >> AUDIT_REPORT.md
+          npx tsc --noEmit 2>&1 | head -50 >> AUDIT_REPORT.md || echo "No errors" >> AUDIT_REPORT.md
+          echo '```' >> AUDIT_REPORT.md
+          
+          echo "## Lint Issues" >> AUDIT_REPORT.md
+          echo '```' >> AUDIT_REPORT.md
+          npm run lint 2>&1 | head -50 >> AUDIT_REPORT.md || echo "No issues" >> AUDIT_REPORT.md
+          echo '```' >> AUDIT_REPORT.md
+          
+          echo "## Dependencies" >> AUDIT_REPORT.md
+          echo '```' >> AUDIT_REPORT.md
+          npm audit 2>&1 | head -30 >> AUDIT_REPORT.md || echo "No vulnerabilities" >> AUDIT_REPORT.md
+          echo '```' >> AUDIT_REPORT.md
+          
+          cat AUDIT_REPORT.md
+      
+      - name: 📤 Upload Audit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-report-${{ github.run_number }}
+          path: AUDIT_REPORT.md

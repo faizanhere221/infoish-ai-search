@@ -16,13 +16,18 @@ export const NICHES = [
 
 // Platforms
 export const PLATFORMS = [
-  { id: 'twitter', name: 'Twitter/X', icon: 'Twitter' },
   { id: 'youtube', name: 'YouTube', icon: 'Youtube' },
+  { id: 'twitter', name: 'Twitter/X', icon: 'Twitter' },
   { id: 'linkedin', name: 'LinkedIn', icon: 'Linkedin' },
+  { id: 'instagram', name: 'Instagram', icon: 'Instagram' },
   { id: 'tiktok', name: 'TikTok', icon: 'Music2' },
-  { id: 'github', name: 'GitHub', icon: 'Github' },
+  { id: 'twitch', name: 'Twitch', icon: 'Twitch' },
+  { id: 'blog', name: 'Blog/Website', icon: 'Globe' },
   { id: 'newsletter', name: 'Newsletter', icon: 'Mail' },
   { id: 'podcast', name: 'Podcast', icon: 'Mic' },
+  { id: 'github', name: 'GitHub', icon: 'Github' },
+  { id: 'discord', name: 'Discord', icon: 'MessageSquare' },
+  { id: 'other', name: 'Other', icon: 'MoreHorizontal' },
 ] as const
 
 // Service types by platform
@@ -57,6 +62,26 @@ export const SERVICE_TYPES: Record<string, Array<{ id: string; name: string; def
   github: [
     { id: 'tutorial', name: 'Code Tutorial', defaultRate: 1000 },
     { id: 'review', name: 'Tool Review/Demo', defaultRate: 800 },
+  ],
+  instagram: [
+    { id: 'post', name: 'Instagram Post', defaultRate: 400 },
+    { id: 'story', name: 'Instagram Story', defaultRate: 200 },
+    { id: 'reel', name: 'Instagram Reel', defaultRate: 600 },
+  ],
+  twitch: [
+    { id: 'mention', name: 'Stream Mention', defaultRate: 300 },
+    { id: 'sponsored', name: 'Sponsored Stream', defaultRate: 1500 },
+  ],
+  blog: [
+    { id: 'post', name: 'Blog Post', defaultRate: 500 },
+    { id: 'review', name: 'Product Review', defaultRate: 800 },
+  ],
+  discord: [
+    { id: 'mention', name: 'Server Mention', defaultRate: 200 },
+    { id: 'ama', name: 'Community AMA', defaultRate: 600 },
+  ],
+  other: [
+    { id: 'custom', name: 'Custom', defaultRate: 300 },
   ],
 }
 

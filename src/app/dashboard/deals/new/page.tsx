@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2, DollarSign, Calendar, FileText, Plus, Trash2 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
+import { PLATFORMS } from '@/utils/constants'
 
 interface Deliverable {
   id: string
@@ -124,7 +125,7 @@ function NewDealPageContent() {
           description: description.trim() || null,
           platform,
           content_type: contentType,
-          amount: Math.round(amountNum * 100), // stored in cents
+          amount: Math.round(amountNum * 100) / 100, // dollars, rounded to cents
           deadline: deadline || null,
           delivery_days: parseInt(deliveryDays) || 7,
           revisions_allowed: parseInt(revisionsAllowed) || 1,
@@ -230,8 +231,8 @@ function NewDealPageContent() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Platform *</label>
                 <select value={platform} onChange={e => setPlatform(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500">
-                  {['instagram','tiktok','youtube','twitter','facebook','linkedin','blog','podcast','other'].map(p => (
-                    <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                  {PLATFORMS.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
               </div>
@@ -243,8 +244,9 @@ function NewDealPageContent() {
                     ['instagram_post','Instagram Post'],['instagram_story','Instagram Story'],
                     ['instagram_reel','Instagram Reel'],['youtube_video','YouTube Video'],
                     ['tiktok_video','TikTok Video'],['twitter_post','Twitter Post'],
-                    ['facebook_post','Facebook Post'],['linkedin_post','LinkedIn Post'],
-                    ['blog_post','Blog Post'],['podcast','Podcast'],['other','Other'],
+                    ['linkedin_post','LinkedIn Post'],['blog_post','Blog Post'],
+                    ['podcast','Podcast'],['stream_mention','Stream Mention'],
+                    ['discord_mention','Discord Mention'],['other','Other'],
                   ].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
               </div>
