@@ -23,6 +23,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '8',
+    title: 'Top 10 Benefits of Tech Influencer Marketing in 2026',
+    excerpt: 'Why do tech brands invest in influencer marketing in 2026? Here are 10 proven benefits with real data, examples, and strategies to grow your brand faster.',
+    date: '2026-07-08',
+    author: 'Infoishai Team',
+    category: 'Marketing',
+    readTime: '11 min read',
+    slug: 'top-10-benefits-tech-influencer-marketing-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '7',
     title: 'How to Find Tech Influencers for Your B2B Product in 2026',
     excerpt: 'The complete guide to discovering, vetting, and partnering with tech content creators for your next campaign — where to search, what to look for, rates, and outreach templates.',
