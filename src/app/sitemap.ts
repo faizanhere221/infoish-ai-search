@@ -43,6 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Blog
     { url: `${baseUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/blog/top-10-benefits-tech-influencer-marketing-2026`, lastModified: new Date('2026-07-08'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/how-to-find-tech-influencers-b2b-2026`, lastModified: new Date('2026-07-06'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/ai-humanizer-tool-make-ai-text-human-2025`, lastModified: new Date('2025-11-29'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/free-instagram-profile-analyzer-complete-guide`, lastModified: new Date('2025-11-29'), changeFrequency: 'monthly', priority: 0.7 },
