@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Privacy Policy | Infoishai',
   description: 'How Infoishai collects, uses, and protects your personal data, including account information, payment details, and creator profile data.',
   robots: {
-    index: true,
+    index: false,
     follow: true,
   },
   alternates: {

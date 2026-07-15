@@ -3,7 +3,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
-import { Calendar, User, ArrowRight, TrendingUp, Star, Sparkles, Hash, PenTool, Users } from 'lucide-react'
+import { Calendar, User, ArrowRight, TrendingUp, Star, Sparkles, Hash, Users } from 'lucide-react'
 import { useState } from 'react'
 
 
@@ -22,6 +22,32 @@ interface BlogPost {
 }
 
 const blogPosts: BlogPost[] = [
+  {
+    id: '10',
+    title: 'B2B vs B2C Influencer Marketing: What Works for Tech in 2026',
+    excerpt: 'B2B and B2C influencer marketing work differently for tech brands. Compare strategies, budgets, platforms, and ROI metrics. Data-backed guide with examples.',
+    date: '2026-07-15',
+    author: 'Infoishai Team',
+    category: 'Marketing',
+    readTime: '14 min read',
+    slug: 'b2b-vs-b2c-influencer-marketing-tech-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
+    id: '9',
+    title: "Tech Creator's Guide: How to Get Brand Deals in 2026",
+    excerpt: 'Want brand deals as a tech creator? This step-by-step guide covers how to build your profile, set rates, pitch brands, and land paid sponsorships in 2026.',
+    date: '2026-07-15',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '15 min read',
+    slug: 'tech-creators-guide-how-to-get-brand-deals-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
   {
     id: '8',
     title: 'Top 10 Benefits of Tech Influencer Marketing in 2026',
@@ -59,19 +85,6 @@ const blogPosts: BlogPost[] = [
     slug: 'micro-influencers-pakistan-guide',
     featured: true,
     views: '1.2K',
-    isNew: true
-  },
-  {
-    id: '1',
-    title: 'Best Free AI Humanizer Tool 2025 — Bypass AI Detection Instantly',
-    excerpt: 'Transform ChatGPT, Claude & Gemini text into undetectable human writing. Our free AI humanizer bypasses Turnitin, GPTZero & more. No signup, instant results.',
-    date: '2024-12-23',
-    author: 'Infoishai Team',
-    category: 'Tools',
-    readTime: '7 min read',
-    slug: 'ai-humanizer-tool-make-ai-text-human-2025',
-    featured: true,
-    views: '3.2K',
     isNew: true
   },
   {
@@ -233,7 +246,7 @@ export default function BlogPage() {
                 <span className="ml-2 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">2</span>
               )}
               {category === 'Strategy' && (
-                <span className="ml-2 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">2</span>
+                <span className="ml-2 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">4</span>
               )}
             </button>
           ))}
@@ -276,9 +289,7 @@ export default function BlogPage() {
                     } flex items-center justify-center`}>
                       <div className="text-center">
                         <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                          {post.slug.includes('humanizer') ? (
-                            <PenTool className="w-8 h-8 text-blue-600" />
-                          ) : post.slug.includes('hashtag') ? (
+                          {post.slug.includes('hashtag') ? (
                             <Hash className="w-8 h-8 text-purple-600" />
                           ) : post.slug.includes('analyzer') ? (
                             <TrendingUp className="w-8 h-8 text-pink-600" />

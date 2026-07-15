@@ -556,7 +556,7 @@ export default function DealDetailPage() {
               <div className="flex items-center gap-3 mb-4">
                 {isCreator ? (
                   (deal.brand as any)?.logo_url ? (
-                    <Image src={(deal.brand as any).logo_url} alt="" width={48} height={48} className="w-12 h-12 rounded-lg object-cover" />
+                    <Image src={(deal.brand as any).logo_url} alt={(deal.brand as any)?.company_name || 'Brand logo'} width={48} height={48} className="w-12 h-12 rounded-lg object-cover" />
                   ) : (
                     <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
                       <Building2 className="w-6 h-6 text-blue-600" />
@@ -564,7 +564,7 @@ export default function DealDetailPage() {
                   )
                 ) : (
                   (deal.creator as any)?.profile_photo_url ? (
-                    <Image src={(deal.creator as any).profile_photo_url} alt="" width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
+                    <Image src={(deal.creator as any).profile_photo_url} alt={(deal.creator as any)?.display_name || 'Creator profile photo'} width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center">
                       <User className="w-6 h-6 text-violet-600" />

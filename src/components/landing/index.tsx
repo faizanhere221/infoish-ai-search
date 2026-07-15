@@ -969,6 +969,29 @@ export function FAQSection() {
             </div>
           ))}
         </div>
+
+        <div className="mt-12 pt-8 border-t border-gray-200 text-center">
+          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+            Learn More
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm">
+            <Link href="/blog/how-to-find-tech-influencers-b2b-2026" className="text-violet-600 hover:text-violet-700 font-medium">
+              How to Find Tech Influencers for B2B
+            </Link>
+            <Link href="/blog/complete-guide-influencer-marketing-pakistan-2025" className="text-violet-600 hover:text-violet-700 font-medium">
+              Influencer Marketing in Pakistan Guide
+            </Link>
+            <Link href="/blog/top-10-benefits-tech-influencer-marketing-2026" className="text-violet-600 hover:text-violet-700 font-medium">
+              Top 10 Benefits of Influencer Marketing
+            </Link>
+            <Link href="/tools" className="text-violet-600 hover:text-violet-700 font-medium">
+              Free Marketing Tools
+            </Link>
+            <Link href="/creators" className="text-violet-600 hover:text-violet-700 font-medium">
+              Browse Tech Creators
+            </Link>
+          </div>
+        </div>
       </div>
     </section>
   )

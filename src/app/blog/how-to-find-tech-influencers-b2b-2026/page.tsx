@@ -7,7 +7,7 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'How to Find Tech Influencers for Your B2B Product in 2026 | Infoishai',
-  description: 'The complete guide to discovering, vetting, and partnering with tech content creators for your next B2B campaign — where to search, what to look for, rates, and outreach templates.',
+  description: 'Find verified tech influencers for your B2B product in 2026. Step-by-step vetting process, outreach templates, rate benchmarks, and a free creator database with 2,000+ profiles.',
   keywords: [
     'find tech influencers',
     'b2b influencer marketing',

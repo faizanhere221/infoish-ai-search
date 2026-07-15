@@ -118,7 +118,11 @@ export default function AIPoweredInfluencerMarketingPage() {
                   <span className="flex-shrink-0 w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center font-bold">✓</span>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Fraud & authenticity checks</h3>
-                    <p className="text-gray-700">Detect fake followers and inorganic engagement. Also, check suspicious account behavior before you pay.</p>
+                    <p className="text-gray-700">
+                      Detect fake followers and inorganic engagement. Also, check suspicious account behavior before you pay — try our free{' '}
+                      <Link href="/tools/instagram-profile-analyzer" className="text-blue-600 hover:text-blue-700 font-medium">Instagram profile analyzer</Link>{' '}
+                      to spot the warning signs yourself.
+                    </p>
                   </div>
                 </li>
                 

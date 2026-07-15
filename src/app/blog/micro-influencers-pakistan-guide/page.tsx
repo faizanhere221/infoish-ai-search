@@ -31,7 +31,7 @@ import {
 
 export const metadata: Metadata = {
   title: 'Micro-Influencers in Pakistan: Why They Outperform Celebrities (+ How to Find Them) | Infoishai',
-  description: 'Micro-influencers in Pakistan deliver 3x higher engagement than celebrities at a fraction of the cost. Learn real pricing (PKR 5,000-25,000/post), engagement data, and how to find verified micro-creators for your brand.',
+  description: 'Pakistani micro-influencers deliver 3x higher engagement than celebrities. Real pricing from PKR 5,000 to PKR 25,000 per post. Data-backed comparison with case studies.',
   keywords: [
     'micro influencers pakistan',
     'pakistani micro influencers',

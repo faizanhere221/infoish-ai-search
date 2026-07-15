@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Hash, Sparkles, Copy, Check, TrendingUp, Target, Zap, Info, RefreshCw, Download, BookOpen } from 'lucide-react'
 import Link from 'next/link'
+import Header from '@/components/header'
 interface Hashtag {
   tag: string
   category: 'popular' | 'niche' | 'trending'
@@ -374,7 +375,8 @@ const generateHashtagsLocal = async (
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      
+      <Header />
+
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
