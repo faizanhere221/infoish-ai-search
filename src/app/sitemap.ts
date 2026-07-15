@@ -34,6 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Core marketplace pages
     { url: `${baseUrl}/creators`, lastModified: today, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/influencers/usa`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/about`, lastModified: today, changeFrequency: 'monthly', priority: 0.8 },
 
     // Tools

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import NewsletterForm from '@/components/NewsletterForm'
+import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
 import {
   Sparkles, 
   Search, 
@@ -39,6 +40,8 @@ import {
 export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [countriesOpen, setCountriesOpen] = useState(false)
+  const [mobileCountriesOpen, setMobileCountriesOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10)
@@ -74,6 +77,43 @@ export function Navigation() {
               <Wrench className="w-4 h-4" />
               Tools
             </Link>
+
+            {/* Countries Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setCountriesOpen(!countriesOpen)}
+                className="text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1"
+              >
+                <Globe className="w-4 h-4" />
+                Countries
+                <ChevronDown className={`w-4 h-4 transition-transform ${countriesOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {countriesOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setCountriesOpen(false)} />
+                  <div className="absolute left-0 mt-3 w-80 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Find Influencers by Country</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 p-2">
+                      {COUNTRY_LANDING_PAGES.map((country) => (
+                        <Link
+                          key={country.href}
+                          href={country.href}
+                          className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-violet-50 hover:text-violet-700 rounded-lg transition-colors"
+                          onClick={() => setCountriesOpen(false)}
+                        >
+                          <span aria-hidden="true">{country.flag}</span>
+                          {country.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
             <Link href="/about" className="text-gray-600 hover:text-gray-900 font-medium">
               About
             </Link>
@@ -115,6 +155,39 @@ export function Navigation() {
               <Link href="/tools" className="text-gray-600 hover:text-gray-900 font-medium py-2">
                 Tools
               </Link>
+
+              {/* Countries - inline expandable */}
+              <button
+                onClick={() => setMobileCountriesOpen(!mobileCountriesOpen)}
+                aria-expanded={mobileCountriesOpen}
+                className="w-full flex items-center justify-between text-gray-600 hover:text-gray-900 font-medium py-2 min-h-[48px]"
+              >
+                <span className="flex items-center gap-1">
+                  <Globe className="w-4 h-4" />
+                  Countries
+                </span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${mobileCountriesOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {mobileCountriesOpen && (
+                <div className="grid grid-cols-2 gap-1 pb-2">
+                  {COUNTRY_LANDING_PAGES.map((country) => (
+                    <Link
+                      key={country.href}
+                      href={country.href}
+                      className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 font-medium py-2.5 px-2 rounded-lg hover:bg-violet-50 min-h-[44px]"
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        setMobileCountriesOpen(false)
+                      }}
+                    >
+                      <span aria-hidden="true">{country.flag}</span>
+                      {country.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
               <Link href="/about" className="text-gray-600 hover:text-gray-900 font-medium py-2">
                 About
               </Link>
@@ -1057,7 +1130,7 @@ export function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-400 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
@@ -1105,6 +1178,21 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+            </ul>
+          </div>
+
+          {/* Find by Country */}
+          <div>
+            <h4 className="text-white font-semibold mb-4">Find by Country</h4>
+            <ul className="space-y-2 text-sm">
+              {COUNTRY_LANDING_PAGES.map((country) => (
+                <li key={country.href}>
+                  <Link href={country.href} className="hover:text-white transition-colors flex items-center gap-2">
+                    <span aria-hidden="true">{country.flag}</span>
+                    {country.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

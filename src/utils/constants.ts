@@ -98,6 +98,19 @@ export const COUNTRIES = [
   { code: 'SG', name: 'Singapore' },
 ] as const
 
+// Country landing pages (/influencers/[country]) — used by header nav and footer
+export const COUNTRY_LANDING_PAGES = [
+  { name: 'United States', flag: '🇺🇸', href: '/influencers/usa' },
+  { name: 'United Kingdom', flag: '🇬🇧', href: '/influencers/uk' },
+  { name: 'Canada', flag: '🇨🇦', href: '/influencers/canada' },
+  { name: 'India', flag: '🇮🇳', href: '/influencers/india' },
+  { name: 'Australia', flag: '🇦🇺', href: '/influencers/australia' },
+  { name: 'Pakistan', flag: '🇵🇰', href: '/influencers/pakistan' },
+  { name: 'Germany', flag: '🇩🇪', href: '/influencers/germany' },
+  { name: 'Netherlands', flag: '🇳🇱', href: '/influencers/netherlands' },
+  { name: 'Singapore', flag: '🇸🇬', href: '/influencers/singapore' },
+] as const
+
 // Languages
 export const LANGUAGES = [
   { code: 'en', name: 'English' },

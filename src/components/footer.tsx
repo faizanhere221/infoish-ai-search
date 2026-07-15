@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { MapPin, Mail, Phone, Linkedin, Instagram, Youtube } from 'lucide-react'
 import { useState } from 'react'
+import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -115,7 +116,7 @@ export default function Footer() {
 
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           
           {/* Company Info */}
           <div className="lg:col-span-2">
@@ -226,6 +227,21 @@ export default function Footer() {
                   Contact
                 </Link>
               </li>
+            </ul>
+          </div>
+
+          {/* Find by Country */}
+          <div>
+            <h3 className="font-semibold text-white mb-6">Find by Country</h3>
+            <ul className="space-y-4">
+              {COUNTRY_LANDING_PAGES.map((country) => (
+                <li key={country.href}>
+                  <Link href={country.href} className="text-white/70 hover:text-green-400 transition-colors flex items-center gap-2">
+                    <span aria-hidden="true">{country.flag}</span>
+                    {country.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
