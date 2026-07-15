@@ -4,8 +4,8 @@ export const metadata: Metadata = {
   title: 'Join Free | Infoishai - Connect Brands & Tech Creators',
   description: 'Join Infoishai for free — the B2B tech influencer marketplace connecting brands with verified AI, SaaS, and developer content creators. Sign up as a brand or creator in minutes.',
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
   },
   openGraph: {
     title: 'Join Free | Infoishai - Connect Brands & Tech Creators',

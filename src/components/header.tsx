@@ -693,7 +693,8 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-all"
+                aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+                className="lg:hidden min-w-[48px] min-h-[48px] flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition-all"
               >
                 {isMobileMenuOpen ? (
                   <X className="w-5 h-5 text-gray-700" />

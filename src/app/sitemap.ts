@@ -43,9 +43,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Blog
     { url: `${baseUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/blog/b2b-vs-b2c-influencer-marketing-tech-2026`, lastModified: new Date('2026-07-15'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/tech-creators-guide-how-to-get-brand-deals-2026`, lastModified: new Date('2026-07-15'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/top-10-benefits-tech-influencer-marketing-2026`, lastModified: new Date('2026-07-08'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/how-to-find-tech-influencers-b2b-2026`, lastModified: new Date('2026-07-06'), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${baseUrl}/blog/ai-humanizer-tool-make-ai-text-human-2025`, lastModified: new Date('2025-11-29'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/free-instagram-profile-analyzer-complete-guide`, lastModified: new Date('2025-11-29'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/free-instagram-hashtag-generator-2025`, lastModified: new Date('2025-12-01'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/complete-guide-influencer-marketing-pakistan-2025`, lastModified: new Date('2024-11-20'), changeFrequency: 'monthly', priority: 0.7 },
@@ -56,12 +57,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Support / info pages
     { url: `${baseUrl}/help`, lastModified: today, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/contact`, lastModified: today, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${baseUrl}/terms`, lastModified: today, changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${baseUrl}/privacy`, lastModified: today, changeFrequency: 'yearly', priority: 0.3 },
 
     // Auth / onboarding
-    { url: `${baseUrl}/login`, lastModified: today, changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${baseUrl}/signup`, lastModified: today, changeFrequency: 'monthly', priority: 0.8 },
+    // Note: /login, /signup, /terms, /privacy are excluded — set to noindex, so they should not appear in the sitemap.
     { url: `${baseUrl}/signup/creator`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/signup/brand`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
   ]

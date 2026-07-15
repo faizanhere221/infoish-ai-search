@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Search Tech Creators | YouTube, Twitter, LinkedIn Influencers',
-  description: 'Search 2,000+ verified tech influencers by niche, platform, country, and audience size. Find AI, SaaS, and developer creators on YouTube, Twitter/X, and LinkedIn.',
+  title: 'Search Tech Influencers | YouTube, Twitter & LinkedIn Creators | Infoishai',
+  description: 'Browse 2,000+ verified tech influencers. Filter by niche (AI, SaaS, Dev), platform (YouTube, Twitter, LinkedIn), location & price. Find your perfect creator match.',
   keywords: [
     'tech influencer marketplace',
     'find tech influencers',
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Search Tech Creators | YouTube, Twitter, LinkedIn Influencers',
-    description: 'Search 2,000+ verified tech influencers by niche, platform, country, and audience size.',
+    title: 'Search Tech Influencers | YouTube, Twitter & LinkedIn Creators | Infoishai',
+    description: 'Browse 2,000+ verified tech influencers. Filter by niche (AI, SaaS, Dev), platform (YouTube, Twitter, LinkedIn), location & price. Find your perfect creator match.',
     url: 'https://infoishai.com/creators',
     siteName: 'Infoishai',
     type: 'website',
@@ -28,8 +28,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Search Tech Creators | YouTube, Twitter, LinkedIn Influencers',
-    description: 'Search 2,000+ verified tech influencers by niche, platform, country, and audience size.',
+    title: 'Search Tech Influencers | YouTube, Twitter & LinkedIn Creators | Infoishai',
+    description: 'Browse 2,000+ verified tech influencers. Filter by niche (AI, SaaS, Dev), platform (YouTube, Twitter, LinkedIn), location & price. Find your perfect creator match.',
   },
   alternates: {
     canonical: 'https://infoishai.com/creators',

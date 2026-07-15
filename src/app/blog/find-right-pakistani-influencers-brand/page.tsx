@@ -7,7 +7,7 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'How to Find Pakistani Influencers (Without Wasting Hours) | Infoishai',
-  description: 'The exact 5-step process to find verified Pakistani influencers in under 10 minutes. Stop scrolling Instagram manually — use this proven method.',
+  description: 'How to find and vet Pakistani influencers for your brand. Engagement benchmarks, pricing data, red flags to avoid, and free tools to verify audience quality.',
   keywords: [
     'find pakistani influencers',
     'how to find influencers',

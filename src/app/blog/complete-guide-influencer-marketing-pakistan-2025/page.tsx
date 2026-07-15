@@ -7,8 +7,8 @@ import { Metadata } from 'next'
 
 
 export const metadata: Metadata = {
-  title: 'Influencer Marketing in Pakistan: The Only Guide You Need (2025) | Infoishai',
-  description: 'Complete guide to influencer marketing for Pakistani brands. Learn pricing, find creators, measure ROI, and avoid fake followers. Real budgets included.',
+  title: 'Influencer Marketing Pakistan 2025: Rates, Strategies, and ROI Data',
+  description: 'Real influencer rates in Pakistan (PKR 5,000 to PKR 500,000). Step-by-step strategies for Pakistani brands. ROI benchmarks and verified creator database included.',
   keywords: [
     'influencer marketing pakistan',
     'influencer marketing guide',
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
     'brand collaboration pakistan'
   ],
   openGraph: {
-    title: 'Influencer Marketing in Pakistan: The Only Guide You Need (2025)',
-    description: 'Everything Pakistani brands need to know about influencer marketing. Real budgets, strategies, and tools.',
+    title: 'Influencer Marketing Pakistan 2025: Rates, Strategies, and ROI Data',
+    description: 'Real influencer rates in Pakistan (PKR 5,000 to PKR 500,000). Step-by-step strategies for Pakistani brands. ROI benchmarks included.',
     type: 'article',
   },
   alternates: {
@@ -198,7 +198,7 @@ export default function CompleteGuideInfluencerMarketing() {
               <ul className="space-y-3 text-gray-700 mb-6">
                 <li className="flex items-start gap-3">
                   <span className="text-green-600 font-bold">•</span>
-                  <span><strong>Micro-influencers</strong> (10K--50K followers) offer authentic engagement.</span>
+                  <span><Link href="/blog/micro-influencers-pakistan-guide" className="text-blue-600 hover:text-blue-700 font-semibold">Micro-influencers in Pakistan</Link> (10K--50K followers) offer authentic engagement.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-green-600 font-bold">•</span>
@@ -212,7 +212,7 @@ export default function CompleteGuideInfluencerMarketing() {
               
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                 <p className="text-blue-900 leading-relaxed">
-                  You're wondering <strong>how to find influencers in Pakistan?</strong> Tools like Infoishai can simplify it. Influencers can be filtered on the base of category, city, and platform.
+                  Want the full breakdown on <Link href="/blog/find-right-pakistani-influencers-brand" className="text-blue-700 hover:text-blue-800 font-semibold underline">how to find Pakistani influencers</Link>? Tools like Infoishai can simplify it — <Link href="/creators" className="text-blue-700 hover:text-blue-800 font-semibold underline">browse tech influencers</Link> filtered by category, city, and platform.
                 </p>
               </div>
             </div>
@@ -306,6 +306,15 @@ export default function CompleteGuideInfluencerMarketing() {
                 <h4 className="font-semibold text-gray-900 mb-2">Canva / CapCut</h4>
                 <p className="text-gray-700">For creating social media visuals and video edits.</p>
               </div>
+
+              <div className="bg-white border rounded-lg p-6">
+                <h4 className="font-semibold text-gray-900 mb-2">Infoishai's free Instagram analyzer</h4>
+                <p className="text-gray-700">
+                  Before you pay for a collaboration, vet the creator's numbers with our{' '}
+                  <Link href="/tools" className="text-blue-600 hover:text-blue-700 font-medium">free Instagram analyzer</Link>{' '}
+                  to check engagement rate and spot fake followers.
+                </p>
+              </div>
               
               <div className="bg-white border rounded-lg p-6">
                 <h4 className="font-semibold text-gray-900 mb-2">Google Analytics</h4>
@@ -331,8 +340,11 @@ export default function CompleteGuideInfluencerMarketing() {
             <p className="text-gray-700 leading-relaxed mb-6">
               Influencer marketing is no longer optional---it's essential for brand growth in 2025. You can tap into the power of <strong>Pakistan social media influencers</strong> to build trust and drive sales. Just use a right strategy, tools, and partnerships.
             </p>
-            <p className="text-gray-700 leading-relaxed text-lg font-medium">
+            <p className="text-gray-700 leading-relaxed text-lg font-medium mb-4">
               Ready to start your campaign? <strong>Use "Infoishai" to find authentic Pakistani influencers today.</strong> Boost your brand's digital presence!
+            </p>
+            <p className="text-gray-700 leading-relaxed">
+              Are you a creator instead of a brand? <Link href="/signup/creator" className="text-blue-600 hover:text-blue-700 font-medium">Join as a creator</Link> to get discovered by brands running campaigns like this one.
             </p>
           </section>
         </div>

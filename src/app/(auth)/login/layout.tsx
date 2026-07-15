@@ -4,8 +4,8 @@ export const metadata: Metadata = {
   title: 'Login | Infoishai Tech Influencer Marketplace',
   description: 'Sign in to Infoishai to manage your tech creator sponsorships, browse verified influencers, and track deals with escrow payment protection.',
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
   },
   openGraph: {
     title: 'Login | Infoishai Tech Influencer Marketplace',

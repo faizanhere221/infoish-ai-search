@@ -23,8 +23,8 @@ import {
 // SEO METADATA - Optimized for "find tech influencers marketplace"
 // ============================================================================
 export const metadata: Metadata = {
-  title: 'Find Tech Influencers Marketplace | Discover Top Tech Creators | Infoishai',
-  description: 'Find and hire the best tech influencers for your brand. Discover AI, SaaS, startup, and gadget influencers across YouTube, TikTok, Instagram, and X. 2,000+ verified creators. Free to start.',
+  title: 'Tech Influencer Marketplace | Find 2,000+ Verified Creators Free',
+  description: 'Search 2,000+ verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn. Free to join. No subscription.',
   keywords: [
     'find tech influencers',
     'tech influencer marketplace',
@@ -61,8 +61,8 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://infoishai.com',
     siteName: 'Infoishai',
-    title: 'Find Tech Influencers Marketplace | Discover Top Tech Creators',
-    description: 'Find and hire the best tech influencers for your brand. Discover AI, SaaS, startup, and gadget influencers across YouTube, TikTok, Instagram, and X.',
+    title: 'Tech Influencer Marketplace | Find 2,000+ Verified Creators Free',
+    description: 'Search 2,000+ verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn. Free to join. No subscription.',
     images: [
       {
         url: 'https://infoishai.com/og-image.jpg',
@@ -74,8 +74,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Find Tech Influencers Marketplace | Infoishai',
-    description: 'Find and hire the best tech influencers. 2,000+ verified creators across YouTube, Twitter, LinkedIn.',
+    title: 'Tech Influencer Marketplace | Find 2,000+ Verified Creators Free',
+    description: 'Search 2,000+ verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn.',
     site: '@infoishai',
     creator: '@infoishai',
     images: ['https://infoishai.com/twitter-image.jpg'],

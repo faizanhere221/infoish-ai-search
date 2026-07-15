@@ -30,8 +30,8 @@ import { Navigation, Footer } from '@/components/landing'
 // SEO METADATA
 // ============================================================================
 export const metadata: Metadata = {
-  title: 'About Infoishai - Tech Influencer Marketplace | Find AI & SaaS Creators',
-  description: 'Learn about Infoishai, the #1 tech influencer marketplace. We connect B2B brands with verified AI, SaaS, and developer content creators across YouTube, Twitter, LinkedIn, and more.',
+  title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
+  description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter, and LinkedIn. Free search. Escrow payments. Trusted by startups and enterprises.',
   keywords: [
     'about infoishai',
     'tech influencer platform',
@@ -42,9 +42,19 @@ export const metadata: Metadata = {
     'tech creator discovery',
   ],
   openGraph: {
-    title: 'About Infoishai - Tech Influencer Marketplace',
-    description: 'The #1 marketplace connecting B2B brands with verified tech creators. 2,000+ creators across AI, SaaS, DevOps, and more.',
+    title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
+    description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter, and LinkedIn. Free search. Escrow payments.',
     url: 'https://infoishai.com/about',
+    siteName: 'Infoishai',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
+    description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter, and LinkedIn.',
+  },
+  alternates: {
+    canonical: 'https://infoishai.com/about',
   },
 }
 
@@ -57,24 +67,21 @@ const team = [
     role: 'Founder & CEO',
     bio: 'CS student at BZU, President of Zakariyan Tech Society. Building the future of creator economy.',
     image: '/images/team/founder.jpg',
-    linkedin: 'https://www.linkedin.com/in/faizan-islam-here/', // UPDATE THIS
-    twitter: 'https://twitter.com/faizanhere221', // UPDATE THIS
+    linkedin: 'https://www.linkedin.com/in/faizan-islam-41a3ab28b/',
   },
   {
-    name: 'Farhan',
+    name: 'Farhan Islam',
     role: 'Co-Founder & CTO',
     bio: 'Full-stack developer with expertise in Next.js, Python, and AI. Building scalable tech solutions.',
     image: '/images/team/cto.jpg',
-    linkedin: 'https://www.linkedin.com/in/farhan-cto/', // UPDATE THIS
-    twitter: 'https://twitter.com/farhan', // UPDATE THIS
+    linkedin: 'https://www.linkedin.com/in/farhan-islam-570685303/',
   },
   {
-    name: 'Israr',
+    name: 'Israr Ahmad',
     role: 'Digital Marketing Expert',
     bio: 'Growth specialist helping creators and brands maximize their reach and engagement.',
     image: '/images/team/marketing.jpg',
-    linkedin: 'https://www.linkedin.com/in/israr-marketing/', // UPDATE THIS
-    twitter: 'https://twitter.com/israr', // UPDATE THIS
+    linkedin: 'https://www.linkedin.com/in/israr4se/',
   },
 ]
 
@@ -317,23 +324,15 @@ export default function AboutPage() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-1">{member.name}</h3>
                 <p className="text-violet-600 font-medium mb-4">{member.role}</p>
-                <p className="text-gray-600 text-sm leading-relaxed mb-6">{member.bio}</p>
+                <p className="text-gray-600 leading-relaxed mb-6">{member.bio}</p>
                 <div className="flex items-center justify-center gap-4">
-                  <a 
-                    href={member.linkedin} 
-                    target="_blank" 
+                  <a
+                    href={member.linkedin}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-violet-100 hover:text-violet-600 transition-colors"
                   >
                     <Linkedin className="w-5 h-5" />
-                  </a>
-                  <a 
-                    href={member.twitter} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-violet-100 hover:text-violet-600 transition-colors"
-                  >
-                    <Twitter className="w-5 h-5" />
                   </a>
                 </div>
               </div>
@@ -396,6 +395,26 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Explore More */}
+      <section className="py-16 bg-white border-t border-gray-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Explore Infoishai</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+            Ready to see what Infoishai can do for you? <Link href="/creators" className="text-violet-600 hover:text-violet-700 font-medium">Browse our creator directory</Link>,{' '}
+            <Link href="/blog" className="text-violet-600 hover:text-violet-700 font-medium">read our blog</Link> for tech influencer marketing strategy, or{' '}
+            <Link href="/tools" className="text-violet-600 hover:text-violet-700 font-medium">try our free tools</Link> to analyze creator engagement before you commit budget.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-6">
+            <Link href="/signup/brand" className="text-violet-600 hover:text-violet-700 font-medium">
+              Sign up as a brand
+            </Link>
+            <Link href="/signup/creator" className="text-violet-600 hover:text-violet-700 font-medium">
+              Join as a creator
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 lg:py-32 bg-gradient-to-br from-violet-600 to-blue-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -403,18 +422,18 @@ export default function AboutPage() {
             Ready to Find Your Perfect Tech Creator?
           </h2>
           <p className="text-xl text-violet-100 mb-10 max-w-2xl mx-auto">
-            Join hundreds of brands using Infoishai to connect with verified tech influencers. 
+            Join hundreds of brands using Infoishai to connect with verified tech influencers.
             Free to start, no credit card required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link 
+            <Link
               href="/creators"
               className="w-full sm:w-auto px-8 py-4 bg-white text-violet-600 rounded-full font-semibold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
             >
               Browse Creators
               <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link 
+            <Link
               href="/signup"
               className="w-full sm:w-auto px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/30 text-white rounded-full font-semibold text-lg hover:bg-white/20 transition-all"
             >

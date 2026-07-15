@@ -328,7 +328,7 @@ export default function AdminBrandsPage() {
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
                           {b.logo_url
-                            ? <img src={b.logo_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                            ? <img src={b.logo_url} alt={b.company_name || 'Brand logo'} loading="lazy" className="w-8 h-8 rounded-lg object-cover" />
                             : <Building2 className="w-4 h-4 text-blue-600" />
                           }
                         </div>
@@ -413,7 +413,7 @@ export default function AdminBrandsPage() {
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
                         {b.logo_url
-                          ? <img src={String(b.logo_url)} alt="" className="w-12 h-12 rounded-xl object-cover" />
+                          ? <img src={String(b.logo_url)} alt={b.company_name || 'Brand logo'} className="w-12 h-12 rounded-xl object-cover" />
                           : <Building2 className="w-6 h-6 text-blue-600" />
                         }
                       </div>
