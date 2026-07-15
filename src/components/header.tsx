@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
-import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, Heart, LogOut, Instagram, Calculator, Wrench } from 'lucide-react'
+import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, Heart, LogOut, Instagram, Calculator, Wrench, Globe } from 'lucide-react'
+import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
 
 interface UserProfile {
   id: string
@@ -26,7 +27,9 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [showDropdown, setShowDropdown] = useState(false)
   const [showToolsDropdown, setShowToolsDropdown] = useState(false)
+  const [showCountriesDropdown, setShowCountriesDropdown] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isMobileCountriesOpen, setIsMobileCountriesOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
@@ -430,8 +433,48 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
   )}
 </div>
 
-              <Link 
-                href="/blog" 
+              {/* Countries Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowCountriesDropdown(!showCountriesDropdown)}
+                  className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 font-medium rounded-lg transition-all flex items-center gap-2"
+                >
+                  <Globe className="w-4 h-4" />
+                  Countries
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showCountriesDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showCountriesDropdown && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowCountriesDropdown(false)}
+                    />
+                    <div className="absolute left-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Find Influencers by Country</p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-1 p-2">
+                        {COUNTRY_LANDING_PAGES.map((country) => (
+                          <Link
+                            key={country.href}
+                            href={country.href}
+                            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                            onClick={() => setShowCountriesDropdown(false)}
+                          >
+                            <span aria-hidden="true">{country.flag}</span>
+                            {country.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <Link
+                href="/blog"
                 className="px-4 py-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 font-medium rounded-lg transition-all"
               >
                 Blog
@@ -773,8 +816,40 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                   Tools
                 </Link>
 
-                <Link 
-                  href="/blog" 
+                {/* Countries - inline expandable */}
+                <button
+                  onClick={() => setIsMobileCountriesOpen(!isMobileCountriesOpen)}
+                  aria-expanded={isMobileCountriesOpen}
+                  className="w-full flex items-center justify-between gap-2 text-gray-700 hover:text-blue-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-blue-50 min-h-[48px]"
+                >
+                  <span className="flex items-center gap-2">
+                    <Globe className="w-5 h-5" />
+                    Countries
+                  </span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isMobileCountriesOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isMobileCountriesOpen && (
+                  <div className="grid grid-cols-2 gap-1 px-4 pb-2">
+                    {COUNTRY_LANDING_PAGES.map((country) => (
+                      <Link
+                        key={country.href}
+                        href={country.href}
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 font-medium py-2.5 px-3 rounded-lg transition-all hover:bg-blue-50 min-h-[44px]"
+                        onClick={() => {
+                          setIsMobileMenuOpen(false)
+                          setIsMobileCountriesOpen(false)
+                        }}
+                      >
+                        <span aria-hidden="true">{country.flag}</span>
+                        {country.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+
+                <Link
+                  href="/blog"
                   className="text-gray-700 hover:text-orange-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-gray-50"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
