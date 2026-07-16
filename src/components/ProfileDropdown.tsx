@@ -26,6 +26,13 @@ interface ProfileDropdownProps {
   unreadNotifications?: number
 }
 
+function formatCount(count?: number): string {
+  const n = count || 0
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+  return n.toString()
+}
+
 export default function ProfileDropdown({ 
   userType, 
   profile, 
@@ -123,18 +130,16 @@ export default function ProfileDropdown({
 
           {/* Quick Stats for Creators */}
           {userType === 'creator' && (
-            <div className="px-4 py-3 border-b border-gray-100 grid grid-cols-3 gap-2 text-center">
+            <div className="px-4 py-3 border-b border-gray-100 grid grid-cols-2 gap-2 text-center">
               <div>
-                <p className="text-lg font-bold text-gray-900">{profile?.total_followers || 0}</p>
+                <p className="text-lg font-bold text-gray-900">{formatCount(profile?.total_followers)}</p>
                 <p className="text-xs text-gray-500">Followers</p>
               </div>
               <div>
-                <p className="text-lg font-bold text-gray-900">{profile?.completed_deals || 0}</p>
-                <p className="text-xs text-gray-500">Deals</p>
-              </div>
-              <div>
-                <p className="text-lg font-bold text-gray-900">{profile?.avg_rating?.toFixed(1) || 'N/A'}</p>
-                <p className="text-xs text-gray-500">Rating</p>
+                <p className="text-lg font-bold text-gray-900">
+                  {profile?.is_available ? 'Available' : 'Unavailable'}
+                </p>
+                <p className="text-xs text-gray-500">Status</p>
               </div>
             </div>
           )}
@@ -183,15 +188,17 @@ export default function ProfileDropdown({
               )}
             </Link>
 
-            {/* My Deals */}
-            <Link
-              href="/dashboard/deals"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50"
-            >
-              <Briefcase className="w-5 h-5 text-gray-400" />
-              <span>My Deals</span>
-            </Link>
+            {/* My Deals (Brand only) */}
+            {userType === 'brand' && (
+              <Link
+                href="/dashboard/deals"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50"
+              >
+                <Briefcase className="w-5 h-5 text-gray-400" />
+                <span>My Deals</span>
+              </Link>
+            )}
 
             {/* Find Creators (Brand only) */}
             {userType === 'brand' && (

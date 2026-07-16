@@ -77,7 +77,7 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
   ] : [
     { href: '/dashboard/creator', label: 'Dashboard' },
     { href: '/messages', label: 'Messages', badge: unreadMessages },
-    { href: '/dashboard/deals', label: 'My Deals' },
+    { href: '/settings', label: 'Settings' },
   ]
 
   const isActive = (href: string) => {

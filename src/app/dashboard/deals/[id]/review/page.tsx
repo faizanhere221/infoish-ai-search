@@ -76,6 +76,13 @@ export default function ReviewPage() {
     }
 
     const user = JSON.parse(userStr)
+
+    // Deal management has been removed from the creator experience for now
+    if (user.user_type === 'creator') {
+      router.push('/dashboard/creator')
+      return
+    }
+
     const prof = profileStr ? JSON.parse(profileStr) : null
 
     setToken(storedToken)

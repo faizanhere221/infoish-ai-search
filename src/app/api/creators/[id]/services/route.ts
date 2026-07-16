@@ -67,6 +67,7 @@ export async function PUT(
 
     // Insert new services if any
     const { services } = parsed.data
+    let savedServices: any[] = []
     if (services.length > 0) {
       const serviceRecords = services.map(s => ({
         creator_id: id,
@@ -81,7 +82,7 @@ export async function PUT(
         is_active: s.is_active !== false,
       }))
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('creator_services')
         .insert(serviceRecords)
         .select()
@@ -93,9 +94,11 @@ export async function PUT(
           { status: 500 }
         )
       }
+
+      savedServices = data || []
     }
 
-    return NextResponse.json({ message: 'Services updated successfully' })
+    return NextResponse.json({ message: 'Services updated successfully', services: savedServices })
 
   } catch (error) {
     console.error('Error in services API:', error instanceof Error ? error.message : 'Unknown error')

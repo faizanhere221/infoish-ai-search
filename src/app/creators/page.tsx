@@ -432,6 +432,13 @@ export default function CreatorsPage() {
             </Link>{' '}
             to send a deal directly through the platform.
           </p>
+          <p className="text-sm text-gray-500 mt-3">
+            Looking for UK-based creators? Browse{' '}
+            <Link href="/influencers/uk" className="text-violet-600 hover:text-violet-700 font-medium underline">
+              Tech Influencers in UK
+            </Link>
+            .
+          </p>
         </div>
 
         {/* Search Bar */}
