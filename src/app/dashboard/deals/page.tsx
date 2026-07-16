@@ -109,6 +109,13 @@ export default function DealsPage() {
       }
 
       const user = JSON.parse(userStr)
+
+      // Deal management has been removed from the creator experience for now
+      if (user.user_type === 'creator') {
+        router.push('/dashboard/creator')
+        return
+      }
+
       setUserType(user.user_type)
 
       if (profileStr) {

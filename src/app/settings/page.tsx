@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   User,
   Bell,
@@ -58,8 +58,26 @@ interface Service {
 }
 
 export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+      </div>
+    }>
+      <SettingsPageInner />
+    </Suspense>
+  )
+}
+
+function SettingsPageInner() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
+  const searchParams = useSearchParams()
+  const initialTab = searchParams.get('tab') as SettingsTab | null
+  const [activeTab, setActiveTab] = useState<SettingsTab>(
+    initialTab && ['profile', 'services', 'platforms', 'notifications', 'security'].includes(initialTab)
+      ? initialTab
+      : 'profile'
+  )
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -85,8 +103,7 @@ export default function SettingsPage() {
   const loadData = async () => {
     try {
       const userStr = localStorage.getItem('auth_user')
-      const profileStr = localStorage.getItem('auth_profile')
-      
+
       if (!userStr) {
         router.push('/login')
         return
@@ -95,17 +112,18 @@ export default function SettingsPage() {
       const user = JSON.parse(userStr)
       setUserEmail(user.email)
 
-      if (profileStr) {
-        const savedProfile = JSON.parse(profileStr)
-        setProfile(savedProfile)
-        
-        // Fetch platforms and services
-        const res = await fetch(`/api/creators/${savedProfile.id}`)
-        if (res.ok) {
-          const data = await res.json()
-          setPlatforms(data.creator.creator_platforms || [])
-          setServices(data.creator.creator_services || [])
-        }
+      // Always fetch the creator profile fresh by user_id rather than relying on
+      // a cached `auth_profile` blob — that cache can be missing/stale and never
+      // includes platforms/services anyway.
+      const res = await fetch(`/api/creators/${user.id}`)
+      if (res.ok) {
+        const data = await res.json()
+        setProfile(data.creator)
+        setPlatforms(data.creator.creator_platforms || [])
+        setServices(data.creator.creator_services || [])
+        localStorage.setItem('auth_profile', JSON.stringify(data.creator))
+      } else {
+        setError('Failed to load your profile')
       }
 
       setLoading(false)
@@ -118,44 +136,63 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     if (!profile) return
-    
+
     setSaving(true)
     setError(null)
+
+    const authToken = localStorage.getItem('auth_token')
+    const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (authToken) authHeaders.Authorization = `Bearer ${authToken}`
+
+    const sectionErrors: string[] = []
 
     try {
       // Update profile
       const profileRes = await fetch(`/api/creators/${profile.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify(profile),
       })
 
       if (!profileRes.ok) {
-        const errorData = await profileRes.json()
-        throw new Error(errorData.error || 'Failed to update profile')
+        const errorData = await profileRes.json().catch(() => ({}))
+        sectionErrors.push(errorData.error || 'Failed to save profile')
       }
 
       // Update platforms
       const platformsRes = await fetch(`/api/creators/${profile.id}/platforms`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify({ platforms }),
       })
 
       if (!platformsRes.ok) {
-        console.error('Failed to update platforms')
+        const errorData = await platformsRes.json().catch(() => ({}))
+        sectionErrors.push(errorData.error || 'Failed to save platforms')
+      } else {
+        const data = await platformsRes.json().catch(() => null)
+        if (data?.platforms) setPlatforms(data.platforms)
       }
 
       // Update services
       const servicesRes = await fetch(`/api/creators/${profile.id}/services`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify({ services }),
       })
 
       if (!servicesRes.ok) {
-        const errorData = await servicesRes.json()
-        console.error('Failed to update services:', errorData)
+        const errorData = await servicesRes.json().catch(() => ({}))
+        sectionErrors.push(errorData.error || 'Failed to save services')
+      } else {
+        const data = await servicesRes.json().catch(() => null)
+        if (data?.services) setServices(data.services)
+      }
+
+      if (sectionErrors.length > 0) {
+        setError(sectionErrors.join(' '))
+        setSaving(false)
+        return
       }
 
       // Update localStorage
@@ -797,10 +834,16 @@ function PlatformsSettings({
   setPlatforms: (p: Platform[]) => void
 }) {
   const addPlatform = () => {
+    // Each platform type can only be added once (enforced by the API) — default
+    // to the first platform not already in the list instead of always 'twitter',
+    // so clicking "Add Platform" twice doesn't create a save-breaking duplicate.
+    const used = new Set(platforms.map((p) => p.platform))
+    const nextPlatform = PLATFORMS.find((p) => !used.has(p.id))?.id || 'other'
+
     setPlatforms([
       ...platforms,
       {
-        platform: 'twitter',
+        platform: nextPlatform,
         platform_username: '',
         platform_url: '',
         followers: 0,
@@ -920,8 +963,9 @@ function PlatformsSettings({
 // ============================================================================
 function NotificationSettings() {
   const [notifications, setNotifications] = useState({
-    emailNewDeals: true,
     emailMessages: true,
+    profileViews: true,
+    platformUpdates: true,
     emailMarketing: false,
   })
 
@@ -938,19 +982,25 @@ function NotificationSettings() {
 
       <div className="space-y-4">
         <ToggleItem
-          title="New Deal Requests"
-          description="Get notified when brands send you deal proposals"
-          enabled={notifications.emailNewDeals}
-          onToggle={() => toggle('emailNewDeals')}
-        />
-        <ToggleItem
-          title="Messages"
-          description="Get notified when you receive new messages"
+          title="New Messages"
+          description="Get notified when you receive new messages from brands"
           enabled={notifications.emailMessages}
           onToggle={() => toggle('emailMessages')}
         />
         <ToggleItem
-          title="Marketing & Updates"
+          title="Profile Views"
+          description="Get notified when brands view your public profile"
+          enabled={notifications.profileViews}
+          onToggle={() => toggle('profileViews')}
+        />
+        <ToggleItem
+          title="Platform Updates"
+          description="News and updates about Infoishai features"
+          enabled={notifications.platformUpdates}
+          onToggle={() => toggle('platformUpdates')}
+        />
+        <ToggleItem
+          title="Marketing & Promotions"
           description="Receive tips, product updates, and promotional content"
           enabled={notifications.emailMarketing}
           onToggle={() => toggle('emailMarketing')}
