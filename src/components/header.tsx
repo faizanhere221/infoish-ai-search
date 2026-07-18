@@ -68,9 +68,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
           const token = localStorage.getItem('auth_token')
           if (!token) return
 
-          const backendUrl = process.env.NODE_ENV === 'production' 
-            ? 'https://infoish-ai-search-production.up.railway.app' 
-            : 'http://127.0.0.1:8000'
+          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
 
           const response = await fetch(`${backendUrl}/auth/me`, {
             headers: {
@@ -95,7 +93,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
             detectAndSetUserType(userData.user_type)
           }
         } catch (error) {
-          console.error('Failed to refresh header data:', error)
+          console.warn('Failed to refresh header data (backend unreachable):', error)
         }
       }
       refreshHeaderData()
@@ -139,9 +137,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
         return
       }
 
-      const backendUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://infoish-ai-search-production.up.railway.app' 
-        : 'http://127.0.0.1:8000'
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
 
       const response = await fetch(`${backendUrl}/auth/me`, {
         headers: {
@@ -171,7 +167,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
         setUserType(null)
       }
     } catch (error) {
-      console.error('Auth check failed:', error)
+      console.warn('Auth check failed (backend unreachable):', error)
       setUser(null)
       setUserType(null)
     } finally {
