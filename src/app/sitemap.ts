@@ -38,6 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/influencers/uk`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/influencers/canada`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/influencers/india`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/influencers/australia`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/about`, lastModified: today, changeFrequency: 'monthly', priority: 0.8 },
 
     // Tools
