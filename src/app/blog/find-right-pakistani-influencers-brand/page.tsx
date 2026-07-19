@@ -280,7 +280,11 @@ export default function FindRightInfluencersPage() {
                   </div>
                 </li>
               </ul>
-              
+
+              <p className="text-gray-700 leading-relaxed mt-6">
+                Before you default to the biggest name available, it's worth understanding <Link href="/blog/micro-influencers-pakistan-guide" className="text-blue-600 hover:text-blue-700 font-semibold">why micro-influencers outperform celebrities in Pakistan</Link> on engagement and ROI — smaller creators often deliver better results for a fraction of the budget.
+              </p>
+
               <div className="mt-6">
                 <Link 
                   href="/creators"

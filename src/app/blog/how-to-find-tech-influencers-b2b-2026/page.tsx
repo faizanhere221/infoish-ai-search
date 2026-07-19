@@ -220,6 +220,9 @@ export default function HowToFindTechInfluencersPage() {
                   <li><strong>Like-to-view ratio:</strong> Healthy is 2-5% on YouTube</li>
                   <li><strong>Reply rate:</strong> Does the creator engage with their audience?</li>
                 </ul>
+                <p className="text-gray-700 mt-3">
+                  Research from the Pakistani market confirms <Link href="/blog/micro-influencers-pakistan-guide" className="text-blue-600 hover:text-blue-700 font-medium">micro-influencers deliver stronger engagement</Link> than accounts with large followings — the same pattern holds true for tech and B2B creators.
+                </p>
               </div>
 
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">

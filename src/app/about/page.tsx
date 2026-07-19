@@ -31,7 +31,7 @@ import { Navigation, Footer } from '@/components/landing'
 // ============================================================================
 export const metadata: Metadata = {
   title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
-  description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter, and LinkedIn. Free search. Escrow payments. Trusted by startups and enterprises.',
+  description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Escrow payments. Trusted by startups and enterprises in 55+ countries.',
   keywords: [
     'about infoishai',
     'tech influencer platform',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
-    description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter, and LinkedIn. Free search. Escrow payments.',
+    description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Escrow payments. Trusted by startups and enterprises in 55+ countries.',
     url: 'https://infoishai.com/about',
     siteName: 'Infoishai',
     type: 'website',
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
-    description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter, and LinkedIn.',
+    description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Escrow payments. Trusted by startups and enterprises in 55+ countries.',
   },
   alternates: {
     canonical: 'https://infoishai.com/about',
