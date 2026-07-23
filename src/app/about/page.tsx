@@ -89,9 +89,9 @@ const team = [
 // STATS DATA
 // ============================================================================
 const stats = [
-  { value: '2,000+', label: 'Verified Creators', icon: Users },
+  { value: '10+', label: 'Verified Creators', icon: Users },
   { value: '6', label: 'Platforms Covered', icon: Globe },
-  { value: '50M+', label: 'Total Audience Reach', icon: TrendingUp },
+  { value: '1M+', label: 'Total Audience Reach', icon: TrendingUp },
   { value: '15+', label: 'Tech Niches', icon: Target },
 ]
 
@@ -247,7 +247,7 @@ export default function AboutPage() {
                 verifying their metrics, and understanding their audiences.
               </p>
               <p className="text-lg leading-relaxed">
-                Today, we have <strong>2,000+ verified tech creators</strong> across AI, SaaS, DevOps, 
+                Today, we have <strong>10+ verified tech creators</strong> across AI, SaaS, DevOps, 
                 cybersecurity, and more. We're just getting started on our mission to become the 
                 world's most trusted platform for tech influencer marketing.
               </p>
