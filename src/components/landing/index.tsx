@@ -218,9 +218,9 @@ export function Navigation() {
 // ============================================================================
 export function HeroSection() {
   const stats = [
-    { value: '2,000+', label: 'Tech Creators' },
-    { value: '500+', label: 'Brands Trust Us' },
-    { value: '$2M+', label: 'Creator Earnings' },
+    { value: '10+', label: 'Tech Creators' },
+    { value: '10+', label: 'Brands Trust Us' },
+    { value: '$10K+', label: 'Creator Earnings' },
   ]
 
   return (
