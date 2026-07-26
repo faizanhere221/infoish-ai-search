@@ -21,7 +21,7 @@ import {
 export const metadata: Metadata = {
   title: 'Find Tech Influencers in Canada | Canadian Tech Creators',
   description:
-    'Find verified Canadian tech influencers for your brand. Browse creators in Toronto, Vancouver, Montreal, and Waterloo covering AI, SaaS, and developer niches. Free to search.',
+    'Find 200+ verified Canadian tech influencers. Browse creators in Toronto, Vancouver, Montreal, and Waterloo. AI, SaaS, and developer niches. 20-30% lower rates than US creators. Free to search.',
   keywords: [
     'tech influencers Canada',
     'Canadian tech creators',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Find Tech Influencers in Canada | Infoishai',
     description:
-      'Find verified Canadian tech influencers for your brand. Browse creators in Toronto, Vancouver, Montreal, and Waterloo. Free to search.',
+      'Find 200+ verified Canadian tech influencers. Browse creators in Toronto, Vancouver, Montreal, and Waterloo. AI, SaaS, and developer niches. 20-30% lower rates than US creators. Free to search.',
     url: 'https://infoishai.com/influencers/canada',
     siteName: 'Infoishai',
     type: 'website',
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Find Tech Influencers in Canada | Infoishai',
     description:
-      'Find verified Canadian tech influencers for your brand. Browse creators in Toronto, Vancouver, Montreal, and Waterloo. Free to search.',
+      'Find 200+ verified Canadian tech influencers. Browse creators in Toronto, Vancouver, Montreal, and Waterloo. AI, SaaS, and developer niches. 20-30% lower rates than US creators. Free to search.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/canada',

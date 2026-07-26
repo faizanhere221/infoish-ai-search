@@ -6,8 +6,8 @@ import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, AlertCircle,
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: "Tech Creator's Guide: How to Get Brand Deals in 2026 | Infoishai",
-  description: 'Want brand deals as a tech creator? This step-by-step guide covers how to build your profile, set rates, pitch brands, and land paid sponsorships in 2026.',
+  title: 'How to Get Tech Brand Deals in 2026: Step-by-Step Guide for Creators',
+  description: 'Get brand deals as a tech creator. Step-by-step guide covering media kits, rate setting (with 2026 rate tables), outreach templates, and where to find sponsorship opportunities. Works for YouTubers, Twitter, and LinkedIn creators.',
   keywords: [
     'get brand deals',
     'how to become a tech influencer',
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
     'tech influencer rates 2026',
   ],
   openGraph: {
-    title: "Tech Creator's Guide: How to Get Brand Deals in 2026",
-    description: 'Step-by-step guide for tech creators to land paid brand sponsorships in 2026. Covers profile building, rate setting, pitching, and platforms.',
+    title: 'How to Get Tech Brand Deals in 2026: Step-by-Step Guide for Creators',
+    description: 'Get brand deals as a tech creator. Step-by-step guide covering media kits, rate setting (with 2026 rate tables), outreach templates, and where to find sponsorship opportunities. Works for YouTubers, Twitter, and LinkedIn creators.',
     type: 'article',
     publishedTime: '2026-07-15T00:00:00.000Z',
     authors: ['Infoishai Team'],
@@ -28,8 +28,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Tech Creator's Guide: How to Get Brand Deals in 2026",
-    description: 'Step-by-step guide for tech creators to land paid brand sponsorships in 2026.',
+    title: 'How to Get Tech Brand Deals in 2026: Step-by-Step Guide for Creators',
+    description: 'Get brand deals as a tech creator. Step-by-step guide covering media kits, rate setting (with 2026 rate tables), outreach templates, and where to find sponsorship opportunities. Works for YouTubers, Twitter, and LinkedIn creators.',
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/tech-creators-guide-how-to-get-brand-deals-2026'

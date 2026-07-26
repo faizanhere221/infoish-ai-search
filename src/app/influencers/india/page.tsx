@@ -20,9 +20,9 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Find Tech Influencers in India | Indian Tech Creators',
+  title: 'Tech Influencers India | 800+ Verified Indian Creators | Infoishai',
   description:
-    'Find verified Indian tech influencers for your brand. Browse creators in Bangalore, Mumbai, Delhi, and Hyderabad covering AI, SaaS, coding tutorials, and developer niches. Free to search.',
+    'Find 800+ verified tech influencers in India. Browse creators in Bangalore, Mumbai, Delhi, and Hyderabad. Filter by niche (AI, SaaS, coding), platform, and language. Rates from INR 5,000. Free to search.',
   keywords: [
     'tech influencers India',
     'Indian tech creators',
@@ -36,9 +36,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Find Tech Influencers in India | Infoishai',
+    title: 'Tech Influencers India | 800+ Verified Indian Creators | Infoishai',
     description:
-      'Find verified Indian tech influencers for your brand. Browse creators in Bangalore, Mumbai, Delhi, and Hyderabad. Free to search.',
+      'Find 800+ verified tech influencers in India. Browse creators in Bangalore, Mumbai, Delhi, and Hyderabad. Filter by niche (AI, SaaS, coding), platform, and language. Rates from INR 5,000. Free to search.',
     url: 'https://infoishai.com/influencers/india',
     siteName: 'Infoishai',
     type: 'website',
@@ -46,9 +46,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Find Tech Influencers in India | Infoishai',
+    title: 'Tech Influencers India | 800+ Verified Indian Creators | Infoishai',
     description:
-      'Find verified Indian tech influencers for your brand. Browse creators in Bangalore, Mumbai, Delhi, and Hyderabad. Free to search.',
+      'Find 800+ verified tech influencers in India. Browse creators in Bangalore, Mumbai, Delhi, and Hyderabad. Filter by niche (AI, SaaS, coding), platform, and language. Rates from INR 5,000. Free to search.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/india',

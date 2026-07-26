@@ -6,8 +6,8 @@ import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, AlertCircle 
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'How to Find Tech Influencers for Your B2B Product in 2026 | Infoishai',
-  description: 'Find verified tech influencers for your B2B product in 2026. Step-by-step vetting process, outreach templates, rate benchmarks, and a free creator database with 2,000+ profiles.',
+  title: 'How to Find B2B Tech Influencers in 2026: Vetting, Outreach, and Rates',
+  description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 2,000+ verified tech creators. Updated for 2026.',
   keywords: [
     'find tech influencers',
     'b2b influencer marketing',
@@ -21,9 +21,14 @@ export const metadata: Metadata = {
     'ai influencers',
   ],
   openGraph: {
-    title: 'How to Find Tech Influencers for Your B2B Product in 2026',
-    description: 'The complete guide to discovering, vetting, and partnering with tech content creators for your next campaign.',
+    title: 'How to Find B2B Tech Influencers in 2026: Vetting, Outreach, and Rates',
+    description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 2,000+ verified tech creators. Updated for 2026.',
     type: 'article',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'How to Find B2B Tech Influencers in 2026: Vetting, Outreach, and Rates',
+    description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 2,000+ verified tech creators. Updated for 2026.',
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/how-to-find-tech-influencers-b2b-2026'

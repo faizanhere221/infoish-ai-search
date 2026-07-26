@@ -19,9 +19,9 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Find Tech Influencers in USA | American Tech Creators',
+  title: 'Tech Influencers USA | 500+ Verified American Creators | Infoishai',
   description:
-    'Find verified American tech influencers for your brand. Browse US-based YouTubers, LinkedIn creators, and Twitter experts in AI, SaaS, and developer niches. Free to search.',
+    'Find 500+ verified American tech influencers. Browse US creators in AI, SaaS, developer tools, and cloud. Filter by platform (YouTube, LinkedIn, Twitter/X), audience size, and rates. Free to search.',
   keywords: [
     'tech influencers USA',
     'American tech creators',
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Find Tech Influencers in USA | Infoishai',
+    title: 'Tech Influencers USA | 500+ Verified American Creators | Infoishai',
     description:
-      'Find verified American tech influencers for your brand. Browse US-based YouTubers, LinkedIn creators, and Twitter experts. Free to search.',
+      'Find 500+ verified American tech influencers. Browse US creators in AI, SaaS, developer tools, and cloud. Filter by platform (YouTube, LinkedIn, Twitter/X), audience size, and rates. Free to search.',
     url: 'https://infoishai.com/influencers/usa',
     siteName: 'Infoishai',
     type: 'website',
@@ -44,9 +44,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Find Tech Influencers in USA | Infoishai',
+    title: 'Tech Influencers USA | 500+ Verified American Creators | Infoishai',
     description:
-      'Find verified American tech influencers for your brand. Browse US-based YouTubers, LinkedIn creators, and Twitter experts. Free to search.',
+      'Find 500+ verified American tech influencers. Browse US creators in AI, SaaS, developer tools, and cloud. Filter by platform (YouTube, LinkedIn, Twitter/X), audience size, and rates. Free to search.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/usa',
