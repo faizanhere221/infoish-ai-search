@@ -23,6 +23,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '11',
+    title: 'Top B2C Influencer Marketing Strategies for Tech Brands in 2026',
+    excerpt: 'B2C influencer marketing strategies for tech brands in 2026. Platform-by-platform playbook with real budgets, creator selection criteria, and ROI benchmarks.',
+    date: '2026-07-27',
+    author: 'Infoishai Team',
+    category: 'Marketing',
+    readTime: '18 min read',
+    slug: 'b2c-influencer-marketing-strategies-tech-brands-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '10',
     title: 'B2B vs B2C Influencer Marketing: What Works for Tech in 2026',
     excerpt: 'B2B and B2C influencer marketing work differently for tech brands. Compare strategies, budgets, platforms, and ROI metrics. Data-backed guide with examples.',
