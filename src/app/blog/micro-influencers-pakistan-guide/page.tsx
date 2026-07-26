@@ -30,8 +30,8 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Micro-Influencers in Pakistan: Why They Outperform Celebrities (+ How to Find Them) | Infoishai',
-  description: 'Pakistani micro-influencers deliver 3x higher engagement than celebrities. Real pricing from PKR 5,000 to PKR 25,000 per post. Data-backed comparison with case studies.',
+  title: 'Micro-Influencers in Pakistan: 3x More Engagement Than Celebrities (Data + Rates)',
+  description: 'Pakistani micro-influencers deliver 3x higher engagement at PKR 5,000 to PKR 25,000 per post. See real rate comparisons, engagement data, and a step-by-step guide to finding verified micro-influencers for your brand.',
   keywords: [
     'micro influencers pakistan',
     'pakistani micro influencers',
@@ -55,8 +55,8 @@ export const metadata: Metadata = {
     'verified pakistani influencers'
   ],
   openGraph: {
-    title: 'Micro-Influencers in Pakistan: Why They Outperform Celebrities',
-    description: 'Real data: Micro-influencers get 3x higher engagement than celebrities. Pricing guide (PKR 5K-25K/post) and how to find verified Pakistani creators.',
+    title: 'Micro-Influencers in Pakistan: 3x More Engagement Than Celebrities (Data + Rates)',
+    description: 'Pakistani micro-influencers deliver 3x higher engagement at PKR 5,000 to PKR 25,000 per post. See real rate comparisons, engagement data, and a step-by-step guide to finding verified micro-influencers for your brand.',
     type: 'article',
     publishedTime: '2025-12-27T00:00:00.000Z',
     authors: ['Infoishai Team'],
@@ -64,8 +64,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Micro-Influencers in Pakistan: Why They Beat Celebrities',
-    description: 'Real data + pricing guide for Pakistani micro-influencers. 3x higher engagement at 1/20th the cost.',
+    title: 'Micro-Influencers in Pakistan: 3x More Engagement Than Celebrities (Data + Rates)',
+    description: 'Pakistani micro-influencers deliver 3x higher engagement at PKR 5,000 to PKR 25,000 per post. See real rate comparisons, engagement data, and a step-by-step guide to finding verified micro-influencers for your brand.',
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/micro-influencers-pakistan-guide'

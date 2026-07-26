@@ -7,8 +7,8 @@ import { Metadata } from 'next'
 
 
 export const metadata: Metadata = {
-  title: 'Influencer Marketing Pakistan 2025: Rates, Strategies, and ROI Data',
-  description: 'Real influencer rates in Pakistan (PKR 5,000 to PKR 500,000). Step-by-step strategies for Pakistani brands. ROI benchmarks and verified creator database included.',
+  title: 'Influencer Marketing Pakistan 2026: Rates, Platforms, and ROI Data',
+  description: 'The complete guide to influencer marketing in Pakistan. Real rates from PKR 5,000 to PKR 5,00,000. Platform comparison (YouTube, Instagram, TikTok). ROI benchmarks. 400+ verified creators. Updated for 2026.',
   keywords: [
     'influencer marketing pakistan',
     'influencer marketing guide',
@@ -22,9 +22,14 @@ export const metadata: Metadata = {
     'brand collaboration pakistan'
   ],
   openGraph: {
-    title: 'Influencer Marketing Pakistan 2025: Rates, Strategies, and ROI Data',
-    description: 'Real influencer rates in Pakistan (PKR 5,000 to PKR 500,000). Step-by-step strategies for Pakistani brands. ROI benchmarks included.',
+    title: 'Influencer Marketing Pakistan 2026: Rates, Platforms, and ROI Data',
+    description: 'The complete guide to influencer marketing in Pakistan. Real rates from PKR 5,000 to PKR 5,00,000. Platform comparison (YouTube, Instagram, TikTok). ROI benchmarks. 400+ verified creators. Updated for 2026.',
     type: 'article',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Influencer Marketing Pakistan 2026: Rates, Platforms, and ROI Data',
+    description: 'The complete guide to influencer marketing in Pakistan. Real rates from PKR 5,000 to PKR 5,00,000. Platform comparison (YouTube, Instagram, TikTok). ROI benchmarks. 400+ verified creators. Updated for 2026.',
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/complete-guide-influencer-marketing-pakistan-2025'
@@ -58,11 +63,11 @@ export default function CompleteGuideInfluencerMarketing() {
           </div>
           
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            Complete Guide to Influencer Marketing in Pakistan 2025
+            Complete Guide to Influencer Marketing in Pakistan 2026
           </h1>
-          
+
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            From finding the right creators to measuring ROI — everything Pakistani brands need to know about influencer marketing in 2025. Includes real budgets, platform comparisons, and proven strategies.
+            From finding the right creators to measuring ROI — everything Pakistani brands need to know about influencer marketing in 2026. Includes real budgets, platform comparisons, and proven strategies.
           </p>
           
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">
@@ -108,7 +113,7 @@ export default function CompleteGuideInfluencerMarketing() {
 
           {/* Why It Matters */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Influencer Marketing Matters in Pakistan (2025 Trends)</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Influencer Marketing Matters in Pakistan (2026 Trends)</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
               Influencer marketing is not only worldwide. But it's reshaping the digitalization in Pakistan. Here's why it matters:
             </p>
@@ -152,7 +157,7 @@ export default function CompleteGuideInfluencerMarketing() {
 
           {/* Step by Step Guide */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Step-by-Step Guide to Influencer Marketing in Pakistan 2025</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Step-by-Step Guide to Influencer Marketing in Pakistan 2026</h2>
             <p className="text-gray-700 leading-relaxed mb-8">
               Here's a simple roadmap to running a successful influencer campaign in 2025:
             </p>

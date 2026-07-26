@@ -19,9 +19,9 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Find Tech Influencers in UK | British Tech Creators',
+  title: 'Tech Influencers UK | 300+ Verified British Creators | Infoishai',
   description:
-    'Find verified British tech influencers for your brand. Browse UK-based YouTubers, LinkedIn thought leaders, and Twitter experts in AI, SaaS, and developer niches. Free to search.',
+    'Find 300+ verified British tech influencers. Browse UK creators in AI, SaaS, fintech, and developer niches. YouTube, LinkedIn, and Twitter/X. Rates from £400. European reach. Free to search.',
   keywords: [
     'tech influencers UK',
     'British tech creators',
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Find Tech Influencers in UK | Infoishai',
+    title: 'Tech Influencers UK | 300+ Verified British Creators | Infoishai',
     description:
-      'Find verified British tech influencers for your brand. Browse UK-based YouTubers, LinkedIn thought leaders, and Twitter experts. Free to search.',
+      'Find 300+ verified British tech influencers. Browse UK creators in AI, SaaS, fintech, and developer niches. YouTube, LinkedIn, and Twitter/X. Rates from £400. European reach. Free to search.',
     url: 'https://infoishai.com/influencers/uk',
     siteName: 'Infoishai',
     type: 'website',
@@ -44,9 +44,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Find Tech Influencers in UK | Infoishai',
+    title: 'Tech Influencers UK | 300+ Verified British Creators | Infoishai',
     description:
-      'Find verified British tech influencers for your brand. Browse UK-based YouTubers, LinkedIn thought leaders, and Twitter experts. Free to search.',
+      'Find 300+ verified British tech influencers. Browse UK creators in AI, SaaS, fintech, and developer niches. YouTube, LinkedIn, and Twitter/X. Rates from £400. European reach. Free to search.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/uk',

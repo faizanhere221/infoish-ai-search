@@ -6,8 +6,8 @@ import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, Target, User
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'B2B vs B2C Influencer Marketing: What Works for Tech in 2026',
-  description: 'B2B and B2C influencer marketing work differently for tech brands. Compare strategies, budgets, platforms, and ROI metrics. Data-backed guide with examples.',
+  title: 'B2B vs B2C Influencer Marketing: Key Differences for Tech Brands (2026)',
+  description: 'What are the differences between B2B and B2C influencer marketing? Side-by-side comparison of platforms, content formats, budgets, metrics, and creator selection for tech brands. Data-backed guide with rate tables.',
   keywords: [
     'B2B influencer marketing',
     'B2C influencer marketing',
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
     'influencer marketing budget',
   ],
   openGraph: {
-    title: 'B2B vs B2C Influencer Marketing: What Works for Tech in 2026',
-    description: 'B2B and B2C influencer marketing work differently for tech brands. Compare strategies, platforms, and ROI.',
+    title: 'B2B vs B2C Influencer Marketing: Key Differences for Tech Brands (2026)',
+    description: 'What are the differences between B2B and B2C influencer marketing? Side-by-side comparison of platforms, content formats, budgets, metrics, and creator selection for tech brands. Data-backed guide with rate tables.',
     type: 'article',
     publishedTime: '2026-07-15T00:00:00.000Z',
     authors: ['Infoishai Team'],
@@ -28,8 +28,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'B2B vs B2C Influencer Marketing: What Works for Tech in 2026',
-    description: 'B2B and B2C influencer marketing work differently for tech brands. Compare strategies, platforms, and ROI.',
+    title: 'B2B vs B2C Influencer Marketing: Key Differences for Tech Brands (2026)',
+    description: 'What are the differences between B2B and B2C influencer marketing? Side-by-side comparison of platforms, content formats, budgets, metrics, and creator selection for tech brands. Data-backed guide with rate tables.',
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/b2b-vs-b2c-influencer-marketing-tech-2026'
