@@ -23,6 +23,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '12',
+    title: 'How to Find Tech Influencers in India: Complete Guide for Brands',
+    excerpt: 'Find tech influencers in India for your brand. Covers vetting, rates (INR 5,000 to INR 5,00,000), platforms, niches, English vs Hindi creators, and outreach tips.',
+    date: '2026-07-28',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '16 min read',
+    slug: 'how-to-find-tech-influencers-india-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '11',
     title: 'Top B2C Influencer Marketing Strategies for Tech Brands in 2026',
     excerpt: 'B2C influencer marketing strategies for tech brands in 2026. Platform-by-platform playbook with real budgets, creator selection criteria, and ROI benchmarks.',
@@ -259,7 +272,7 @@ export default function BlogPage() {
                 <span className="ml-2 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">2</span>
               )}
               {category === 'Strategy' && (
-                <span className="ml-2 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">4</span>
+                <span className="ml-2 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">5</span>
               )}
             </button>
           ))}
