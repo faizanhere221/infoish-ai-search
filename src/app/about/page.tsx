@@ -30,8 +30,8 @@ import { Navigation, Footer } from '@/components/landing'
 // SEO METADATA
 // ============================================================================
 export const metadata: Metadata = {
-  title: 'About Infoishai | Free Tech Influencer Marketplace | 2,000+ Verified Creators',
-  description: 'Infoishai connects tech brands with 2,000+ verified creators across YouTube, Twitter/X, and LinkedIn. Free to search and message. Escrow-protected payments. Trusted by brands in 66 countries. No subscription fees.',
+  title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
+  description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Escrow payments. Trusted by startups and enterprises in 55+ countries.',
   keywords: [
     'about infoishai',
     'tech influencer platform',
@@ -42,16 +42,16 @@ export const metadata: Metadata = {
     'tech creator discovery',
   ],
   openGraph: {
-    title: 'About Infoishai | Free Tech Influencer Marketplace | 2,000+ Verified Creators',
-    description: 'Infoishai connects tech brands with 2,000+ verified creators across YouTube, Twitter/X, and LinkedIn. Free to search and message. Escrow-protected payments. Trusted by brands in 66 countries. No subscription fees.',
+    title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
+    description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Escrow payments. Trusted by startups and enterprises in 55+ countries.',
     url: 'https://infoishai.com/about',
     siteName: 'Infoishai',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'About Infoishai | Free Tech Influencer Marketplace | 2,000+ Verified Creators',
-    description: 'Infoishai connects tech brands with 2,000+ verified creators across YouTube, Twitter/X, and LinkedIn. Free to search and message. Escrow-protected payments. Trusted by brands in 66 countries. No subscription fees.',
+    title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
+    description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Escrow payments. Trusted by startups and enterprises in 55+ countries.',
   },
   alternates: {
     canonical: 'https://infoishai.com/about',
@@ -254,6 +254,7 @@ export default function AboutPage() {
             </div>
           </div>
         </div>
+        
       </section>
 
       {/* Values Section */}
