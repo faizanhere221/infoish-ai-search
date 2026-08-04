@@ -23,6 +23,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '13',
+    title: 'Tech Influencer Rates 2026: What Every Brand Should Know',
+    excerpt: 'Tech influencer rates by platform, country, and audience size for 2026. YouTube, LinkedIn, Twitter/X, Instagram pricing with data from 9 markets. Free rate guide.',
+    date: '2026-08-04',
+    author: 'Infoishai Team',
+    category: 'Marketing',
+    readTime: '17 min read',
+    slug: 'tech-influencer-rates-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '12',
     title: 'How to Find Tech Influencers in India: Complete Guide for Brands',
     excerpt: 'Find tech influencers in India for your brand. Covers vetting, rates (INR 5,000 to INR 5,00,000), platforms, niches, English vs Hindi creators, and outreach tips.',
