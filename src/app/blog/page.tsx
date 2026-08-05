@@ -23,6 +23,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '14',
+    title: 'How to Find Tech YouTubers for Product Reviews in 2026',
+    excerpt: 'Find tech YouTubers for your product review. Step-by-step guide to searching, vetting, and hiring YouTube creators in AI, SaaS, and developer niches. Free database.',
+    date: '2026-08-05',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '18 min read',
+    slug: 'how-to-find-tech-youtubers-product-reviews-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '13',
     title: 'Tech Influencer Rates 2026: What Every Brand Should Know',
     excerpt: 'Tech influencer rates by platform, country, and audience size for 2026. YouTube, LinkedIn, Twitter/X, Instagram pricing with data from 9 markets. Free rate guide.',
