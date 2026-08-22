@@ -78,6 +78,7 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
   ] : [
     { href: '/dashboard/creator', label: 'Dashboard' },
     { href: '/campaigns', label: 'Campaigns' },
+    { href: '/dashboard/applications', label: 'My Applications' },
     { href: '/messages', label: 'Messages', badge: unreadMessages },
     { href: '/settings', label: 'Settings' },
   ]

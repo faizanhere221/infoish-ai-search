@@ -12,8 +12,10 @@ import {
   Pencil,
   Eye,
   XCircle,
+  ArrowRight,
 } from 'lucide-react'
-import type { Campaign } from '@/types/campaigns'
+import type { Campaign, ApplicationStatus } from '@/types/campaigns'
+import ApplicationStatusBadge from '@/components/applications/ApplicationStatusBadge'
 import {
   formatBudget,
   formatDate,
@@ -25,14 +27,16 @@ import {
 
 export type CampaignViewerRole = 'creator' | 'owner' | 'other'
 
+export interface MyApplicationSummary {
+  id: string
+  status: ApplicationStatus
+}
+
 interface CampaignDetailProps {
   campaign: Campaign
   viewerRole: CampaignViewerRole
   isLoggedIn: boolean
-  hasApplied: boolean
-  applying: boolean
-  applyError: string | null
-  onApply: () => void
+  myApplication: MyApplicationSummary | null
   closing: boolean
   onClose: () => void
 }
@@ -41,10 +45,7 @@ export default function CampaignDetail({
   campaign,
   viewerRole,
   isLoggedIn,
-  hasApplied,
-  applying,
-  applyError,
-  onApply,
+  myApplication,
   closing,
   onClose,
 }: CampaignDetailProps) {
@@ -190,13 +191,7 @@ export default function CampaignDetail({
         {/* Actions */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
           {viewerRole === 'creator' && (
-            <CreatorActions
-              deadline={deadline}
-              hasApplied={hasApplied}
-              applying={applying}
-              applyError={applyError}
-              onApply={onApply}
-            />
+            <CreatorActions campaignId={campaign.id} deadline={deadline} myApplication={myApplication} />
           )}
 
           {viewerRole === 'owner' && (
@@ -218,23 +213,32 @@ export default function CampaignDetail({
 }
 
 function CreatorActions({
+  campaignId,
   deadline,
-  hasApplied,
-  applying,
-  applyError,
-  onApply,
+  myApplication,
 }: {
+  campaignId: string
   deadline: ReturnType<typeof getDeadlineInfo>
-  hasApplied: boolean
-  applying: boolean
-  applyError: string | null
-  onApply: () => void
+  myApplication: MyApplicationSummary | null
 }) {
-  if (hasApplied) {
+  if (myApplication) {
     return (
-      <div className="flex items-center gap-2 px-4 py-3 bg-violet-50 text-violet-700 rounded-lg text-sm font-medium">
-        <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-        Application submitted
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 px-4 py-3 bg-violet-50 text-violet-700 rounded-lg text-sm font-medium">
+          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+          Application Submitted
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-500">Status</span>
+          <ApplicationStatusBadge status={myApplication.status} />
+        </div>
+        <Link
+          href={`/dashboard/applications/${myApplication.id}`}
+          className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50"
+        >
+          View My Application
+          <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
     )
   }
@@ -249,18 +253,12 @@ function CreatorActions({
   }
 
   return (
-    <div>
-      <button
-        type="button"
-        onClick={onApply}
-        disabled={applying}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-700 disabled:opacity-50"
-      >
-        {applying && <Loader2 className="w-4 h-4 animate-spin" />}
-        Apply Now
-      </button>
-      {applyError && <p className="mt-2 text-sm text-red-600">{applyError}</p>}
-    </div>
+    <Link
+      href={`/campaigns/${campaignId}/apply`}
+      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-700"
+    >
+      Apply Now
+    </Link>
   )
 }
 
