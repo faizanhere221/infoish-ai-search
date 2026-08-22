@@ -9,6 +9,8 @@ export type NotificationType =
   | 'deal_completed'
   | 'deal_revision'
   | 'new_message'
+  | 'campaign_application'
+  | 'campaign_application_update'
 
 interface NotificationPayload {
   userId: string
