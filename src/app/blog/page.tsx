@@ -23,6 +23,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '16',
+    title: 'How Much Should Tech Creators Charge for Sponsorships? (2026)',
+    excerpt: 'Tech creator sponsorship rates for 2026. Pricing formulas by platform, audience size, and niche. Rate cards for YouTube, LinkedIn, Twitter/X, and newsletters.',
+    date: '2026-08-12',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '16 min read',
+    slug: 'tech-creator-sponsorship-rates-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '15',
     title: 'How to Run Your First Tech Influencer Campaign: Startup Guide',
     excerpt: 'Run your first tech influencer campaign step by step. Built for startups. Covers budgets from $500, creator selection, briefs, tracking, and scaling. Free tools.',
