@@ -5,6 +5,8 @@ import {
   AboutSection,
   HowInfoishaiWorksSection,
   TrustedBySection,
+  ForBrandsSection,
+  ForCreatorsSection,
   ProblemSection,
   SolutionSection,
   PlatformSection,
@@ -258,7 +260,13 @@ export default function HomePage() {
 
         {/* Social Proof */}
         <TrustedBySection />
-        
+
+        {/* For Brands - what brands get from the platform */}
+        <ForBrandsSection />
+
+        {/* For Creators - what creators get from the platform */}
+        <ForCreatorsSection />
+
         {/* Problem Section */}
         <ProblemSection />
         

@@ -424,6 +424,157 @@ export function TrustedBySection() {
 }
 
 // ============================================================================
+// FOR BRANDS SECTION
+// ============================================================================
+export function ForBrandsSection() {
+  const features = [
+    {
+      icon: Search,
+      title: 'Free Search',
+      description: 'Browse and message creators at no cost. No signup fees. No subscription.',
+    },
+    {
+      icon: CheckCircle,
+      title: 'Verified Creators',
+      description: 'Every creator profile is verified. Real engagement data. Real audience metrics.',
+    },
+    {
+      icon: Shield,
+      title: 'Escrow Payments',
+      description: 'Pay securely through escrow. Funds are released when deliverables are confirmed.',
+    },
+  ]
+
+  return (
+    <section className="py-20 lg:py-32 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Find the Right Tech Creators for Your Brand
+          </h2>
+          <div className="max-w-3xl mx-auto space-y-5 text-lg text-gray-600 leading-relaxed">
+            <p>
+              Infoishai gives your brand direct access to 2,000+ verified tech influencers across
+              YouTube, Twitter/X, LinkedIn, Instagram, and newsletters. Search creators by niche,
+              platform, audience size, country, and engagement rate. Every profile is verified.
+              Every creator is active and accepting partnerships.
+            </p>
+            <p>
+              Search and message creators for free. No subscription fees. No platform commissions
+              on search. When you are ready to launch a campaign, Infoishai&apos;s escrow payment
+              system protects both your budget and the creator&apos;s work. Pay when deliverables
+              are confirmed. Run campaigns across 9 countries from a single dashboard.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
+          {features.map((feature, index) => (
+            <div key={index} className="p-8 bg-gray-50 rounded-2xl border border-gray-100">
+              <div className="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center mb-6">
+                <feature.icon className="w-7 h-7 text-violet-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
+              <p className="text-gray-600">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link
+            href="/creators"
+            className="w-full sm:w-auto px-6 py-3 bg-gray-900 text-white rounded-full font-semibold hover:bg-gray-800 transition-colors text-center"
+          >
+            Browse Tech Influencers
+          </Link>
+          <Link
+            href="/signup/brand"
+            className="w-full sm:w-auto px-6 py-3 bg-violet-50 text-violet-700 rounded-full font-semibold hover:bg-violet-100 transition-colors text-center"
+          >
+            Sign Up Free as a Brand
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
+// FOR CREATORS SECTION
+// ============================================================================
+export function ForCreatorsSection() {
+  const features = [
+    {
+      icon: Users,
+      title: 'Get Found',
+      description: 'Brands search by niche and platform. Your profile appears when your skills match their campaign.',
+    },
+    {
+      icon: DollarSign,
+      title: 'Set Your Rates',
+      description: 'You control your pricing. No rate caps. No undercutting. Your content, your rates.',
+    },
+    {
+      icon: Shield,
+      title: 'Secure Payments',
+      description: 'Escrow protects your work. Funds are held until the brand confirms deliverables.',
+    },
+  ]
+
+  return (
+    <section className="py-20 lg:py-32 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Get Discovered by Tech Brands
+          </h2>
+          <div className="max-w-3xl mx-auto space-y-5 text-lg text-gray-600 leading-relaxed">
+            <p>
+              You create tech content. Brands want to reach your audience. Infoishai connects you
+              with companies looking for creators in AI, SaaS, developer tools, cloud, fintech,
+              cybersecurity, and 10+ other niches. Create your profile in 5 minutes and start
+              receiving partnership requests directly from brands.
+            </p>
+            <p>
+              Set your own rates. Choose the brands you work with. Manage deliverables and
+              timelines through the platform. Get paid securely through escrow. No exclusivity
+              requirements. No platform fees on your earnings.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
+          {features.map((feature, index) => (
+            <div key={index} className="p-8 bg-white rounded-2xl border border-gray-100">
+              <div className="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center mb-6">
+                <feature.icon className="w-7 h-7 text-violet-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
+              <p className="text-gray-600">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link
+            href="/signup/creator"
+            className="w-full sm:w-auto px-6 py-3 bg-gray-900 text-white rounded-full font-semibold hover:bg-gray-800 transition-colors text-center"
+          >
+            Join as a Creator
+          </Link>
+          <Link
+            href="/creators"
+            className="w-full sm:w-auto px-6 py-3 bg-violet-50 text-violet-700 rounded-full font-semibold hover:bg-violet-100 transition-colors text-center"
+          >
+            See Creator Profiles
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
 // PROBLEM SECTION
 // ============================================================================
 export function ProblemSection() {
