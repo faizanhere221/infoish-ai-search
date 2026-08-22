@@ -1,6 +1,19 @@
 import { CAMPAIGN_CATEGORIES, PLATFORMS } from '@/types/campaigns'
 import type { Campaign, CampaignStatus } from '@/types/campaigns'
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: '$',
+  CAD: '$',
+  AUD: '$',
+  GBP: '£',
+  EUR: '€',
+}
+
+export function formatMoney(amount: number, currency: string): string {
+  const symbol = CURRENCY_SYMBOLS[currency]
+  return symbol ? `${symbol}${amount.toLocaleString()}` : `${amount.toLocaleString()} ${currency}`
+}
+
 export function formatBudget(
   campaign: Pick<Campaign, 'budget_type' | 'budget_min' | 'budget_max' | 'currency'>
 ): string {
@@ -8,16 +21,32 @@ export function formatBudget(
 
   const { budget_min, budget_max, currency } = campaign
   if (budget_min != null && budget_max != null && budget_min !== budget_max) {
-    return `${currency} ${budget_min.toLocaleString()} - ${budget_max.toLocaleString()}`
+    return `${formatMoney(budget_min, currency)} - ${formatMoney(budget_max, currency)}`
   }
   const single = budget_max ?? budget_min
-  if (single != null) return `${currency} ${single.toLocaleString()}`
+  if (single != null) return formatMoney(single, currency)
   return 'Not specified'
 }
 
 export function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+// Relative for anything within the last week ("2 hours ago"), falling back
+// to an absolute date beyond that — matches the common feed/activity convention.
+export function formatRelativeDate(dateStr: string | null): string {
+  if (!dateStr) return '—'
+  const diffMs = Date.now() - new Date(dateStr).getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  const diffHour = Math.floor(diffMin / 60)
+  const diffDay = Math.floor(diffHour / 24)
+
+  if (diffMin < 1) return 'just now'
+  if (diffMin < 60) return `${diffMin} minute${diffMin === 1 ? '' : 's'} ago`
+  if (diffHour < 24) return `${diffHour} hour${diffHour === 1 ? '' : 's'} ago`
+  if (diffDay < 7) return `${diffDay} day${diffDay === 1 ? '' : 's'} ago`
+  return formatDate(dateStr)
 }
 
 export interface DeadlineInfo {

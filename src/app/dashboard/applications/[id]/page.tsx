@@ -92,7 +92,7 @@ export default function ApplicationDetailPage() {
         setActionError(data.error || 'Failed to withdraw application')
         return
       }
-      router.push('/dashboard/applications')
+      router.push('/dashboard/applications?withdrawn=1')
     } catch {
       setActionError('Network error — please try again')
     } finally {

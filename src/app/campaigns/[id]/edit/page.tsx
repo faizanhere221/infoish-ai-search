@@ -120,7 +120,7 @@ export default function EditCampaignPage() {
       if (!res.ok) {
         return { success: false, error: data.error || 'Failed to save changes' }
       }
-      router.push(`/campaigns/${campaignId}`)
+      router.push(`/campaigns/${campaignId}?updated=1`)
       return { success: true }
     } catch {
       return { success: false, error: 'Network error — please try again' }
@@ -152,7 +152,7 @@ export default function EditCampaignPage() {
         }
       }
 
-      router.push(`/campaigns/${campaignId}`)
+      router.push(`/campaigns/${campaignId}?published=1`)
       return { success: true }
     } catch {
       return { success: false, error: 'Network error — please try again' }

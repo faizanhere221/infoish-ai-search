@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Briefcase, Loader2, Search } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { AlertCircle, Briefcase, CheckCircle2, Loader2, RotateCcw, Search } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import ApplicationCard from '@/components/applications/ApplicationCard'
 import type { ApplicationStatus, CampaignApplication } from '@/types/campaigns'
@@ -25,48 +25,76 @@ interface Profile {
 }
 
 export default function MyApplicationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+        </div>
+      }
+    >
+      <MyApplicationsPageContent />
+    </Suspense>
+  )
+}
+
+function MyApplicationsPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [applications, setApplications] = useState<CampaignApplication[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [tab, setTab] = useState<Tab>('all')
+  const [showWithdrawnToast, setShowWithdrawnToast] = useState(searchParams.get('withdrawn') === '1')
 
   useEffect(() => {
-    async function load() {
-      const userStr = localStorage.getItem('auth_user')
-      const profileStr = localStorage.getItem('auth_profile')
-      const token = localStorage.getItem('auth_token')
+    if (!showWithdrawnToast) return
+    const timer = setTimeout(() => setShowWithdrawnToast(false), 3000)
+    return () => clearTimeout(timer)
+  }, [showWithdrawnToast])
 
-      if (!userStr || !token) {
-        router.push('/login')
-        return
-      }
+  const load = useCallback(async () => {
+    const userStr = localStorage.getItem('auth_user')
+    const profileStr = localStorage.getItem('auth_profile')
+    const token = localStorage.getItem('auth_token')
 
-      const user = JSON.parse(userStr)
-      if (user.user_type !== 'creator') {
-        router.push('/dashboard/brand')
-        return
-      }
-
-      setProfile(profileStr ? JSON.parse(profileStr) : null)
-
-      try {
-        const res = await fetch('/api/applications', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.ok) {
-          const data = await res.json()
-          setApplications(data.applications || [])
-        }
-      } catch (err) {
-        console.error('Error fetching applications:', err)
-      } finally {
-        setLoading(false)
-      }
+    if (!userStr || !token) {
+      router.push('/login')
+      return
     }
 
-    load()
+    const user = JSON.parse(userStr)
+    if (user.user_type !== 'creator') {
+      router.push('/dashboard/brand')
+      return
+    }
+
+    setProfile(profileStr ? JSON.parse(profileStr) : null)
+    setLoading(true)
+    setLoadError(false)
+
+    try {
+      const res = await fetch('/api/applications', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setApplications(data.applications || [])
+      } else {
+        setLoadError(true)
+      }
+    } catch (err) {
+      console.error('Error fetching applications:', err)
+      setLoadError(true)
+    } finally {
+      setLoading(false)
+    }
   }, [router])
+
+  useEffect(() => {
+    load()
+  }, [load])
 
   const statusCounts = useMemo(
     () => ({
@@ -122,7 +150,20 @@ export default function MyApplicationsPage() {
           ))}
         </div>
 
-        {filteredApplications.length > 0 ? (
+        {loadError ? (
+          <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
+            <AlertCircle className="w-12 h-12 text-red-300 mx-auto" />
+            <h3 className="mt-4 font-semibold text-gray-900">Couldn't load your applications</h3>
+            <p className="text-gray-500 mt-1">Something went wrong. Please try again.</p>
+            <button
+              onClick={load}
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Retry
+            </button>
+          </div>
+        ) : filteredApplications.length > 0 ? (
           <div className="space-y-4">
             {filteredApplications.map((application) => (
               <ApplicationCard key={application.id} application={application} />
@@ -132,11 +173,11 @@ export default function MyApplicationsPage() {
           <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
             <Briefcase className="w-12 h-12 text-gray-300 mx-auto" />
             <h3 className="mt-4 font-semibold text-gray-900">
-              {applications.length === 0 ? "You haven't applied to any campaigns yet" : 'No applications in this view'}
+              {applications.length === 0 ? 'No applications yet' : 'No applications in this view'}
             </h3>
             <p className="text-gray-500 mt-1">
               {applications.length === 0
-                ? 'Browse campaigns and apply to ones that match your niche.'
+                ? 'Browse campaigns and apply to get started.'
                 : 'Try a different tab.'}
             </p>
             {applications.length === 0 && (
@@ -151,6 +192,13 @@ export default function MyApplicationsPage() {
           </div>
         )}
       </main>
+
+      {showWithdrawnToast && (
+        <div className="fixed bottom-6 right-6 flex items-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-xl shadow-lg text-sm z-50">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          Application withdrawn
+        </div>
+      )}
     </div>
   )
 }

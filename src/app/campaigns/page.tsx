@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Loader2 } from 'lucide-react'
+import { AlertCircle, Loader2, RotateCcw, Sparkles } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import CampaignList from '@/components/campaigns/CampaignList'
 import CampaignFilters, { EMPTY_FILTERS, type CampaignFilterState } from '@/components/campaigns/CampaignFilters'
@@ -35,6 +35,7 @@ export default function CampaignsPage() {
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
   const [filters, setFilters] = useState<CampaignFilterState>(EMPTY_FILTERS)
   const [sortBy, setSortBy] = useState<SortOption>('newest')
@@ -55,28 +56,31 @@ export default function CampaignsPage() {
     setAuthChecked(true)
   }, [router])
 
+  const fetchCampaigns = useCallback(async () => {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      const token = localStorage.getItem('auth_token')
+      const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
+      const res = await fetch('/api/campaigns?limit=50', { headers })
+      if (res.ok) {
+        const data = await res.json()
+        setCampaigns(data.campaigns || [])
+      } else {
+        setLoadError(true)
+      }
+    } catch (err) {
+      console.error('Error fetching campaigns:', err)
+      setLoadError(true)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     if (!authChecked) return
-
-    async function fetchCampaigns() {
-      setLoading(true)
-      try {
-        const token = localStorage.getItem('auth_token')
-        const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
-        const res = await fetch('/api/campaigns?limit=50', { headers })
-        if (res.ok) {
-          const data = await res.json()
-          setCampaigns(data.campaigns || [])
-        }
-      } catch (err) {
-        console.error('Error fetching campaigns:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchCampaigns()
-  }, [authChecked])
+  }, [authChecked, fetchCampaigns])
 
   const filteredCampaigns = useMemo(() => {
     return campaigns.filter((c) => {
@@ -167,27 +171,42 @@ export default function CampaignsPage() {
           </div>
         </div>
 
-        <CampaignList
-          campaigns={sortedCampaigns}
-          variant="creator"
-          loading={loading}
-          emptyTitle={campaigns.length === 0 ? 'No campaigns available yet' : 'No campaigns match your filters'}
-          emptyDescription={
-            campaigns.length === 0
-              ? 'Check back soon — brands are getting set up.'
-              : 'Try adjusting or clearing your filters.'
-          }
-          emptyAction={
-            activeFilterCount > 0 || filters.search ? (
-              <button
-                onClick={() => setFilters(EMPTY_FILTERS)}
-                className="px-4 py-2 text-violet-600 hover:bg-violet-50 rounded-lg font-medium"
-              >
-                Clear all filters
-              </button>
-            ) : undefined
-          }
-        />
+        {loadError ? (
+          <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
+            <AlertCircle className="w-12 h-12 text-red-300 mx-auto" />
+            <h3 className="mt-4 font-semibold text-gray-900">Couldn't load campaigns</h3>
+            <p className="text-gray-500 mt-1">Something went wrong. Please try again.</p>
+            <button
+              onClick={fetchCampaigns}
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Retry
+            </button>
+          </div>
+        ) : (
+          <CampaignList
+            campaigns={sortedCampaigns}
+            variant="creator"
+            loading={loading}
+            emptyTitle={campaigns.length === 0 ? 'No campaigns yet' : 'No campaigns match your filters'}
+            emptyDescription={
+              campaigns.length === 0
+                ? 'Check back soon! Brands are creating campaigns.'
+                : 'Try adjusting or clearing your filters.'
+            }
+            emptyAction={
+              activeFilterCount > 0 || filters.search ? (
+                <button
+                  onClick={() => setFilters(EMPTY_FILTERS)}
+                  className="px-4 py-2 text-violet-600 hover:bg-violet-50 rounded-lg font-medium"
+                >
+                  Clear all filters
+                </button>
+              ) : undefined
+            }
+          />
+        )}
       </main>
     </div>
   )

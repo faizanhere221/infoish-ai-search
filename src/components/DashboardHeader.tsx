@@ -21,6 +21,7 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
   const pathname = usePathname()
   const [unreadMessages, setUnreadMessages] = useState(0)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
+  const [campaignBadgeCount, setCampaignBadgeCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -64,6 +65,28 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
           setUnreadNotifications(notifData.unread_count ?? 0)
         }
       }
+
+      // Fetch campaign-related count badge: active campaigns for brands,
+      // total applications for creators
+      if (authToken) {
+        if (userType === 'brand') {
+          const campaignsRes = await fetch('/api/campaigns?status=published&limit=50', {
+            headers: { Authorization: `Bearer ${authToken}` },
+          })
+          if (campaignsRes.ok) {
+            const campaignsData = await campaignsRes.json()
+            setCampaignBadgeCount(campaignsData.total ?? (campaignsData.campaigns || []).length)
+          }
+        } else {
+          const applicationsRes = await fetch('/api/applications', {
+            headers: { Authorization: `Bearer ${authToken}` },
+          })
+          if (applicationsRes.ok) {
+            const applicationsData = await applicationsRes.json()
+            setCampaignBadgeCount((applicationsData.applications || []).length)
+          }
+        }
+      }
     } catch (err) {
       console.error('Error fetching unread counts:', err)
     }
@@ -72,13 +95,15 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
   const navItems = userType === 'brand' ? [
     { href: '/dashboard/brand', label: 'Dashboard' },
     { href: '/creators', label: 'Find Creators' },
-    { href: '/dashboard/campaigns', label: 'My Campaigns' },
+    { href: '/dashboard/campaigns', label: 'My Campaigns', countBadge: campaignBadgeCount },
     { href: '/messages', label: 'Messages', badge: unreadMessages },
     { href: '/dashboard/deals', label: 'My Deals' },
+    { href: '/settings/brand', label: 'Settings' },
   ] : [
     { href: '/dashboard/creator', label: 'Dashboard' },
+    { href: '/creators', label: 'Find Creators' },
     { href: '/campaigns', label: 'Campaigns' },
-    { href: '/dashboard/applications', label: 'My Applications' },
+    { href: '/dashboard/applications', label: 'My Applications', countBadge: campaignBadgeCount },
     { href: '/messages', label: 'Messages', badge: unreadMessages },
     { href: '/settings', label: 'Settings' },
   ]
@@ -119,6 +144,11 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
                   {item.badge && item.badge > 0 && (
                     <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full min-w-[20px] text-center font-bold">
                       {item.badge}
+                    </span>
+                  )}
+                  {item.countBadge !== undefined && item.countBadge > 0 && (
+                    <span className="px-1.5 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full min-w-[20px] text-center font-semibold">
+                      {item.countBadge}
                     </span>
                   )}
                 </Link>
@@ -191,6 +221,11 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
                   {item.badge && item.badge > 0 && (
                     <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full font-bold">
                       {item.badge}
+                    </span>
+                  )}
+                  {item.countBadge !== undefined && item.countBadge > 0 && (
+                    <span className="px-1.5 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full font-semibold">
+                      {item.countBadge}
                     </span>
                   )}
                 </Link>

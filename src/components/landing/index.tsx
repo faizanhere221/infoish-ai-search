@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import NewsletterForm from '@/components/NewsletterForm'
+import ProfileDropdown from '@/components/ProfileDropdown'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
 import {
   Sparkles, 
@@ -42,11 +43,25 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [countriesOpen, setCountriesOpen] = useState(false)
   const [mobileCountriesOpen, setMobileCountriesOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userType, setUserType] = useState<'brand' | 'creator' | null>(null)
+  const [profile, setProfile] = useState<any>(null)
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('auth_user')
+    const profileStr = localStorage.getItem('auth_profile')
+    if (userStr) {
+      const user = JSON.parse(userStr)
+      setIsLoggedIn(true)
+      setUserType(user.user_type)
+      setProfile(profileStr ? JSON.parse(profileStr) : null)
+    }
   }, [])
 
   return (
@@ -68,7 +83,11 @@ export function Navigation() {
             <Link href="/creators" className="text-gray-600 hover:text-gray-900 font-medium">
               Find Creators
             </Link>
-            
+
+            <Link href="/campaigns" className="text-gray-600 hover:text-gray-900 font-medium">
+              Campaigns
+            </Link>
+
             <Link href="/blog" className="text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1">
               <BookOpen className="w-4 h-4" />
               Blog
@@ -121,15 +140,29 @@ export function Navigation() {
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center gap-4">
-            <Link href="/login" className="text-gray-600 hover:text-gray-900 font-medium">
-              Log in
-            </Link>
-            <Link 
-              href="/signup" 
-              className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-full font-medium hover:shadow-lg hover:shadow-violet-500/25 transition-all"
-            >
-              Get Started Free
-            </Link>
+            {isLoggedIn && userType ? (
+              <>
+                <Link
+                  href={userType === 'brand' ? '/dashboard/brand' : '/dashboard/creator'}
+                  className="text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  Dashboard
+                </Link>
+                <ProfileDropdown userType={userType} profile={profile} />
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="text-gray-600 hover:text-gray-900 font-medium">
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-full font-medium hover:shadow-lg hover:shadow-violet-500/25 transition-all"
+                >
+                  Get Started Free
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -148,7 +181,11 @@ export function Navigation() {
               <Link href="/creators" className="text-gray-600 hover:text-gray-900 font-medium py-2">
                 Find Creators
               </Link>
-              
+
+              <Link href="/campaigns" className="text-gray-600 hover:text-gray-900 font-medium py-2">
+                Campaigns
+              </Link>
+
               <Link href="/blog" className="text-gray-600 hover:text-gray-900 font-medium py-2">
                 Blog
               </Link>
@@ -195,15 +232,31 @@ export function Navigation() {
                 Contact
               </Link>
               <div className="flex flex-col gap-2 pt-4 border-t border-gray-100">
-                <Link href="/login" className="text-center py-2 text-gray-600 font-medium">
-                  Log in
-                </Link>
-                <Link 
-                  href="/signup" 
-                  className="text-center py-3 bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-full font-medium"
-                >
-                  Get Started Free
-                </Link>
+                {isLoggedIn && userType ? (
+                  <>
+                    <Link
+                      href={userType === 'brand' ? '/dashboard/brand' : '/dashboard/creator'}
+                      className="text-center py-2 text-gray-600 font-medium"
+                    >
+                      Dashboard
+                    </Link>
+                    <div className="flex justify-center">
+                      <ProfileDropdown userType={userType} profile={profile} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" className="text-center py-2 text-gray-600 font-medium">
+                      Log in
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className="text-center py-3 bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-full font-medium"
+                    >
+                      Get Started Free
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -277,12 +277,12 @@ export default function CampaignWizard({
         </div>
       )}
 
-      <div className="flex items-center justify-between mt-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-6">
         <button
           type="button"
           onClick={handleBack}
           disabled={currentStep === 1 || isBusy}
-          className="px-4 py-3 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="order-2 sm:order-1 px-4 py-3 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Back
         </button>
@@ -291,17 +291,17 @@ export default function CampaignWizard({
           <button
             type="button"
             onClick={handleNext}
-            className="px-6 py-3 bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-700"
+            className="order-1 sm:order-2 px-6 py-3 bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-700"
           >
             Next
           </button>
         ) : (
-          <div className="flex gap-3">
+          <div className="order-1 sm:order-2 flex flex-col sm:flex-row gap-3">
             <button
               type="button"
               onClick={handleSaveDraft}
               disabled={isBusy}
-              className="flex items-center gap-2 px-4 py-3 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 disabled:opacity-50"
             >
               {isSavingDraft && <Loader2 className="w-4 h-4 animate-spin" />}
               {saveDraftLabel}
@@ -310,7 +310,7 @@ export default function CampaignWizard({
               type="button"
               onClick={handlePublish}
               disabled={isBusy}
-              className="flex items-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-700 disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-700 disabled:opacity-50"
             >
               {isPublishing && <Loader2 className="w-4 h-4 animate-spin" />}
               Publish Campaign
