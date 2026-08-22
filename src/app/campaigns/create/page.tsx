@@ -56,7 +56,7 @@ export default function CreateCampaignPage() {
         return { success: false, error: data.error || 'Failed to save draft' }
       }
 
-      router.push('/campaigns')
+      router.push('/dashboard/campaigns?created=1')
       return { success: true }
     } catch {
       return { success: false, error: 'Network error — please try again' }
@@ -96,7 +96,7 @@ export default function CreateCampaignPage() {
         }
       }
 
-      router.push(`/campaigns/${campaignId}`)
+      router.push(`/campaigns/${campaignId}?published=1`)
       return { success: true }
     } catch {
       return { success: false, error: 'Network error — please try again' }

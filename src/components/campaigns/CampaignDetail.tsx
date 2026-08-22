@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import {
   Calendar,
@@ -91,7 +92,7 @@ export default function CampaignDetail({
         {campaign.description && (
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="font-semibold text-gray-900 mb-3">Description</h2>
-            <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{campaign.description}</p>
+            <DescriptionText text={campaign.description} />
           </div>
         )}
 
@@ -324,6 +325,29 @@ function OwnerActions({
         >
           {reopening ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
           Reopen Campaign
+        </button>
+      )}
+    </div>
+  )
+}
+
+const DESCRIPTION_TRUNCATE_LENGTH = 400
+
+function DescriptionText({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const isLong = text.length > DESCRIPTION_TRUNCATE_LENGTH
+  const shown = expanded || !isLong ? text : `${text.slice(0, DESCRIPTION_TRUNCATE_LENGTH).trimEnd()}…`
+
+  return (
+    <div>
+      <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{shown}</p>
+      {isLong && (
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          className="mt-2 text-sm font-medium text-violet-600 hover:text-violet-700"
+        >
+          {expanded ? 'Show less' : 'Read more'}
         </button>
       )}
     </div>

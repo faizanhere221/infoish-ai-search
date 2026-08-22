@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle2, Loader2, Users } from 'lucide-react'
+import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, RotateCcw, Users } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import ApplicantCard from '@/components/applications/ApplicantCard'
 import { STATUS_BADGE, formatDate, getDeadlineInfo } from '@/components/campaigns/utils'
@@ -34,6 +34,7 @@ export default function CampaignApplicationsPage() {
   const [campaign, setCampaign] = useState<Campaign | null>(null)
   const [applications, setApplications] = useState<CampaignApplication[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [tab, setTab] = useState<Tab>('all')
 
   const [pendingId, setPendingId] = useState<string | null>(null)
@@ -62,6 +63,8 @@ export default function CampaignApplicationsPage() {
       return
     }
     setProfile(userProfile)
+    setLoading(true)
+    setLoadError(false)
 
     try {
       const campaignRes = await fetch(`/api/campaigns/${campaignId}`, {
@@ -86,9 +89,12 @@ export default function CampaignApplicationsPage() {
       if (appsRes.ok) {
         const appsData = await appsRes.json()
         setApplications(appsData.applications || [])
+      } else {
+        setLoadError(true)
       }
     } catch (err) {
       console.error('Error loading applications:', err)
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
@@ -196,7 +202,7 @@ export default function CampaignApplicationsPage() {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats bar */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-xl border border-gray-200 p-5 text-center">
             <p className="text-2xl font-bold text-gray-900">{applications.length}</p>
             <p className="text-sm text-gray-500 mt-1">Total Applications</p>
@@ -232,7 +238,20 @@ export default function CampaignApplicationsPage() {
         </div>
 
         {/* Applications */}
-        {filteredApplications.length > 0 ? (
+        {loadError ? (
+          <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
+            <AlertCircle className="w-12 h-12 text-red-300 mx-auto" />
+            <h3 className="mt-4 font-semibold text-gray-900">Couldn't load applications</h3>
+            <p className="text-gray-500 mt-1">Something went wrong. Please try again.</p>
+            <button
+              onClick={load}
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Retry
+            </button>
+          </div>
+        ) : filteredApplications.length > 0 ? (
           <div className="space-y-4">
             {filteredApplications.map((application) => (
               <ApplicantCard
@@ -253,7 +272,7 @@ export default function CampaignApplicationsPage() {
             </h3>
             <p className="text-gray-500 mt-1">
               {applications.length === 0
-                ? 'Applications will show up here once creators start applying.'
+                ? 'Share your campaign to attract creators.'
                 : 'Try a different tab.'}
             </p>
           </div>

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Calendar, DollarSign, ArrowRight } from 'lucide-react'
 import type { CampaignApplication } from '@/types/campaigns'
-import { formatDate } from '@/components/campaigns/utils'
+import { formatRelativeDate } from '@/components/campaigns/utils'
 import ApplicationStatusBadge from './ApplicationStatusBadge'
 
 interface ApplicationCardProps {
@@ -27,7 +27,7 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
         <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-500">
           <span className="flex items-center gap-1">
             <Calendar className="w-4 h-4" />
-            Applied {formatDate(application.created_at)}
+            Applied {formatRelativeDate(application.created_at)}
           </span>
           {application.proposed_rate != null && (
             <span className="flex items-center gap-1">

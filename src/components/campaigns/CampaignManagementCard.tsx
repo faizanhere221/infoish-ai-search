@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Calendar, Eye, Loader2, Pencil, RotateCcw, Users, XCircle } from 'lucide-react'
 import type { Campaign } from '@/types/campaigns'
-import { STATUS_BADGE, categoryLabel, formatDate } from './utils'
+import { STATUS_BADGE, categoryLabel, formatRelativeDate } from './utils'
 
 interface CampaignManagementCardProps {
   campaign: Campaign
@@ -41,7 +41,7 @@ export default function CampaignManagementCard({ campaign, onClose, onReopen, pe
 
       <p className="flex items-center gap-1 mt-3 text-sm text-gray-500">
         <Calendar className="w-4 h-4" />
-        Created {formatDate(campaign.created_at)}
+        Created {formatRelativeDate(campaign.created_at)}
       </p>
 
       <div className="flex-1" />

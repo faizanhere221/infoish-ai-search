@@ -1,9 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Loader2, Megaphone, Plus } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { AlertCircle, CheckCircle2, Loader2, Megaphone, Plus, RotateCcw } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import CampaignManagementCard from '@/components/campaigns/CampaignManagementCard'
 import type { Campaign } from '@/types/campaigns'
@@ -23,12 +23,36 @@ interface Profile {
 }
 
 export default function BrandCampaignsDashboard() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+        </div>
+      }
+    >
+      <BrandCampaignsDashboardContent />
+    </Suspense>
+  )
+}
+
+function BrandCampaignsDashboardContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [tab, setTab] = useState<Tab>('all')
   const [pendingId, setPendingId] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(
+    searchParams.get('created') === '1' ? 'Campaign saved as draft' : null
+  )
+
+  function showToast(message: string) {
+    setToast(message)
+    setTimeout(() => setToast(null), 3000)
+  }
 
   const load = useCallback(async () => {
     const userStr = localStorage.getItem('auth_user')
@@ -47,6 +71,8 @@ export default function BrandCampaignsDashboard() {
     }
 
     setProfile(profileStr ? JSON.parse(profileStr) : null)
+    setLoading(true)
+    setLoadError(false)
 
     try {
       const res = await fetch('/api/campaigns?limit=50', {
@@ -55,9 +81,12 @@ export default function BrandCampaignsDashboard() {
       if (res.ok) {
         const data = await res.json()
         setCampaigns(data.campaigns || [])
+      } else {
+        setLoadError(true)
       }
     } catch (err) {
       console.error('Error fetching campaigns:', err)
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
@@ -99,6 +128,7 @@ export default function BrandCampaignsDashboard() {
       })
       if (res.ok) {
         setCampaigns((prev) => prev.map((c) => (c.id === campaignId ? { ...c, status: 'closed' } : c)))
+        showToast('Campaign closed')
       }
     } catch (err) {
       console.error('Error closing campaign:', err)
@@ -118,6 +148,7 @@ export default function BrandCampaignsDashboard() {
       if (res.ok) {
         const data = await res.json()
         setCampaigns((prev) => prev.map((c) => (c.id === campaignId ? data.campaign : c)))
+        showToast('Campaign reopened')
       }
     } catch (err) {
       console.error('Error reopening campaign:', err)
@@ -172,7 +203,20 @@ export default function BrandCampaignsDashboard() {
           ))}
         </div>
 
-        {tabbedCampaigns.length > 0 ? (
+        {loadError ? (
+          <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
+            <AlertCircle className="w-12 h-12 text-red-300 mx-auto" />
+            <h3 className="mt-4 font-semibold text-gray-900">Couldn't load your campaigns</h3>
+            <p className="text-gray-500 mt-1">Something went wrong. Please try again.</p>
+            <button
+              onClick={load}
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Retry
+            </button>
+          </div>
+        ) : tabbedCampaigns.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {tabbedCampaigns.map((campaign) => (
               <CampaignManagementCard
@@ -188,11 +232,11 @@ export default function BrandCampaignsDashboard() {
           <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
             <Megaphone className="w-12 h-12 text-gray-300 mx-auto" />
             <h3 className="mt-4 font-semibold text-gray-900">
-              {campaigns.length === 0 ? "You haven't created any campaigns yet" : 'No campaigns in this view'}
+              {campaigns.length === 0 ? 'No campaigns yet' : 'No campaigns in this view'}
             </h3>
             <p className="text-gray-500 mt-1">
               {campaigns.length === 0
-                ? 'Create your first campaign to start receiving applications from creators.'
+                ? 'Create your first campaign to find tech creators.'
                 : 'Try a different tab.'}
             </p>
             {campaigns.length === 0 && (
@@ -207,6 +251,13 @@ export default function BrandCampaignsDashboard() {
           </div>
         )}
       </main>
+
+      {toast && (
+        <div className="fixed bottom-6 right-6 flex items-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-xl shadow-lg text-sm z-50">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          {toast}
+        </div>
+      )}
     </div>
   )
 }

@@ -31,7 +31,12 @@ function CampaignDetailPageContent() {
   const params = useParams<{ id: string }>()
   const campaignId = params.id
   const searchParams = useSearchParams()
-  const [showAppliedBanner, setShowAppliedBanner] = useState(searchParams.get('applied') === '1')
+  const [successBanner, setSuccessBanner] = useState<string | null>(() => {
+    if (searchParams.get('applied') === '1') return 'Application submitted successfully!'
+    if (searchParams.get('published') === '1') return 'Campaign published successfully!'
+    if (searchParams.get('updated') === '1') return 'Campaign updated successfully!'
+    return null
+  })
 
   const [authChecked, setAuthChecked] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -198,15 +203,15 @@ function CampaignDetailPageContent() {
       </div>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {showAppliedBanner && (
+        {successBanner && (
           <div className="flex items-center justify-between gap-3 mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm">
             <span className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-              Application submitted successfully!
+              {successBanner}
             </span>
             <button
               type="button"
-              onClick={() => setShowAppliedBanner(false)}
+              onClick={() => setSuccessBanner(null)}
               className="text-emerald-600 hover:text-emerald-800"
               aria-label="Dismiss"
             >

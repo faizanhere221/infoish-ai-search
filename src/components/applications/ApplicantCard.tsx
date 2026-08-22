@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Calendar, DollarSign, Eye, Loader2, MessageSquare, Star, ThumbsDown, Users } from 'lucide-react'
 import type { ApplicationStatus, CampaignApplication } from '@/types/campaigns'
-import { formatDate, platformLabel } from '@/components/campaigns/utils'
+import { formatRelativeDate, platformLabel } from '@/components/campaigns/utils'
 import ApplicationStatusBadge from './ApplicationStatusBadge'
 
 interface ApplicantCardProps {
@@ -74,7 +74,7 @@ export default function ApplicantCard({
             )}
             <span className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              Applied {formatDate(application.created_at)}
+              Applied {formatRelativeDate(application.created_at)}
             </span>
           </div>
 

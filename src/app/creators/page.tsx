@@ -374,6 +374,9 @@ export default function CreatorsPage() {
                 <Link href="/creators" className="text-violet-600 font-medium">
                   Find Creators
                 </Link>
+                <Link href="/campaigns" className="text-gray-600 hover:text-gray-900">
+                  Campaigns
+                </Link>
                 {isLoggedIn && (
                   <Link
                     href={userType === 'brand' ? '/dashboard/brand' : '/dashboard/creator'}
