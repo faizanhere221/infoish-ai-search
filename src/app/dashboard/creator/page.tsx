@@ -15,6 +15,7 @@ import {
   DollarSign,
   Share2,
   Megaphone,
+  Briefcase,
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import { PLATFORMS } from '@/utils/constants'
@@ -400,6 +401,7 @@ export default function CreatorDashboard() {
                 <QuickAction href="/settings" icon={User} iconBg="bg-violet-100" iconColor="text-violet-600" label="Edit Profile" />
                 <QuickAction href="/settings?tab=services" icon={DollarSign} iconBg="bg-blue-100" iconColor="text-blue-600" label="Manage Services" />
                 <QuickAction href="/campaigns" icon={Megaphone} iconBg="bg-orange-100" iconColor="text-orange-600" label="Browse Campaigns" />
+                <QuickAction href="/dashboard/applications" icon={Briefcase} iconBg="bg-indigo-100" iconColor="text-indigo-600" label="My Applications" />
                 <QuickAction href="/messages" icon={MessageSquare} iconBg="bg-emerald-100" iconColor="text-emerald-600" label="Messages" />
                 <QuickAction href={`/creators/${profile.username}`} icon={Eye} iconBg="bg-amber-100" iconColor="text-amber-600" label="View Public Profile" />
               </div>

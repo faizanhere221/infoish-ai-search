@@ -12,12 +12,23 @@ const UpdateApplicationStatusSchema = z.object({
   status: z.enum(APPLICATION_STATUSES as unknown as [string, ...string[]]),
 })
 
-const STATUS_LABELS: Record<string, string> = {
-  submitted: 'submitted',
-  viewed: 'viewed',
-  shortlisted: 'shortlisted',
-  rejected: 'rejected',
-  hired: 'hired',
+const STATUS_NOTIFICATION: Record<string, { title: string; message: (campaignTitle: string) => string }> = {
+  viewed: {
+    title: 'Application viewed',
+    message: (t) => `Your application for "${t}" was viewed`,
+  },
+  shortlisted: {
+    title: "You've been shortlisted!",
+    message: (t) => `You've been shortlisted for "${t}"`,
+  },
+  rejected: {
+    title: 'Application update',
+    message: (t) => `Your application for "${t}" was declined`,
+  },
+  hired: {
+    title: "You've been hired!",
+    message: (t) => `You've been hired for "${t}"`,
+  },
 }
 
 // PUT /api/campaigns/[id]/applications/[applicationId] - Update application status (campaign owner only)
@@ -81,12 +92,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const creatorUserId = await getUserIdFromCreator(supabase, application.creator_id)
     if (creatorUserId) {
+      const notification = STATUS_NOTIFICATION[status]
       await createNotification(supabase, {
         userId: creatorUserId,
         type: 'campaign_application_update',
-        title: 'Application status updated',
-        message: `Your application for "${campaign.title}" is now ${STATUS_LABELS[status] ?? status}.`,
-        link: `/dashboard/campaigns/${id}`,
+        title: notification?.title ?? 'Application status updated',
+        message: notification?.message(campaign.title) ?? `Your application for "${campaign.title}" is now ${status}.`,
+        link: `/dashboard/applications/${applicationId}`,
       })
     }
 

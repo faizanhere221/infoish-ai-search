@@ -1,11 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { Suspense, useCallback, useEffect, useState } from 'react'
+import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Megaphone, Sparkles } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Loader2, Megaphone, Sparkles, X } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
-import CampaignDetail, { type CampaignViewerRole } from '@/components/campaigns/CampaignDetail'
+import CampaignDetail, { type CampaignViewerRole, type MyApplicationSummary } from '@/components/campaigns/CampaignDetail'
 import type { Campaign } from '@/types/campaigns'
 
 interface Profile {
@@ -14,8 +14,24 @@ interface Profile {
 }
 
 export default function CampaignDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+        </div>
+      }
+    >
+      <CampaignDetailPageContent />
+    </Suspense>
+  )
+}
+
+function CampaignDetailPageContent() {
   const params = useParams<{ id: string }>()
   const campaignId = params.id
+  const searchParams = useSearchParams()
+  const [showAppliedBanner, setShowAppliedBanner] = useState(searchParams.get('applied') === '1')
 
   const [authChecked, setAuthChecked] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -26,9 +42,7 @@ export default function CampaignDetailPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  const [hasApplied, setHasApplied] = useState(false)
-  const [applying, setApplying] = useState(false)
-  const [applyError, setApplyError] = useState<string | null>(null)
+  const [myApplication, setMyApplication] = useState<MyApplicationSummary | null>(null)
   const [closing, setClosing] = useState(false)
 
   useEffect(() => {
@@ -49,6 +63,7 @@ export default function CampaignDetailPage() {
     try {
       const token = localStorage.getItem('auth_token')
       const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
+
       const res = await fetch(`/api/campaigns/${campaignId}`, { headers })
 
       if (res.status === 404) {
@@ -62,6 +77,18 @@ export default function CampaignDetailPage() {
 
       const data = await res.json()
       setCampaign(data.campaign)
+
+      const user = localStorage.getItem('auth_user')
+      if (user && JSON.parse(user).user_type === 'creator' && token) {
+        const appRes = await fetch(`/api/applications?campaign_id=${campaignId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (appRes.ok) {
+          const appData = await appRes.json()
+          const existing = appData.applications?.[0]
+          if (existing) setMyApplication({ id: existing.id, status: existing.status })
+        }
+      }
     } catch (err) {
       console.error('Error fetching campaign:', err)
       setLoadError('error')
@@ -74,36 +101,6 @@ export default function CampaignDetailPage() {
     if (!authChecked || !campaignId) return
     fetchCampaign()
   }, [authChecked, campaignId, fetchCampaign])
-
-  async function handleApply() {
-    setApplying(true)
-    setApplyError(null)
-    try {
-      const token = localStorage.getItem('auth_token')
-      const res = await fetch(`/api/campaigns/${campaignId}/applications`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({}),
-      })
-      const data = await res.json()
-
-      if (res.status === 409) {
-        setHasApplied(true)
-        return
-      }
-      if (!res.ok) {
-        setApplyError(data.error || 'Failed to submit application')
-        return
-      }
-
-      setHasApplied(true)
-      setCampaign((prev) => (prev ? { ...prev, applications_count: prev.applications_count + 1 } : prev))
-    } catch {
-      setApplyError('Network error — please try again')
-    } finally {
-      setApplying(false)
-    }
-  }
 
   async function handleCloseCampaign() {
     if (!campaign) return
@@ -180,14 +177,28 @@ export default function CampaignDetailPage() {
       </div>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {showAppliedBanner && (
+          <div className="flex items-center justify-between gap-3 mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm">
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+              Application submitted successfully!
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowAppliedBanner(false)}
+              className="text-emerald-600 hover:text-emerald-800"
+              aria-label="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         <CampaignDetail
           campaign={campaign}
           viewerRole={viewerRole}
           isLoggedIn={isLoggedIn}
-          hasApplied={hasApplied}
-          applying={applying}
-          applyError={applyError}
-          onApply={handleApply}
+          myApplication={myApplication}
           closing={closing}
           onClose={handleCloseCampaign}
         />
