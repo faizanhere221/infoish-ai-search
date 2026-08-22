@@ -77,6 +77,8 @@ interface SubmitResult {
 interface CampaignWizardProps {
   onSaveDraft: (payload: CampaignSubmitPayload) => Promise<SubmitResult>
   onPublish: (payload: CampaignSubmitPayload) => Promise<SubmitResult>
+  initialData?: CampaignFormData
+  saveDraftLabel?: string
 }
 
 const STEP_LABELS = ['Basics', 'Requirements', 'Deliverables', 'Budget & Timeline', 'Review']
@@ -204,9 +206,14 @@ function buildPayload(data: CampaignFormData): CampaignSubmitPayload {
   }
 }
 
-export default function CampaignWizard({ onSaveDraft, onPublish }: CampaignWizardProps) {
+export default function CampaignWizard({
+  onSaveDraft,
+  onPublish,
+  initialData,
+  saveDraftLabel = 'Save as Draft',
+}: CampaignWizardProps) {
   const [currentStep, setCurrentStep] = useState(1)
-  const [formData, setFormData] = useState<CampaignFormData>(initialFormData)
+  const [formData, setFormData] = useState<CampaignFormData>(() => initialData ?? initialFormData())
   const [errors, setErrors] = useState<WizardErrors>({})
   const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
@@ -297,7 +304,7 @@ export default function CampaignWizard({ onSaveDraft, onPublish }: CampaignWizar
               className="flex items-center gap-2 px-4 py-3 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 disabled:opacity-50"
             >
               {isSavingDraft && <Loader2 className="w-4 h-4 animate-spin" />}
-              Save as Draft
+              {saveDraftLabel}
             </button>
             <button
               type="button"

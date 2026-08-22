@@ -177,6 +177,23 @@ export default function BrandDashboard() {
           </div>
         </div>
 
+        {/* CTA - My Campaigns */}
+        <div className="mb-8 p-6 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Manage your campaigns</h2>
+              <p className="text-amber-100 mt-1">Review applications, message creators, and track campaign status</p>
+            </div>
+            <Link
+              href="/dashboard/campaigns"
+              className="px-6 py-3 bg-white text-amber-600 rounded-xl font-medium hover:bg-amber-50 transition-colors flex items-center gap-2"
+            >
+              <Megaphone className="w-5 h-5" />
+              My Campaigns
+            </Link>
+          </div>
+        </div>
+
         {/* Pending Review Alert */}
         {pendingReview.length > 0 && (
           <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
@@ -331,7 +348,7 @@ export default function BrandDashboard() {
                   <span className="font-medium text-gray-900">Find Creators</span>
                 </Link>
                 <Link
-                  href="/campaigns"
+                  href="/dashboard/campaigns"
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">

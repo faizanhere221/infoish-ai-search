@@ -5,7 +5,10 @@ interface RouteParams {
   params: { id: string }
 }
 
-// POST /api/campaigns/[id]/publish - Publish a draft campaign (owner only)
+// POST /api/campaigns/[id]/publish - Publish a draft campaign (owner only).
+// Also doubles as "reopen": a 'closed' campaign can be published again
+// through this same endpoint, since reopening needs the exact same
+// required-fields validation as an initial publish.
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
@@ -27,7 +30,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'You are not authorized to publish this campaign' }, { status: 403 })
     }
 
-    if (campaign.status !== 'draft') {
+    if (campaign.status !== 'draft' && campaign.status !== 'closed') {
       return NextResponse.json(
         { error: `Cannot publish a campaign with status: ${campaign.status}` },
         { status: 400 }

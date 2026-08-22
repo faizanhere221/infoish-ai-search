@@ -2,14 +2,14 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, Plus, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Sparkles, Loader2 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import CampaignList from '@/components/campaigns/CampaignList'
 import CampaignFilters, { EMPTY_FILTERS, type CampaignFilterState } from '@/components/campaigns/CampaignFilters'
 import type { Campaign } from '@/types/campaigns'
 
 type SortOption = 'newest' | 'deadline' | 'budget'
-type BrandTab = 'all' | 'draft' | 'published' | 'closed'
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'newest', label: 'Newest' },
@@ -17,19 +17,17 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'budget', label: 'Highest Budget' },
 ]
 
-const BRAND_TABS: { id: BrandTab; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'draft', label: 'Draft' },
-  { id: 'published', label: 'Published' },
-  { id: 'closed', label: 'Closed' },
-]
-
 interface Profile {
   id: string
   [key: string]: unknown
 }
 
+// This page is the public/creator discovery view. Brands get a purpose-built
+// management dashboard at /dashboard/campaigns (status tabs, edit/close/
+// reopen, applications) — a logged-in brand is redirected there instead of
+// rendering a second, duplicate "your campaigns" view here.
 export default function CampaignsPage() {
+  const router = useRouter()
   const [authChecked, setAuthChecked] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userType, setUserType] = useState<'brand' | 'creator' | null>(null)
@@ -38,24 +36,24 @@ export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Creator/guest browsing
   const [filters, setFilters] = useState<CampaignFilterState>(EMPTY_FILTERS)
   const [sortBy, setSortBy] = useState<SortOption>('newest')
-
-  // Brand's own campaigns
-  const [brandTab, setBrandTab] = useState<BrandTab>('all')
 
   useEffect(() => {
     const userStr = localStorage.getItem('auth_user')
     const profileStr = localStorage.getItem('auth_profile')
     if (userStr) {
       const user = JSON.parse(userStr)
+      if (user.user_type === 'brand') {
+        router.replace('/dashboard/campaigns')
+        return
+      }
       setIsLoggedIn(true)
       setUserType(user.user_type)
       setProfile(profileStr ? JSON.parse(profileStr) : null)
     }
     setAuthChecked(true)
-  }, [])
+  }, [router])
 
   useEffect(() => {
     if (!authChecked) return
@@ -80,10 +78,7 @@ export default function CampaignsPage() {
     fetchCampaigns()
   }, [authChecked])
 
-  const isBrandOwner = userType === 'brand'
-
   const filteredCampaigns = useMemo(() => {
-    if (isBrandOwner) return []
     return campaigns.filter((c) => {
       if (filters.search) {
         const q = filters.search.toLowerCase()
@@ -104,7 +99,7 @@ export default function CampaignsPage() {
       }
       return true
     })
-  }, [campaigns, filters, isBrandOwner])
+  }, [campaigns, filters])
 
   const sortedCampaigns = useMemo(() => {
     const list = [...filteredCampaigns]
@@ -124,42 +119,6 @@ export default function CampaignsPage() {
     return list
   }, [filteredCampaigns, sortBy])
 
-  const statusCounts = useMemo(
-    () => ({
-      all: campaigns.length,
-      draft: campaigns.filter((c) => c.status === 'draft').length,
-      published: campaigns.filter((c) => c.status === 'published').length,
-      closed: campaigns.filter((c) => c.status === 'closed' || c.status === 'cancelled').length,
-    }),
-    [campaigns]
-  )
-
-  const tabbedCampaigns = useMemo(() => {
-    if (!isBrandOwner) return []
-    return campaigns.filter((c) => {
-      if (brandTab === 'all') return true
-      if (brandTab === 'closed') return c.status === 'closed' || c.status === 'cancelled'
-      return c.status === brandTab
-    })
-  }, [campaigns, brandTab, isBrandOwner])
-
-  async function handleCloseCampaign(campaignId: string) {
-    if (!confirm('Close this campaign? Creators will no longer be able to apply.')) return
-    try {
-      const token = localStorage.getItem('auth_token')
-      const res = await fetch(`/api/campaigns/${campaignId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ status: 'closed' }),
-      })
-      if (res.ok) {
-        setCampaigns((prev) => prev.map((c) => (c.id === campaignId ? { ...c, status: 'closed' } : c)))
-      }
-    } catch (err) {
-      console.error('Error closing campaign:', err)
-    }
-  }
-
   const activeFilterCount =
     (filters.category ? 1 : 0) + filters.platforms.length + (filters.budgetMin ? 1 : 0) + (filters.budgetMax ? 1 : 0)
 
@@ -176,126 +135,59 @@ export default function CampaignsPage() {
       {isLoggedIn && userType ? <DashboardHeader userType={userType} profile={profile} /> : <GuestHeader />}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {isBrandOwner ? (
-          <>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">My Campaigns</h1>
-                <p className="text-gray-500 mt-1">Manage the campaigns you've created</p>
-              </div>
-              <Link
-                href="/campaigns/create"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
-              >
-                <Plus className="w-4 h-4" />
-                Create Campaign
-              </Link>
-            </div>
+        <div className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Discover Campaigns</h1>
+          <p className="text-gray-500 mt-1">
+            Browse sponsorship campaigns from tech brands and apply directly.
+          </p>
+        </div>
 
-            <div className="flex flex-wrap gap-2 mb-6">
-              {BRAND_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setBrandTab(tab.id)}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                    brandTab === tab.id
-                      ? 'bg-violet-600 text-white'
-                      : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-                  }`}
-                >
-                  {tab.label}
-                  <span
-                    className={`ml-2 px-1.5 py-0.5 rounded text-xs ${
-                      brandTab === tab.id ? 'bg-violet-500' : 'bg-gray-100'
-                    }`}
-                  >
-                    {statusCounts[tab.id]}
-                  </span>
-                </button>
+        <div className="mb-6">
+          <CampaignFilters filters={filters} onChange={setFilters} />
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <p className="text-gray-600">
+            <span className="font-semibold text-gray-900">{sortedCampaigns.length}</span> campaign
+            {sortedCampaigns.length === 1 ? '' : 's'} found
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
               ))}
-            </div>
+            </select>
+          </div>
+        </div>
 
-            <CampaignList
-              campaigns={tabbedCampaigns}
-              variant="brand"
-              loading={loading}
-              onClose={handleCloseCampaign}
-              emptyTitle={campaigns.length === 0 ? "You haven't created any campaigns yet" : 'No campaigns in this view'}
-              emptyDescription={
-                campaigns.length === 0
-                  ? 'Create your first campaign to start receiving applications from creators.'
-                  : 'Try a different tab.'
-              }
-              emptyAction={
-                campaigns.length === 0 ? (
-                  <Link
-                    href="/campaigns/create"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Create Campaign
-                  </Link>
-                ) : undefined
-              }
-            />
-          </>
-        ) : (
-          <>
-            <div className="mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Discover Campaigns</h1>
-              <p className="text-gray-500 mt-1">
-                Browse sponsorship campaigns from tech brands and apply directly.
-              </p>
-            </div>
-
-            <div className="mb-6">
-              <CampaignFilters filters={filters} onChange={setFilters} />
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <p className="text-gray-600">
-                <span className="font-semibold text-gray-900">{sortedCampaigns.length}</span> campaign
-                {sortedCampaigns.length === 1 ? '' : 's'} found
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">Sort by:</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                >
-                  {SORT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <CampaignList
-              campaigns={sortedCampaigns}
-              variant="creator"
-              loading={loading}
-              emptyTitle={campaigns.length === 0 ? 'No campaigns available yet' : 'No campaigns match your filters'}
-              emptyDescription={
-                campaigns.length === 0
-                  ? 'Check back soon — brands are getting set up.'
-                  : 'Try adjusting or clearing your filters.'
-              }
-              emptyAction={
-                activeFilterCount > 0 || filters.search ? (
-                  <button
-                    onClick={() => setFilters(EMPTY_FILTERS)}
-                    className="px-4 py-2 text-violet-600 hover:bg-violet-50 rounded-lg font-medium"
-                  >
-                    Clear all filters
-                  </button>
-                ) : undefined
-              }
-            />
-          </>
-        )}
+        <CampaignList
+          campaigns={sortedCampaigns}
+          variant="creator"
+          loading={loading}
+          emptyTitle={campaigns.length === 0 ? 'No campaigns available yet' : 'No campaigns match your filters'}
+          emptyDescription={
+            campaigns.length === 0
+              ? 'Check back soon — brands are getting set up.'
+              : 'Try adjusting or clearing your filters.'
+          }
+          emptyAction={
+            activeFilterCount > 0 || filters.search ? (
+              <button
+                onClick={() => setFilters(EMPTY_FILTERS)}
+                className="px-4 py-2 text-violet-600 hover:bg-violet-50 rounded-lg font-medium"
+              >
+                Clear all filters
+              </button>
+            ) : undefined
+          }
+        />
       </main>
     </div>
   )
