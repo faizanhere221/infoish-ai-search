@@ -23,6 +23,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '17',
+    title: 'How to Build a Creator Media Kit: Guide for Tech Influencers',
+    excerpt: 'Build a media kit as a tech creator. Free template with audience stats, rate cards, and past results. Land more brand deals with a professional one-pager.',
+    date: '2026-08-12',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '13 min read',
+    slug: 'creator-media-kit-guide-tech-influencers',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '16',
     title: 'How Much Should Tech Creators Charge for Sponsorships? (2026)',
     excerpt: 'Tech creator sponsorship rates for 2026. Pricing formulas by platform, audience size, and niche. Rate cards for YouTube, LinkedIn, Twitter/X, and newsletters.',
