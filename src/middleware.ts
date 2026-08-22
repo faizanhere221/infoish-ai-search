@@ -10,6 +10,28 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
   return false
 }
 
+// Campaign browsing (list + single detail) is publicly viewable, but unlike
+// the fully-public routes above, these handlers still branch on
+// x-profile-id/x-user-type to decide ownership (e.g. a brand seeing its own
+// drafts). So auth here must stay *optional*, not bypassed: a present token
+// is still verified and its claims trusted, while a missing/invalid one
+// always falls through as anonymous — the raw client request headers are
+// never trusted directly, or a caller could just spoof x-profile-id.
+function isOptionalAuthApiRoute(pathname: string, method: string): boolean {
+  if (method !== 'GET') return false
+  if (pathname === '/api/campaigns') return true
+  if (/^\/api\/campaigns\/[^/]+$/.test(pathname)) return true
+  return false
+}
+
+const AUTH_HEADER_NAMES = ['x-user-id', 'x-user-type', 'x-profile-id', 'x-user-role']
+
+function stripAuthHeaders(request: NextRequest): Headers {
+  const headers = new Headers(request.headers)
+  for (const name of AUTH_HEADER_NAMES) headers.delete(name)
+  return headers
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const method = request.method
@@ -40,16 +62,18 @@ export async function middleware(request: NextRequest) {
   if (!pathname.startsWith('/api/')) return NextResponse.next()
   if (isPublicApiRoute(pathname, method)) return NextResponse.next()
 
-  if (!secret) {
-    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 })
-  }
+  const optionalAuth = isOptionalAuthApiRoute(pathname, method)
 
   const authHeader = request.headers.get('authorization')
   const cookieToken = request.cookies.get('auth_token')?.value
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : cookieToken
 
-  if (!token) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+  if (!token || !secret) {
+    if (optionalAuth) {
+      return NextResponse.next({ request: { headers: stripAuthHeaders(request) } })
+    }
+    if (!token) return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 })
   }
 
   try {
@@ -71,6 +95,9 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.next({ request: { headers: requestHeaders } })
   } catch {
+    if (optionalAuth) {
+      return NextResponse.next({ request: { headers: stripAuthHeaders(request) } })
+    }
     return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
   }
 }

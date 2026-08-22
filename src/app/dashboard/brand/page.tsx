@@ -18,7 +18,8 @@ import {
   AlertCircle,
   Loader2,
   Sparkles,
-  Plus
+  Plus,
+  Megaphone
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 
@@ -320,7 +321,7 @@ export default function BrandDashboard() {
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <Link 
+                <Link
                   href="/creators"
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >
@@ -329,7 +330,16 @@ export default function BrandDashboard() {
                   </div>
                   <span className="font-medium text-gray-900">Find Creators</span>
                 </Link>
-                <Link 
+                <Link
+                  href="/campaigns"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <Megaphone className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <span className="font-medium text-gray-900">My Campaigns</span>
+                </Link>
+                <Link
                   href="/settings/brand"
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >
