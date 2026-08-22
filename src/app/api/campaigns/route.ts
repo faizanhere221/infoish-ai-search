@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const platform = searchParams.get('platform')
     const status = searchParams.get('status')
+    const search = searchParams.get('search')
     const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20') || 20, 1), 50)
     const offset = Math.max(parseInt(searchParams.get('offset') || '0') || 0, 0)
 
@@ -81,6 +82,10 @@ export async function GET(request: NextRequest) {
 
     if (platform) {
       query = query.contains('platforms', [platform])
+    }
+
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`)
     }
 
     const { data: campaigns, error, count } = await query
