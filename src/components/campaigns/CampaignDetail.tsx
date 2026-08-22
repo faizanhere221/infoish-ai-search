@@ -13,6 +13,7 @@ import {
   Eye,
   XCircle,
   ArrowRight,
+  RotateCcw,
 } from 'lucide-react'
 import type { Campaign, ApplicationStatus } from '@/types/campaigns'
 import ApplicationStatusBadge from '@/components/applications/ApplicationStatusBadge'
@@ -39,6 +40,8 @@ interface CampaignDetailProps {
   myApplication: MyApplicationSummary | null
   closing: boolean
   onClose: () => void
+  reopening: boolean
+  onReopen: () => void
 }
 
 export default function CampaignDetail({
@@ -48,6 +51,8 @@ export default function CampaignDetail({
   myApplication,
   closing,
   onClose,
+  reopening,
+  onReopen,
 }: CampaignDetailProps) {
   const status = STATUS_BADGE[campaign.status]
   const deadline = getDeadlineInfo(campaign.application_deadline)
@@ -195,7 +200,13 @@ export default function CampaignDetail({
           )}
 
           {viewerRole === 'owner' && (
-            <OwnerActions campaign={campaign} closing={closing} onClose={onClose} />
+            <OwnerActions
+              campaign={campaign}
+              closing={closing}
+              onClose={onClose}
+              reopening={reopening}
+              onReopen={onReopen}
+            />
           )}
 
           {viewerRole === 'other' && !isLoggedIn && (
@@ -266,10 +277,14 @@ function OwnerActions({
   campaign,
   closing,
   onClose,
+  reopening,
+  onReopen,
 }: {
   campaign: Campaign
   closing: boolean
   onClose: () => void
+  reopening: boolean
+  onReopen: () => void
 }) {
   return (
     <div className="space-y-2">
@@ -298,6 +313,17 @@ function OwnerActions({
         >
           {closing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
           Close Campaign
+        </button>
+      )}
+      {campaign.status === 'closed' && (
+        <button
+          type="button"
+          onClick={onReopen}
+          disabled={reopening}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700 disabled:opacity-50"
+        >
+          {reopening ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+          Reopen Campaign
         </button>
       )}
     </div>

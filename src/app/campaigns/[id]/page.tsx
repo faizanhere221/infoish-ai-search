@@ -44,6 +44,7 @@ function CampaignDetailPageContent() {
 
   const [myApplication, setMyApplication] = useState<MyApplicationSummary | null>(null)
   const [closing, setClosing] = useState(false)
+  const [reopening, setReopening] = useState(false)
 
   useEffect(() => {
     const userStr = localStorage.getItem('auth_user')
@@ -109,10 +110,9 @@ function CampaignDetailPageContent() {
     setClosing(true)
     try {
       const token = localStorage.getItem('auth_token')
-      const res = await fetch(`/api/campaigns/${campaign.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ status: 'closed' }),
+      const res = await fetch(`/api/campaigns/${campaign.id}/close`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
       })
       if (res.ok) {
         setCampaign((prev) => (prev ? { ...prev, status: 'closed' } : prev))
@@ -121,6 +121,27 @@ function CampaignDetailPageContent() {
       console.error('Error closing campaign:', err)
     } finally {
       setClosing(false)
+    }
+  }
+
+  async function handleReopenCampaign() {
+    if (!campaign) return
+
+    setReopening(true)
+    try {
+      const token = localStorage.getItem('auth_token')
+      const res = await fetch(`/api/campaigns/${campaign.id}/publish`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setCampaign(data.campaign)
+      }
+    } catch (err) {
+      console.error('Error reopening campaign:', err)
+    } finally {
+      setReopening(false)
     }
   }
 
@@ -201,6 +222,8 @@ function CampaignDetailPageContent() {
           myApplication={myApplication}
           closing={closing}
           onClose={handleCloseCampaign}
+          reopening={reopening}
+          onReopen={handleReopenCampaign}
         />
       </main>
     </div>

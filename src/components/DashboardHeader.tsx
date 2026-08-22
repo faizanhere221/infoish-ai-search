@@ -72,7 +72,7 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
   const navItems = userType === 'brand' ? [
     { href: '/dashboard/brand', label: 'Dashboard' },
     { href: '/creators', label: 'Find Creators' },
-    { href: '/campaigns', label: 'Campaigns' },
+    { href: '/dashboard/campaigns', label: 'My Campaigns' },
     { href: '/messages', label: 'Messages', badge: unreadMessages },
     { href: '/dashboard/deals', label: 'My Deals' },
   ] : [
