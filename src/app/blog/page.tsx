@@ -23,6 +23,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '18',
+    title: 'Top 10 Ways Tech Creators Earn Money in 2026',
+    excerpt: '10 proven income streams for tech creators in 2026. Brand deals, affiliates, newsletters, courses, consulting, and more. Real earning benchmarks included.',
+    date: '2026-08-12',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '17 min read',
+    slug: 'ways-tech-creators-earn-money-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '17',
     title: 'How to Build a Creator Media Kit: Guide for Tech Influencers',
     excerpt: 'Build a media kit as a tech creator. Free template with audience stats, rate cards, and past results. Land more brand deals with a professional one-pager.',
