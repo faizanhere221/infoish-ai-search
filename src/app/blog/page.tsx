@@ -23,6 +23,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '15',
+    title: 'How to Run Your First Tech Influencer Campaign: Startup Guide',
+    excerpt: 'Run your first tech influencer campaign step by step. Built for startups. Covers budgets from $500, creator selection, briefs, tracking, and scaling. Free tools.',
+    date: '2026-08-10',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '19 min read',
+    slug: 'first-tech-influencer-campaign-startup-guide-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '14',
     title: 'How to Find Tech YouTubers for Product Reviews in 2026',
     excerpt: 'Find tech YouTubers for your product review. Step-by-step guide to searching, vetting, and hiring YouTube creators in AI, SaaS, and developer niches. Free database.',
