@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Free Instagram Profile Analyzer | Engagement & Analytics | Infoishai',
+  title: 'Free Instagram Profile Analyzer | Engagement & Analytics',
   description: 'Analyze any public Instagram profile for free — engagement rate, consistency score, best posts, and follower tier classification in seconds.',
   robots: {
     index: true,

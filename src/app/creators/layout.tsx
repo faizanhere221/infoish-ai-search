@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Search Tech Influencers | YouTube, Twitter & LinkedIn Creators | Infoishai',
+  title: 'Search Tech Influencers | YouTube, Twitter & LinkedIn Creators',
   description: 'Browse 2,000+ verified tech influencers. Filter by niche (AI, SaaS, Dev), platform (YouTube, Twitter, LinkedIn), location & price. Find your perfect creator match.',
   keywords: [
     'tech influencer marketplace',

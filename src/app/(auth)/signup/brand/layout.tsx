@@ -1,10 +1,10 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Find Tech Influencers for Your Brand | Infoishai',
+  title: 'Find Tech Influencers for Your Brand',
   description: 'Sign up as a brand on Infoishai to find and hire verified tech influencers across YouTube, Twitter, and LinkedIn. Escrow payment protection. Free to start.',
   robots: {
-    index: true,
+    index: false,
     follow: true,
   },
   openGraph: {

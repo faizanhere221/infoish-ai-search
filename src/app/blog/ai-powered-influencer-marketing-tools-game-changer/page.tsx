@@ -6,7 +6,7 @@ import { ArrowLeft, Calendar, User, Clock, CheckCircle, AlertCircle } from 'luci
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'AI Tool That Help Pakistani Brands Find Influencers 10x Faster | Infoishai',
+  title: 'AI Tool That Help Pakistani Brands Find Influencers 10x Faster',
   description: 'Discover the best AI-powered influencer marketing tools for Pakistani brands in 2025. Find verified creators, check fake followers, and launch campaigns faster.',
   keywords: [
     'ai influencer marketing tools',

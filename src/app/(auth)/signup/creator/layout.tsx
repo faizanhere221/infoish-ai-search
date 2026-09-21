@@ -1,10 +1,10 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Become a Tech Creator | Get Brand Deals | Infoishai',
+  title: 'Become a Tech Creator | Get Brand Deals',
   description: 'Sign up as a tech creator on Infoishai. Get discovered by AI, SaaS, and developer-tool brands, showcase your portfolio, and get paid securely through escrow. Free to join.',
   robots: {
-    index: true,
+    index: false,
     follow: true,
   },
   openGraph: {

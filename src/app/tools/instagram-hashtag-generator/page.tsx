@@ -391,7 +391,7 @@ const generateHashtagsLocal = async (
               </div>
             </div>
 
-            <Link href="/blog/free-instagram-hashtag-generator-complete-guide">
+            <Link href="/blog/free-instagram-hashtag-generator-2025">
   📖 Read: Complete Guide to Instagram Hashtags
 </Link>
           </div>

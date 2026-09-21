@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, TrendingUp, 
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Top 10 Benefits of Tech Influencer Marketing in 2026 | Infoishai',
+  title: 'Top 10 Benefits of Tech Influencer Marketing in 2026',
   description: 'Why do tech brands invest in influencer marketing in 2026? Here are 10 proven benefits with real data, examples, and strategies to grow your brand faster.',
   keywords: [
     'tech influencer marketing',

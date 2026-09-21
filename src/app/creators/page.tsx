@@ -342,11 +342,12 @@ export default function CreatorsPage() {
         return b.total_followers - a.total_followers
       case 'newest':
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      default:
+      default: {
         // Relevance: prioritize verified, then by completed deals
         const aScore = (a.verification_status === 'verified' ? 1000 : 0) + a.completed_deals
         const bScore = (b.verification_status === 'verified' ? 1000 : 0) + b.completed_deals
         return bScore - aScore
+      }
     }
   })
 

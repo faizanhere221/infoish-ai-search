@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: { username: string 
 
     if (!creator) {
       return {
-        title: 'Creator Not Found | Infoishai',
+        title: 'Creator Not Found',
         robots: { index: false, follow: true },
       }
     }
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: { username: string 
     const niches = Array.isArray(creator.niches) && creator.niches.length > 0
       ? creator.niches.join(', ')
       : 'tech'
-    const title = `${creator.display_name} (@${creator.username}) | ${niches} Creator | Infoishai`
+    const title = `${creator.display_name} (@${creator.username}) | ${niches} Creator`
     const description = creator.bio
       ? creator.bio.slice(0, 155)
       : `View ${creator.display_name}'s creator profile on Infoishai. ${niches} content creator${creator.country ? ` based in ${creator.country}` : ''}. Connect for brand sponsorships.`
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: { params: { username: string 
       description,
       robots: { index: true, follow: true },
       openGraph: {
-        title,
+        title: `${title} | Infoishai`,
         description,
         url,
         siteName: 'Infoishai',
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: { params: { username: string 
       },
       twitter: {
         card: 'summary_large_image',
-        title,
+        title: `${title} | Infoishai`,
         description,
       },
       alternates: {
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: { params: { username: string 
     }
   } catch {
     return {
-      title: 'Tech Creator Profile | Infoishai',
+      title: 'Tech Creator Profile',
       description: 'View this tech creator profile on Infoishai, the B2B tech influencer marketplace.',
       alternates: { canonical: url },
     }

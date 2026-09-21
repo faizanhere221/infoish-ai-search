@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Find Tech Influencers in Singapore | APAC Tech Creators | Infoishai',
+  title: 'Find Tech Influencers in Singapore | APAC Tech Creators',
   description:
     "Find verified Singaporean tech influencers for your brand. Browse creators covering AI, fintech, SaaS, and developer niches. Gateway to Southeast Asia's 650M+ market. Free to search.",
   keywords: [
