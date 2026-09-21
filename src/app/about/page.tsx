@@ -30,7 +30,7 @@ import { Navigation, Footer } from '@/components/landing'
 // SEO METADATA
 // ============================================================================
 export const metadata: Metadata = {
-  title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
+  title: 'About Us | Free Tech Influencer Marketplace for B2B Brands',
   description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Escrow payments. Trusted by startups and enterprises in 55+ countries.',
   keywords: [
     'about infoishai',

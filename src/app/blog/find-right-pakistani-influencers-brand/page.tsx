@@ -6,7 +6,7 @@ import { ArrowLeft, Calendar, User, Clock, Share2, Bookmark } from 'lucide-react
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'How to Find Pakistani Influencers (Without Wasting Hours) | Infoishai',
+  title: 'How to Find Pakistani Influencers (Without Wasting Hours)',
   description: 'How to find and vet Pakistani influencers for your brand. Engagement benchmarks, pricing data, red flags to avoid, and free tools to verify audience quality.',
   keywords: [
     'find pakistani influencers',

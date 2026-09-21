@@ -4,7 +4,7 @@ import { Metadata } from 'next'
 import Header from '@/components/header'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | Infoishai',
+  title: 'Terms of Service',
   description: 'The rules and conditions for using Infoishai — account eligibility, creator and brand obligations, escrow payments, and platform usage policies.',
   robots: {
     index: false,

@@ -107,10 +107,10 @@ export function useDeals({ userId, userType, status = 'all', autoFetch = true }:
     completed: deals.filter(d => d.status === 'completed').length,
     totalValue: deals
       .filter(d => d.status === 'completed')
-      .reduce((sum, d) => sum + (userType === 'creator' ? d.creator_payout_cents : d.amount_cents), 0),
+      .reduce((sum, d) => sum + (userType === 'creator' ? d.creator_payout : d.amount), 0),
     pendingValue: deals
       .filter(d => ['pending', 'accepted', 'in_progress', 'delivered', 'revision'].includes(d.status))
-      .reduce((sum, d) => sum + (userType === 'creator' ? d.creator_payout_cents : d.amount_cents), 0),
+      .reduce((sum, d) => sum + (userType === 'creator' ? d.creator_payout : d.amount), 0),
   }
 
   return {
@@ -284,7 +284,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
   const requestRevision = useCallback(async (note: string) => {
     if (!dealId || !deal) return { success: false, error: 'No deal' }
 
-    if (deal.revision_count >= deal.max_revisions) {
+    if (deal.revisions_used >= deal.revisions_allowed) {
       return { success: false, error: 'Maximum revisions reached' }
     }
 
@@ -308,7 +308,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
       setDeal(prev => prev ? { 
         ...prev, 
         status: 'revision',
-        revision_count: prev.revision_count + 1,
+        revisions_used: prev.revisions_used + 1,
       } : null)
       return { success: true }
     } catch (err) {

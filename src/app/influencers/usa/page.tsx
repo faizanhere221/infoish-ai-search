@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Tech Influencers USA | 500+ Verified American Creators | Infoishai',
+  title: 'Tech Influencers USA | 500+ Verified American Creators',
   description:
     'Find 500+ verified American tech influencers. Browse US creators in AI, SaaS, developer tools, and cloud. Filter by platform (YouTube, LinkedIn, Twitter/X), audience size, and rates. Free to search.',
   keywords: [

@@ -494,7 +494,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                       />
                       <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
                         <Link
-                          href="/influencer/login"
+                          href="/login"
                           className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition-colors"
                           onClick={() => setShowLoginDropdown(false)}
                         >
@@ -553,7 +553,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                         <Heart className="w-5 h-5" />
                       </Link>
                       <Link
-                        href="/campaigns"
+                        href="/campaigns/create"
                         className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
                         title="My Campaigns"
                       >
@@ -677,7 +677,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                                 </Link>
                                 
                                 <Link
-                                  href="/campaigns"
+                                  href="/campaigns/create"
                                   className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-all"
                                   onClick={() => setShowDropdown(false)}
                                 >
@@ -751,7 +751,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                 {!user && (
                   <>
                     <Link 
-                      href="/influencer/login"
+                      href="/login"
                       className="flex items-center gap-3 text-purple-600 hover:text-purple-700 font-semibold py-3 px-4 rounded-lg transition-all hover:bg-purple-50 border-2 border-purple-200"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -784,7 +784,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
                     </Link>
                     
                     <Link 
-                      href="/campaigns"
+                      href="/campaigns/create"
                       className="flex items-center gap-3 text-gray-700 hover:text-green-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-green-50"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >

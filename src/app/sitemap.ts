@@ -52,6 +52,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Blog
     { url: `${baseUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/blog/ways-tech-creators-earn-money-2026`, lastModified: new Date('2026-08-12'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/creator-media-kit-guide-tech-influencers`, lastModified: new Date('2026-08-12'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/tech-creator-sponsorship-rates-2026`, lastModified: new Date('2026-08-12'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/first-tech-influencer-campaign-startup-guide-2026`, lastModified: new Date('2026-08-10'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/how-to-find-tech-youtubers-product-reviews-2026`, lastModified: new Date('2026-08-05'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/tech-influencer-rates-2026`, lastModified: new Date('2026-08-04'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/how-to-find-tech-influencers-india-2026`, lastModified: new Date('2026-07-28'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/b2c-influencer-marketing-strategies-tech-brands-2026`, lastModified: new Date('2026-07-27'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/b2b-vs-b2c-influencer-marketing-tech-2026`, lastModified: new Date('2026-07-15'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/tech-creators-guide-how-to-get-brand-deals-2026`, lastModified: new Date('2026-07-15'), changeFrequency: 'monthly', priority: 0.7 },
@@ -68,10 +75,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/help`, lastModified: today, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/contact`, lastModified: today, changeFrequency: 'monthly', priority: 0.6 },
 
-    // Auth / onboarding
-    // Note: /login, /signup, /terms, /privacy are excluded — set to noindex, so they should not appear in the sitemap.
-    { url: `${baseUrl}/signup/creator`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${baseUrl}/signup/brand`, lastModified: today, changeFrequency: 'monthly', priority: 0.7 },
+    // Note: /login, /signup, /signup/brand, /signup/creator, /terms, /privacy
+    // are all set to noindex, so none of them belong in the sitemap.
   ]
 
   const creatorRoutes = await getCreatorRoutes()

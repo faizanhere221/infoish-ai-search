@@ -20,7 +20,7 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Tech Influencers India | 800+ Verified Indian Creators | Infoishai',
+  title: 'Tech Influencers India | 800+ Verified Indian Creators',
   description:
     'Find 800+ verified tech influencers in India. Browse creators in Bangalore, Mumbai, Delhi, and Hyderabad. Filter by niche (AI, SaaS, coding), platform, and language. Rates from INR 5,000. Free to search.',
   keywords: [

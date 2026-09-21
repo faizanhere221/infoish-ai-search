@@ -1,23 +1,11 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Join Free | Infoishai - Connect Brands & Tech Creators',
-  description: 'Join Infoishai for free — the B2B tech influencer marketplace connecting brands with verified AI, SaaS, and developer content creators. Sign up as a brand or creator in minutes.',
+  title: 'Sign Up',
+  description: 'Join Infoishai as a brand or a tech creator. Free to start, no credit card required.',
   robots: {
     index: false,
-    follow: false,
-  },
-  openGraph: {
-    title: 'Join Free | Infoishai - Connect Brands & Tech Creators',
-    description: 'Join Infoishai for free — connect brands with verified tech content creators.',
-    url: 'https://infoishai.com/signup',
-    siteName: 'Infoishai',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Join Free | Infoishai - Connect Brands & Tech Creators',
-    description: 'Join Infoishai for free — connect brands with verified tech content creators.',
+    follow: true,
   },
   alternates: {
     canonical: 'https://infoishai.com/signup',

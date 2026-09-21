@@ -33,7 +33,7 @@ export default function DealCard({ deal, viewAs }: DealCardProps) {
 
   // Get the other party's info
   const otherParty = viewAs === 'creator' ? deal.brand : deal.creator
-  const displayAmount = viewAs === 'creator' ? deal.creator_payout_cents : deal.amount_cents
+  const displayAmount = viewAs === 'creator' ? deal.creator_payout : deal.amount
 
   return (
     <Link 
@@ -87,7 +87,7 @@ export default function DealCard({ deal, viewAs }: DealCardProps) {
             </div>
             <p className="text-sm text-gray-500">
               {viewAs === 'creator' 
-                ? `Deal #${deal.deal_number}` 
+                ? `Deal #${deal.id.slice(0, 8).toUpperCase()}`
                 : `@${deal.creator?.username}`
               }
             </p>

@@ -106,7 +106,7 @@ export function DealStatus({ deal, userType, compact = false }: DealStatusProps)
               {statusInfo.label}
             </p>
             <p className="text-sm text-gray-500">
-              Deal #{deal.deal_number}
+              Deal #{deal.id.slice(0, 8).toUpperCase()}
             </p>
           </div>
         </div>
@@ -165,7 +165,7 @@ export function DealStatus({ deal, userType, compact = false }: DealStatusProps)
         <div className="mt-3 flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>
-            Revision {deal.revision_count} of {deal.max_revisions} used
+            Revision {deal.revisions_used} of {deal.revisions_allowed} used
           </span>
         </div>
       )}

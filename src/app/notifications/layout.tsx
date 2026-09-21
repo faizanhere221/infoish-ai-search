@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Notifications | Infoishai',
+  title: 'Notifications',
   robots: {
     index: false,
     follow: false,

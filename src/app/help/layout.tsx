@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Help Center | Infoishai Tech Influencer Marketplace',
+  title: 'Help Center | Tech Influencer Marketplace',
   description: 'Get answers about creating an account, finding tech influencers, creator profiles, deals, and escrow payments on Infoishai — the B2B tech influencer marketplace.',
   robots: {
     index: true,

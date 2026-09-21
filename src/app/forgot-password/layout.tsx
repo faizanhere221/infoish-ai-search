@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Reset Password | Infoishai',
+  title: 'Reset Password',
   description: 'Reset your Infoishai account password.',
   robots: {
     index: false,

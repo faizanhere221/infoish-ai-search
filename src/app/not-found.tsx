@@ -5,7 +5,7 @@ import { Home, Search, Sparkles, TrendingUp, Instagram, Hash } from 'lucide-reac
 import { GoBackButton } from '@/components/seo/GoBackButton'
 
 export const metadata: Metadata = {
-  title: '404 - Page Not Found | Infoishai',
+  title: '404 - Page Not Found',
   description: 'The page you are looking for could not be found. Browse Infoishai to find tech influencers, tools, and resources.',
   robots: {
     index: false,
@@ -108,7 +108,7 @@ export default function NotFound() {
               href="/tools"
               className="flex items-center gap-3 p-4 bg-linear-to-br from-pink-50 to-purple-50 rounded-xl hover:shadow-md transition-all group border-2 border-transparent hover:border-pink-200"
             >
-              <div className="w-12 h-12 bg-linear-to-brr from-pink-500 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+              <div className="w-12 h-12 bg-linear-to-br from-pink-500 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div className="text-left">

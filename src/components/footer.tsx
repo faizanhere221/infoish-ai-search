@@ -164,11 +164,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/tools/instagram-engagement-calculator" className="text-white/70 hover:text-green-400 transition-colors">
-                  Engagement Calculator
-                </Link>
-              </li>
-              <li>
                 <Link href="/tools" className="text-white/70 hover:text-green-400 transition-colors font-semibold">
                   All Tools →
                 </Link>
@@ -213,12 +208,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/influencer/login" className="text-white/70 hover:text-green-400 transition-colors">
+                <Link href="/login" className="text-white/70 hover:text-green-400 transition-colors">
                   Influencer Login
                 </Link>
               </li>
               <li>
-                <Link href="/register-influencer" className="text-white/70 hover:text-green-400 transition-colors">
+                <Link href="/signup/creator" className="text-white/70 hover:text-green-400 transition-colors">
                   Register as Influencer
                 </Link>
               </li>
@@ -318,9 +313,6 @@ export default function Footer() {
             </Link>
             <Link href="/terms" className="text-white/70 hover:text-green-400 transition-colors">
               Terms of Service
-            </Link>
-            <Link href="/cookies" className="text-white/70 hover:text-green-400 transition-colors">
-              Cookie Policy
             </Link>
           </div>
         </div>

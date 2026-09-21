@@ -7,7 +7,7 @@ import { Metadata } from 'next'
 
 // SEO Metadata
 export const metadata: Metadata = {
-  title: 'Free Instagram Hashtag Generator — Get Viral Hashtags in Seconds | Infoishai',
+  title: 'Free Instagram Hashtag Generator — Get Viral Hashtags in Seconds',
   description: 'Generate trending Instagram hashtags for Reels, Posts & Stories. AI-powered, 100% free forever. No signup required — boost your reach instantly.',
   keywords: [
     'instagram hashtag generator',

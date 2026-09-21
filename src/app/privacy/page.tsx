@@ -4,7 +4,7 @@ import { Metadata } from 'next'
 import Header from '@/components/header'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Infoishai',
+  title: 'Privacy Policy',
   description: 'How Infoishai collects, uses, and protects your personal data, including account information, payment details, and creator profile data.',
   robots: {
     index: false,

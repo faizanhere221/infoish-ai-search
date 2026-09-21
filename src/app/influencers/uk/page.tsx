@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Tech Influencers UK | 300+ Verified British Creators | Infoishai',
+  title: 'Tech Influencers UK | 300+ Verified British Creators',
   description:
     'Find 300+ verified British tech influencers. Browse UK creators in AI, SaaS, fintech, and developer niches. YouTube, LinkedIn, and Twitter/X. Rates from £400. European reach. Free to search.',
   keywords: [

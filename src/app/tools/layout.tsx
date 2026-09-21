@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Free Marketing Tools for Tech Creators | Infoishai',
+  title: 'Free Marketing Tools for Tech Creators',
   description: 'Free Instagram Profile Analyzer, AI Hashtag Generator, and more marketing tools. No signup required. Get instant audience insights and content ideas.',
   robots: {
     index: true,
