@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { updateReferralOnProfileComplete } from '@/lib/referral'
 
 // GET - List/Search creators
 export async function GET(request: NextRequest) {
@@ -204,6 +205,15 @@ export async function POST(request: NextRequest) {
         console.error('Error adding platforms:', platformError)
         // Don't fail the whole request, just log it
       }
+    }
+
+    // Link this profile to a pending referral signup, if the user who
+    // created it was referred. Best-effort — never fail profile creation
+    // over it (most creators aren't referred at all, which is fine).
+    try {
+      await updateReferralOnProfileComplete(supabase, user_id, creator.id)
+    } catch (referralError) {
+      console.error('Error updating referral on profile complete:', referralError)
     }
 
     return NextResponse.json({

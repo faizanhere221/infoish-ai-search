@@ -7,6 +7,8 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
   if (method === 'GET' && (pathname.startsWith('/api/creators') || pathname.startsWith('/api/brands'))) {return true}
   if (method === 'POST' && pathname === '/api/newsletter/subscribe') {return true}
   if (method === 'POST' && pathname === '/api/contact') {return true}
+  if (method === 'GET' && pathname === '/api/referral/lookup') {return true}
+  if (method === 'POST' && pathname === '/api/referral/track') {return true}
   return false
 }
 
