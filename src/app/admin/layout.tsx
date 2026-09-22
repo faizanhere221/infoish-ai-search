@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   LayoutDashboard, Users, UserSquare, Building2, Handshake,
   FileText, Mail, LogOut, Menu, X, Shield,
-  Activity, BarChart2, Search, ChevronDown, Settings, UserCog,
+  Activity, BarChart2, Search, ChevronDown, Settings, UserCog, Share2,
 } from 'lucide-react'
 
 // ─── Nav structure ────────────────────────────────────────────────────────────
@@ -20,6 +20,7 @@ const NAV = [
     ],
   },
   { label: 'Deals',       href: '/admin/deals',       icon: Handshake },
+  { label: 'Partners',    href: '/admin/partners',    icon: Share2 },
   { label: 'Analytics',   href: '/admin/analytics',   icon: BarChart2 },
   { label: 'Activity',    href: '/admin/activity',    icon: Activity },
   { label: 'Search',      href: '/admin/search',      icon: Search },
@@ -173,6 +174,7 @@ const ROUTE_NAMES: Record<string, string> = {
   brands: 'Brands', deals: 'Deals', analytics: 'Analytics', activity: 'Activity',
   search: 'Search', settings: 'Settings', admins: 'Admins', payments: 'Payments',
   contacts: 'Contacts', newsletter: 'Newsletter', subscriptions: 'Subscriptions',
+  partners: 'Partners', payouts: 'Payouts',
 }
 
 function Breadcrumbs() {

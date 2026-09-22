@@ -11,6 +11,8 @@ const CreatePartnerSchema = z.object({
   commission_rate: z.number().min(0).max(100).optional(),
 })
 
+const VALID_SORT = new Set(['created_at', 'name', 'total_referrals', 'total_paid_cents', 'commission_rate'])
+
 // GET - List all referral partners (admin only, enforced by middleware)
 export async function GET(request: NextRequest) {
   try {
@@ -19,13 +21,15 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') ?? ''
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20')))
+    const sortBy = VALID_SORT.has(searchParams.get('sort_by') ?? '') ? (searchParams.get('sort_by') as string) : 'created_at'
+    const sortAsc = searchParams.get('sort_order') === 'asc'
 
     const supabase = createServerSupabase()
 
     let query = supabase
       .from('referral_partners')
       .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
+      .order(sortBy, { ascending: sortAsc })
       .range((page - 1) * limit, page * limit - 1)
 
     if (status) {query = query.eq('status', status)}
@@ -34,7 +38,44 @@ export async function GET(request: NextRequest) {
     const { data: partners, count, error } = await query
     if (error) {throw error}
 
-    return NextResponse.json({ partners: partners ?? [], total: count ?? 0, page, limit })
+    // Live earnings per partner (sum of approved/paid commissions), same
+    // definition used everywhere else — referral_partners.total_earnings_cents
+    // is never written to, so it can't be trusted as a source of truth.
+    let earningsByPartner = new Map<string, number>()
+    const partnerIds = (partners ?? []).map((p) => p.id)
+    if (partnerIds.length > 0) {
+      const { data: commissions } = await supabase
+        .from('referral_commissions')
+        .select('partner_id, commission_amount_cents')
+        .in('partner_id', partnerIds)
+        .in('status', ['approved', 'paid'])
+
+      earningsByPartner = (commissions ?? []).reduce((acc, c) => {
+        acc.set(c.partner_id, (acc.get(c.partner_id) ?? 0) + (c.commission_amount_cents || 0))
+        return acc
+      }, new Map<string, number>())
+    }
+
+    const enriched = (partners ?? []).map((p) => ({
+      ...p,
+      total_earnings_cents: earningsByPartner.get(p.id) ?? 0,
+    }))
+
+    // Summary bar reflects ALL partners, not just the current filtered page.
+    const [{ count: totalPartners }, { count: activePartners }, { data: allPartnerTotals }] = await Promise.all([
+      supabase.from('referral_partners').select('id', { count: 'exact', head: true }),
+      supabase.from('referral_partners').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+      supabase.from('referral_partners').select('total_referrals, total_paid_cents'),
+    ])
+
+    const summary = {
+      total_partners: totalPartners ?? 0,
+      active_partners: activePartners ?? 0,
+      total_referrals: (allPartnerTotals ?? []).reduce((sum, p) => sum + (p.total_referrals || 0), 0),
+      total_paid_cents: (allPartnerTotals ?? []).reduce((sum, p) => sum + (p.total_paid_cents || 0), 0),
+    }
+
+    return NextResponse.json({ partners: enriched, total: count ?? 0, page, limit, summary })
   } catch (err) {
     console.error('Admin partners list error:', err)
     return NextResponse.json({ error: 'Failed to fetch partners' }, { status: 500 })
