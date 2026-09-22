@@ -28,7 +28,7 @@ export function useCreator({ username, id, autoFetch = true }: UseCreatorOptions
 
   const fetchCreator = useCallback(async () => {
     const identifier = username || id
-    if (!identifier) return
+    if (!identifier) {return}
 
     setIsLoading(true)
     setError(null)
@@ -59,7 +59,7 @@ export function useCreator({ username, id, autoFetch = true }: UseCreatorOptions
   }, [autoFetch, username, id, fetchCreator])
 
   const updateServices = useCallback(async (services: Service[]) => {
-    if (!creator) return { success: false, error: 'No creator loaded' }
+    if (!creator) {return { success: false, error: 'No creator loaded' }}
 
     try {
       const response = await fetch(`/api/creators/${creator.id}`, {
@@ -76,13 +76,13 @@ export function useCreator({ username, id, autoFetch = true }: UseCreatorOptions
 
       setCreator(data.creator)
       return { success: true }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Network error' }
     }
   }, [creator])
 
   const updatePortfolio = useCallback(async (items: PortfolioItem[]) => {
-    if (!creator) return { success: false, error: 'No creator loaded' }
+    if (!creator) {return { success: false, error: 'No creator loaded' }}
 
     try {
       const response = await fetch(`/api/creators/${creator.id}`, {
@@ -99,13 +99,13 @@ export function useCreator({ username, id, autoFetch = true }: UseCreatorOptions
 
       setCreator(data.creator)
       return { success: true }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Network error' }
     }
   }, [creator])
 
   const updateProfile = useCallback(async (profileData: Partial<CreatorProfile>) => {
-    if (!creator) return { success: false, error: 'No creator loaded' }
+    if (!creator) {return { success: false, error: 'No creator loaded' }}
 
     try {
       const response = await fetch(`/api/creators/${creator.id}`, {
@@ -122,7 +122,7 @@ export function useCreator({ username, id, autoFetch = true }: UseCreatorOptions
 
       setCreator(data.creator)
       return { success: true }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Network error' }
     }
   }, [creator])
@@ -187,15 +187,15 @@ export function useCreatorSearch(initialLimit = 20): UseCreatorSearchReturn {
     try {
       const params = new URLSearchParams()
       
-      if (newFilters.search) params.set('search', newFilters.search)
-      if (newFilters.niches?.length) params.set('niches', newFilters.niches.join(','))
-      if (newFilters.platforms?.length) params.set('platforms', newFilters.platforms.join(','))
-      if (newFilters.countries?.length) params.set('countries', newFilters.countries.join(','))
-      if (newFilters.minRating) params.set('minRating', newFilters.minRating.toString())
-      if (newFilters.priceMin) params.set('priceMin', newFilters.priceMin.toString())
-      if (newFilters.priceMax) params.set('priceMax', newFilters.priceMax.toString())
-      if (newFilters.verified) params.set('verified', 'true')
-      if (newFilters.sort) params.set('sort', newFilters.sort)
+      if (newFilters.search) {params.set('search', newFilters.search)}
+      if (newFilters.niches?.length) {params.set('niches', newFilters.niches.join(','))}
+      if (newFilters.platforms?.length) {params.set('platforms', newFilters.platforms.join(','))}
+      if (newFilters.countries?.length) {params.set('countries', newFilters.countries.join(','))}
+      if (newFilters.minRating) {params.set('minRating', newFilters.minRating.toString())}
+      if (newFilters.priceMin) {params.set('priceMin', newFilters.priceMin.toString())}
+      if (newFilters.priceMax) {params.set('priceMax', newFilters.priceMax.toString())}
+      if (newFilters.verified) {params.set('verified', 'true')}
+      if (newFilters.sort) {params.set('sort', newFilters.sort)}
       params.set('page', page.toString())
       params.set('limit', initialLimit.toString())
 
@@ -222,7 +222,7 @@ export function useCreatorSearch(initialLimit = 20): UseCreatorSearchReturn {
   }, [initialLimit])
 
   const loadMore = useCallback(async () => {
-    if (pagination.page >= pagination.totalPages || isLoading) return
+    if (pagination.page >= pagination.totalPages || isLoading) {return}
     await search(filters, pagination.page + 1)
   }, [pagination, isLoading, search, filters])
 

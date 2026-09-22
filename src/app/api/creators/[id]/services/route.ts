@@ -67,7 +67,7 @@ export async function PUT(
 
     // Insert new services if any
     const { services } = parsed.data
-    let savedServices: any[] = []
+    let savedServices: Record<string, unknown>[] = []
     if (services.length > 0) {
       const serviceRecords = services.map(s => ({
         creator_id: id,

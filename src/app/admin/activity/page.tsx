@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Search, RefreshCw, Download, Filter, User, Shield, FileText, MessageSquare, Star, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, RefreshCw, Download, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface ActivityLog {
   id: string
@@ -55,10 +55,10 @@ function formatAction(action: string) {
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
   const m = Math.floor(diff / 60000)
-  if (m < 1) return 'just now'
-  if (m < 60) return `${m}m ago`
+  if (m < 1) {return 'just now'}
+  if (m < 60) {return `${m}m ago`}
   const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h ago`
+  if (h < 24) {return `${h}h ago`}
   return new Date(iso).toLocaleDateString()
 }
 
@@ -81,10 +81,10 @@ export default function ActivityPage() {
     setLoading(true)
     try {
       const params = new URLSearchParams({ page: String(p), limit: String(limit) })
-      if (search)   params.set('search', search)
-      if (group)    params.set('group', group)
-      if (dateFrom) params.set('date_from', dateFrom)
-      if (dateTo)   params.set('date_to', dateTo)
+      if (search)   {params.set('search', search)}
+      if (group)    {params.set('group', group)}
+      if (dateFrom) {params.set('date_from', dateFrom)}
+      if (dateTo)   {params.set('date_to', dateTo)}
       const res = await fetch(`/api/admin/activity/logs?${params}`)
       const data = await res.json()
       setLogs(data.logs ?? [])
@@ -267,7 +267,7 @@ export default function ActivityPage() {
             </button>
             {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
               const p = page <= 4 ? i + 1 : page - 3 + i
-              if (p < 1 || p > totalPages) return null
+              if (p < 1 || p > totalPages) {return null}
               return (
                 <button
                   key={p}

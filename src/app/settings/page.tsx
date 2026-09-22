@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -96,11 +96,7 @@ function SettingsPageInner() {
     { id: 'security' as SettingsTab, label: 'Security', icon: Shield },
   ]
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const userStr = localStorage.getItem('auth_user')
 
@@ -132,17 +128,21 @@ function SettingsPageInner() {
       setError('Failed to load settings')
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const handleSave = async () => {
-    if (!profile) return
+    if (!profile) {return}
 
     setSaving(true)
     setError(null)
 
     const authToken = localStorage.getItem('auth_token')
     const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (authToken) authHeaders.Authorization = `Bearer ${authToken}`
+    if (authToken) {authHeaders.Authorization = `Bearer ${authToken}`}
 
     const sectionErrors: string[] = []
 
@@ -171,7 +171,7 @@ function SettingsPageInner() {
         sectionErrors.push(errorData.error || 'Failed to save platforms')
       } else {
         const data = await platformsRes.json().catch(() => null)
-        if (data?.platforms) setPlatforms(data.platforms)
+        if (data?.platforms) {setPlatforms(data.platforms)}
       }
 
       // Update services
@@ -186,7 +186,7 @@ function SettingsPageInner() {
         sectionErrors.push(errorData.error || 'Failed to save services')
       } else {
         const data = await servicesRes.json().catch(() => null)
-        if (data?.services) setServices(data.services)
+        if (data?.services) {setServices(data.services)}
       }
 
       if (sectionErrors.length > 0) {
@@ -368,14 +368,14 @@ function ProfileSettings({
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [avatarError, setAvatarError] = useState<string | null>(null)
 
-  const updateProfile = (field: keyof CreatorProfile, value: any) => {
+  const updateProfile = (field: keyof CreatorProfile, value: CreatorProfile[keyof CreatorProfile]) => {
     setProfile({ ...profile, [field]: value })
   }
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = ''
-    if (!file) return
+    if (!file) {return}
 
     setAvatarError(null)
     setUploadingAvatar(true)
@@ -406,7 +406,7 @@ function ProfileSettings({
         savedProfile.profile_photo_url = data.profile_photo_url
         localStorage.setItem('auth_profile', JSON.stringify(savedProfile))
       }
-    } catch (err) {
+    } catch {
       setAvatarError('Network error. Please try again.')
     } finally {
       setUploadingAvatar(false)
@@ -666,7 +666,7 @@ function ServicesSettings({
     ])
   }
 
-  const updateService = (index: number, field: keyof Service, value: any) => {
+  const updateService = (index: number, field: keyof Service, value: Service[keyof Service]) => {
     const updated = [...services]
     updated[index] = { ...updated[index], [field]: value }
     setServices(updated)
@@ -851,7 +851,7 @@ function PlatformsSettings({
     ])
   }
 
-  const updatePlatform = (index: number, field: keyof Platform, value: any) => {
+  const updatePlatform = (index: number, field: keyof Platform, value: Platform[keyof Platform]) => {
     const updated = [...platforms]
     updated[index] = { ...updated[index], [field]: value }
     setPlatforms(updated)

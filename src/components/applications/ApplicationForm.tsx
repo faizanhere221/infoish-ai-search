@@ -67,7 +67,7 @@ export default function ApplicationForm({ campaign, submitting, submitError, onS
           value={coverMessage}
           onChange={(e) => {
             setCoverMessage(e.target.value)
-            if (coverMessageError) setCoverMessageError(null)
+            if (coverMessageError) {setCoverMessageError(null)}
           }}
           placeholder="Introduce yourself and why you're a good fit..."
           rows={6}

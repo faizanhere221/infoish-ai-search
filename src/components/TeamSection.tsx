@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Linkedin, Twitter, Github, Mail } from 'lucide-react';
+import {} from 'lucide-react';
 
 interface TeamMember {
   id: string;

@@ -77,7 +77,7 @@ export default function ApplicationDetailPage() {
   }, [load])
 
   async function handleWithdraw() {
-    if (!confirm('Withdraw this application? This cannot be undone.')) return
+    if (!confirm('Withdraw this application? This cannot be undone.')) {return}
 
     setWithdrawing(true)
     setActionError(null)
@@ -101,7 +101,7 @@ export default function ApplicationDetailPage() {
   }
 
   async function handleMessageBrand() {
-    if (!application?.campaign) return
+    if (!application?.campaign) {return}
 
     setMessaging(true)
     setActionError(null)
@@ -208,7 +208,7 @@ export default function ApplicationDetailPage() {
               <DollarSign className="w-4 h-4 text-gray-400" />
               <span className="text-gray-500">Proposed rate:</span>
               <span className="font-medium text-gray-900">
-                {application.proposed_rate != null ? `$${application.proposed_rate.toLocaleString()}` : 'Not specified'}
+                {application.proposed_rate !== null && application.proposed_rate !== undefined ? `$${application.proposed_rate.toLocaleString()}` : 'Not specified'}
               </span>
             </div>
             <div className="flex items-center gap-2">

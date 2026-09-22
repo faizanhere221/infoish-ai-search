@@ -91,7 +91,7 @@ export default function ReviewPage() {
   }, [router])
 
   useEffect(() => {
-    if (!token) return
+    if (!token) {return}
     async function loadDeal() {
       try {
         const res = await fetch(`/api/deals/${dealId}`, {
@@ -129,7 +129,7 @@ export default function ReviewPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!deal || !token || !profileId || !userType) return
+    if (!deal || !token || !profileId || !userType) {return}
 
     if (rating === 0) {
       setError('Please select an overall rating')
@@ -222,8 +222,8 @@ export default function ReviewPage() {
 
   const otherPartyName =
     userType === 'brand'
-      ? (deal?.creator as any)?.display_name ?? 'the creator'
-      : (deal?.brand as any)?.company_name ?? 'the brand'
+      ? deal?.creator?.display_name ?? 'the creator'
+      : deal?.brand?.company_name ?? 'the brand'
 
   return (
     <div className="min-h-screen bg-gray-50">

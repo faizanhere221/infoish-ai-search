@@ -46,10 +46,10 @@ function formatTime(dateStr: string) {
   const diffHours = Math.floor(diffMs / 3_600_000)
   const diffDays = Math.floor(diffMs / 86_400_000)
 
-  if (diffMins < 1)  return 'Just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  if (diffDays < 7)  return `${diffDays}d ago`
+  if (diffMins < 1)  {return 'Just now'}
+  if (diffMins < 60) {return `${diffMins}m ago`}
+  if (diffHours < 24) {return `${diffHours}h ago`}
+  if (diffDays < 7)  {return `${diffDays}d ago`}
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
@@ -75,11 +75,11 @@ export default function NotificationsPage() {
     const user = JSON.parse(userStr)
     setUserType(user.user_type)
     setToken(storedToken)
-    if (profileStr) setProfile(JSON.parse(profileStr))
+    if (profileStr) {setProfile(JSON.parse(profileStr))}
   }, [router])
 
   const fetchNotifications = useCallback(async (authToken: string | null) => {
-    if (!authToken) return
+    if (!authToken) {return}
     try {
       const res = await fetch('/api/notifications?limit=50', {
         headers: { Authorization: `Bearer ${authToken}` },
@@ -96,11 +96,11 @@ export default function NotificationsPage() {
   }, [])
 
   useEffect(() => {
-    if (token !== null) fetchNotifications(token)
+    if (token !== null) {fetchNotifications(token)}
   }, [token, fetchNotifications])
 
   const markRead = async (id: string) => {
-    if (!token) return
+    if (!token) {return}
     // Optimistic update
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
     await fetch('/api/notifications', {
@@ -114,7 +114,7 @@ export default function NotificationsPage() {
   }
 
   const markAllRead = async () => {
-    if (!token || markingAll) return
+    if (!token || markingAll) {return}
     setMarkingAll(true)
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
     await fetch('/api/notifications', {
@@ -197,7 +197,7 @@ export default function NotificationsPage() {
                   className={`flex items-start gap-4 p-4 transition-colors hover:bg-gray-50 ${
                     !n.is_read ? 'bg-violet-50/40' : ''
                   }`}
-                  onClick={() => { if (!n.is_read) markRead(n.id) }}
+                  onClick={() => { if (!n.is_read) {markRead(n.id)} }}
                 >
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${meta.color}`}>
                     <Icon className="w-5 h-5" />

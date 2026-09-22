@@ -70,7 +70,7 @@ function GlobalSearch() {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (ref.current && !ref.current.contains(e.target as Node)) {setOpen(false)}
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -259,7 +259,7 @@ function NavEntry({
   const active = pathname === item.href || (item.href !== '/admin/dashboard' && pathname.startsWith(item.href + '/'))
   return (
     <Link
-      href={item.href!}
+      href={item.href ?? '#'}
       title={collapsed ? item.label : undefined}
       className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${active ? 'bg-violet-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}
     >
@@ -279,7 +279,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => { setAdminEmail(localStorage.getItem('admin_email') ?? 'Admin') }, [])
 
-  if (pathname === '/admin/login') return <>{children}</>
+  if (pathname === '/admin/login') {return <>{children}</>}
 
   const handleLogout = async () => {
     try { await fetch('/api/admin/auth/logout', { method: 'POST' }) } finally {

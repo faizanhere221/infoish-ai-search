@@ -108,16 +108,16 @@ function initialFormData(): CampaignFormData {
 
 function validateStep1(data: CampaignFormData): WizardErrors {
   const errors: WizardErrors = {}
-  if (data.title.trim().length < 10) errors.title = 'Title must be at least 10 characters'
-  if (data.description.trim().length < 10) errors.description = 'Description must be at least 10 characters'
-  if (!data.objective) errors.objective = 'Objective is required'
-  if (!data.category) errors.category = 'Category is required'
+  if (data.title.trim().length < 10) {errors.title = 'Title must be at least 10 characters'}
+  if (data.description.trim().length < 10) {errors.description = 'Description must be at least 10 characters'}
+  if (!data.objective) {errors.objective = 'Objective is required'}
+  if (!data.category) {errors.category = 'Category is required'}
   return errors
 }
 
 function validateStep2(data: CampaignFormData): WizardErrors {
   const errors: WizardErrors = {}
-  if (data.platforms.length === 0) errors.platforms = 'Select at least one platform'
+  if (data.platforms.length === 0) {errors.platforms = 'Select at least one platform'}
   return errors
 }
 
@@ -134,14 +134,14 @@ function validateStep3(data: CampaignFormData): WizardErrors {
       hasIncomplete = true
     }
   }
-  if (hasIncomplete) errors.deliverables = 'Fill in platform and type for every deliverable'
+  if (hasIncomplete) {errors.deliverables = 'Fill in platform and type for every deliverable'}
   return errors
 }
 
 function validateStep4(data: CampaignFormData): WizardErrors {
   const errors: WizardErrors = {}
   if (data.budget_type === 'fixed') {
-    if (!data.budget_fixed || Number(data.budget_fixed) <= 0) errors.budget = 'Enter a budget amount'
+    if (!data.budget_fixed || Number(data.budget_fixed) <= 0) {errors.budget = 'Enter a budget amount'}
   } else if (data.budget_type === 'range') {
     if (!data.budget_min || !data.budget_max) {
       errors.budget = 'Enter both a minimum and maximum budget'
@@ -149,7 +149,7 @@ function validateStep4(data: CampaignFormData): WizardErrors {
       errors.budget = 'Minimum budget cannot exceed maximum budget'
     }
   }
-  if (!data.application_deadline) errors.application_deadline = 'Application deadline is required'
+  if (!data.application_deadline) {errors.application_deadline = 'Application deadline is required'}
   if (
     data.campaign_start_date &&
     data.campaign_end_date &&
@@ -243,7 +243,7 @@ export default function CampaignWizard({
     setSubmitError(null)
     setIsSavingDraft(true)
     const result = await onSaveDraft(buildPayload(formData))
-    if (!result.success) setSubmitError(result.error || 'Failed to save draft')
+    if (!result.success) {setSubmitError(result.error || 'Failed to save draft')}
     setIsSavingDraft(false)
   }
 
@@ -251,7 +251,7 @@ export default function CampaignWizard({
     setSubmitError(null)
     setIsPublishing(true)
     const result = await onPublish(buildPayload(formData))
-    if (!result.success) setSubmitError(result.error || 'Failed to publish campaign')
+    if (!result.success) {setSubmitError(result.error || 'Failed to publish campaign')}
     setIsPublishing(false)
   }
 

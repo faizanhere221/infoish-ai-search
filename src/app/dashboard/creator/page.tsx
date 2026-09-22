@@ -16,6 +16,7 @@ import {
   Share2,
   Megaphone,
   Briefcase,
+  type LucideIcon,
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import { PLATFORMS } from '@/utils/constants'
@@ -451,7 +452,7 @@ function StatCard({
   subtext,
   color,
 }: {
-  icon: any
+  icon: LucideIcon
   label: string
   value: string
   subtext: string
@@ -486,7 +487,7 @@ function QuickAction({
   label,
 }: {
   href: string
-  icon: any
+  icon: LucideIcon
   iconBg: string
   iconColor: string
   label: string

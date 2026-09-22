@@ -7,7 +7,6 @@ import {
   HelpCircle,
   MessageSquare,
   Mail,
-  FileText,
   ChevronDown,
   ArrowLeft,
   User,

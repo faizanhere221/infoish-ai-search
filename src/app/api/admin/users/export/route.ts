@@ -15,13 +15,13 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(10000)
 
-    if (search) query = query.ilike('email', `%${search}%`)
-    if (userType) query = query.eq('user_type', userType)
-    if (status === 'active')    query = query.eq('is_active', true)
-    if (status === 'suspended') query = query.eq('is_active', false)
+    if (search) {query = query.ilike('email', `%${search}%`)}
+    if (userType) {query = query.eq('user_type', userType)}
+    if (status === 'active')    {query = query.eq('is_active', true)}
+    if (status === 'suspended') {query = query.eq('is_active', false)}
 
     const { data: users, error } = await query
-    if (error) throw error
+    if (error) {throw error}
 
     const headers = ['ID', 'Email', 'Type', 'Status', 'Verified', 'Role', 'Created', 'Last Login']
     const rows = (users ?? []).map(u => [

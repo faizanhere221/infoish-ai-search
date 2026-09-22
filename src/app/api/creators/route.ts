@@ -21,6 +21,17 @@ export async function GET(request: NextRequest) {
       .from('creators')
       .select('*', { count: 'exact' })
 
+    // Platform lives on creator_platforms, not creators — resolve matching
+    // creator ids first so it can be applied as a plain .in() filter below.
+    if (platform) {
+      const { data: platformMatches } = await supabase
+        .from('creator_platforms')
+        .select('creator_id')
+        .eq('platform', platform)
+      const matchingCreatorIds = [...new Set((platformMatches ?? []).map(p => p.creator_id))]
+      query = query.in('id', matchingCreatorIds)
+    }
+
     // Apply filters
     if (search) {
       query = query.or(`display_name.ilike.%${search}%,username.ilike.%${search}%,bio.ilike.%${search}%`)
@@ -177,7 +188,7 @@ export async function POST(request: NextRequest) {
 
     // Add platforms if provided
     if (platforms && platforms.length > 0) {
-      const platformRecords = platforms.map((p: any) => ({
+      const platformRecords = platforms.map((p: { platform: string; username?: string; url?: string; followers?: number }) => ({
         creator_id: creator.id,
         platform: p.platform,
         platform_username: p.username || null,

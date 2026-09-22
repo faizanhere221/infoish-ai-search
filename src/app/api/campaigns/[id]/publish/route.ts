@@ -39,11 +39,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     // Required fields before a campaign can go live
     const missing: string[] = []
-    if (!campaign.title) missing.push('title')
-    if (!campaign.description) missing.push('description')
-    if (!campaign.category) missing.push('category')
-    if (!campaign.objective) missing.push('objective')
-    if (!campaign.platforms || campaign.platforms.length === 0) missing.push('platforms')
+    if (!campaign.title) {missing.push('title')}
+    if (!campaign.description) {missing.push('description')}
+    if (!campaign.category) {missing.push('category')}
+    if (!campaign.objective) {missing.push('objective')}
+    if (!campaign.platforms || campaign.platforms.length === 0) {missing.push('platforms')}
 
     if (missing.length > 0) {
       return NextResponse.json(

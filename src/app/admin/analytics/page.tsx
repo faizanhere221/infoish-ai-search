@@ -68,7 +68,7 @@ function presets() {
 
 // ─── Mini chart components ──────────────────────────────────────────────────────
 function SparkLine({ data, color = '#8b5cf6' }: { data: number[]; color?: string }) {
-  if (data.length < 2) return <div className="h-12" />
+  if (data.length < 2) {return <div className="h-12" />}
   const max = Math.max(...data, 1)
   const w = 200
   const h = 48
@@ -114,7 +114,7 @@ function BarChart({ data, color = '#8b5cf6' }: { data: { label: string; value: n
 
 function DonutChart({ slices }: { slices: { label: string; value: number; color: string }[] }) {
   const total = slices.reduce((s, x) => s + x.value, 0)
-  if (total === 0) return <div className="h-32 flex items-center justify-center text-slate-500 text-sm">No data</div>
+  if (total === 0) {return <div className="h-32 flex items-center justify-center text-slate-500 text-sm">No data</div>}
 
   let cumAngle = -90
   const r = 40
@@ -158,8 +158,8 @@ function sortedDays(map: Record<string, number>) {
 }
 
 function fmt(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`}
+  if (n >= 1_000) {return `${(n / 1_000).toFixed(1)}K`}
   return String(n)
 }
 
@@ -174,9 +174,10 @@ const DEAL_COLORS: Record<string, string> = {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
   const PRESETS = presets()
+  const last30Days = PRESETS.find(p => p.label === 'Last 30 days') ?? PRESETS[0]
   const [active, setActive]   = useState('Last 30 days')
-  const [from, setFrom]       = useState(PRESETS.find(p => p.label === 'Last 30 days')!.from)
-  const [to, setTo]           = useState(PRESETS.find(p => p.label === 'Last 30 days')!.to)
+  const [from, setFrom]       = useState(last30Days.from)
+  const [to, setTo]           = useState(last30Days.to)
   const [custom, setCustom]   = useState(false)
   const [data, setData]       = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(false)
@@ -202,7 +203,7 @@ export default function AnalyticsPage() {
   }
 
   function exportCSV() {
-    if (!data) return
+    if (!data) {return}
     const rows: string[][] = [['Metric', 'Value']]
     rows.push(['Period', `${data.period.from} → ${data.period.to}`])
     rows.push(['New registrations', String(data.users.total_in_period)])
@@ -226,7 +227,6 @@ export default function AnalyticsPage() {
   }
 
   const regDays = data ? sortedDays(data.users.registrations_by_day) : []
-  const dealDays = data ? sortedDays(data.deals.by_day) : []
   const msgDays  = data ? sortedDays(data.engagement.messages_by_day) : []
   const revDays  = data ? sortedDays(data.deals.revenue_by_day) : []
 

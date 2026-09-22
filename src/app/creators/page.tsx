@@ -3,10 +3,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
 import {
   Search,
-  Filter,
   MapPin,
   Star,
   Users,
@@ -17,7 +15,6 @@ import {
   ChevronDown,
   ChevronUp,
   SlidersHorizontal,
-  Heart,
   MessageSquare,
   Clock,
   DollarSign,
@@ -114,7 +111,6 @@ const SORT_OPTIONS: { id: SortOption; label: string }[] = [
 ]
 
 export default function CreatorsPage() {
-  const router = useRouter()
   const [creators, setCreators] = useState<Creator[]>([])
   const [loading, setLoading] = useState(true)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -237,7 +233,7 @@ export default function CreatorsPage() {
   // Get min price for a creator
   const getMinPrice = (creator: Creator): number | null => {
     const activeServices = creator.creator_services?.filter(s => s.is_active) || []
-    if (activeServices.length === 0) return creator.min_budget || null
+    if (activeServices.length === 0) {return creator.min_budget || null}
     return Math.min(...activeServices.map(s => s.price))
   }
 
@@ -251,7 +247,7 @@ export default function CreatorsPage() {
         creator.username?.toLowerCase().includes(query) ||
         creator.bio?.toLowerCase().includes(query) ||
         creator.niches?.some(n => n.toLowerCase().includes(query))
-      if (!matchesSearch) return false
+      if (!matchesSearch) {return false}
     }
 
     // Niche filter
@@ -259,7 +255,7 @@ export default function CreatorsPage() {
       const hasNiche = selectedNiches.some(niche =>
         creator.niches?.includes(niche)
       )
-      if (!hasNiche) return false
+      if (!hasNiche) {return false}
     }
 
     // Platform filter
@@ -267,7 +263,7 @@ export default function CreatorsPage() {
       const hasPlatform = selectedPlatforms.some(platform =>
         creator.creator_platforms?.some(p => p.platform === platform)
       )
-      if (!hasPlatform) return false
+      if (!hasPlatform) {return false}
     }
 
     // Country filter
@@ -282,7 +278,7 @@ export default function CreatorsPage() {
       const hasLanguage = selectedLanguages.some(lang =>
         creator.languages?.includes(lang)
       )
-      if (!hasLanguage) return false
+      if (!hasLanguage) {return false}
     }
 
     // Price range filter
@@ -350,12 +346,6 @@ export default function CreatorsPage() {
       }
     }
   })
-
-  const formatFollowers = (num: number): string => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
-    return num.toString()
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -878,14 +868,14 @@ function FilterSection({
 // Creator Card Component
 function CreatorCard({ creator }: { creator: Creator }) {
   const formatFollowers = (num: number): string => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
+    if (num >= 1000000) {return (num / 1000000).toFixed(1) + 'M'}
+    if (num >= 1000) {return (num / 1000).toFixed(1) + 'K'}
     return num.toString()
   }
 
   const getMinPrice = (): number | null => {
     const activeServices = creator.creator_services?.filter(s => s.is_active) || []
-    if (activeServices.length === 0) return creator.min_budget || null
+    if (activeServices.length === 0) {return creator.min_budget || null}
     return Math.min(...activeServices.map(s => s.price))
   }
 

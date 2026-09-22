@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Hash, Sparkles, Copy, Check, TrendingUp, Target, Zap, Info, RefreshCw, Download, BookOpen } from 'lucide-react'
+import { Hash, Sparkles, Copy, Check, TrendingUp, Target, Zap, Info, RefreshCw, Download } from 'lucide-react'
 import Link from 'next/link'
 import Header from '@/components/header'
 interface Hashtag {
@@ -77,9 +77,9 @@ export default function HashtagGenerator() {
 
       setResult(generatedHashtags)
 
-    } catch (err: any) {
+    } catch (err) {
       console.error('Generation error:', err)
-      setError(err.message || 'Failed to generate hashtags. Please try again.')
+      setError(err instanceof Error ? err.message : 'Failed to generate hashtags. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -304,7 +304,7 @@ const generateHashtagsLocal = async (
   }
 
   const selectAll = () => {
-    if (!result) return
+    if (!result) {return}
     const allIndices = new Set(result.hashtags.map((_, i) => i))
     setSelectedHashtags(allIndices)
   }
@@ -314,7 +314,7 @@ const generateHashtagsLocal = async (
   }
 
   const copySelectedHashtags = () => {
-    if (!result) return
+    if (!result) {return}
     const selected = result.hashtags
       .filter((_, index) => selectedHashtags.has(index))
       .map(h => `#${h.tag}`)
@@ -328,7 +328,7 @@ const generateHashtagsLocal = async (
   }
 
   const copyAllHashtags = () => {
-    if (!result) return
+    if (!result) {return}
     const allTags = result.hashtags.map(h => `#${h.tag}`).join(' ')
     navigator.clipboard.writeText(allTags)
     setCopiedAll(true)
@@ -336,7 +336,7 @@ const generateHashtagsLocal = async (
   }
 
   const downloadHashtags = () => {
-    if (!result) return
+    if (!result) {return}
     const content = result.hashtags.map(h => `#${h.tag}`).join('\n')
     const blob = new Blob([content], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
@@ -723,6 +723,9 @@ const generateHashtagsLocal = async (
                         </span>
                         <span className={`font-semibold ${getDifficultyColor(hashtag.difficulty)}`}>
                           {hashtag.difficulty}
+                        </span>
+                        <span className={`font-semibold ${getEngagementColor(hashtag.engagement_potential)}`}>
+                          {hashtag.engagement_potential} engagement
                         </span>
                       </div>
 

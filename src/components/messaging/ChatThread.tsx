@@ -40,7 +40,7 @@ function formatMessageTime(dateString: string): string {
 }
 
 function shouldShowDateDivider(current: Message, previous?: Message): boolean {
-  if (!previous) return true
+  if (!previous) {return true}
   
   const currentDate = new Date(current.created_at).toDateString()
   const previousDate = new Date(previous.created_at).toDateString()
@@ -53,8 +53,8 @@ function formatDateDivider(dateString: string): string {
   const now = new Date()
   const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
   
-  if (diffDays === 0) return 'Today'
-  if (diffDays === 1) return 'Yesterday'
+  if (diffDays === 0) {return 'Today'}
+  if (diffDays === 1) {return 'Yesterday'}
   
   return date.toLocaleDateString('en-US', { 
     weekday: 'long',
@@ -65,7 +65,6 @@ function formatDateDivider(dateString: string): string {
 
 export function ChatThread({
   messages,
-  currentUserId,
   currentUserType,
   otherPartyName,
   otherPartyAvatar,
@@ -83,7 +82,7 @@ export function ChatThread({
 
   // Handle scroll for loading more
   const handleScroll = () => {
-    if (!containerRef.current || !hasMore || isLoading) return
+    if (!containerRef.current || !hasMore || isLoading) {return}
     
     const { scrollTop } = containerRef.current
     if (scrollTop === 0) {

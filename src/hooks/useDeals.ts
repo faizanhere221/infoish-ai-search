@@ -46,7 +46,7 @@ export function useDeals({ userId, userType, status = 'all', autoFetch = true }:
   })
 
   const fetchDeals = useCallback(async (page = 1, statusFilter = currentStatus) => {
-    if (!userId) return
+    if (!userId) {return}
 
     setIsLoading(true)
     setError(null)
@@ -92,7 +92,7 @@ export function useDeals({ userId, userType, status = 'all', autoFetch = true }:
   }, [autoFetch, userId, fetchDeals])
 
   const loadMore = useCallback(async () => {
-    if (pagination.page >= pagination.totalPages || isLoading) return
+    if (pagination.page >= pagination.totalPages || isLoading) {return}
     await fetchDeals(pagination.page + 1)
   }, [pagination, isLoading, fetchDeals])
 
@@ -152,7 +152,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
   const [error, setError] = useState<string | null>(null)
 
   const fetchDeal = useCallback(async () => {
-    if (!dealId) return
+    if (!dealId) {return}
 
     setIsLoading(true)
     setError(null)
@@ -182,7 +182,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
   }, [autoFetch, dealId, fetchDeal])
 
   const acceptDeal = useCallback(async () => {
-    if (!dealId) return { success: false, error: 'No deal ID' }
+    if (!dealId) {return { success: false, error: 'No deal ID' }}
 
     setIsUpdating(true)
     try {
@@ -198,7 +198,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
 
       setDeal(data.deal)
       return { success: true }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Network error' }
     } finally {
       setIsUpdating(false)
@@ -206,7 +206,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
   }, [dealId])
 
   const declineDeal = useCallback(async () => {
-    if (!dealId || !deal) return { success: false, error: 'No deal' }
+    if (!dealId || !deal) {return { success: false, error: 'No deal' }}
 
     setIsUpdating(true)
     try {
@@ -224,7 +224,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
 
       setDeal(prev => prev ? { ...prev, status: 'declined' } : null)
       return { success: true }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Network error' }
     } finally {
       setIsUpdating(false)
@@ -232,7 +232,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
   }, [dealId, deal])
 
   const deliverDeal = useCallback(async (message?: string) => {
-    if (!dealId) return { success: false, error: 'No deal ID' }
+    if (!dealId) {return { success: false, error: 'No deal ID' }}
 
     setIsUpdating(true)
     try {
@@ -250,7 +250,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
 
       setDeal(data.deal)
       return { success: true }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Network error' }
     } finally {
       setIsUpdating(false)
@@ -258,7 +258,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
   }, [dealId])
 
   const approveDeal = useCallback(async () => {
-    if (!dealId) return { success: false, error: 'No deal ID' }
+    if (!dealId) {return { success: false, error: 'No deal ID' }}
 
     setIsUpdating(true)
     try {
@@ -274,7 +274,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
 
       setDeal(data.deal)
       return { success: true }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Network error' }
     } finally {
       setIsUpdating(false)
@@ -282,7 +282,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
   }, [dealId])
 
   const requestRevision = useCallback(async (note: string) => {
-    if (!dealId || !deal) return { success: false, error: 'No deal' }
+    if (!dealId || !deal) {return { success: false, error: 'No deal' }}
 
     if (deal.revisions_used >= deal.revisions_allowed) {
       return { success: false, error: 'Maximum revisions reached' }
@@ -311,7 +311,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
         revisions_used: prev.revisions_used + 1,
       } : null)
       return { success: true }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Network error' }
     } finally {
       setIsUpdating(false)
@@ -319,7 +319,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
   }, [dealId, deal])
 
   const updateDeliverables = useCallback(async (deliverables: Deliverable[]) => {
-    if (!dealId) return { success: false, error: 'No deal ID' }
+    if (!dealId) {return { success: false, error: 'No deal ID' }}
 
     setIsUpdating(true)
     try {
@@ -337,7 +337,7 @@ export function useDeal({ dealId, autoFetch = true }: UseDealOptions): UseDealRe
 
       setDeal(prev => prev ? { ...prev, deliverables } : null)
       return { success: true }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Network error' }
     } finally {
       setIsUpdating(false)
@@ -407,7 +407,7 @@ export function useCreateDeal() {
       }
 
       return { success: true, deal: result.deal }
-    } catch (err) {
+    } catch {
       const message = 'Network error'
       setError(message)
       return { success: false, error: message }

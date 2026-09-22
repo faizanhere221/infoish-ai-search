@@ -23,21 +23,21 @@ interface UseBrandReturn {
 
 export function useBrand({ userId, brandId, autoFetch = true }: UseBrandOptions = {}): UseBrandReturn {
   const [brand, setBrand] = useState<BrandProfile | null>(null)
-  const [savedCreators, setSavedCreators] = useState<CreatorProfile[]>([])
+  const [savedCreators, _setSavedCreators] = useState<CreatorProfile[]>([])
   const [savedCreatorIds, setSavedCreatorIds] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchBrand = useCallback(async () => {
-    if (!userId && !brandId) return
+    if (!userId && !brandId) {return}
 
     setIsLoading(true)
     setError(null)
 
     try {
       const params = new URLSearchParams()
-      if (userId) params.set('user_id', userId)
-      if (brandId) params.set('id', brandId)
+      if (userId) {params.set('user_id', userId)}
+      if (brandId) {params.set('id', brandId)}
 
       const response = await fetch(`/api/brands?${params.toString()}`)
       const data = await response.json()
@@ -73,7 +73,7 @@ export function useBrand({ userId, brandId, autoFetch = true }: UseBrandOptions 
   }, [autoFetch, userId, brandId, fetchBrand])
 
   const updateProfile = useCallback(async (profileData: Partial<BrandProfile>) => {
-    if (!brand) return { success: false, error: 'No brand loaded' }
+    if (!brand) {return { success: false, error: 'No brand loaded' }}
 
     try {
       const response = await fetch('/api/brands', {
@@ -90,13 +90,13 @@ export function useBrand({ userId, brandId, autoFetch = true }: UseBrandOptions 
 
       setBrand(data.brand)
       return { success: true }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Network error' }
     }
   }, [brand])
 
   const saveCreator = useCallback(async (creatorId: string) => {
-    if (!brand) return { success: false, error: 'No brand loaded' }
+    if (!brand) {return { success: false, error: 'No brand loaded' }}
 
     try {
       // Add to local state
@@ -114,13 +114,13 @@ export function useBrand({ userId, brandId, autoFetch = true }: UseBrandOptions 
       // })
 
       return { success: true }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Failed to save creator' }
     }
   }, [brand, savedCreatorIds])
 
   const unsaveCreator = useCallback(async (creatorId: string) => {
-    if (!brand) return { success: false, error: 'No brand loaded' }
+    if (!brand) {return { success: false, error: 'No brand loaded' }}
 
     try {
       // Remove from local state
@@ -138,7 +138,7 @@ export function useBrand({ userId, brandId, autoFetch = true }: UseBrandOptions 
       // })
 
       return { success: true }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Failed to unsave creator' }
     }
   }, [brand, savedCreatorIds])
@@ -180,7 +180,7 @@ export function useBrandStats(brandId?: string) {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    if (!brandId) return
+    if (!brandId) {return}
 
     const fetchStats = async () => {
       setIsLoading(true)

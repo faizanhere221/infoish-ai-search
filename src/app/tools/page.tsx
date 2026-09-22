@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import Header from '@/components/header'
-import { Instagram, Search, TrendingUp, Sparkles, ArrowRight, CheckCircle, Zap, Target, Hash } from 'lucide-react'
+import { Instagram, Sparkles, ArrowRight, CheckCircle, Zap, Target, Hash } from 'lucide-react'
 
 export default function ToolsPage() {
   const tools = [

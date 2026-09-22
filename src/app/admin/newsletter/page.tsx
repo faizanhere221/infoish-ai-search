@@ -2,7 +2,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Mail, Calendar, Download, Trash, Eye, Users, TrendingUp } from 'lucide-react';
+import { Mail, Calendar, Download, Eye, Users, TrendingUp } from 'lucide-react';
 
 interface NewsletterSubscription {
   id: string;
@@ -71,7 +71,7 @@ export default function NewsletterAdminPage() {
   };
 
   const getFilteredSubscriptions = () => {
-    if (filter === 'all') return subscriptions;
+    if (filter === 'all') {return subscriptions;}
     return subscriptions.filter(sub => sub.status === filter);
   };
 

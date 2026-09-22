@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       .in('role', ['admin', 'super_admin'])
       .order('created_at', { ascending: false })
 
-    if (error) throw error
+    if (error) {throw error}
 
     return NextResponse.json({ admins: admins ?? [] })
   } catch (err) {
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       .select('id, email, role, created_at')
       .single()
 
-    if (error) throw error
+    if (error) {throw error}
 
     void logActivity({
       userId: adminId,

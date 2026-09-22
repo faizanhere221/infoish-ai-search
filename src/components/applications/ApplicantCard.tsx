@@ -15,8 +15,8 @@ interface ApplicantCardProps {
 }
 
 function formatFollowers(num: number): string {
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
+  if (num >= 1000000) {return (num / 1000000).toFixed(1) + 'M'}
+  if (num >= 1000) {return (num / 1000).toFixed(1) + 'K'}
   return num.toString()
 }
 
@@ -66,7 +66,7 @@ export default function ApplicantCard({
               <Users className="w-4 h-4" />
               {formatFollowers(creator?.total_followers || 0)} followers
             </span>
-            {application.proposed_rate != null && (
+            {application.proposed_rate !== null && application.proposed_rate !== undefined && (
               <span className="flex items-center gap-1">
                 <DollarSign className="w-4 h-4" />
                 {application.proposed_rate.toLocaleString()} proposed

@@ -13,20 +13,15 @@ import {
   Users,
   Target,
   DollarSign,
-  Instagram,
-  Youtube,
   AlertTriangle,
   Lightbulb,
   BarChart3,
   Heart,
-  MessageCircle,
   Zap,
   Award,
   ArrowRight,
   Search,
   Shield,
-  ThumbsUp,
-  Eye
 } from 'lucide-react'
 
 export const metadata: Metadata = {

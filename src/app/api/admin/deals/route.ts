@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
     const status  = searchParams.get('status')  ?? ''
     const dateFrom = searchParams.get('date_from') ?? ''
     const dateTo   = searchParams.get('date_to')   ?? ''
-    const sortBy   = VALID_SORT.has(searchParams.get('sort_by') ?? '') ? searchParams.get('sort_by')! : 'created_at'
+    const sortByParam = searchParams.get('sort_by') ?? ''
+    const sortBy   = VALID_SORT.has(sortByParam) ? sortByParam : 'created_at'
     const sortAsc  = searchParams.get('sort_order') === 'asc'
 
     let query = supabase
@@ -23,13 +24,13 @@ export async function GET(request: NextRequest) {
       .order(sortBy, { ascending: sortAsc })
       .range((page - 1) * limit, page * limit - 1)
 
-    if (status)   query = query.eq('status', status)
-    if (dateFrom) query = query.gte('created_at', dateFrom)
-    if (dateTo)   query = query.lte('created_at', dateTo + 'T23:59:59')
-    if (search)   query = query.ilike('title', `%${search}%`)
+    if (status)   {query = query.eq('status', status)}
+    if (dateFrom) {query = query.gte('created_at', dateFrom)}
+    if (dateTo)   {query = query.lte('created_at', dateTo + 'T23:59:59')}
+    if (search)   {query = query.ilike('title', `%${search}%`)}
 
     const { data: deals, count, error } = await query
-    if (error) throw error
+    if (error) {throw error}
 
     if (!deals?.length) {
       return NextResponse.json({ deals: [], total: 0, page, limit })

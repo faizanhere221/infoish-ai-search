@@ -7,9 +7,9 @@ declare global {
     gtag: (
       command: 'event' | 'config' | 'js',
       targetId: string,
-      config?: Record<string, any>
+      config?: Record<string, unknown>
     ) => void;
-    dataLayer: any[];
+    dataLayer: unknown[];
   }
 }
 
@@ -19,13 +19,16 @@ export const GA_MEASUREMENT_ID = 'G-Y97NRDZSBB';
 /**
  * Core tracking function - sends events to GA4
  */
-export const track = (event: string, params: Record<string, any> = {}) => {
+export const track = (event: string, params: Record<string, unknown> = {}) => {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', event, {
       ...params,
       timestamp: new Date().toISOString(),
     });
-    console.log(`📊 [Analytics] Event: ${event}`, params);
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log(`📊 [Analytics] Event: ${event}`, params);
+    }
   }
 };
 
@@ -220,7 +223,7 @@ export const trackProfileAnalyzerUsage = (
 export const trackSearch = (
   query: string,
   resultsCount: number,
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
 ) => {
   track('search', {
     search_term: query,
@@ -358,20 +361,26 @@ export const trackPageView = (pagePath: string, pageTitle?: string) => {
       page_path: pagePath,
       page_title: pageTitle,
     });
-    console.log(`📊 [Analytics] Page View: ${pagePath}`);
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log(`📊 [Analytics] Page View: ${pagePath}`);
+    }
   }
 };
 
 /**
  * Set user properties (for logged-in users)
  */
-export const setUserProperties = (userId: string, properties: Record<string, any>) => {
+export const setUserProperties = (userId: string, properties: Record<string, unknown>) => {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('config', GA_MEASUREMENT_ID, {
       user_id: userId,
       ...properties,
     });
-    console.log(`📊 [Analytics] User Properties Set:`, properties);
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log(`📊 [Analytics] User Properties Set:`, properties);
+    }
   }
 };
 

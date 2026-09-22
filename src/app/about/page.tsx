@@ -19,10 +19,6 @@ import {
   Github,
   Mail,
   Mic,
-  BookOpen,
-  Wrench,
-  Menu,
-  X
 } from 'lucide-react'
 import { Navigation, Footer } from '@/components/landing'
 

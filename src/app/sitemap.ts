@@ -12,7 +12,7 @@ async function getCreatorRoutes(): Promise<MetadataRoute.Sitemap> {
       .eq('verification_status', 'verified')
       .limit(5000)
 
-    if (!creators) return []
+    if (!creators) {return []}
 
     return creators.map((creator) => ({
       url: `${baseUrl}/creators/${creator.username}`,

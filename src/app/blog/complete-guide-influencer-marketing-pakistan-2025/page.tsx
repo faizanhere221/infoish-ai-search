@@ -2,7 +2,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
-import { ArrowLeft, Calendar, User, Clock, Share2, Bookmark } from 'lucide-react'
+import { ArrowLeft, Calendar, User, Clock } from 'lucide-react'
 import { Metadata } from 'next'
 
 

@@ -42,7 +42,7 @@ export async function PATCH(
     const updates: Record<string, unknown> = {}
 
     for (const [k, v] of Object.entries(body)) {
-      if (ALLOWED.has(k)) updates[k] = v
+      if (ALLOWED.has(k)) {updates[k] = v}
     }
 
     if ('is_active' in body) {
@@ -68,7 +68,7 @@ export async function PATCH(
         .eq('id', params.id)
         .select('id, verification_status')
         .single()
-      if (error) throw error
+      if (error) {throw error}
       brandData = data
     }
 

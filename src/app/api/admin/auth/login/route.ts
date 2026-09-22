@@ -7,7 +7,7 @@ import { logActivity } from '@/lib/activity'
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET
-  if (!secret) throw new Error('JWT_SECRET is required')
+  if (!secret) {throw new Error('JWT_SECRET is required')}
   return secret
 }
 
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     // Identical error message to prevent user enumeration
     const invalid = () => NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
 
-    if (error || !user) return invalid()
+    if (error || !user) {return invalid()}
     if (!user.is_active) {
       return NextResponse.json({ error: 'Account is deactivated' }, { status: 403 })
     }
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password_hash)
-    if (!isValidPassword) return invalid()
+    if (!isValidPassword) {return invalid()}
 
     await supabase
       .from('users')

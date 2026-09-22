@@ -29,7 +29,7 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
             <Calendar className="w-4 h-4" />
             Applied {formatRelativeDate(application.created_at)}
           </span>
-          {application.proposed_rate != null && (
+          {application.proposed_rate !== null && application.proposed_rate !== undefined && (
             <span className="flex items-center gap-1">
               <DollarSign className="w-4 h-4" />
               {application.proposed_rate.toLocaleString()} proposed

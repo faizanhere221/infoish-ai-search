@@ -110,7 +110,7 @@ export default function BrandSignupPage() {
   const handleSubmit = async () => {
     setError(null)
     
-    if (!validateStep2()) return
+    if (!validateStep2()) {return}
     
     setIsLoading(true)
 
@@ -202,7 +202,7 @@ export default function BrandSignupPage() {
       // Redirect to dashboard
       router.push('/dashboard/brand')
 
-    } catch (err) {
+    } catch {
       setError('Network error. Please try again.')
       setIsLoading(false)
     }

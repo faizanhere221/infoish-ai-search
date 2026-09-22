@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Search, RefreshCw, Download, ChevronLeft, ChevronRight, Eye } from 'lucide-react'
+import { Search, RefreshCw, Download, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Deal {
   id: string
@@ -50,10 +50,10 @@ export default function DealsPage() {
         page: String(p), limit: String(limit),
         sort_by: sortBy, sort_order: sortOrder,
       })
-      if (search)   params.set('search', search)
-      if (status)   params.set('status', status)
-      if (dateFrom) params.set('date_from', dateFrom)
-      if (dateTo)   params.set('date_to', dateTo)
+      if (search)   {params.set('search', search)}
+      if (status)   {params.set('status', status)}
+      if (dateFrom) {params.set('date_from', dateFrom)}
+      if (dateTo)   {params.set('date_to', dateTo)}
       const res = await fetch(`/api/admin/deals?${params}`)
       const data = await res.json()
       setDeals(data.deals ?? [])
@@ -80,7 +80,7 @@ export default function DealsPage() {
   }
 
   function handleSort(col: string) {
-    if (sortBy === col) setSortOrder(o => o === 'asc' ? 'desc' : 'asc')
+    if (sortBy === col) {setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
     else { setSortBy(col); setSortOrder('desc') }
   }
 

@@ -14,8 +14,6 @@ function AuthCallbackContent() {
       const code = searchParams.get('code')
       const error = searchParams.get('error')
 
-      console.log('Callback received:', { code: !!code, error })
-
       if (error) {
         console.error('OAuth error:', error)
         router.push(`/login?error=${encodeURIComponent(error)}`)
@@ -31,9 +29,7 @@ function AuthCallbackContent() {
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
         const redirectUri = `${window.location.origin}/auth/callback`
-        
-        console.log('Exchanging code with backend...')
-        
+
         const response = await fetch(`${backendUrl}/auth/google/callback`, {
           method: 'POST',
           headers: {
@@ -46,7 +42,6 @@ function AuthCallbackContent() {
         })
 
         const data = await response.json()
-        console.log('Backend response:', { status: response.status, success: response.ok })
 
         if (response.ok && data.access_token) {
           localStorage.setItem('auth_token', data.access_token)
@@ -59,11 +54,9 @@ function AuthCallbackContent() {
             // New user signup
             trackSignupComplete('google')
             trackTrialStarted('free')
-            console.log('📊 Tracked: New user signup')
           } else {
             // Existing user login
             trackLogin('google')
-            console.log('📊 Tracked: User login')
           }
           
           // Identify user for future events
@@ -75,13 +68,12 @@ function AuthCallbackContent() {
             )
           }
           
-          console.log('Authentication successful, redirecting to search...')
           router.push('/search')
         } else {
           console.error('Backend auth error:', data)
           router.push(`/login?error=${encodeURIComponent(data.detail || data.error || 'Authentication failed')}`)
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error('Callback processing error:', error)
         router.push(`/login?error=${encodeURIComponent('Network error during authentication')}`)
       }

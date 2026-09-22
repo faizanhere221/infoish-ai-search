@@ -2,7 +2,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
-import { ArrowLeft, Calendar, User, Clock, CheckCircle, XCircle, TrendingUp, Users, BarChart3, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Calendar, User, Clock, CheckCircle, TrendingUp, BarChart3, AlertTriangle } from 'lucide-react'
 import { Metadata } from 'next'
 
 // SEO Metadata

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Shield, ShieldOff, Trash2, X, Eye, EyeOff, CheckCircle, AlertTriangle } from 'lucide-react'
+import { Plus, Shield, ShieldOff, X, Eye, EyeOff, CheckCircle, AlertTriangle } from 'lucide-react'
 
 interface Admin {
   id: string
@@ -13,12 +13,12 @@ interface Admin {
 }
 
 function timeAgo(iso: string | null) {
-  if (!iso) return 'Never'
+  if (!iso) {return 'Never'}
   const diff = Date.now() - new Date(iso).getTime()
   const d = Math.floor(diff / 86400000)
-  if (d === 0) return 'Today'
-  if (d === 1) return 'Yesterday'
-  if (d < 30) return `${d}d ago`
+  if (d === 0) {return 'Today'}
+  if (d === 1) {return 'Yesterday'}
+  if (d < 30) {return `${d}d ago`}
   return new Date(iso).toLocaleDateString()
 }
 
@@ -67,7 +67,7 @@ export default function AdminsPage() {
         body: JSON.stringify({ email, password, role }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Failed')
+      if (!res.ok) {throw new Error(data.error ?? 'Failed')}
       setAdmins(prev => [data.admin, ...prev])
       setShowForm(false)
       setEmail(''); setPassword(''); setRole('admin')
@@ -87,7 +87,7 @@ export default function AdminsPage() {
         body: JSON.stringify({ is_active: !admin.is_active }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Failed')
+      if (!res.ok) {throw new Error(data.error ?? 'Failed')}
       setAdmins(prev => prev.map(a => a.id === admin.id ? { ...a, is_active: !a.is_active } : a))
       showToast('success', `Admin ${admin.is_active ? 'suspended' : 'activated'}`)
     } catch (err) {
@@ -103,7 +103,7 @@ export default function AdminsPage() {
         body: JSON.stringify({ role: newRole }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Failed')
+      if (!res.ok) {throw new Error(data.error ?? 'Failed')}
       setAdmins(prev => prev.map(a => a.id === admin.id ? { ...a, role: newRole } : a))
       showToast('success', 'Role updated')
     } catch (err) {

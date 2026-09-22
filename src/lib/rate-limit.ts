@@ -31,7 +31,7 @@ if (typeof setInterval !== 'undefined') {
   setInterval(() => {
     const now = Date.now()
     for (const [key, entry] of store.entries()) {
-      if (now > entry.resetAt) store.delete(key)
+      if (now > entry.resetAt) {store.delete(key)}
     }
   }, 60_000)
 }

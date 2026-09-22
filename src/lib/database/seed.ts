@@ -31,25 +31,21 @@ export async function addSampleInfluencers() {
     }
   ];
 
-  console.log('🌱 Adding sample influencers...');
-
   for (const influencer of sampleInfluencers) {
     try {
-      const result = await pool.query(`
+      await pool.query(`
         INSERT INTO influencers (username, display_name, bio, location_country, location_city, verified, languages)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING id
       `, [
         influencer.username,
-        influencer.display_name, 
+        influencer.display_name,
         influencer.bio,
         influencer.location_country,
         influencer.location_city,
         influencer.verified,
         JSON.stringify(influencer.languages)
       ]);
-
-      console.log(`✅ Added influencer: ${influencer.display_name} (${result.rows[0].id})`);
     } catch (error) {
       console.error(`❌ Error adding influencer ${influencer.username}:`, error);
     }
@@ -57,8 +53,6 @@ export async function addSampleInfluencers() {
 }
 
 export async function addSampleSocialAccounts() {
-  console.log('🌱 Adding sample social accounts...');
-  
   try {
     // Get some influencers and platforms
     const influencers = await pool.query('SELECT id, username FROM influencers LIMIT 3');
@@ -94,7 +88,6 @@ export async function addSampleSocialAccounts() {
           account.followers_count,
           account.engagement_rate
         ]);
-        console.log(`✅ Added social account: ${account.platform_username}`);
       }
     }
   } catch (error) {
@@ -103,12 +96,9 @@ export async function addSampleSocialAccounts() {
 }
 
 export async function runAllSeeds() {
-  console.log('🚀 Starting database seeding...');
-  
   try {
     await addSampleInfluencers();
     await addSampleSocialAccounts();
-    console.log('✅ Database seeding completed successfully!');
   } catch (error) {
     console.error('❌ Database seeding failed:', error);
     throw error;

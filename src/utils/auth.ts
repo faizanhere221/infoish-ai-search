@@ -15,9 +15,7 @@ export const logoutUser = () => {
       window.google.accounts.id.disableAutoSelect()
       
       // Revoke Google session
-      window.google.accounts.id.revoke('', () => {
-        console.log('Google session revoked')
-      })
+      window.google.accounts.id.revoke('', () => {})
     }
     
     // Clear credentials API
@@ -41,7 +39,6 @@ export const logoutUser = () => {
       document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.accounts.google.com`
     })
     
-    console.log('User logged out successfully')
     return true
     
   } catch (error) {
@@ -66,7 +63,7 @@ export const logoutUserWithBackend = async (authToken?: string) => {
           }
         })
       } catch (error) {
-        console.log('Backend logout notification failed (non-critical):', error)
+        console.warn('Backend logout notification failed (non-critical):', error)
       }
     }
     

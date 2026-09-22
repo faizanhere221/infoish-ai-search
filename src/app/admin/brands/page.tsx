@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, ShieldCheck, ShieldX, Shield,
@@ -44,23 +45,23 @@ const COMPANY_SIZES = ['1-10', '11-50', '51-200', '201-500', '501-1000', '1000+'
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtDate(d: string | null) {
-  if (!d) return '—'
+  if (!d) {return '—'}
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function fmtRelative(d: string | null) {
-  if (!d) return 'Never'
+  if (!d) {return 'Never'}
   const diff = Date.now() - new Date(d).getTime()
   const days = Math.floor(diff / 86400000)
-  if (days === 0) return 'Today'
-  if (days === 1) return 'Yesterday'
-  if (days < 30) return `${days}d ago`
+  if (days === 0) {return 'Today'}
+  if (days === 1) {return 'Yesterday'}
+  if (days < 30) {return `${days}d ago`}
   return fmtDate(d)
 }
 
 function VerifyBadge({ status }: { status: string }) {
-  if (status === 'verified') return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700"><ShieldCheck className="w-3 h-3" />Verified</span>
-  if (status === 'rejected') return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"><ShieldX className="w-3 h-3" />Rejected</span>
+  if (status === 'verified') {return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700"><ShieldCheck className="w-3 h-3" />Verified</span>}
+  if (status === 'rejected') {return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"><ShieldX className="w-3 h-3" />Rejected</span>}
   return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700"><Shield className="w-3 h-3" />Pending</span>
 }
 
@@ -84,7 +85,7 @@ function SortTh({ field, label, current, dir, onSort }: { field: string; label: 
 
 function Pagination({ page, total, limit, onPage }: { page: number; total: number; limit: number; onPage: (p: number) => void }) {
   const totalPages = Math.ceil(total / limit)
-  if (totalPages <= 1) return null
+  if (totalPages <= 1) {return null}
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
       <p className="text-sm text-gray-500">{(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total.toLocaleString()}</p>
@@ -132,19 +133,19 @@ export default function AdminBrandsPage() {
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
 
   const fetchBrands = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true)
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true)}
     try {
       const params = new URLSearchParams({ page: String(page), limit: '20', sort_by: sortField, sort_order: sortDir })
-      if (search) params.set('search', search)
-      if (filterIndustry) params.set('industry', filterIndustry)
-      if (filterSize) params.set('company_size', filterSize)
-      if (filterCountry) params.set('country', filterCountry)
-      if (filterMinSpent) params.set('min_spent', filterMinSpent)
-      if (filterMaxSpent) params.set('max_spent', filterMaxSpent)
-      if (filterStatus !== 'all') params.set('status', filterStatus)
-      if (filterVerification) params.set('verification_status', filterVerification)
-      if (dateFrom) params.set('date_from', dateFrom)
-      if (dateTo) params.set('date_to', dateTo)
+      if (search) {params.set('search', search)}
+      if (filterIndustry) {params.set('industry', filterIndustry)}
+      if (filterSize) {params.set('company_size', filterSize)}
+      if (filterCountry) {params.set('country', filterCountry)}
+      if (filterMinSpent) {params.set('min_spent', filterMinSpent)}
+      if (filterMaxSpent) {params.set('max_spent', filterMaxSpent)}
+      if (filterStatus !== 'all') {params.set('status', filterStatus)}
+      if (filterVerification) {params.set('verification_status', filterVerification)}
+      if (dateFrom) {params.set('date_from', dateFrom)}
+      if (dateTo) {params.set('date_to', dateTo)}
 
       const res = await fetch(`/api/admin/brands?${params}`)
       if (res.status === 401 || res.status === 403) { router.push('/admin/login'); return }
@@ -157,7 +158,7 @@ export default function AdminBrandsPage() {
   useEffect(() => { fetchBrands() }, [fetchBrands])
 
   const handleSort = (field: string) => {
-    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    if (sortField === field) {setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
     else { setSortField(field); setSortDir('desc') }
     setPage(1)
   }
@@ -187,7 +188,7 @@ export default function AdminBrandsPage() {
   const deleteUser = async (brandId: string) => {
     // Find user_id for this brand and delete the user record
     const brand = brands.find(b => b.id === brandId)
-    if (!brand) return
+    if (!brand) {return}
     setActionLoading(a => ({ ...a, [brandId]: true }))
     await fetch(`/api/admin/users/${brand.user_id}`, { method: 'DELETE' })
     setBrands(bs => bs.filter(b => b.id !== brandId))
@@ -219,7 +220,11 @@ export default function AdminBrandsPage() {
     a.click()
   }
 
-  const toggleSelect = (id: string) => setSelected(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const toggleSelect = (id: string) => setSelected(s => {
+    const n = new Set(s)
+    if (n.has(id)) { n.delete(id) } else { n.add(id) }
+    return n
+  })
 
   return (
     <div className="space-y-4">
@@ -328,7 +333,7 @@ export default function AdminBrandsPage() {
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
                           {b.logo_url
-                            ? <img src={b.logo_url} alt={b.company_name || 'Brand logo'} loading="lazy" className="w-8 h-8 rounded-lg object-cover" />
+                            ? <Image src={b.logo_url} alt={b.company_name || 'Brand logo'} width={32} height={32} loading="lazy" unoptimized className="w-8 h-8 rounded-lg object-cover" />
                             : <Building2 className="w-4 h-4 text-blue-600" />
                           }
                         </div>
@@ -413,7 +418,7 @@ export default function AdminBrandsPage() {
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
                         {b.logo_url
-                          ? <img src={String(b.logo_url)} alt={b.company_name || 'Brand logo'} className="w-12 h-12 rounded-xl object-cover" />
+                          ? <Image src={String(b.logo_url)} alt={b.company_name || 'Brand logo'} width={48} height={48} unoptimized className="w-12 h-12 rounded-xl object-cover" />
                           : <Building2 className="w-6 h-6 text-blue-600" />
                         }
                       </div>

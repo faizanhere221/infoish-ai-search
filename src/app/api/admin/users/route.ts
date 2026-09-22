@@ -25,16 +25,16 @@ export async function GET(request: NextRequest) {
       .order(sortBy, { ascending: sortAsc })
       .range((page - 1) * limit, page * limit - 1)
 
-    if (search) query = query.ilike('email', `%${search}%`)
-    if (userType !== 'all') query = query.eq('user_type', userType)
-    if (status === 'active') query = query.eq('is_active', true)
-    if (status === 'suspended') query = query.eq('is_active', false)
-    if (role !== 'all') query = query.eq('role', role)
-    if (dateFrom) query = query.gte('created_at', dateFrom)
-    if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59')
+    if (search) {query = query.ilike('email', `%${search}%`)}
+    if (userType !== 'all') {query = query.eq('user_type', userType)}
+    if (status === 'active') {query = query.eq('is_active', true)}
+    if (status === 'suspended') {query = query.eq('is_active', false)}
+    if (role !== 'all') {query = query.eq('role', role)}
+    if (dateFrom) {query = query.gte('created_at', dateFrom)}
+    if (dateTo) {query = query.lte('created_at', dateTo + 'T23:59:59')}
 
     const { data: users, count, error } = await query
-    if (error) throw error
+    if (error) {throw error}
 
     if (!users?.length) {
       return NextResponse.json({ users: [], total: count ?? 0, page, limit })

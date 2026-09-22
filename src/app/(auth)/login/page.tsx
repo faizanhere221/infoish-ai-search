@@ -79,7 +79,7 @@ export default function LoginPage() {
           router.push('/signup/brand')
         }
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please try again.')
       setIsLoading(false)
     }

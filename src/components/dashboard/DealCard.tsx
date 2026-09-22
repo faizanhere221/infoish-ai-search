@@ -31,8 +31,6 @@ export default function DealCard({ deal, viewAs }: DealCardProps) {
   const needsAction = (viewAs === 'creator' && deal.status === 'pending') ||
                       (viewAs === 'brand' && deal.status === 'delivered')
 
-  // Get the other party's info
-  const otherParty = viewAs === 'creator' ? deal.brand : deal.creator
   const displayAmount = viewAs === 'creator' ? deal.creator_payout : deal.amount
 
   return (

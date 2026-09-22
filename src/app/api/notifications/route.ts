@@ -124,7 +124,6 @@ export async function PATCH(request: NextRequest) {
   }
 
   const supabase = createServerSupabase()
-  const readAt = new Date().toISOString()
 
   if (parsed.data.id) {
     // Mark single notification — verify ownership

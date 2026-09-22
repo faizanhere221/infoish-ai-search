@@ -24,7 +24,7 @@ export function useConversations({ userId, userType, autoFetch = true }: UseConv
   const [error, setError] = useState<string | null>(null)
 
   const fetchConversations = useCallback(async () => {
-    if (!userId) return
+    if (!userId) {return}
 
     setIsLoading(true)
     setError(null)
@@ -82,7 +82,7 @@ export function useConversations({ userId, userType, autoFetch = true }: UseConv
       }
 
       return { conversation: data.conversation }
-    } catch (err) {
+    } catch {
       return { error: 'Network error' }
     }
   }, [])
@@ -141,7 +141,7 @@ export function useMessages({
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const fetchMessages = useCallback(async (before?: string) => {
-    if (!conversationId) return
+    if (!conversationId) {return}
 
     if (!before) {
       setIsLoading(true)
@@ -190,7 +190,7 @@ export function useMessages({
 
   // Polling for new messages
   useEffect(() => {
-    if (!conversationId || pollInterval === 0) return
+    if (!conversationId || pollInterval === 0) {return}
 
     pollIntervalRef.current = setInterval(() => {
       fetchMessages()
@@ -236,7 +236,7 @@ export function useMessages({
         success: true, 
         warning: data.warning // Contact info warning
       }
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Network error' }
     } finally {
       setIsSending(false)
@@ -244,14 +244,14 @@ export function useMessages({
   }, [conversationId, userId, userType])
 
   const loadMore = useCallback(async () => {
-    if (!hasMore || isLoading || messages.length === 0) return
+    if (!hasMore || isLoading || messages.length === 0) {return}
     
     const oldestMessage = messages[0]
     await fetchMessages(oldestMessage.created_at)
   }, [hasMore, isLoading, messages, fetchMessages])
 
   const markAsRead = useCallback(async () => {
-    if (!conversationId) return
+    if (!conversationId) {return}
 
     try {
       await fetch('/api/messages', {
@@ -283,7 +283,7 @@ export function useMessages({
 // Hook for real-time message subscription (Supabase Realtime)
 export function useRealtimeMessages(conversationId: string, onNewMessage: (message: Message) => void) {
   useEffect(() => {
-    if (!conversationId) return
+    if (!conversationId) {return}
 
     // In production, set up Supabase Realtime subscription:
     // const supabase = createClientSupabase()
@@ -304,7 +304,6 @@ export function useRealtimeMessages(conversationId: string, onNewMessage: (messa
     // }
 
     // Placeholder - polling is used instead for now
-    console.log('Realtime subscription would be set up here for:', conversationId)
   }, [conversationId, onNewMessage])
 }
 

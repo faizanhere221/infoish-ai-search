@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
@@ -25,7 +25,8 @@ import {
   Mail,
   Mic,
   Music2,
-  Edit
+  Edit,
+  type LucideIcon
 } from 'lucide-react'
 
 interface CreatorProfile {
@@ -72,7 +73,7 @@ interface Service {
   is_active: boolean
 }
 
-const PLATFORM_ICONS: Record<string, any> = {
+const PLATFORM_ICONS: Record<string, LucideIcon> = {
   twitter: Twitter,
   youtube: Youtube,
   linkedin: Linkedin,
@@ -129,16 +130,9 @@ export default function CreatorProfilePage() {
   const [isOwnProfile, setIsOwnProfile] = useState(false)
   const [contacting, setContacting] = useState(false)
   const [userType, setUserType] = useState<string | null>(null)
-  const [brandProfile, setBrandProfile] = useState<any>(null)
+  const [brandProfile, setBrandProfile] = useState<{ id: string } | null>(null)
 
-  useEffect(() => {
-    if (username) {
-      fetchCreator()
-      checkIfOwnProfile()
-    }
-  }, [username])
-
-  const checkIfOwnProfile = () => {
+  const checkIfOwnProfile = useCallback(() => {
     try {
       const userStr = localStorage.getItem('auth_user')
       const profileStr = localStorage.getItem('auth_profile')
@@ -161,7 +155,7 @@ export default function CreatorProfilePage() {
     } catch (err) {
       console.error('Error checking profile:', err)
     }
-  }
+  }, [username])
 
   const handleContactCreator = async () => {
     if (!brandProfile || !creator) {
@@ -208,7 +202,7 @@ export default function CreatorProfilePage() {
     }
   }
 
-  const fetchCreator = async () => {
+  const fetchCreator = useCallback(async () => {
     try {
       const res = await fetch(`/api/creators/${username}`)
       
@@ -230,7 +224,14 @@ export default function CreatorProfilePage() {
       setError('Failed to load creator profile')
       setLoading(false)
     }
-  }
+  }, [username])
+
+  useEffect(() => {
+    if (username) {
+      fetchCreator()
+      checkIfOwnProfile()
+    }
+  }, [username, fetchCreator, checkIfOwnProfile])
 
   if (loading) {
     return (
@@ -272,13 +273,13 @@ export default function CreatorProfilePage() {
   }
 
   const formatFollowers = (num: number): string => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
+    if (num >= 1000000) {return (num / 1000000).toFixed(1) + 'M'}
+    if (num >= 1000) {return (num / 1000).toFixed(1) + 'K'}
     return num.toString()
   }
 
   const getResponseTimeText = (time: string | null): string => {
-    if (!time) return 'N/A'
+    if (!time) {return 'N/A'}
     const map: Record<string, string> = {
       'within_1_hour': 'Within 1 hour',
       'within_24_hours': 'Within 24 hours',

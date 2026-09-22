@@ -94,7 +94,7 @@ export default function SettingsPage() {
         body: JSON.stringify(settings),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Failed to save')
+      if (!res.ok) {throw new Error(data.error ?? 'Failed to save')}
       setToast({ type: 'success', msg: 'Settings saved successfully' })
     } catch (err) {
       setToast({ type: 'error', msg: err instanceof Error ? err.message : 'Failed to save settings' })

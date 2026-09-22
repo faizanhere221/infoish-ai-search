@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, KeyboardEvent } from 'react'
-import { Send, Paperclip, Image, X, Loader2, AlertTriangle } from 'lucide-react'
+import { Send, Paperclip, Image as ImageIcon, X, Loader2, AlertTriangle } from 'lucide-react'
 
 interface Attachment {
   id: string
@@ -33,7 +33,7 @@ export function MessageInput({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleSend = async () => {
-    if ((!message.trim() && attachments.length === 0) || isSending || disabled) return
+    if ((!message.trim() && attachments.length === 0) || isSending || disabled) {return}
 
     setIsSending(true)
     setWarning(null)
@@ -88,8 +88,8 @@ export function MessageInput({
   }
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    if (bytes < 1024) {return `${bytes} B`}
+    if (bytes < 1024 * 1024) {return `${(bytes / 1024).toFixed(1)} KB`}
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
@@ -131,7 +131,7 @@ export function MessageInput({
               className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg"
             >
               {attachment.type === 'image' ? (
-                <Image className="w-4 h-4 text-gray-500" />
+                <ImageIcon className="w-4 h-4 text-gray-500" />
               ) : (
                 <Paperclip className="w-4 h-4 text-gray-500" />
               )}

@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function exportToCSV(dataToExport: any[], includeHeaders: boolean = true) {
+export function exportToCSV(dataToExport: Record<string, unknown>[], includeHeaders: boolean = true) {
   if (!dataToExport || dataToExport.length === 0) {
     throw new Error('No data to export')
   }

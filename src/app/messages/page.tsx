@@ -1,19 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Sparkles,
   MessageSquare,
   Search,
-  Settings,
   Loader2,
   ChevronRight,
-  Circle,
   Plus
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
+import type { ProfileDropdownProfile } from '@/components/ProfileDropdown'
 
 interface Conversation {
   id: string
@@ -43,15 +41,11 @@ export default function MessagesPage() {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
   const [userType, setUserType] = useState<'brand' | 'creator' | null>(null)
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<ProfileDropdownProfile | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const userStr = localStorage.getItem('auth_user')
       const profileStr = localStorage.getItem('auth_profile')
@@ -89,7 +83,11 @@ export default function MessagesPage() {
       console.error('Error loading conversations:', err)
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   // Get unread count for current user
   const getUnreadCount = (conv: Conversation) => {
@@ -109,8 +107,7 @@ export default function MessagesPage() {
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
-      const otherParty = userType === 'brand' ? conv.creator : conv.brand
-      const name = userType === 'brand' 
+      const name = userType === 'brand'
         ? conv.creator?.display_name 
         : conv.brand?.company_name
       return name?.toLowerCase().includes(query)
@@ -121,7 +118,7 @@ export default function MessagesPage() {
 
   // Format time
   const formatTime = (dateStr: string | null) => {
-    if (!dateStr) return ''
+    if (!dateStr) {return ''}
     const date = new Date(dateStr)
     const now = new Date()
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
@@ -224,8 +221,7 @@ export default function MessagesPage() {
         {filteredConversations.length > 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             {filteredConversations.map((conv, index) => {
-              const otherParty = userType === 'brand' ? conv.creator : conv.brand
-              const name = userType === 'brand' 
+              const name = userType === 'brand'
                 ? conv.creator?.display_name 
                 : conv.brand?.company_name
               const subtitle = userType === 'brand'

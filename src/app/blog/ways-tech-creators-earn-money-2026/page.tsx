@@ -2,7 +2,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, Link2, Briefcase, Youtube, Mail, GraduationCap, Users, Heart, Mic, Repeat, Code2, Layers } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Calendar, User, Clock, Link2, Briefcase, Youtube, Mail, GraduationCap, Users, Heart, Mic, Repeat, Code2, Layers } from 'lucide-react'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {

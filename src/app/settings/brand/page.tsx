@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { 
@@ -54,15 +54,11 @@ export default function BrandSettingsPage() {
     { id: 'security' as SettingsTab, label: 'Security', icon: Shield },
   ]
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const userStr = localStorage.getItem('auth_user')
       const profileStr = localStorage.getItem('auth_profile')
-      
+
       if (!userStr) {
         router.push('/login')
         return
@@ -82,10 +78,14 @@ export default function BrandSettingsPage() {
       setError('Failed to load settings')
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const handleSave = async () => {
-    if (!profile) return
+    if (!profile) {return}
     
     setSaving(true)
     setError(null)
@@ -259,7 +259,7 @@ function CompanySettings({
   setProfile: (p: BrandProfile) => void
   userEmail: string
 }) {
-  const updateProfile = (field: keyof BrandProfile, value: any) => {
+  const updateProfile = (field: keyof BrandProfile, value: BrandProfile[keyof BrandProfile]) => {
     setProfile({ ...profile, [field]: value })
   }
 

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
   Users, UserSquare, Building2, Handshake, DollarSign, Activity,
   RefreshCw, TrendingUp, TrendingDown, Minus, UserPlus, MessageSquare,
-  CheckCircle2, Clock, AlertCircle,
+  AlertCircle,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -296,7 +296,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState('')
 
   const fetchData = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true)
+    if (isRefresh) {setRefreshing(true)}
     try {
       const [statsRes, activityRes] = await Promise.all([
         fetch('/api/admin/stats'),
@@ -313,10 +313,10 @@ export default function AdminDashboard() {
         activityRes.json(),
       ])
 
-      if (statsRes.ok) setStats(statsData)
-      else setError(statsData.error ?? 'Failed to load stats')
+      if (statsRes.ok) {setStats(statsData)}
+      else {setError(statsData.error ?? 'Failed to load stats')}
 
-      if (activityRes.ok) setActivities(activityData.activities ?? [])
+      if (activityRes.ok) {setActivities(activityData.activities ?? [])}
     } catch {
       setError('Network error. Please try again.')
     } finally {
@@ -356,7 +356,7 @@ export default function AdminDashboard() {
     )
   }
 
-  if (!stats) return null
+  if (!stats) {return null}
 
   const { overview, dealsByStatus } = stats
 

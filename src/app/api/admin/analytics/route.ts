@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       if (d.status === 'completed' && d.amount) {
         totalRevenue += Number(d.amount)
         const day = d.updated_at?.slice(0, 10) ?? d.created_at?.slice(0, 10)
-        if (day) revenueByDay[day] = (revenueByDay[day] ?? 0) + Number(d.amount)
+        if (day) {revenueByDay[day] = (revenueByDay[day] ?? 0) + Number(d.amount)}
       }
     }
 
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     const verifiedBrands = (brandRows ?? []).filter(b => b.verification_status === 'verified').length
     const industryBreakdown: Record<string, number> = {}
     for (const b of (brandRows ?? [])) {
-      if (b.industry) industryBreakdown[b.industry] = (industryBreakdown[b.industry] ?? 0) + 1
+      if (b.industry) {industryBreakdown[b.industry] = (industryBreakdown[b.industry] ?? 0) + 1}
     }
     const topIndustries = Object.entries(industryBreakdown)
       .sort((a, b) => b[1] - a[1]).slice(0, 8)
@@ -128,7 +128,7 @@ function buildDayMap<T>(rows: T[], getDate: (r: T) => string): Record<string, nu
   const map: Record<string, number> = {}
   for (const r of rows) {
     const day = getDate(r)?.slice(0, 10)
-    if (day) map[day] = (map[day] ?? 0) + 1
+    if (day) {map[day] = (map[day] ?? 0) + 1}
   }
   return map
 }

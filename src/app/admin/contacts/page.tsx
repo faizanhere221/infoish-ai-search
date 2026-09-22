@@ -61,7 +61,7 @@ const ContactAdminDashboard: React.FC = () => {
   };
 
   const deleteSubmission = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this message?')) return;
+    if (!confirm('Are you sure you want to delete this message?')) {return;}
 
     try {
       const response = await fetch('/api/admin/contact-submissions/delete', {
@@ -107,7 +107,7 @@ const ContactAdminDashboard: React.FC = () => {
   };
 
   const filteredSubmissions = submissions.filter(sub => {
-    if (filter === 'all') return true;
+    if (filter === 'all') {return true;}
     return sub.status === filter;
   });
 

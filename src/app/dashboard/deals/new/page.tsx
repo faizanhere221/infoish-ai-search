@@ -68,13 +68,13 @@ function NewDealPageContent() {
   }, [router])
 
   useEffect(() => {
-    if (!prefilledCreatorId || !token) return
+    if (!prefilledCreatorId || !token) {return}
     setCreatorLoading(true)
     fetch(`/api/creators/${prefilledCreatorId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data?.creator) setCreator(data.creator) })
+      .then(data => { if (data?.creator) {setCreator(data.creator)} })
       .finally(() => setCreatorLoading(false))
   }, [prefilledCreatorId, token])
 
@@ -92,7 +92,7 @@ function NewDealPageContent() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!token || !profile) return
+    if (!token || !profile) {return}
 
     const brandId = profile.id as string
     const creatorId = prefilledCreatorId || creator?.id

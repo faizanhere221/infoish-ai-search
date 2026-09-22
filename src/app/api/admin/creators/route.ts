@@ -14,9 +14,12 @@ export async function GET(request: NextRequest) {
     const niche = searchParams.get('niche') ?? ''
     const platform = searchParams.get('platform') ?? ''
     const country = searchParams.get('country') ?? ''
-    const minFollowers = searchParams.get('min_followers') ? parseInt(searchParams.get('min_followers')!) : null
-    const maxFollowers = searchParams.get('max_followers') ? parseInt(searchParams.get('max_followers')!) : null
-    const minRating = searchParams.get('min_rating') ? parseFloat(searchParams.get('min_rating')!) : null
+    const minFollowersParam = searchParams.get('min_followers')
+    const minFollowers = minFollowersParam ? parseInt(minFollowersParam) : null
+    const maxFollowersParam = searchParams.get('max_followers')
+    const maxFollowers = maxFollowersParam ? parseInt(maxFollowersParam) : null
+    const minRatingParam = searchParams.get('min_rating')
+    const minRating = minRatingParam ? parseFloat(minRatingParam) : null
     const isAvailable = searchParams.get('is_available') ?? ''
     const status = searchParams.get('status') ?? 'all'
     const verificationStatus = searchParams.get('verification_status') ?? ''
@@ -32,9 +35,9 @@ export async function GET(request: NextRequest) {
     let userIdFilter: string[] | null = null
     if (needsUserFilter) {
       let userQuery = supabase.from('users').select('id').eq('user_type', 'creator')
-      if (status === 'active') userQuery = userQuery.eq('is_active', true)
-      if (status === 'suspended') userQuery = userQuery.eq('is_active', false)
-      if (emailSearch) userQuery = userQuery.ilike('email', `%${emailSearch}%`)
+      if (status === 'active') {userQuery = userQuery.eq('is_active', true)}
+      if (status === 'suspended') {userQuery = userQuery.eq('is_active', false)}
+      if (emailSearch) {userQuery = userQuery.ilike('email', `%${emailSearch}%`)}
 
       const { data: matchedUsers } = await userQuery
       userIdFilter = (matchedUsers ?? []).map(u => u.id)
@@ -64,21 +67,21 @@ export async function GET(request: NextRequest) {
     if (search && !emailSearch) {
       query = query.or(`username.ilike.%${search}%,display_name.ilike.%${search}%`)
     }
-    if (niche) query = query.contains('niches', [niche])
-    if (country) query = query.eq('country', country)
-    if (minFollowers !== null) query = query.gte('total_followers', minFollowers)
-    if (maxFollowers !== null) query = query.lte('total_followers', maxFollowers)
-    if (minRating !== null) query = query.gte('avg_rating', minRating)
-    if (isAvailable === 'true') query = query.eq('is_available', true)
-    if (isAvailable === 'false') query = query.eq('is_available', false)
-    if (verificationStatus) query = query.eq('verification_status', verificationStatus)
-    if (dateFrom) query = query.gte('created_at', dateFrom)
-    if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59')
-    if (userIdFilter) query = query.in('user_id', userIdFilter)
-    if (platformCreatorIds) query = query.in('id', platformCreatorIds)
+    if (niche) {query = query.contains('niches', [niche])}
+    if (country) {query = query.eq('country', country)}
+    if (minFollowers !== null) {query = query.gte('total_followers', minFollowers)}
+    if (maxFollowers !== null) {query = query.lte('total_followers', maxFollowers)}
+    if (minRating !== null) {query = query.gte('avg_rating', minRating)}
+    if (isAvailable === 'true') {query = query.eq('is_available', true)}
+    if (isAvailable === 'false') {query = query.eq('is_available', false)}
+    if (verificationStatus) {query = query.eq('verification_status', verificationStatus)}
+    if (dateFrom) {query = query.gte('created_at', dateFrom)}
+    if (dateTo) {query = query.lte('created_at', dateTo + 'T23:59:59')}
+    if (userIdFilter) {query = query.in('user_id', userIdFilter)}
+    if (platformCreatorIds) {query = query.in('id', platformCreatorIds)}
 
     const { data: creators, count, error } = await query
-    if (error) throw error
+    if (error) {throw error}
 
     if (!creators?.length) {
       return NextResponse.json({ creators: [], total: count ?? 0, page, limit })

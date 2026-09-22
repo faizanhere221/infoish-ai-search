@@ -1,8 +1,45 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Search, TrendingUp, Users, Heart, MessageCircle, Eye, Instagram, CheckCircle, Clock, AlertCircle, ExternalLink, Calendar, Sparkles, Award, BarChart3, TrendingDown, Zap, Target, Activity } from 'lucide-react'
+import { Search, TrendingUp, Users, Heart, MessageCircle, Instagram, CheckCircle, Clock, AlertCircle, ExternalLink, Calendar, Sparkles, Award, BarChart3, TrendingDown, Zap, Target, Activity, type LucideIcon } from 'lucide-react'
 import Header from '@/components/header'
+
+interface InstagramPost {
+  shortcode?: string
+  url: string
+  is_video?: boolean
+  date: string
+  caption?: string
+  likes: number
+  comments: number
+}
+
+interface InstagramProfile {
+  username: string
+  full_name: string
+  biography: string
+  followers: number
+  following: number
+  posts_count: number
+  is_verified: boolean
+  is_private: boolean
+  profile_pic_url: string
+  external_url: string
+}
+
+interface InstagramMetrics {
+  engagement_rate: number
+  avg_likes: number
+  avg_comments: number
+  total_posts_analyzed: number
+  best_post: InstagramPost | null
+  post_types: { videos: number; photos: number }
+}
+
+interface RateLimitInfo {
+  message: string
+  retryAfter: number
+}
 
 // Safe formatNumber function
 const formatNumber = (num: number | undefined | null): string => {
@@ -30,20 +67,20 @@ const formatPercentage = (num: number | undefined | null): string => {
 }
 
 // Get engagement quality label
-const getEngagementQuality = (rate: number): { label: string; color: string; icon: any } => {
-  if (rate >= 10) return { label: 'Excellent', color: 'text-green-600', icon: Sparkles }
-  if (rate >= 5) return { label: 'Very Good', color: 'text-blue-600', icon: TrendingUp }
-  if (rate >= 3) return { label: 'Good', color: 'text-purple-600', icon: Target }
-  if (rate >= 1) return { label: 'Average', color: 'text-yellow-600', icon: Activity }
+const getEngagementQuality = (rate: number): { label: string; color: string; icon: LucideIcon } => {
+  if (rate >= 10) {return { label: 'Excellent', color: 'text-green-600', icon: Sparkles }}
+  if (rate >= 5) {return { label: 'Very Good', color: 'text-blue-600', icon: TrendingUp }}
+  if (rate >= 3) {return { label: 'Good', color: 'text-purple-600', icon: Target }}
+  if (rate >= 1) {return { label: 'Average', color: 'text-yellow-600', icon: Activity }}
   return { label: 'Low', color: 'text-gray-600', icon: TrendingDown }
 }
 
 // Get follower tier
 const getFollowerTier = (followers: number): string => {
-  if (followers >= 1000000) return '🌟 Mega Influencer'
-  if (followers >= 100000) return '⭐ Macro Influencer'
-  if (followers >= 10000) return '✨ Micro Influencer'
-  if (followers >= 1000) return '💫 Nano Influencer'
+  if (followers >= 1000000) {return '🌟 Mega Influencer'}
+  if (followers >= 100000) {return '⭐ Macro Influencer'}
+  if (followers >= 10000) {return '✨ Micro Influencer'}
+  if (followers >= 1000) {return '💫 Nano Influencer'}
   return '🌱 Growing Account'
 }
 
@@ -51,10 +88,10 @@ export default function InstagramProfileAnalyzer() {
   const [username, setUsername] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [profile, setProfile] = useState<any>(null)
-  const [metrics, setMetrics] = useState<any>(null)
-  const [posts, setPosts] = useState<any[]>([])
-  const [rateLimitInfo, setRateLimitInfo] = useState<any>(null)
+  const [profile, setProfile] = useState<InstagramProfile | null>(null)
+  const [metrics, setMetrics] = useState<InstagramMetrics | null>(null)
+  const [posts, setPosts] = useState<InstagramPost[]>([])
+  const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo | null>(null)
 
   const analyzeProfile = async () => {
     if (!username.trim()) {
@@ -97,14 +134,21 @@ export default function InstagramProfileAnalyzer() {
         return
       }
       
-      console.log('Original input:', username)
-      console.log('Cleaned username:', cleanUsername)
-      
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('Original input:', username)
+        // eslint-disable-next-line no-console
+        console.log('Cleaned username:', cleanUsername)
+      }
+
       const backendUrl = process.env.NODE_ENV === 'production'
         ? 'https://infoish-ai-search-production.up.railway.app'
         : 'http://127.0.0.1:8000'
 
-      console.log('Fetching from:', `${backendUrl}/api/analyze-instagram/${cleanUsername}`)
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('Fetching from:', `${backendUrl}/api/analyze-instagram/${cleanUsername}`)
+      }
 
       const response = await fetch(
         `${backendUrl}/api/analyze-instagram/${cleanUsername}`,
@@ -116,7 +160,10 @@ export default function InstagramProfileAnalyzer() {
         }
       )
 
-      console.log('Response status:', response.status)
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('Response status:', response.status)
+      }
 
       // Handle 429 Rate Limit with detailed info
       if (response.status === 429) {
@@ -145,8 +192,11 @@ export default function InstagramProfileAnalyzer() {
       }
 
       const data = await response.json()
-      console.log('Received data:', data)
-      
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('Received data:', data)
+      }
+
       if (!data || !data.profile) {
         throw new Error('No profile data received. Please try again.')
       }
@@ -175,11 +225,14 @@ export default function InstagramProfileAnalyzer() {
 
       setPosts(data.posts || [])
 
-      console.log('Analysis complete:', data.posts?.length || 0, 'posts')
-      
-    } catch (err: any) {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('Analysis complete:', data.posts?.length || 0, 'posts')
+      }
+
+    } catch (err) {
       console.error('Analysis error:', err)
-      setError(err.message || 'An error occurred. Please try again.')
+      setError(err instanceof Error ? err.message : 'An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -193,7 +246,7 @@ export default function InstagramProfileAnalyzer() {
 
   // Calculate additional insights
   const getInsights = () => {
-    if (!profile || !metrics || !posts.length) return null
+    if (!profile || !metrics || !posts.length) {return null}
 
     const followerEngagementRatio = (metrics.avg_likes + metrics.avg_comments) / profile.followers
     const commentLikeRatio = profile.followers > 0 ? metrics.avg_comments / metrics.avg_likes : 0
@@ -664,7 +717,7 @@ export default function InstagramProfileAnalyzer() {
                   <span className="text-xs sm:text-sm text-gray-500">Last {posts.length} posts analyzed</span>
                 </div>
                 <div className="space-y-2 sm:space-y-3">
-                  {posts.map((post: any, index: number) => (
+                  {posts.map((post: InstagramPost, index: number) => (
                     <a
                       key={post.shortcode || index}
                       href={post.url}
