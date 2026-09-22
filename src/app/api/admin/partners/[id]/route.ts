@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
-import { isValidReferralCode } from '@/lib/referral'
+import { getPartnerStats, isValidReferralCode } from '@/lib/referral'
 
 const UpdatePartnerSchema = z.object({
   name: z.string().min(1).max(255).optional(),
@@ -29,14 +29,17 @@ export async function GET(
       return NextResponse.json({ error: 'Partner not found' }, { status: 404 })
     }
 
-    const { data: recentSignups } = await supabase
-      .from('referral_signups')
-      .select('id, referred_name, referred_email, status, signup_date')
-      .eq('partner_id', partner.id)
-      .order('created_at', { ascending: false })
-      .limit(10)
+    const [{ data: recentSignups }, stats] = await Promise.all([
+      supabase
+        .from('referral_signups')
+        .select('id, referred_name, referred_email, status, signup_date')
+        .eq('partner_id', partner.id)
+        .order('created_at', { ascending: false })
+        .limit(10),
+      getPartnerStats(supabase, partner),
+    ])
 
-    return NextResponse.json({ partner, recent_signups: recentSignups ?? [] })
+    return NextResponse.json({ partner, recent_signups: recentSignups ?? [], stats })
   } catch (err) {
     console.error('Admin partner detail error:', err)
     return NextResponse.json({ error: 'Failed to fetch partner' }, { status: 500 })
