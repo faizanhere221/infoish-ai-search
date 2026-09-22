@@ -35,9 +35,39 @@ export const metadata: Metadata = {
   }
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: 'How to Find B2B Tech Influencers in 2026: Vetting, Outreach, and Rates',
+  description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 2,000+ verified tech creators. Updated for 2026.',
+  image: 'https://infoishai.com/blog/how-to-find-tech-influencers-b2b-2026.jpg',
+  datePublished: '2026-07-06',
+  dateModified: '2026-07-06',
+  author: {
+    '@type': 'Person',
+    name: 'Infoishai Team'
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Infoishai',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://infoishai.com/logo.png'
+    }
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://infoishai.com/blog/how-to-find-tech-influencers-b2b-2026'
+  }
+}
+
 export default function HowToFindTechInfluencersPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header />
 
       <article className="max-w-4xl mx-auto px-4 py-12">

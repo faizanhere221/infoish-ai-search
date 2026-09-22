@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
-import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, Heart, LogOut, Instagram, Calculator, Wrench, Globe } from 'lucide-react'
+import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, LogOut, Instagram, Calculator, Wrench, Globe } from 'lucide-react'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
 
 interface UserProfile {
@@ -301,9 +301,9 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
 
   const getDashboardUrl = () => {
     if (userType === 'influencer') {
-      return '/influencer/dashboard'
+      return '/dashboard/creator'
     }
-    return '/dashboard'
+    return '/dashboard/brand'
   }
 
   if (isLoading) {
@@ -546,13 +546,6 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                         <Search className="w-5 h-5" />
                       </Link>
                       <Link
-                        href="/saved"
-                        className="p-2 text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-all"
-                        title="Saved Influencers"
-                      >
-                        <Heart className="w-5 h-5" />
-                      </Link>
-                      <Link
                         href="/campaigns/create"
                         className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
                         title="My Campaigns"
@@ -668,15 +661,6 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                                 </Link>
                                 
                                 <Link
-                                  href="/saved"
-                                  className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all"
-                                  onClick={() => setShowDropdown(false)}
-                                >
-                                  <Heart className="w-5 h-5" />
-                                  Saved Influencers
-                                </Link>
-                                
-                                <Link
                                   href="/campaigns/create"
                                   className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-all"
                                   onClick={() => setShowDropdown(false)}
@@ -774,16 +758,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                       Search Influencers
                     </Link>
                     
-                    <Link 
-                      href="/saved"
-                      className="flex items-center gap-3 text-gray-700 hover:text-pink-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-pink-50"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Heart className="w-5 h-5" />
-                      Saved Influencers
-                    </Link>
-                    
-                    <Link 
+                    <Link
                       href="/campaigns/create"
                       className="flex items-center gap-3 text-gray-700 hover:text-green-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-green-50"
                       onClick={() => setIsMobileMenuOpen(false)}

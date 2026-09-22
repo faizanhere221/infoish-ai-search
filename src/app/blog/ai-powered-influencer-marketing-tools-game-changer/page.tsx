@@ -30,9 +30,39 @@ export const metadata: Metadata = {
   }
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: '5 AI Tools That Help Pakistani Brands Find Influencers 10x Faster',
+  description: 'Discover the best AI-powered influencer marketing tools for Pakistani brands in 2025. Find verified creators, check fake followers, and launch campaigns faster.',
+  image: 'https://infoishai.com/blog/ai-powered-influencer-marketing-tools-game-changer.jpg',
+  datePublished: '2025-10-20',
+  dateModified: '2025-10-20',
+  author: {
+    '@type': 'Person',
+    name: 'Infoishai Team'
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Infoishai',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://infoishai.com/logo.png'
+    }
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://infoishai.com/blog/ai-powered-influencer-marketing-tools-game-changer'
+  }
+}
+
 export default function AIPoweredInfluencerMarketingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header />
       
       <article className="max-w-4xl mx-auto px-4 py-12">
