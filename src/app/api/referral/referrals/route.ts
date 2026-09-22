@@ -43,9 +43,33 @@ export async function GET(request: NextRequest) {
       creators = data || []
     }
 
+    // Per-referral deal/earnings summary, so the table can show "Deals",
+    // "Earnings" (deal value generated) and "Commission" (partner's cut)
+    // without a separate round trip per row.
+    const signupIds = (signups ?? []).map((s) => s.id)
+    let commissionTotals = new Map<string, { deals_count: number; total_deal_amount_cents: number; total_commission_cents: number }>()
+
+    if (signupIds.length > 0) {
+      const { data: commissions } = await supabase
+        .from('referral_commissions')
+        .select('referral_signup_id, deal_amount_cents, commission_amount_cents, status')
+        .in('referral_signup_id', signupIds)
+        .neq('status', 'cancelled')
+
+      commissionTotals = (commissions ?? []).reduce((acc, c) => {
+        const existing = acc.get(c.referral_signup_id) ?? { deals_count: 0, total_deal_amount_cents: 0, total_commission_cents: 0 }
+        existing.deals_count += 1
+        existing.total_deal_amount_cents += c.deal_amount_cents || 0
+        existing.total_commission_cents += c.commission_amount_cents || 0
+        acc.set(c.referral_signup_id, existing)
+        return acc
+      }, new Map<string, { deals_count: number; total_deal_amount_cents: number; total_commission_cents: number }>())
+    }
+
     const referrals = (signups ?? []).map((signup) => ({
       ...signup,
       creator: creators.find((c) => c.id === signup.referred_creator_id) || null,
+      ...(commissionTotals.get(signup.id) ?? { deals_count: 0, total_deal_amount_cents: 0, total_commission_cents: 0 }),
     }))
 
     return NextResponse.json({ referrals, total: referrals.length })

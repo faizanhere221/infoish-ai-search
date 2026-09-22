@@ -16,8 +16,10 @@ import {
   HelpCircle,
   CreditCard,
   Users,
-  Building2
+  Building2,
+  Gift
 } from 'lucide-react'
+import { usePartner } from '@/hooks/usePartner'
 
 export interface ProfileDropdownProfile {
   id?: string
@@ -54,6 +56,7 @@ export default function ProfileDropdown({
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const { isPartner } = usePartner()
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -239,6 +242,18 @@ export default function ProfileDropdown({
                 </span>
               )}
             </Link>
+
+            {/* Partner Dashboard (only for referral partners) */}
+            {isPartner && (
+              <Link
+                href="/dashboard/partner"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50"
+              >
+                <Gift className="w-5 h-5 text-gray-400" />
+                <span>Partner Dashboard</span>
+              </Link>
+            )}
           </div>
 
           {/* Divider */}
