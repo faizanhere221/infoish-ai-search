@@ -1,6 +1,6 @@
 'use client'
 
-import { DollarSign } from 'lucide-react'
+import { DollarSign, Check, X } from 'lucide-react'
 import { formatDate } from '@/components/campaigns/utils'
 import { formatCents } from '@/lib/referral'
 import type { CommissionStatus, ReferralCommission } from '@/types/referral'
@@ -8,6 +8,10 @@ import type { CommissionStatus, ReferralCommission } from '@/types/referral'
 interface CommissionTableProps {
   commissions: ReferralCommission[]
   isLoading: boolean
+  /** Admin-only actions. Omit both to render a read-only table (used by the partner's own dashboard). */
+  onApprove?: (commissionId: string) => void
+  onCancel?: (commissionId: string) => void
+  actionLoadingId?: string | null
 }
 
 const STATUS_STYLES: Record<CommissionStatus, string> = {
@@ -44,7 +48,9 @@ function TableSkeleton() {
   )
 }
 
-export default function CommissionTable({ commissions, isLoading }: CommissionTableProps) {
+export default function CommissionTable({ commissions, isLoading, onApprove, onCancel, actionLoadingId }: CommissionTableProps) {
+  const showActions = Boolean(onApprove || onCancel)
+
   if (isLoading) {return <TableSkeleton />}
 
   if (commissions.length === 0) {
@@ -69,6 +75,7 @@ export default function CommissionTable({ commissions, isLoading }: CommissionTa
               <th className="px-6 py-3 font-medium text-right">Rate</th>
               <th className="px-6 py-3 font-medium text-right">Commission</th>
               <th className="px-6 py-3 font-medium">Status</th>
+              {showActions && <th className="px-6 py-3 font-medium text-right">Actions</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -93,6 +100,34 @@ export default function CommissionTable({ commissions, isLoading }: CommissionTa
                 <td className="px-6 py-4">
                   <StatusBadge status={commission.status} />
                 </td>
+                {showActions && (
+                  <td className="px-6 py-4">
+                    {commission.status === 'pending' ? (
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onApprove?.(commission.id)}
+                          disabled={actionLoadingId === commission.id}
+                          title="Approve"
+                          className="p-1.5 rounded hover:bg-emerald-50 text-gray-400 hover:text-emerald-600 disabled:opacity-50"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onCancel?.(commission.id)}
+                          disabled={actionLoadingId === commission.id}
+                          title="Cancel"
+                          className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 disabled:opacity-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400 block text-right">—</span>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
