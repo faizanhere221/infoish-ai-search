@@ -43,6 +43,9 @@ export interface ReferralSignup {
   created_at: string
   partner?: Pick<ReferralPartner, 'id' | 'name' | 'referral_code'> | null
   creator?: ReferralSignupCreatorSummary | null
+  deals_count?: number
+  total_deal_amount_cents?: number
+  total_commission_cents?: number
 }
 
 export interface ReferralCommission {
@@ -57,6 +60,7 @@ export interface ReferralCommission {
   created_at: string
   paid_at: string | null
   referral_signup?: Pick<ReferralSignup, 'id' | 'referred_name' | 'referred_email' | 'referral_code'> | null
+  deal?: { id: string; title: string } | null
 }
 
 export interface ReferralPayout {
