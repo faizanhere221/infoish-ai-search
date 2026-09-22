@@ -15,6 +15,7 @@ export default function robots(): MetadataRoute.Robots {
           '/notifications/',
           '/auth/callback',
           '/campaigns/create',
+          '/creators?*',
         ],
       },
     ],
