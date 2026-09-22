@@ -54,6 +54,24 @@ export const metadata: Metadata = {
   },
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'About Infoishai',
+  description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter/X, and LinkedIn.',
+  url: 'https://infoishai.com/about',
+  mainEntity: {
+    '@type': 'Organization',
+    name: 'Infoishai',
+    url: 'https://infoishai.com',
+    logo: 'https://infoishai.com/logo.png',
+    founder: [
+      { '@type': 'Person', name: 'Faizan Islam', jobTitle: 'Founder & CEO' },
+      { '@type': 'Person', name: 'Farhan Islam', jobTitle: 'Co-Founder & CTO' },
+    ],
+  },
+}
+
 // ============================================================================
 // TEAM DATA - UPDATE THESE WITH YOUR REAL SOCIAL LINKS
 // ============================================================================
@@ -97,6 +115,10 @@ const stats = [
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Navigation />
       
       {/* Hero Section */}

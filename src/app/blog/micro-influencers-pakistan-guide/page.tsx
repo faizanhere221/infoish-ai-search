@@ -67,12 +67,39 @@ export const metadata: Metadata = {
   }
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: 'Micro-Influencers in Pakistan: 3x More Engagement Than Celebrities (Data + Rates)',
+  description: 'Pakistani micro-influencers deliver 3x higher engagement at PKR 5,000 to PKR 25,000 per post. See real rate comparisons, engagement data, and a step-by-step guide to finding verified micro-influencers for your brand.',
+  image: 'https://infoishai.com/blog/micro-influencers-pakistan-guide.jpg',
+  datePublished: '2025-12-27',
+  dateModified: '2025-12-27',
+  author: {
+    '@type': 'Person',
+    name: 'Infoishai Team'
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Infoishai',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://infoishai.com/logo.png'
+    }
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://infoishai.com/blog/micro-influencers-pakistan-guide'
+  }
+}
+
 export default function MicroInfluencersPakistanBlog() {
   return (
-    
-    
-
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <Header />
         
       {/* Navigation */}

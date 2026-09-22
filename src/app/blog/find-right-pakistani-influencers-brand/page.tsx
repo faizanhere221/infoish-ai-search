@@ -30,9 +30,39 @@ export const metadata: Metadata = {
   }
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: 'How to Find Pakistani Influencers (Without Wasting Hours)',
+  description: 'How to find and vet Pakistani influencers for your brand. Engagement benchmarks, pricing data, red flags to avoid, and free tools to verify audience quality.',
+  image: 'https://infoishai.com/blog/find-right-pakistani-influencers-brand.jpg',
+  datePublished: '2025-10-18',
+  dateModified: '2025-10-18',
+  author: {
+    '@type': 'Person',
+    name: 'Infoishai Team'
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Infoishai',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://infoishai.com/logo.png'
+    }
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://infoishai.com/blog/find-right-pakistani-influencers-brand'
+  }
+}
+
 export default function FindRightInfluencersPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header />
       
       <article className="max-w-4xl mx-auto px-4 py-12">
