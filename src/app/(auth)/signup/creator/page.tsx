@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { 
-  Sparkles, 
+import { useRouter, useSearchParams } from 'next/navigation'
+import {
+  Sparkles,
   ArrowLeft,
   ArrowRight,
   Mail,
@@ -19,6 +19,8 @@ import {
 } from 'lucide-react'
 import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES } from '@/utils/constants'
 import { validateEmail } from '@/utils/validateEmail'
+import { getReferralCode, setReferralCode, clearReferralCode } from '@/lib/referral-tracking'
+import ReferralBanner from '@/components/referral/ReferralBanner'
 
 type Step = 1 | 2 | 3
 
@@ -39,13 +41,15 @@ interface FormData {
   platforms: string[]
 }
 
-export default function CreatorSignupPage() {
+function CreatorSignupContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [step, setStep] = useState<Step>(1)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [emailWarning, setEmailWarning] = useState<string | null>(null)
+  const [referralPartnerName, setReferralPartnerName] = useState<string | null>(null)
 
   const [formData, setFormData] = useState<FormData>({
     email: '',
@@ -60,6 +64,36 @@ export default function CreatorSignupPage() {
     niches: [],
     platforms: [],
   })
+
+  // Referral tracking: a ?ref= param takes priority (and persists it for
+  // this visit), otherwise fall back to a previously-stored code so the
+  // banner still shows if the visitor returns to finish signup later.
+  useEffect(() => {
+    const lookupPartner = async (code: string) => {
+      try {
+        const res = await fetch(`/api/referral/lookup?code=${encodeURIComponent(code)}`)
+        if (!res.ok) {return}
+        const data = await res.json()
+        if (data?.partner?.name) {
+          setReferralPartnerName(data.partner.name)
+        }
+      } catch (err) {
+        console.error('Referral lookup failed:', err)
+      }
+    }
+
+    const refParam = searchParams.get('ref')
+    if (refParam) {
+      setReferralCode(refParam)
+      lookupPartner(refParam)
+      return
+    }
+
+    const existingCode = getReferralCode()
+    if (existingCode) {
+      lookupPartner(existingCode)
+    }
+  }, [searchParams])
 
   const updateField = (field: keyof FormData, value: string | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -162,6 +196,28 @@ export default function CreatorSignupPage() {
         return
       }
 
+      // Track referral (best-effort — never blocks signup on failure)
+      const referralCode = getReferralCode()
+      if (referralCode) {
+        try {
+          const trackRes = await fetch('/api/referral/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              referral_code: referralCode,
+              user_id: registerData.user.id,
+              email: formData.email,
+              name: formData.displayName || undefined,
+            }),
+          })
+          if (trackRes.ok) {
+            clearReferralCode()
+          }
+        } catch (err) {
+          console.error('Referral tracking failed (non-blocking):', err)
+        }
+      }
+
       // Step 2: Login to get auth token before creating profile
       const loginRes = await fetch('/api/auth/login', {
         method: 'POST',
@@ -248,6 +304,8 @@ export default function CreatorSignupPage() {
             <span className="text-2xl font-bold text-gray-900">Infoishai</span>
           </Link>
         </div>
+
+        {referralPartnerName && <ReferralBanner partnerName={referralPartnerName} />}
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center gap-2 mb-8">
@@ -599,5 +657,19 @@ export default function CreatorSignupPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CreatorSignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-blue-50 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-violet-600 animate-spin" />
+        </div>
+      }
+    >
+      <CreatorSignupContent />
+    </Suspense>
   )
 }
