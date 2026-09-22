@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 
 // GET /api/admin/contact-submissions - list contact form messages (admin only, gated by middleware)
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = createServerSupabase()
 

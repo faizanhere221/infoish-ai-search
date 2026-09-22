@@ -13,7 +13,10 @@ export async function testConnection() {
     const client = await pool.connect();
     const result = await client.query('SELECT NOW() as current_time');
     client.release();
-    console.log('✅ Database connected successfully:', result.rows[0]);
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log('✅ Database connected successfully:', result.rows[0]);
+    }
     return true;
   } catch (error) {
     console.error('❌ Database connection error:', error);
@@ -22,7 +25,7 @@ export async function testConnection() {
 }
 
 // Helper function to execute queries
-export async function executeQuery(query: string, params: any[] = []) {
+export async function executeQuery(query: string, params: unknown[] = []) {
   try {
     const client = await pool.connect();
     const result = await client.query(query, params);

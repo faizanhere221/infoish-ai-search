@@ -88,7 +88,7 @@ export async function POST(
   try {
     const conversationId = params.id
     const body = await request.json()
-    const { sender_id, content, sender_type } = body
+    const { sender_id, content } = body
 
     if (!sender_id || !content) {
       return NextResponse.json(
@@ -135,7 +135,13 @@ export async function POST(
         .eq('user_id', sender_id)
         .single()
 
-      let updateData: any = {
+      const updateData: {
+        last_message_at: string
+        last_message_preview: string
+        updated_at: string
+        brand_unread?: number
+        creator_unread?: number
+      } = {
         last_message_at: new Date().toISOString(),
         last_message_preview: content.substring(0, 100),
         updated_at: new Date().toISOString(),
@@ -153,8 +159,6 @@ export async function POST(
         .from('conversations')
         .update(updateData)
         .eq('id', conversationId)
-
-      console.log('Updated conversation unread counts:', updateData)
     }
 
     return NextResponse.json({

@@ -205,11 +205,11 @@ export default function DealDetailPage() {
   }, [dealId])
 
   useEffect(() => {
-    if (token) loadDeal(token)
+    if (token) {loadDeal(token)}
   }, [token, loadDeal])
 
   async function callAction(path: string, body?: Record<string, unknown>) {
-    if (!token) return
+    if (!token) {return}
     setIsUpdating(true)
     setActionError(null)
     try {
@@ -239,7 +239,7 @@ export default function DealDetailPage() {
   }
 
   async function toggleDeliverable(deliverable: Deliverable) {
-    if (!deal || !token) return
+    if (!deal || !token) {return}
     const updated = deal.deliverables.map(d =>
       d.id === deliverable.id
         ? { ...d, is_completed: !d.is_completed, completed_at: !d.is_completed ? new Date().toISOString() : undefined }
@@ -494,7 +494,7 @@ export default function DealDetailPage() {
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 mb-1">Leave a Review</h3>
                     <p className="text-gray-600 text-sm mb-3">
-                      Share your experience working with {isCreator ? (deal.brand as any)?.company_name : (deal.creator as any)?.display_name}.
+                      Share your experience working with {isCreator ? deal.brand?.company_name : deal.creator?.display_name}.
                     </p>
                     <Link
                       href={`/dashboard/deals/${deal.id}/review`}
@@ -562,16 +562,16 @@ export default function DealDetailPage() {
               <h3 className="font-semibold text-gray-900 mb-4">{isCreator ? 'Brand' : 'Creator'}</h3>
               <div className="flex items-center gap-3 mb-4">
                 {isCreator ? (
-                  (deal.brand as any)?.logo_url ? (
-                    <Image src={(deal.brand as any).logo_url} alt={(deal.brand as any)?.company_name || 'Brand logo'} width={48} height={48} className="w-12 h-12 rounded-lg object-cover" />
+                  deal.brand?.logo_url ? (
+                    <Image src={deal.brand.logo_url} alt={deal.brand?.company_name || 'Brand logo'} width={48} height={48} className="w-12 h-12 rounded-lg object-cover" />
                   ) : (
                     <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
                       <Building2 className="w-6 h-6 text-blue-600" />
                     </div>
                   )
                 ) : (
-                  (deal.creator as any)?.profile_photo_url ? (
-                    <Image src={(deal.creator as any).profile_photo_url} alt={(deal.creator as any)?.display_name || 'Creator profile photo'} width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
+                  deal.creator?.profile_photo_url ? (
+                    <Image src={deal.creator.profile_photo_url} alt={deal.creator?.display_name || 'Creator profile photo'} width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center">
                       <User className="w-6 h-6 text-violet-600" />
@@ -580,22 +580,22 @@ export default function DealDetailPage() {
                 )}
                 <div>
                   <h4 className="font-medium text-gray-900">
-                    {isCreator ? (deal.brand as any)?.company_name : (deal.creator as any)?.display_name}
+                    {isCreator ? deal.brand?.company_name : deal.creator?.display_name}
                   </h4>
                   <p className="text-sm text-gray-500">
-                    {isCreator ? (deal.brand as any)?.industry : `@${(deal.creator as any)?.username}`}
+                    {isCreator ? deal.brand?.industry : `@${deal.creator?.username}`}
                   </p>
                 </div>
               </div>
 
-              {!isCreator && (deal.creator as any) && (
+              {!isCreator && deal.creator && (
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <div className="bg-gray-50 rounded-lg p-2 text-center">
-                    <p className="font-semibold text-gray-900">{((deal.creator as any).avg_rating ?? 0).toFixed(1)}</p>
+                    <p className="font-semibold text-gray-900">{(deal.creator.avg_rating ?? 0).toFixed(1)}</p>
                     <p className="text-xs text-gray-500">Rating</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-2 text-center">
-                    <p className="font-semibold text-gray-900">{(deal.creator as any).total_deals_completed ?? 0}</p>
+                    <p className="font-semibold text-gray-900">{deal.creator.total_deals_completed ?? 0}</p>
                     <p className="text-xs text-gray-500">Deals</p>
                   </div>
                 </div>
@@ -612,9 +612,9 @@ export default function DealDetailPage() {
                   </span>
                   <ChevronRight className="w-4 h-4 text-gray-400" />
                 </Link>
-                {!isCreator && (deal.creator as any)?.username && (
+                {!isCreator && deal.creator?.username && (
                   <Link
-                    href={`/creators/${(deal.creator as any).username}`}
+                    href={`/creators/${deal.creator.username}`}
                     className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors"
                   >
                     <span className="text-sm text-gray-700 flex items-center gap-2">

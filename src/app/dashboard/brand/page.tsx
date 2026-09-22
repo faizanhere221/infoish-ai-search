@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { 
@@ -9,17 +9,14 @@ import {
   Briefcase, 
   Users, 
   Heart,
-  MessageSquare,
-  Settings,
   Building2,
-  ArrowUpRight,
   Clock,
   CheckCircle,
   AlertCircle,
   Loader2,
-  Sparkles,
   Plus,
-  Megaphone
+  Megaphone,
+  type LucideIcon
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 
@@ -61,15 +58,11 @@ export default function BrandDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchDashboardData()
-  }, [])
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       const userStr = localStorage.getItem('auth_user')
       const profileStr = localStorage.getItem('auth_profile')
-      
+
       if (!userStr) {
         router.push('/login')
         return
@@ -93,7 +86,11 @@ export default function BrandDashboard() {
       setError('Failed to load dashboard data')
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [fetchDashboardData])
 
   if (loading) {
     return (
@@ -391,7 +388,7 @@ function StatCard({
   subtext, 
   color 
 }: { 
-  icon: any
+  icon: LucideIcon
   label: string
   value: string
   subtext: string

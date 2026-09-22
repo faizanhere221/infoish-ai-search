@@ -17,35 +17,35 @@ export function formatMoney(amount: number, currency: string): string {
 export function formatBudget(
   campaign: Pick<Campaign, 'budget_type' | 'budget_min' | 'budget_max' | 'currency'>
 ): string {
-  if (campaign.budget_type === 'negotiable') return 'Negotiable'
+  if (campaign.budget_type === 'negotiable') {return 'Negotiable'}
 
   const { budget_min, budget_max, currency } = campaign
-  if (budget_min != null && budget_max != null && budget_min !== budget_max) {
+  if (budget_min !== null && budget_min !== undefined && budget_max !== null && budget_max !== undefined && budget_min !== budget_max) {
     return `${formatMoney(budget_min, currency)} - ${formatMoney(budget_max, currency)}`
   }
   const single = budget_max ?? budget_min
-  if (single != null) return formatMoney(single, currency)
+  if (single !== null && single !== undefined) {return formatMoney(single, currency)}
   return 'Not specified'
 }
 
 export function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '—'
+  if (!dateStr) {return '—'}
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 // Relative for anything within the last week ("2 hours ago"), falling back
 // to an absolute date beyond that — matches the common feed/activity convention.
 export function formatRelativeDate(dateStr: string | null): string {
-  if (!dateStr) return '—'
+  if (!dateStr) {return '—'}
   const diffMs = Date.now() - new Date(dateStr).getTime()
   const diffMin = Math.floor(diffMs / 60000)
   const diffHour = Math.floor(diffMin / 60)
   const diffDay = Math.floor(diffHour / 24)
 
-  if (diffMin < 1) return 'just now'
-  if (diffMin < 60) return `${diffMin} minute${diffMin === 1 ? '' : 's'} ago`
-  if (diffHour < 24) return `${diffHour} hour${diffHour === 1 ? '' : 's'} ago`
-  if (diffDay < 7) return `${diffDay} day${diffDay === 1 ? '' : 's'} ago`
+  if (diffMin < 1) {return 'just now'}
+  if (diffMin < 60) {return `${diffMin} minute${diffMin === 1 ? '' : 's'} ago`}
+  if (diffHour < 24) {return `${diffHour} hour${diffHour === 1 ? '' : 's'} ago`}
+  if (diffDay < 7) {return `${diffDay} day${diffDay === 1 ? '' : 's'} ago`}
   return formatDate(dateStr)
 }
 
@@ -56,14 +56,14 @@ export interface DeadlineInfo {
 }
 
 export function getDeadlineInfo(deadline: string | null): DeadlineInfo {
-  if (!deadline) return { label: 'No deadline', isPast: false, isUrgent: false }
+  if (!deadline) {return { label: 'No deadline', isPast: false, isUrgent: false }}
 
   const diffDays = Math.ceil((new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
 
-  if (diffDays < 0) return { label: 'Applications closed', isPast: true, isUrgent: false }
-  if (diffDays === 0) return { label: 'Closes today', isPast: false, isUrgent: true }
-  if (diffDays === 1) return { label: '1 day left', isPast: false, isUrgent: true }
-  if (diffDays <= 3) return { label: `${diffDays} days left`, isPast: false, isUrgent: true }
+  if (diffDays < 0) {return { label: 'Applications closed', isPast: true, isUrgent: false }}
+  if (diffDays === 0) {return { label: 'Closes today', isPast: false, isUrgent: true }}
+  if (diffDays === 1) {return { label: '1 day left', isPast: false, isUrgent: true }}
+  if (diffDays <= 3) {return { label: `${diffDays} days left`, isPast: false, isUrgent: true }}
   return { label: `${diffDays} days left`, isPast: false, isUrgent: false }
 }
 
@@ -76,7 +76,7 @@ export const STATUS_BADGE: Record<CampaignStatus, { label: string; bg: string; t
 }
 
 export function categoryLabel(value: string | null): string {
-  if (!value) return 'Other'
+  if (!value) {return 'Other'}
   return CAMPAIGN_CATEGORIES.find((c) => c.value === value)?.label || value
 }
 

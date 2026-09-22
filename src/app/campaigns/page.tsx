@@ -78,7 +78,7 @@ export default function CampaignsPage() {
   }, [])
 
   useEffect(() => {
-    if (!authChecked) return
+    if (!authChecked) {return}
     fetchCampaigns()
   }, [authChecked, fetchCampaigns])
 
@@ -87,19 +87,19 @@ export default function CampaignsPage() {
       if (filters.search) {
         const q = filters.search.toLowerCase()
         const matches = c.title.toLowerCase().includes(q) || (c.description || '').toLowerCase().includes(q)
-        if (!matches) return false
+        if (!matches) {return false}
       }
-      if (filters.category && c.category !== filters.category) return false
-      if (filters.platforms.length > 0 && !filters.platforms.some((p) => c.platforms.includes(p))) return false
+      if (filters.category && c.category !== filters.category) {return false}
+      if (filters.platforms.length > 0 && !filters.platforms.some((p) => c.platforms.includes(p))) {return false}
       if (filters.budgetMin) {
         const min = Number(filters.budgetMin)
         const campaignMax = c.budget_max ?? c.budget_min
-        if (campaignMax != null && campaignMax < min) return false
+        if (campaignMax !== null && campaignMax !== undefined && campaignMax < min) {return false}
       }
       if (filters.budgetMax) {
         const max = Number(filters.budgetMax)
         const campaignMin = c.budget_min ?? c.budget_max
-        if (campaignMin != null && campaignMin > max) return false
+        if (campaignMin !== null && campaignMin !== undefined && campaignMin > max) {return false}
       }
       return true
     })
@@ -110,8 +110,8 @@ export default function CampaignsPage() {
     list.sort((a, b) => {
       switch (sortBy) {
         case 'deadline': {
-          if (!a.application_deadline) return 1
-          if (!b.application_deadline) return -1
+          if (!a.application_deadline) {return 1}
+          if (!b.application_deadline) {return -1}
           return new Date(a.application_deadline).getTime() - new Date(b.application_deadline).getTime()
         }
         case 'budget':

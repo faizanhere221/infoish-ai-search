@@ -32,9 +32,9 @@ function CampaignDetailPageContent() {
   const campaignId = params.id
   const searchParams = useSearchParams()
   const [successBanner, setSuccessBanner] = useState<string | null>(() => {
-    if (searchParams.get('applied') === '1') return 'Application submitted successfully!'
-    if (searchParams.get('published') === '1') return 'Campaign published successfully!'
-    if (searchParams.get('updated') === '1') return 'Campaign updated successfully!'
+    if (searchParams.get('applied') === '1') {return 'Application submitted successfully!'}
+    if (searchParams.get('published') === '1') {return 'Campaign published successfully!'}
+    if (searchParams.get('updated') === '1') {return 'Campaign updated successfully!'}
     return null
   })
 
@@ -92,7 +92,7 @@ function CampaignDetailPageContent() {
         if (appRes.ok) {
           const appData = await appRes.json()
           const existing = appData.applications?.[0]
-          if (existing) setMyApplication({ id: existing.id, status: existing.status })
+          if (existing) {setMyApplication({ id: existing.id, status: existing.status })}
         }
       }
     } catch (err) {
@@ -104,13 +104,13 @@ function CampaignDetailPageContent() {
   }, [campaignId])
 
   useEffect(() => {
-    if (!authChecked || !campaignId) return
+    if (!authChecked || !campaignId) {return}
     fetchCampaign()
   }, [authChecked, campaignId, fetchCampaign])
 
   async function handleCloseCampaign() {
-    if (!campaign) return
-    if (!confirm('Close this campaign? Creators will no longer be able to apply.')) return
+    if (!campaign) {return}
+    if (!confirm('Close this campaign? Creators will no longer be able to apply.')) {return}
 
     setClosing(true)
     try {
@@ -130,7 +130,7 @@ function CampaignDetailPageContent() {
   }
 
   async function handleReopenCampaign() {
-    if (!campaign) return
+    if (!campaign) {return}
 
     setReopening(true)
     try {

@@ -35,7 +35,6 @@ export function CreateDealForm({
   creator,
   onSubmit,
   onCancel,
-  conversationId,
 }: CreateDealFormProps) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -81,7 +80,7 @@ export function CreateDealForm({
   }
 
   const removeDeliverable = (id: string) => {
-    if (deliverables.length === 1) return
+    if (deliverables.length === 1) {return}
     setDeliverables(prev => prev.filter(d => d.id !== id))
   }
 

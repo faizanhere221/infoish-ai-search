@@ -50,7 +50,7 @@ export async function GET() {
         const amt = Number(deal.amount) || 0
         totalRevenue += amt
         const day = (deal.completed_at ?? deal.updated_at ?? deal.created_at)?.split('T')[0]
-        if (day) revenueByDay[day] = (revenueByDay[day] ?? 0) + amt
+        if (day) {revenueByDay[day] = (revenueByDay[day] ?? 0) + amt}
       }
     }
 
@@ -62,7 +62,7 @@ export async function GET() {
     }
     for (const u of (recentUsersRes.data ?? [])) {
       const day = u.created_at?.split('T')[0]
-      if (day && day in registrationByDay) registrationByDay[day]++
+      if (day && day in registrationByDay) {registrationByDay[day]++}
     }
 
     // ── Revenue trend (all 30 days) ───────────────────────────────────────────
@@ -72,7 +72,7 @@ export async function GET() {
       revenueTrendMap[d.toISOString().split('T')[0]] = 0
     }
     for (const [day, amt] of Object.entries(revenueByDay)) {
-      if (day in revenueTrendMap) revenueTrendMap[day] = amt
+      if (day in revenueTrendMap) {revenueTrendMap[day] = amt}
     }
 
     // ── Top niches ────────────────────────────────────────────────────────────

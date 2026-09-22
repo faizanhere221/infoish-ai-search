@@ -170,7 +170,7 @@ export default function CampaignApplicationsPage() {
     )
   }
 
-  if (!campaign) return null
+  if (!campaign) {return null}
 
   const status = STATUS_BADGE[campaign.status]
   const deadline = getDeadlineInfo(campaign.application_deadline)

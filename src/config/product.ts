@@ -143,7 +143,7 @@ export function getTierConfig(
   tier: UserTier
 ): TierConfig | null {
   const product = PRODUCTS[productSlug]
-  if (!product) return null
+  if (!product) {return null}
   
   // Fallback premium to pro if premium doesn't exist
   if (tier === 'premium' && !product.tiers.premium) {

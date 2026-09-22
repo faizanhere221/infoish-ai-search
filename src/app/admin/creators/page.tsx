@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, Star, Shield, ShieldCheck, ShieldX,
-  Sparkles, X, RefreshCw, Filter, AlertTriangle, ChevronLeft, ChevronRight,
+  Sparkles, X, RefreshCw, Filter, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -52,19 +52,19 @@ const PLATFORM_ICONS: Record<string, string> = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtDate(d: string | null) {
-  if (!d) return '—'
+  if (!d) {return '—'}
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function fmtNum(n: number) {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
-  if (n >= 1000) return `${(n / 1000).toFixed(0)}K`
+  if (n >= 1000000) {return `${(n / 1000000).toFixed(1)}M`}
+  if (n >= 1000) {return `${(n / 1000).toFixed(0)}K`}
   return String(n)
 }
 
 function VerifyBadge({ status }: { status: string }) {
-  if (status === 'verified') return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700"><ShieldCheck className="w-3 h-3" />Verified</span>
-  if (status === 'rejected') return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"><ShieldX className="w-3 h-3" />Rejected</span>
+  if (status === 'verified') {return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700"><ShieldCheck className="w-3 h-3" />Verified</span>}
+  if (status === 'rejected') {return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"><ShieldX className="w-3 h-3" />Rejected</span>}
   return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700"><Shield className="w-3 h-3" />Pending</span>
 }
 
@@ -75,7 +75,7 @@ function StatusBadge({ active }: { active: boolean }) {
 }
 
 function Stars({ rating }: { rating: number | null }) {
-  if (!rating) return <span className="text-gray-400 text-xs">—</span>
+  if (!rating) {return <span className="text-gray-400 text-xs">—</span>}
   return (
     <span className="flex items-center gap-0.5">
       <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
@@ -98,7 +98,7 @@ function SortTh({ field, label, current, dir, onSort, className = '' }: { field:
 
 function Pagination({ page, total, limit, onPage }: { page: number; total: number; limit: number; onPage: (p: number) => void }) {
   const totalPages = Math.ceil(total / limit)
-  if (totalPages <= 1) return null
+  if (totalPages <= 1) {return null}
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
       <p className="text-sm text-gray-500">{(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total.toLocaleString()}</p>
@@ -147,21 +147,21 @@ export default function AdminCreatorsPage() {
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
 
   const fetchCreators = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true)
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true)}
     try {
       const params = new URLSearchParams({ page: String(page), limit: '20', sort_by: sortField, sort_order: sortDir })
-      if (search) params.set('search', search)
-      if (filterNiche) params.set('niche', filterNiche)
-      if (filterPlatform) params.set('platform', filterPlatform)
-      if (filterCountry) params.set('country', filterCountry)
-      if (filterMinFollowers) params.set('min_followers', filterMinFollowers)
-      if (filterMaxFollowers) params.set('max_followers', filterMaxFollowers)
-      if (filterMinRating) params.set('min_rating', filterMinRating)
-      if (filterAvailable) params.set('is_available', filterAvailable)
-      if (filterStatus !== 'all') params.set('status', filterStatus)
-      if (filterVerification) params.set('verification_status', filterVerification)
-      if (dateFrom) params.set('date_from', dateFrom)
-      if (dateTo) params.set('date_to', dateTo)
+      if (search) {params.set('search', search)}
+      if (filterNiche) {params.set('niche', filterNiche)}
+      if (filterPlatform) {params.set('platform', filterPlatform)}
+      if (filterCountry) {params.set('country', filterCountry)}
+      if (filterMinFollowers) {params.set('min_followers', filterMinFollowers)}
+      if (filterMaxFollowers) {params.set('max_followers', filterMaxFollowers)}
+      if (filterMinRating) {params.set('min_rating', filterMinRating)}
+      if (filterAvailable) {params.set('is_available', filterAvailable)}
+      if (filterStatus !== 'all') {params.set('status', filterStatus)}
+      if (filterVerification) {params.set('verification_status', filterVerification)}
+      if (dateFrom) {params.set('date_from', dateFrom)}
+      if (dateTo) {params.set('date_to', dateTo)}
 
       const res = await fetch(`/api/admin/creators?${params}`)
       if (res.status === 401 || res.status === 403) { router.push('/admin/login'); return }
@@ -174,7 +174,7 @@ export default function AdminCreatorsPage() {
   useEffect(() => { fetchCreators() }, [fetchCreators])
 
   const handleSort = (field: string) => {
-    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    if (sortField === field) {setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
     else { setSortField(field); setSortDir('desc') }
     setPage(1)
   }
@@ -226,7 +226,11 @@ export default function AdminCreatorsPage() {
     a.click()
   }
 
-  const toggleSelect = (id: string) => setSelected(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const toggleSelect = (id: string) => setSelected(s => {
+    const n = new Set(s)
+    if (n.has(id)) { n.delete(id) } else { n.add(id) }
+    return n
+  })
 
   return (
     <div className="space-y-4">

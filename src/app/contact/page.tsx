@@ -4,7 +4,7 @@
 
 import { useState } from 'react'
 import Header from '@/components/header'
-import { Mail, Phone, MapPin, Clock, Send, MessageCircle, HelpCircle, Briefcase } from 'lucide-react'
+import { Mail, Send, MessageCircle, HelpCircle, Briefcase } from 'lucide-react'
 import { trackContactFormSubmit, trackError } from '@/lib/analytics'
 import { validateEmail } from '@/utils/validateEmail'
 
@@ -48,8 +48,7 @@ export default function ContactPage() {
         
         // ✅ ANALYTICS: Track contact form submission
         trackContactFormSubmit(formData.subject)
-        console.log('📊 Tracked: Contact form submitted -', formData.subject)
-        
+
         // Reset form after 3 seconds
         setTimeout(() => {
           setSubmitted(false)
@@ -64,13 +63,14 @@ export default function ContactPage() {
       } else {
         throw new Error(result.error || 'Failed to submit form')
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Form submission error:', error)
-      
+      const message = error instanceof Error ? error.message : 'Unknown error'
+
       // ✅ ANALYTICS: Track error
-      trackError('contact_form_error', error.message, 'contact_page')
-      
-      alert('Failed to submit form: ' + error.message)
+      trackError('contact_form_error', message, 'contact_page')
+
+      alert('Failed to submit form: ' + message)
       setIsSubmitting(false)
     }
   }

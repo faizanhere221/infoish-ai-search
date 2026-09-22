@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -10,11 +10,11 @@ import {
   Menu,
   X
 } from 'lucide-react'
-import ProfileDropdown from './ProfileDropdown'
+import ProfileDropdown, { type ProfileDropdownProfile } from './ProfileDropdown'
 
 interface DashboardHeaderProps {
   userType: 'brand' | 'creator'
-  profile: any
+  profile: ProfileDropdownProfile | null
 }
 
 export default function DashboardHeader({ userType, profile }: DashboardHeaderProps) {
@@ -24,15 +24,8 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
   const [campaignBadgeCount, setCampaignBadgeCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  useEffect(() => {
-    fetchUnreadCounts()
-    // Poll for updates every 5 seconds for real-time feel
-    const interval = setInterval(fetchUnreadCounts, 5000)
-    return () => clearInterval(interval)
-  }, [profile])
-
-  const fetchUnreadCounts = async () => {
-    if (!profile?.id) return
+  const fetchUnreadCounts = useCallback(async () => {
+    if (!profile?.id) {return}
 
     try {
       // Fetch unread messages
@@ -47,7 +40,7 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
       if (convRes.ok) {
         const data = await convRes.json()
         const conversations = data.conversations || []
-        const unread = conversations.reduce((sum: number, conv: any) => {
+        const unread = conversations.reduce((sum: number, conv: { brand_unread?: number; creator_unread?: number }) => {
           const count = userType === 'brand' ? (conv.brand_unread || 0) : (conv.creator_unread || 0)
           return sum + count
         }, 0)
@@ -90,7 +83,14 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
     } catch (err) {
       console.error('Error fetching unread counts:', err)
     }
-  }
+  }, [profile, userType])
+
+  useEffect(() => {
+    fetchUnreadCounts()
+    // Poll for updates every 5 seconds for real-time feel
+    const interval = setInterval(fetchUnreadCounts, 5000)
+    return () => clearInterval(interval)
+  }, [fetchUnreadCounts])
 
   const navItems = userType === 'brand' ? [
     { href: '/dashboard/brand', label: 'Dashboard' },

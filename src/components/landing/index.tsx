@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import NewsletterForm from '@/components/NewsletterForm'
-import ProfileDropdown from '@/components/ProfileDropdown'
+import ProfileDropdown, { type ProfileDropdownProfile } from '@/components/ProfileDropdown'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
 import {
   Sparkles, 
@@ -14,8 +14,6 @@ import {
   DollarSign,
   CheckCircle,
   ArrowRight,
-  Play,
-  Star,
   TrendingUp,
   Globe,
   MessageSquare,
@@ -30,7 +28,6 @@ import {
   ChevronDown,
   Menu,
   X,
-  FileText,
   Wrench,
   BookOpen
 } from 'lucide-react'
@@ -45,7 +42,7 @@ export function Navigation() {
   const [mobileCountriesOpen, setMobileCountriesOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userType, setUserType] = useState<'brand' | 'creator' | null>(null)
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<ProfileDropdownProfile | null>(null)
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10)

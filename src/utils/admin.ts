@@ -1,8 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY! // Use service role key for admin operations
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY // Use service role key for admin operations
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing required Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY')
+}
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 
@@ -35,9 +39,12 @@ export async function updateUserSubscription(
       .update({ tool_subscriptions: updatedSubscriptions })
       .eq('email', userEmail)
     
-    if (updateError) throw updateError
-    
-    console.log(`✅ Updated ${userEmail}: ${productSlug} → ${tier}`)
+    if (updateError) {throw updateError}
+
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log(`✅ Updated ${userEmail}: ${productSlug} → ${tier}`)
+    }
     return { success: true }
     
   } catch (error) {

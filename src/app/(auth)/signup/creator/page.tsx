@@ -126,8 +126,8 @@ export default function CreatorSignupPage() {
   }
 
   const handleNext = () => {
-    if (step === 1 && !validateStep1()) return
-    if (step === 2 && !validateStep2()) return
+    if (step === 1 && !validateStep1()) {return}
+    if (step === 2 && !validateStep2()) {return}
     setStep((step + 1) as Step)
   }
 
@@ -137,7 +137,7 @@ export default function CreatorSignupPage() {
   }
 
   const handleSubmit = async () => {
-    if (!validateStep3()) return
+    if (!validateStep3()) {return}
     
     setIsLoading(true)
     setError(null)

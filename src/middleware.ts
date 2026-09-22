@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 
 function isPublicApiRoute(pathname: string, method: string): boolean {
-  if (pathname.startsWith('/api/auth/')) return true
-  if (pathname.startsWith('/api/admin/auth/')) return true
-  if (method === 'GET' && (pathname.startsWith('/api/creators') || pathname.startsWith('/api/brands'))) return true
-  if (method === 'POST' && pathname === '/api/newsletter/subscribe') return true
-  if (method === 'POST' && pathname === '/api/contact') return true
+  if (pathname.startsWith('/api/auth/')) {return true}
+  if (pathname.startsWith('/api/admin/auth/')) {return true}
+  if (method === 'GET' && (pathname.startsWith('/api/creators') || pathname.startsWith('/api/brands'))) {return true}
+  if (method === 'POST' && pathname === '/api/newsletter/subscribe') {return true}
+  if (method === 'POST' && pathname === '/api/contact') {return true}
   return false
 }
 
@@ -18,9 +18,9 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
 // always falls through as anonymous — the raw client request headers are
 // never trusted directly, or a caller could just spoof x-profile-id.
 function isOptionalAuthApiRoute(pathname: string, method: string): boolean {
-  if (method !== 'GET') return false
-  if (pathname === '/api/campaigns') return true
-  if (/^\/api\/campaigns\/[^/]+$/.test(pathname)) return true
+  if (method !== 'GET') {return false}
+  if (pathname === '/api/campaigns') {return true}
+  if (/^\/api\/campaigns\/[^/]+$/.test(pathname)) {return true}
   return false
 }
 
@@ -28,7 +28,7 @@ const AUTH_HEADER_NAMES = ['x-user-id', 'x-user-type', 'x-profile-id', 'x-user-r
 
 function stripAuthHeaders(request: NextRequest): Headers {
   const headers = new Headers(request.headers)
-  for (const name of AUTH_HEADER_NAMES) headers.delete(name)
+  for (const name of AUTH_HEADER_NAMES) {headers.delete(name)}
   return headers
 }
 
@@ -39,12 +39,12 @@ export async function middleware(request: NextRequest) {
 
   // ── Admin page routes ───────────────────────────────────────────────────────
   if (pathname.startsWith('/admin/')) {
-    if (pathname === '/admin/login') return NextResponse.next()
+    if (pathname === '/admin/login') {return NextResponse.next()}
 
-    if (!secret) return NextResponse.redirect(new URL('/admin/login', request.url))
+    if (!secret) {return NextResponse.redirect(new URL('/admin/login', request.url))}
 
     const cookieToken = request.cookies.get('auth_token')?.value
-    if (!cookieToken) return NextResponse.redirect(new URL('/admin/login', request.url))
+    if (!cookieToken) {return NextResponse.redirect(new URL('/admin/login', request.url))}
 
     try {
       const { payload } = await jwtVerify(cookieToken, new TextEncoder().encode(secret))
@@ -59,8 +59,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── API routes ──────────────────────────────────────────────────────────────
-  if (!pathname.startsWith('/api/')) return NextResponse.next()
-  if (isPublicApiRoute(pathname, method)) return NextResponse.next()
+  if (!pathname.startsWith('/api/')) {return NextResponse.next()}
+  if (isPublicApiRoute(pathname, method)) {return NextResponse.next()}
 
   const optionalAuth = isOptionalAuthApiRoute(pathname, method)
 
@@ -72,7 +72,7 @@ export async function middleware(request: NextRequest) {
     if (optionalAuth) {
       return NextResponse.next({ request: { headers: stripAuthHeaders(request) } })
     }
-    if (!token) return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    if (!token) {return NextResponse.json({ error: 'Authentication required' }, { status: 401 })}
     return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 })
   }
 

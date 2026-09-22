@@ -107,10 +107,10 @@ export async function PUT(
     }
     
     // Safely assign allowed fields
-    if (body.title !== undefined) updates.title = body.title
-    if (body.description !== undefined) updates.description = body.description
-    if (body.deliverables !== undefined) updates.deliverables = body.deliverables
-    if (body.deadline !== undefined) updates.deadline = body.deadline
+    if (body.title !== undefined) {updates.title = body.title}
+    if (body.description !== undefined) {updates.description = body.description}
+    if (body.deliverables !== undefined) {updates.deliverables = body.deliverables}
+    if (body.deadline !== undefined) {updates.deadline = body.deadline}
     
     const { data: deal, error } = await supabase
       .from('deals')

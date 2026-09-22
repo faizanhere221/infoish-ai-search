@@ -19,17 +19,29 @@ import {
   Building2
 } from 'lucide-react'
 
+export interface ProfileDropdownProfile {
+  id?: string
+  username?: string
+  display_name?: string
+  profile_photo_url?: string | null
+  total_followers?: number
+  is_available?: boolean
+  company_name?: string
+  contact_name?: string
+  logo_url?: string | null
+}
+
 interface ProfileDropdownProps {
   userType: 'brand' | 'creator'
-  profile: any
+  profile: ProfileDropdownProfile | null
   unreadMessages?: number
   unreadNotifications?: number
 }
 
 function formatCount(count?: number): string {
   const n = count || 0
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+  if (n >= 1000000) {return `${(n / 1000000).toFixed(1)}M`}
+  if (n >= 1000) {return `${(n / 1000).toFixed(1)}K`}
   return n.toString()
 }
 
@@ -62,15 +74,16 @@ export default function ProfileDropdown({
     router.push('/login')
   }
 
-  const displayName = userType === 'brand' 
-    ? profile?.company_name 
-    : profile?.display_name
-  
+  const displayName = (userType === 'brand'
+    ? profile?.company_name
+    : profile?.display_name) || (userType === 'brand' ? 'Brand Account' : 'Creator')
+
   const subtitle = userType === 'brand'
     ? profile?.contact_name || 'Brand Account'
     : `@${profile?.username}`
 
-  const avatarLetter = displayName?.charAt(0) || (userType === 'brand' ? 'B' : 'C')
+  const avatarLetter = displayName.charAt(0) || (userType === 'brand' ? 'B' : 'C')
+  const avatarUrl = profile?.profile_photo_url || profile?.logo_url || undefined
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -81,9 +94,9 @@ export default function ProfileDropdown({
       >
         {/* Avatar */}
         <div className="relative">
-          {profile?.profile_photo_url || profile?.logo_url ? (
+          {avatarUrl ? (
             <Image
-              src={profile?.profile_photo_url || profile?.logo_url}
+              src={avatarUrl}
               alt={displayName}
               width={32}
               height={32}
@@ -108,9 +121,9 @@ export default function ProfileDropdown({
           {/* User Info Header */}
           <div className="px-4 py-3 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              {profile?.profile_photo_url || profile?.logo_url ? (
+              {avatarUrl ? (
                 <Image
-                  src={profile?.profile_photo_url || profile?.logo_url}
+                  src={avatarUrl}
                   alt={displayName}
                   width={40}
                   height={40}

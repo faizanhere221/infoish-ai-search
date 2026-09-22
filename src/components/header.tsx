@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
@@ -22,7 +22,7 @@ interface HeaderProps {
   isSearchPage?: boolean
 }
 
-export default function Header({ isSearchPage = false }: HeaderProps) {
+export default function Header({ isSearchPage: _isSearchPage = false }: HeaderProps) {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showDropdown, setShowDropdown] = useState(false)
@@ -51,61 +51,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
     }
   }, [])
 
-  useEffect(() => {
-    checkAuthStatus()
-    
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  useEffect(() => {
-    const handleSearchUpdate = () => {
-      const refreshHeaderData = async () => {
-        try {
-          const token = localStorage.getItem('auth_token')
-          if (!token) return
-
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
-
-          const response = await fetch(`${backendUrl}/auth/me`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          })
-
-          if (response.ok) {
-            const userData = await response.json()
-            setUser({
-              id: userData.id,
-              email: userData.email,
-              full_name: userData.full_name,
-              profile_picture: userData.profile_picture,
-              subscription_tier: userData.subscription_tier,
-              monthly_searches: userData.monthly_searches,
-              search_limit: userData.search_limit,
-              user_type: userData.user_type
-            })
-            
-            detectAndSetUserType(userData.user_type)
-          }
-        } catch (error) {
-          console.warn('Failed to refresh header data (backend unreachable):', error)
-        }
-      }
-      refreshHeaderData()
-    }
-
-    window.addEventListener('searchCompleted', handleSearchUpdate)
-    return () => {
-      window.removeEventListener('searchCompleted', handleSearchUpdate)
-    }
-  }, [pathname])
-
-  const detectAndSetUserType = (backendUserType?: string) => {
+  const detectAndSetUserType = useCallback((backendUserType?: string) => {
     if (backendUserType) {
       const type = backendUserType === 'influencer' ? 'influencer' : 'brand'
       setUserType(type)
@@ -127,9 +73,9 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
 
     setUserType('brand')
     localStorage.setItem('user_type', 'brand')
-  }
+  }, [pathname])
 
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = useCallback(async () => {
     try {
       const token = localStorage.getItem('auth_token')
       if (!token) {
@@ -173,7 +119,61 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [detectAndSetUserType])
+
+  useEffect(() => {
+    checkAuthStatus()
+
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [checkAuthStatus])
+
+  useEffect(() => {
+    const handleSearchUpdate = () => {
+      const refreshHeaderData = async () => {
+        try {
+          const token = localStorage.getItem('auth_token')
+          if (!token) {return}
+
+          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
+
+          const response = await fetch(`${backendUrl}/auth/me`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+
+          if (response.ok) {
+            const userData = await response.json()
+            setUser({
+              id: userData.id,
+              email: userData.email,
+              full_name: userData.full_name,
+              profile_picture: userData.profile_picture,
+              subscription_tier: userData.subscription_tier,
+              monthly_searches: userData.monthly_searches,
+              search_limit: userData.search_limit,
+              user_type: userData.user_type
+            })
+
+            detectAndSetUserType(userData.user_type)
+          }
+        } catch (error) {
+          console.warn('Failed to refresh header data (backend unreachable):', error)
+        }
+      }
+      refreshHeaderData()
+    }
+
+    window.addEventListener('searchCompleted', handleSearchUpdate)
+    return () => {
+      window.removeEventListener('searchCompleted', handleSearchUpdate)
+    }
+  }, [pathname, detectAndSetUserType])
 
   const handleLogout = async () => {
     try {
@@ -190,7 +190,7 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
             }
           })
         } catch (error) {
-          console.log('Backend logout failed (non-critical):', error)
+          console.warn('Backend logout failed (non-critical):', error)
         }
       }
       
@@ -256,13 +256,13 @@ export default function Header({ isSearchPage = false }: HeaderProps) {
   }
 
   const getSearchesRemaining = () => {
-    if (!user) return 0
-    if (user.subscription_tier === 'pro' || user.subscription_tier === 'developer') return 'unlimited'
+    if (!user) {return 0}
+    if (user.subscription_tier === 'pro' || user.subscription_tier === 'developer') {return 'unlimited'}
     return Math.max(0, user.search_limit - user.monthly_searches)
   }
 
   const getSearchLimitText = () => {
-    if (!user) return ''
+    if (!user) {return ''}
     
     if (user.subscription_tier === 'pro' || user.subscription_tier === 'developer') {
       return 'Unlimited searches'

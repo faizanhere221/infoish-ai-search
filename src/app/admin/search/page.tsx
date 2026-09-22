@@ -43,8 +43,8 @@ function badge(text: string) {
 }
 
 function fmt(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`}
+  if (n >= 1_000) {return `${(n / 1_000).toFixed(1)}K`}
   return String(n)
 }
 
@@ -57,7 +57,7 @@ function SearchContent() {
   const [loading, setLoading] = useState(false)
 
   const doSearch = useCallback(async (query: string, entityType: EntityType) => {
-    if (query.trim().length < 2) return
+    if (query.trim().length < 2) {return}
     setLoading(true)
     try {
       const types = entityType === 'all' ? '' : entityType
@@ -71,18 +71,18 @@ function SearchContent() {
 
   useEffect(() => {
     const initial = searchParams.get('q')
-    if (initial) doSearch(initial, type)
+    if (initial) {doSearch(initial, type)}
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
-    if (!q.trim()) return
+    if (!q.trim()) {return}
     router.replace(`/admin/search?q=${encodeURIComponent(q)}&type=${type}`)
     doSearch(q, type)
   }
 
   function exportCSV() {
-    if (!results) return
+    if (!results) {return}
     const allRows: string[][] = [['Type', 'ID', 'Name / Email', 'Status / Type']]
     results.users?.forEach(u => allRows.push(['user', u.id, u.email, u.user_type]))
     results.creators?.forEach(c => allRows.push(['creator', c.id, c.display_name || c.username, c.verification_status]))

@@ -49,7 +49,7 @@ function MyApplicationsPageContent() {
   const [showWithdrawnToast, setShowWithdrawnToast] = useState(searchParams.get('withdrawn') === '1')
 
   useEffect(() => {
-    if (!showWithdrawnToast) return
+    if (!showWithdrawnToast) {return}
     const timer = setTimeout(() => setShowWithdrawnToast(false), 3000)
     return () => clearTimeout(timer)
   }, [showWithdrawnToast])

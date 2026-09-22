@@ -66,7 +66,7 @@ export async function PATCH(
 
     const updates: Record<string, unknown> = {}
 
-    if ('is_active' in body) updates.is_active = Boolean(body.is_active)
+    if ('is_active' in body) {updates.is_active = Boolean(body.is_active)}
 
     if ('role' in body && callerRole === 'super_admin') {
       const newRole = body.role as string
@@ -87,7 +87,7 @@ export async function PATCH(
       .select('id, email, user_type, role, is_active')
       .single()
 
-    if (error) throw error
+    if (error) {throw error}
     return NextResponse.json({ user: data })
   } catch (err) {
     console.error('Admin user update error:', err)
@@ -102,7 +102,7 @@ export async function DELETE(
   try {
     const supabase = createServerSupabase()
     const { error } = await supabase.from('users').delete().eq('id', params.id)
-    if (error) throw error
+    if (error) {throw error}
     return NextResponse.json({ message: 'User deleted' })
   } catch (err) {
     console.error('Admin user delete error:', err)

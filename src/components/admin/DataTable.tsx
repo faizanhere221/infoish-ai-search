@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, EyeOff } from 'lucide-react'
+import { ChevronUp, ChevronDown, ChevronsUpDown, Eye } from 'lucide-react'
 
 export interface Column<T> {
   key: string
@@ -48,14 +48,14 @@ export function DataTable<T>({
   function toggleCol(key: string) {
     setHiddenCols(prev => {
       const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
+      if (next.has(key)) {next.delete(key)}
+      else {next.add(key)}
       return next
     })
   }
 
   function handleSort(key: string) {
-    if (!onSort) return
+    if (!onSort) {return}
     if (sortBy === key) {
       onSort(key, sortOrder === 'asc' ? 'desc' : 'asc')
     } else {
@@ -67,7 +67,7 @@ export function DataTable<T>({
   const someSelected = !allSelected && data.some(row => selectedIds?.has(rowKey(row)))
 
   function toggleAll() {
-    if (!onSelectChange) return
+    if (!onSelectChange) {return}
     if (allSelected) {
       const next = new Set(selectedIds)
       data.forEach(row => next.delete(rowKey(row)))
@@ -80,10 +80,10 @@ export function DataTable<T>({
   }
 
   function toggleRow(id: string) {
-    if (!onSelectChange || !selectedIds) return
+    if (!onSelectChange || !selectedIds) {return}
     const next = new Set(selectedIds)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
+    if (next.has(id)) {next.delete(id)}
+    else {next.add(id)}
     onSelectChange(next)
   }
 
@@ -128,7 +128,7 @@ export function DataTable<T>({
                   <input
                     type="checkbox"
                     checked={allSelected}
-                    ref={el => { if (el) el.indeterminate = someSelected }}
+                    ref={el => { if (el) {el.indeterminate = someSelected} }}
                     onChange={toggleAll}
                     className="rounded border-slate-600 bg-slate-700 text-violet-600 focus:ring-violet-500"
                   />

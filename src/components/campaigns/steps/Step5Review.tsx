@@ -17,8 +17,8 @@ function label(list: { value: string; label: string }[], value: string) {
 }
 
 function formatBudget(data: CampaignFormData) {
-  if (data.budget_type === 'negotiable') return 'Negotiable'
-  if (data.budget_type === 'fixed') return data.budget_fixed ? `${data.currency} ${data.budget_fixed}` : '—'
+  if (data.budget_type === 'negotiable') {return 'Negotiable'}
+  if (data.budget_type === 'fixed') {return data.budget_fixed ? `${data.currency} ${data.budget_fixed}` : '—'}
   if (data.budget_min || data.budget_max) {
     return `${data.currency} ${data.budget_min || '0'} – ${data.budget_max || '?'}`
   }
@@ -26,7 +26,7 @@ function formatBudget(data: CampaignFormData) {
 }
 
 function formatDate(value: string) {
-  if (!value) return '—'
+  if (!value) {return '—'}
   return new Date(`${value}T00:00:00`).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',

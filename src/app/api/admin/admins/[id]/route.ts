@@ -26,7 +26,7 @@ export async function PATCH(
     const ALLOWED = new Set(['role', 'is_active'])
     const updates: Record<string, unknown> = {}
     for (const [k, v] of Object.entries(body)) {
-      if (ALLOWED.has(k)) updates[k] = v
+      if (ALLOWED.has(k)) {updates[k] = v}
     }
 
     if ('role' in updates && !['admin', 'super_admin'].includes(String(updates.role))) {

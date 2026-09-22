@@ -1,28 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Sparkles,
   Briefcase,
   DollarSign,
   CheckCircle,
   Clock,
   AlertCircle,
   Loader2,
-  MessageSquare,
-  Settings,
-  ChevronDown,
   Search,
-  Filter,
-  ArrowUpRight,
-  XCircle,
-  RefreshCw,
   Plus,
-  Calendar
+  Calendar,
+  type LucideIcon
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
+import type { ProfileDropdownProfile } from '@/components/ProfileDropdown'
 
 interface Deal {
   id: string
@@ -87,18 +81,14 @@ export default function DealsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userType, setUserType] = useState<'brand' | 'creator' | null>(null)
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<ProfileDropdownProfile | null>(null)
   
   // Filters
   const [filter, setFilter] = useState<DealFilter>('all')
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [searchQuery, setSearchQuery] = useState('')
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const userStr = localStorage.getItem('auth_user')
       const profileStr = localStorage.getItem('auth_profile')
@@ -144,21 +134,25 @@ export default function DealsPage() {
       setError('Failed to load deals')
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   // Filter deals
   const filteredDeals = deals.filter(deal => {
     // Status filter
     if (filter === 'active') {
-      if (!['accepted', 'paid', 'in_progress'].includes(deal.status)) return false
+      if (!['accepted', 'paid', 'in_progress'].includes(deal.status)) {return false}
     } else if (filter === 'delivered') {
-      if (deal.status !== 'delivered') return false
+      if (deal.status !== 'delivered') {return false}
     } else if (filter === 'completed') {
-      if (deal.status !== 'completed') return false
+      if (deal.status !== 'completed') {return false}
     } else if (filter === 'cancelled') {
-      if (deal.status !== 'cancelled') return false
+      if (deal.status !== 'cancelled') {return false}
     } else if (filter === 'pending') {
-      if (deal.status !== 'pending') return false
+      if (deal.status !== 'pending') {return false}
     }
 
     // Search filter
@@ -168,7 +162,7 @@ export default function DealsPage() {
         deal.title?.toLowerCase().includes(query) ||
         deal.creator?.display_name?.toLowerCase().includes(query) ||
         deal.brand?.company_name?.toLowerCase().includes(query)
-      if (!matchesSearch) return false
+      if (!matchesSearch) {return false}
     }
 
     return true
@@ -211,6 +205,23 @@ export default function DealsPage() {
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-violet-600 mx-auto" />
           <p className="mt-2 text-gray-600">Loading your deals...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
+          <h2 className="mt-4 text-xl font-semibold text-gray-900">{error}</h2>
+          <Link
+            href="/login"
+            className="mt-4 inline-block px-6 py-2 bg-violet-600 text-white rounded-lg"
+          >
+            Go to Login
+          </Link>
         </div>
       </div>
     )
@@ -407,8 +418,8 @@ function StatCard({
   label, 
   value, 
   color 
-}: { 
-  icon: any
+}: {
+  icon: LucideIcon
   label: string
   value: string
   color: 'blue' | 'emerald' | 'violet' | 'amber'
@@ -438,10 +449,9 @@ function StatCard({
 // Deal Card Component
 function DealCard({ deal, userType }: { deal: Deal; userType: 'brand' | 'creator' | null }) {
   const status = STATUS_CONFIG[deal.status] || STATUS_CONFIG.pending
-  const otherParty = userType === 'brand' ? deal.creator : deal.brand
 
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return 'No deadline'
+    if (!dateStr) {return 'No deadline'}
     const date = new Date(dateStr)
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }

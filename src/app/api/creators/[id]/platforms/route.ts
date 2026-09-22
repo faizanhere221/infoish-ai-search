@@ -43,7 +43,7 @@ export async function PUT(
     const seen = new Set<string>()
     const duplicates = new Set<string>()
     for (const p of platforms) {
-      if (seen.has(p.platform)) duplicates.add(p.platform)
+      if (seen.has(p.platform)) {duplicates.add(p.platform)}
       seen.add(p.platform)
     }
     if (duplicates.size > 0) {
@@ -78,7 +78,7 @@ export async function PUT(
     // that are no longer present. This order means a failed write never loses
     // existing data — the old delete-then-insert approach could wipe every
     // platform if the insert failed after the delete had already succeeded.
-    let savedPlatforms: any[] = []
+    let savedPlatforms: Record<string, unknown>[] = []
     if (platforms.length > 0) {
       const platformRecords = platforms.map((p) => ({
         creator_id: id,

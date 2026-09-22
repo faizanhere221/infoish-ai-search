@@ -2,7 +2,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
-import { ArrowLeft, Calendar, User, Clock, CheckCircle, Hash, Zap, Target, TrendingUp, Copy, Sparkles } from 'lucide-react'
+import { ArrowLeft, Calendar, User, Clock, CheckCircle, Hash, Zap, Target, TrendingUp, Sparkles } from 'lucide-react'
 import { Metadata } from 'next'
 
 // SEO Metadata

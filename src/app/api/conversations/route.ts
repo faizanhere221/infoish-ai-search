@@ -13,12 +13,19 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const creatorId = searchParams.get('creator_id')
     const brandId = searchParams.get('brand_id')
-    const userId = searchParams.get('user_id')
 
     const supabase = createServerSupabase()
 
-    // Scope to caller's own conversations only
+    // Scope to caller's own conversations only — ignore any client-supplied
+    // id for the caller's own side, forcing it to their authenticated profile.
     const callerProfileId = request.headers.get('x-profile-id')
+    const callerUserType = request.headers.get('x-user-type')
+    const effectiveCreatorId = callerUserType === 'creator' ? callerProfileId : creatorId
+    const effectiveBrandId = callerUserType === 'brand' ? callerProfileId : brandId
+
+    if (!effectiveCreatorId && !effectiveBrandId) {
+      return NextResponse.json({ conversations: [] })
+    }
 
     // Build query
     let query = supabase
@@ -27,12 +34,12 @@ export async function GET(request: NextRequest) {
       .order('last_message_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
 
-    if (creatorId) {
-      query = query.eq('creator_id', creatorId)
+    if (effectiveCreatorId) {
+      query = query.eq('creator_id', effectiveCreatorId)
     }
 
-    if (brandId) {
-      query = query.eq('brand_id', brandId)
+    if (effectiveBrandId) {
+      query = query.eq('brand_id', effectiveBrandId)
     }
 
     const { data: conversations, error } = await query
@@ -53,8 +60,10 @@ export async function GET(request: NextRequest) {
     const creatorIds = [...new Set(conversations.map(c => c.creator_id).filter(Boolean))]
     const brandIds = [...new Set(conversations.map(c => c.brand_id).filter(Boolean))]
 
-    let creators: any[] = []
-    let brands: any[] = []
+    type CreatorSummary = { id: string; username: string; display_name: string; profile_photo_url: string | null }
+    type BrandSummary = { id: string; company_name: string; logo_url: string | null; contact_name: string | null }
+    let creators: CreatorSummary[] = []
+    let brands: BrandSummary[] = []
 
     if (creatorIds.length > 0) {
       const { data } = await supabase

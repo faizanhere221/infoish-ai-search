@@ -15,9 +15,9 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(50000)
 
-    if (action)   query = query.eq('action', action)
-    if (dateFrom) query = query.gte('created_at', dateFrom)
-    if (dateTo)   query = query.lte('created_at', dateTo + 'T23:59:59')
+    if (action)   {query = query.eq('action', action)}
+    if (dateFrom) {query = query.gte('created_at', dateFrom)}
+    if (dateTo)   {query = query.lte('created_at', dateTo + 'T23:59:59')}
 
     const { data: logs, error } = await query
 

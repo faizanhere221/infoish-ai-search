@@ -1,29 +1,24 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, useParams } from 'next/navigation'
 import {
-  Sparkles,
   ArrowLeft,
   Send,
   Paperclip,
   MoreVertical,
-  Phone,
-  Video,
   Loader2,
-  CheckCircle,
-  Clock,
   DollarSign,
-  FileText
 } from 'lucide-react'
+import type { Attachment } from '@/types/marketplace'
 
 interface Message {
   id: string
   conversation_id: string
   sender_id: string
   content: string
-  attachments: any[]
+  attachments: Attachment[]
   is_read: boolean
   created_at: string
 }
@@ -60,27 +55,17 @@ export default function ConversationPage() {
   const [newMessage, setNewMessage] = useState('')
   const [userType, setUserType] = useState<'brand' | 'creator' | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
-  const [profile, setProfile] = useState<any>(null)
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-
-  useEffect(() => {
-    loadData()
-  }, [conversationId])
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const userStr = localStorage.getItem('auth_user')
-      const profileStr = localStorage.getItem('auth_profile')
       const token = localStorage.getItem('auth_token')
 
       if (!userStr || !token) {
@@ -91,10 +76,6 @@ export default function ConversationPage() {
       const user = JSON.parse(userStr)
       setUserType(user.user_type)
       setUserId(user.id)
-
-      if (profileStr) {
-        setProfile(JSON.parse(profileStr))
-      }
 
       const authHeader = { Authorization: `Bearer ${token}` }
 
@@ -119,10 +100,18 @@ export default function ConversationPage() {
       console.error('Error loading conversation:', err)
       setLoading(false)
     }
-  }
+  }, [conversationId, router])
+
+  useEffect(() => {
+    loadData()
+  }, [conversationId, loadData])
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || sending || !userId) return
+    if (!newMessage.trim() || sending || !userId) {return}
 
     const token = localStorage.getItem('auth_token')
     setSending(true)
@@ -171,22 +160,21 @@ export default function ConversationPage() {
     const now = new Date()
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
     
-    if (diffDays === 0) return 'Today'
-    if (diffDays === 1) return 'Yesterday'
+    if (diffDays === 0) {return 'Today'}
+    if (diffDays === 1) {return 'Yesterday'}
     return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
   }
 
   // Check if we need a date separator
   const needsDateSeparator = (message: Message, index: number) => {
-    if (index === 0) return true
+    if (index === 0) {return true}
     const prevDate = new Date(messages[index - 1].created_at).toDateString()
     const currDate = new Date(message.created_at).toDateString()
     return prevDate !== currDate
   }
 
   // Get other party info
-  const otherParty = userType === 'brand' ? conversation?.creator : conversation?.brand
-  const otherPartyName = userType === 'brand' 
+  const otherPartyName = userType === 'brand'
     ? conversation?.creator?.display_name 
     : conversation?.brand?.company_name
 

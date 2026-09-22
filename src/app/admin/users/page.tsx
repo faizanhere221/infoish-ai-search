@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, Trash2, X, RefreshCw, LogIn,
   ChevronLeft, ChevronRight, Shield, User, Building2,
-  Filter, AlertTriangle, CheckSquare,
+  Filter, AlertTriangle,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -33,19 +33,19 @@ interface UserDetail {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtDate(d: string | null) {
-  if (!d) return '—'
+  if (!d) {return '—'}
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function fmtRelative(d: string | null) {
-  if (!d) return 'Never'
+  if (!d) {return 'Never'}
   const diff = Date.now() - new Date(d).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 60) {return `${mins}m ago`}
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
+  if (hrs < 24) {return `${hrs}h ago`}
   const days = Math.floor(hrs / 24)
-  if (days < 30) return `${days}d ago`
+  if (days < 30) {return `${days}d ago`}
   return fmtDate(d)
 }
 
@@ -56,14 +56,14 @@ function StatusBadge({ active }: { active: boolean }) {
 }
 
 function TypeBadge({ type }: { type: string }) {
-  if (type === 'creator') return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-700"><User className="w-3 h-3" />Creator</span>
-  if (type === 'brand') return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700"><Building2 className="w-3 h-3" />Brand</span>
+  if (type === 'creator') {return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-700"><User className="w-3 h-3" />Creator</span>}
+  if (type === 'brand') {return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700"><Building2 className="w-3 h-3" />Brand</span>}
   return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700"><Shield className="w-3 h-3" />Admin</span>
 }
 
 function RoleBadge({ role }: { role: string }) {
-  if (role === 'super_admin') return <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-700">Super Admin</span>
-  if (role === 'admin') return <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700">Admin</span>
+  if (role === 'super_admin') {return <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-700">Super Admin</span>}
+  if (role === 'admin') {return <span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700">Admin</span>}
   return null
 }
 
@@ -90,7 +90,7 @@ function SortTh({
 
 function Pagination({ page, total, limit, onPage }: { page: number; total: number; limit: number; onPage: (p: number) => void }) {
   const totalPages = Math.ceil(total / limit)
-  if (totalPages <= 1) return null
+  if (totalPages <= 1) {return null}
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
       <p className="text-sm text-gray-500">
@@ -152,23 +152,21 @@ export default function AdminUsersPage() {
   // Action states
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
 
-  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
-
   const fetchUsers = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true)
-    else setLoading(true)
+    if (isRefresh) {setRefreshing(true)}
+    else {setLoading(true)}
 
     try {
       const params = new URLSearchParams({
         page: String(page), limit: '20',
         sort_by: sortField, sort_order: sortDir,
       })
-      if (search) params.set('search', search)
-      if (filterType !== 'all') params.set('type', filterType)
-      if (filterStatus !== 'all') params.set('status', filterStatus)
-      if (filterRole !== 'all') params.set('role', filterRole)
-      if (dateFrom) params.set('date_from', dateFrom)
-      if (dateTo) params.set('date_to', dateTo)
+      if (search) {params.set('search', search)}
+      if (filterType !== 'all') {params.set('type', filterType)}
+      if (filterStatus !== 'all') {params.set('status', filterStatus)}
+      if (filterRole !== 'all') {params.set('role', filterRole)}
+      if (dateFrom) {params.set('date_from', dateFrom)}
+      if (dateTo) {params.set('date_to', dateTo)}
 
       const res = await fetch(`/api/admin/users?${params}`)
       if (res.status === 401 || res.status === 403) { router.push('/admin/login'); return }
@@ -189,7 +187,7 @@ export default function AdminUsersPage() {
   }
 
   const handleSort = (field: string) => {
-    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    if (sortField === field) {setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
     else { setSortField(field); setSortDir('desc') }
     setPage(1)
   }
@@ -223,7 +221,7 @@ export default function AdminUsersPage() {
     setUsers(u => u.filter(x => x.id !== userId))
     setTotal(t => t - 1)
     setConfirmDelete(null)
-    if (modalUser?.user.id === userId) setModalUser(null)
+    if (modalUser?.user.id === userId) {setModalUser(null)}
     setActionLoading(a => ({ ...a, [userId]: false }))
   }
 
@@ -274,14 +272,14 @@ export default function AdminUsersPage() {
   const toggleSelect = (id: string) => {
     setSelected(s => {
       const n = new Set(s)
-      n.has(id) ? n.delete(id) : n.add(id)
+      if (n.has(id)) { n.delete(id) } else { n.add(id) }
       return n
     })
   }
 
   const toggleSelectAll = () => {
-    if (selected.size === users.length) setSelected(new Set())
-    else setSelected(new Set(users.map(u => u.id)))
+    if (selected.size === users.length) {setSelected(new Set())}
+    else {setSelected(new Set(users.map(u => u.id)))}
   }
 
   const allSelected = users.length > 0 && selected.size === users.length

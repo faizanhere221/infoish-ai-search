@@ -14,8 +14,10 @@ export async function GET(request: NextRequest) {
     const industry = searchParams.get('industry') ?? ''
     const companySize = searchParams.get('company_size') ?? ''
     const country = searchParams.get('country') ?? ''
-    const minSpent = searchParams.get('min_spent') ? parseFloat(searchParams.get('min_spent')!) : null
-    const maxSpent = searchParams.get('max_spent') ? parseFloat(searchParams.get('max_spent')!) : null
+    const minSpentParam = searchParams.get('min_spent')
+    const minSpent = minSpentParam ? parseFloat(minSpentParam) : null
+    const maxSpentParam = searchParams.get('max_spent')
+    const maxSpent = maxSpentParam ? parseFloat(maxSpentParam) : null
     const status = searchParams.get('status') ?? 'all'
     const verificationStatus = searchParams.get('verification_status') ?? ''
     const dateFrom = searchParams.get('date_from') ?? ''
@@ -29,9 +31,9 @@ export async function GET(request: NextRequest) {
     let userIdFilter: string[] | null = null
     if (needsUserFilter) {
       let userQuery = supabase.from('users').select('id').eq('user_type', 'brand')
-      if (status === 'active') userQuery = userQuery.eq('is_active', true)
-      if (status === 'suspended') userQuery = userQuery.eq('is_active', false)
-      if (emailSearch) userQuery = userQuery.ilike('email', `%${emailSearch}%`)
+      if (status === 'active') {userQuery = userQuery.eq('is_active', true)}
+      if (status === 'suspended') {userQuery = userQuery.eq('is_active', false)}
+      if (emailSearch) {userQuery = userQuery.ilike('email', `%${emailSearch}%`)}
 
       const { data: matchedUsers } = await userQuery
       userIdFilter = (matchedUsers ?? []).map(u => u.id)
@@ -52,18 +54,18 @@ export async function GET(request: NextRequest) {
     if (search && !emailSearch) {
       query = query.ilike('company_name', `%${search}%`)
     }
-    if (industry) query = query.eq('industry', industry)
-    if (companySize) query = query.eq('company_size', companySize)
-    if (country) query = query.eq('country', country)
-    if (minSpent !== null) query = query.gte('total_spent', minSpent)
-    if (maxSpent !== null) query = query.lte('total_spent', maxSpent)
-    if (verificationStatus) query = query.eq('verification_status', verificationStatus)
-    if (dateFrom) query = query.gte('created_at', dateFrom)
-    if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59')
-    if (userIdFilter) query = query.in('user_id', userIdFilter)
+    if (industry) {query = query.eq('industry', industry)}
+    if (companySize) {query = query.eq('company_size', companySize)}
+    if (country) {query = query.eq('country', country)}
+    if (minSpent !== null) {query = query.gte('total_spent', minSpent)}
+    if (maxSpent !== null) {query = query.lte('total_spent', maxSpent)}
+    if (verificationStatus) {query = query.eq('verification_status', verificationStatus)}
+    if (dateFrom) {query = query.gte('created_at', dateFrom)}
+    if (dateTo) {query = query.lte('created_at', dateTo + 'T23:59:59')}
+    if (userIdFilter) {query = query.in('user_id', userIdFilter)}
 
     const { data: brands, count, error } = await query
-    if (error) throw error
+    if (error) {throw error}
 
     if (!brands?.length) {
       return NextResponse.json({ brands: [], total: count ?? 0, page, limit })

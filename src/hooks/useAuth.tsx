@@ -212,7 +212,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router])
 
   const refreshProfile = useCallback(async () => {
-    if (!state.user) return
+    if (!state.user) {return}
 
     try {
       const endpoint = state.userType === 'creator' 

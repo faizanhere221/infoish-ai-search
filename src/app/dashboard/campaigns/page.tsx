@@ -109,16 +109,16 @@ function BrandCampaignsDashboardContent() {
 
   const tabbedCampaigns = useMemo(() => {
     return campaigns.filter((c) => {
-      if (tab === 'all') return true
-      if (tab === 'active') return c.status === 'published'
-      if (tab === 'draft') return c.status === 'draft'
-      if (tab === 'closed') return c.status === 'closed' || c.status === 'cancelled' || c.status === 'completed'
+      if (tab === 'all') {return true}
+      if (tab === 'active') {return c.status === 'published'}
+      if (tab === 'draft') {return c.status === 'draft'}
+      if (tab === 'closed') {return c.status === 'closed' || c.status === 'cancelled' || c.status === 'completed'}
       return true
     })
   }, [campaigns, tab])
 
   async function handleClose(campaignId: string) {
-    if (!confirm('Close this campaign? Creators will no longer be able to apply.')) return
+    if (!confirm('Close this campaign? Creators will no longer be able to apply.')) {return}
     setPendingId(campaignId)
     try {
       const token = localStorage.getItem('auth_token')
