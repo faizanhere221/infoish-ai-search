@@ -52,6 +52,8 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
   const [referralsLoading, setReferralsLoading] = useState(true)
   const [commissions, setCommissions] = useState<ReferralCommission[]>([])
   const [commissionsLoading, setCommissionsLoading] = useState(true)
+  const [commissionActionId, setCommissionActionId] = useState<string | null>(null)
+  const [confirmCancelCommissionId, setConfirmCancelCommissionId] = useState<string | null>(null)
   const [payouts, setPayouts] = useState<ReferralPayout[]>([])
   const [payoutsLoading, setPayoutsLoading] = useState(true)
   const [showPayoutModal, setShowPayoutModal] = useState(false)
@@ -92,6 +94,19 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
     }
   }, [partnerId])
 
+  const fetchCommissions = useCallback(async () => {
+    setCommissionsLoading(true)
+    try {
+      const res = await fetch(`/api/admin/partners/${partnerId}/commissions`)
+      const data = await res.json()
+      setCommissions(data.commissions ?? [])
+    } catch (err) {
+      console.error('Error fetching commissions:', err)
+    } finally {
+      setCommissionsLoading(false)
+    }
+  }, [partnerId])
+
   useEffect(() => { fetchDetail() }, [fetchDetail])
 
   useEffect(() => {
@@ -101,14 +116,47 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
       .catch((err) => console.error('Error fetching referrals:', err))
       .finally(() => setReferralsLoading(false))
 
-    fetch(`/api/admin/partners/${partnerId}/commissions`)
-      .then((res) => res.json())
-      .then((data) => setCommissions(data.commissions ?? []))
-      .catch((err) => console.error('Error fetching commissions:', err))
-      .finally(() => setCommissionsLoading(false))
-
+    fetchCommissions()
     fetchPayouts()
-  }, [partnerId, fetchPayouts])
+  }, [partnerId, fetchCommissions, fetchPayouts])
+
+  const handleApproveCommission = async (commissionId: string) => {
+    setCommissionActionId(commissionId)
+    try {
+      const res = await fetch(`/api/admin/partners/${partnerId}/commissions`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commissionId, status: 'approved' }),
+      })
+      if (res.ok) {
+        await Promise.all([fetchCommissions(), fetchDetail()])
+      }
+    } catch (err) {
+      console.error('Error approving commission:', err)
+    } finally {
+      setCommissionActionId(null)
+    }
+  }
+
+  const handleConfirmCancelCommission = async () => {
+    if (!confirmCancelCommissionId) {return}
+    setCommissionActionId(confirmCancelCommissionId)
+    try {
+      const res = await fetch(`/api/admin/partners/${partnerId}/commissions`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commissionId: confirmCancelCommissionId, status: 'cancelled' }),
+      })
+      if (res.ok) {
+        await Promise.all([fetchCommissions(), fetchDetail()])
+      }
+    } catch (err) {
+      console.error('Error cancelling commission:', err)
+    } finally {
+      setCommissionActionId(null)
+      setConfirmCancelCommissionId(null)
+    }
+  }
 
   const updatePartner = async (updates: Record<string, unknown>) => {
     const res = await fetch(`/api/admin/partners/${partnerId}`, {
@@ -352,7 +400,15 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
       </div>
 
       {activeTab === 'referrals' && <ReferralTable referrals={referrals} isLoading={referralsLoading} />}
-      {activeTab === 'commissions' && <CommissionTable commissions={commissions} isLoading={commissionsLoading} />}
+      {activeTab === 'commissions' && (
+        <CommissionTable
+          commissions={commissions}
+          isLoading={commissionsLoading}
+          onApprove={handleApproveCommission}
+          onCancel={(id) => setConfirmCancelCommissionId(id)}
+          actionLoadingId={commissionActionId}
+        />
+      )}
       {activeTab === 'payouts' && <PayoutTable payouts={payouts} isLoading={payoutsLoading} />}
 
       {/* Deactivate confirmation */}
@@ -378,6 +434,35 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
               >
                 {statusActionLoading ? 'Deactivating…' : 'Deactivate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel commission confirmation */}
+      {confirmCancelCommissionId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Cancel Commission</h3>
+                <p className="text-sm text-gray-500">The partner will not be paid for this deal. This can&apos;t be undone.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmCancelCommissionId(null)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">
+                Keep It
+              </button>
+              <button
+                onClick={handleConfirmCancelCommission}
+                disabled={commissionActionId === confirmCancelCommissionId}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+              >
+                {commissionActionId === confirmCancelCommissionId ? 'Cancelling…' : 'Cancel Commission'}
               </button>
             </div>
           </div>

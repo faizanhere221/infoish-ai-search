@@ -11,6 +11,8 @@ export type NotificationType =
   | 'new_message'
   | 'campaign_application'
   | 'campaign_application_update'
+  | 'referral_commission_earned'
+  | 'referral_commission_approved'
 
 interface NotificationPayload {
   userId: string

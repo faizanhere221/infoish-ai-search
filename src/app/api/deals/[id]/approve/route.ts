@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
+import { calculateReferralCommission } from '@/lib/referral-commissions'
 
 interface RouteParams {
   params: { id: string }
@@ -75,6 +76,23 @@ export async function POST(
         { error: 'Failed to approve deal' },
         { status: 500 }
       )
+    }
+
+    // Referral commission (if this creator was referred by an active
+    // partner) — best-effort, never blocks deal completion.
+    try {
+      const commissionResult = await calculateReferralCommission(supabase, {
+        dealId: id,
+        creatorId: deal.creator_id,
+        dealAmountCents: deal.amount_cents || 0,
+      })
+      if (commissionResult.created) {
+        console.warn(`Referral commission created for deal ${id}: ${commissionResult.commissionAmountCents} cents to partner ${commissionResult.partnerId}`)
+      } else if (commissionResult.error) {
+        console.error(`Referral commission calculation failed for deal ${id}:`, commissionResult.error)
+      }
+    } catch (commissionError) {
+      console.error('Unexpected error calculating referral commission:', commissionError)
     }
 
     // Update creator stats
