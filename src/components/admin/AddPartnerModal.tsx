@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { X, Loader2, Check, AlertCircle, Search } from 'lucide-react'
+import { X, Loader2, Check, AlertCircle, Search, Copy, PartyPopper } from 'lucide-react'
 import { isValidReferralCode } from '@/lib/referral'
 
 interface UserOption {
@@ -14,6 +14,8 @@ interface AddPartnerModalProps {
   onClose: () => void
   onSuccess: () => void
 }
+
+const BASE_URL = 'https://infoishai.com'
 
 type CodeStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 
@@ -41,6 +43,8 @@ export default function AddPartnerModal({ onClose, onSuccess }: AddPartnerModalP
   const [showUserResults, setShowUserResults] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [createdCode, setCreatedCode] = useState<string | null>(null)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   const codeCheckTimer = useRef<ReturnType<typeof setTimeout>>()
   const userSearchTimer = useRef<ReturnType<typeof setTimeout>>()
@@ -135,12 +139,73 @@ export default function AddPartnerModal({ onClose, onSuccess }: AddPartnerModalP
         return
       }
 
-      onSuccess()
+      const data = await res.json()
+      // Stay open and show the referral link — the admin needs to copy it
+      // before doing anything else. onSuccess() (which refreshes the list)
+      // fires when they close this success view, not before.
+      setCreatedCode(data.partner.referral_code)
+      setIsSubmitting(false)
     } catch (err) {
       console.error('Create partner error:', err)
       setError('Network error. Please try again.')
       setIsSubmitting(false)
     }
+  }
+
+  const referralLink = createdCode ? `${BASE_URL}/signup/creator?ref=${createdCode}` : ''
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink)
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    } catch (err) {
+      console.error('Copy failed:', err)
+    }
+  }
+
+  if (createdCode) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+          <div className="text-center mb-5">
+            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <PartyPopper className="w-6 h-6 text-emerald-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Partner created!</h3>
+            <p className="text-sm text-gray-500 mt-1">Share this referral link with them to start tracking signups.</p>
+          </div>
+
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Referral link</label>
+          <div className="flex items-center gap-2 mb-5">
+            <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 min-w-0">
+              <input
+                type="text"
+                readOnly
+                value={referralLink}
+                onFocus={(e) => e.target.select()}
+                className="w-full bg-transparent text-sm text-gray-700 outline-none truncate"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-violet-600 text-white rounded-xl text-sm font-medium hover:bg-violet-700 transition-colors"
+            >
+              {linkCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              {linkCopied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+
+          <button
+            onClick={() => { setCreatedCode(null); onSuccess() }}
+            className="w-full px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

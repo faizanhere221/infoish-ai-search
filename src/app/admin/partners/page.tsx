@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, RefreshCw, Search, X, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react'
+import { Plus, RefreshCw, Search, X, ChevronLeft, ChevronRight, AlertCircle, AlertTriangle } from 'lucide-react'
 import PartnerTable, { type AdminPartnerRow } from '@/components/admin/PartnerTable'
 import PartnerStats from '@/components/admin/PartnerStats'
 import AddPartnerModal from '@/components/admin/AddPartnerModal'
@@ -48,6 +48,8 @@ export default function AdminPartnersPage() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(1)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState<AdminPartnerRow | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const fetchPartners = useCallback(async (isRefresh = false) => {
     if (isRefresh) {setRefreshing(true)} else {setLoading(true)}
@@ -90,6 +92,22 @@ export default function AdminPartnersPage() {
   }
 
   const hasFilters = Boolean(search || filterStatus !== 'all')
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete) {return}
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/admin/partners/${confirmDelete.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setConfirmDelete(null)
+        fetchPartners(true)
+      }
+    } catch (err) {
+      console.error('Error deactivating partner:', err)
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -169,7 +187,15 @@ export default function AdminPartnersPage() {
           </div>
         ) : (
           <>
-            <PartnerTable partners={partners} isLoading={loading} sortField={sortField} sortDir={sortDir} onSort={handleSort} hasFilters={hasFilters} />
+            <PartnerTable
+              partners={partners}
+              isLoading={loading}
+              sortField={sortField}
+              sortDir={sortDir}
+              onSort={handleSort}
+              hasFilters={hasFilters}
+              onDelete={(partner) => setConfirmDelete(partner)}
+            />
             <Pagination page={page} total={total} limit={20} onPage={setPage} />
           </>
         )}
@@ -183,6 +209,34 @@ export default function AdminPartnersPage() {
             fetchPartners(true)
           }}
         />
+      )}
+
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Deactivate {confirmDelete.name}?</h3>
+                <p className="text-sm text-gray-500">Their referral link will stop working. History is kept.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(null)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? 'Deactivating…' : 'Deactivate'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
