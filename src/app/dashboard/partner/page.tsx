@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Users, UserCheck, DollarSign, Wallet, AlertCircle } from 'lucide-react'
+import { Users, UserCheck, DollarSign, Wallet, AlertCircle, RefreshCw } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import type { ProfileDropdownProfile } from '@/components/ProfileDropdown'
 import PartnerStatsCard from '@/components/partner/PartnerStatsCard'
@@ -37,12 +37,16 @@ export default function PartnerDashboardPage() {
   const [activeTab, setActiveTab] = useState<Tab>('referrals')
   const [stats, setStats] = useState<PartnerStats | null>(null)
   const [statsLoading, setStatsLoading] = useState(true)
+  const [statsError, setStatsError] = useState(false)
   const [referrals, setReferrals] = useState<ReferralSignup[]>([])
   const [referralsLoading, setReferralsLoading] = useState(true)
+  const [referralsError, setReferralsError] = useState(false)
   const [commissions, setCommissions] = useState<ReferralCommission[]>([])
   const [commissionsLoading, setCommissionsLoading] = useState(true)
+  const [commissionsError, setCommissionsError] = useState(false)
   const [payouts, setPayouts] = useState<ReferralPayout[]>([])
   const [payoutsLoading, setPayoutsLoading] = useState(true)
+  const [payoutsError, setPayoutsError] = useState(false)
 
   useEffect(() => {
     try {
@@ -57,37 +61,90 @@ export default function PartnerDashboardPage() {
     }
   }, [])
 
+  const authHeaders = () => {
+    const token = localStorage.getItem('auth_token')
+    return token ? { Authorization: `Bearer ${token}` } : null
+  }
+
+  const fetchStats = useCallback(async () => {
+    const headers = authHeaders()
+    if (!headers) {return}
+    setStatsLoading(true)
+    setStatsError(false)
+    try {
+      const res = await fetch('/api/referral/stats', { headers })
+      if (!res.ok) {throw new Error('Failed to load stats')}
+      const data = await res.json()
+      setStats(data.stats)
+    } catch (err) {
+      console.error('Error fetching partner stats:', err)
+      setStatsError(true)
+    } finally {
+      setStatsLoading(false)
+    }
+  }, [])
+
+  const fetchReferrals = useCallback(async () => {
+    const headers = authHeaders()
+    if (!headers) {return}
+    setReferralsLoading(true)
+    setReferralsError(false)
+    try {
+      const res = await fetch('/api/referral/referrals', { headers })
+      if (!res.ok) {throw new Error('Failed to load referrals')}
+      const data = await res.json()
+      setReferrals(data.referrals ?? [])
+    } catch (err) {
+      console.error('Error fetching referrals:', err)
+      setReferralsError(true)
+    } finally {
+      setReferralsLoading(false)
+    }
+  }, [])
+
+  const fetchCommissions = useCallback(async () => {
+    const headers = authHeaders()
+    if (!headers) {return}
+    setCommissionsLoading(true)
+    setCommissionsError(false)
+    try {
+      const res = await fetch('/api/referral/commissions', { headers })
+      if (!res.ok) {throw new Error('Failed to load commissions')}
+      const data = await res.json()
+      setCommissions(data.commissions ?? [])
+    } catch (err) {
+      console.error('Error fetching commissions:', err)
+      setCommissionsError(true)
+    } finally {
+      setCommissionsLoading(false)
+    }
+  }, [])
+
+  const fetchPayouts = useCallback(async () => {
+    const headers = authHeaders()
+    if (!headers) {return}
+    setPayoutsLoading(true)
+    setPayoutsError(false)
+    try {
+      const res = await fetch('/api/referral/payouts', { headers })
+      if (!res.ok) {throw new Error('Failed to load payouts')}
+      const data = await res.json()
+      setPayouts(data.payouts ?? [])
+    } catch (err) {
+      console.error('Error fetching payouts:', err)
+      setPayoutsError(true)
+    } finally {
+      setPayoutsLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     if (!isPartner) {return}
-
-    const token = localStorage.getItem('auth_token')
-    if (!token) {return}
-    const headers = { Authorization: `Bearer ${token}` }
-
-    fetch('/api/referral/stats', { headers })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => data && setStats(data.stats))
-      .catch((err) => console.error('Error fetching partner stats:', err))
-      .finally(() => setStatsLoading(false))
-
-    fetch('/api/referral/referrals', { headers })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => data && setReferrals(data.referrals ?? []))
-      .catch((err) => console.error('Error fetching referrals:', err))
-      .finally(() => setReferralsLoading(false))
-
-    fetch('/api/referral/commissions', { headers })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => data && setCommissions(data.commissions ?? []))
-      .catch((err) => console.error('Error fetching commissions:', err))
-      .finally(() => setCommissionsLoading(false))
-
-    fetch('/api/referral/payouts', { headers })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => data && setPayouts(data.payouts ?? []))
-      .catch((err) => console.error('Error fetching payouts:', err))
-      .finally(() => setPayoutsLoading(false))
-  }, [isPartner])
+    fetchStats()
+    fetchReferrals()
+    fetchCommissions()
+    fetchPayouts()
+  }, [isPartner, fetchStats, fetchReferrals, fetchCommissions, fetchPayouts])
 
   const isLoading = !checkedAuth || partnerLoading
 
@@ -188,6 +245,17 @@ export default function PartnerDashboardPage() {
               <div key={i} className="h-28 bg-gray-200 rounded-xl animate-pulse" />
             ))}
           </div>
+        ) : statsError ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center mb-8">
+            <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+            <p className="text-gray-700 font-medium mb-1">Couldn&apos;t load your stats</p>
+            <button
+              onClick={fetchStats}
+              className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700"
+            >
+              <RefreshCw className="w-4 h-4" /> Retry
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <PartnerStatsCard
@@ -242,10 +310,44 @@ export default function PartnerDashboardPage() {
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'referrals' && <ReferralTable referrals={referrals} isLoading={referralsLoading} />}
-        {activeTab === 'commissions' && <CommissionTable commissions={commissions} isLoading={commissionsLoading} />}
-        {activeTab === 'payouts' && <PayoutTable payouts={payouts} isLoading={payoutsLoading} />}
+        {activeTab === 'referrals' && (
+          referralsError ? (
+            <DashboardTabError onRetry={fetchReferrals} />
+          ) : (
+            <ReferralTable referrals={referrals} isLoading={referralsLoading} />
+          )
+        )}
+        {activeTab === 'commissions' && (
+          commissionsError ? (
+            <DashboardTabError onRetry={fetchCommissions} />
+          ) : (
+            <CommissionTable commissions={commissions} isLoading={commissionsLoading} />
+          )
+        )}
+        {activeTab === 'payouts' && (
+          payoutsError ? (
+            <DashboardTabError onRetry={fetchPayouts} />
+          ) : (
+            <PayoutTable payouts={payouts} isLoading={payoutsLoading} />
+          )
+        )}
       </main>
+    </div>
+  )
+}
+
+function DashboardTabError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+      <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+      <p className="text-gray-700 font-medium mb-1">Couldn&apos;t load this data</p>
+      <p className="text-sm text-gray-400 mb-4">Something went wrong. Please try again.</p>
+      <button
+        onClick={onRetry}
+        className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700"
+      >
+        <RefreshCw className="w-4 h-4" /> Retry
+      </button>
     </div>
   )
 }

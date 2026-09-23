@@ -25,6 +25,11 @@ interface CommissionResult {
   error?: string
 }
 
+// Infoishai's cut of the deal amount. Partner commission is a percentage of
+// THIS, not of the full deal amount — a partner's "20% commission rate"
+// means 20% of what the platform actually earns, not 20% of the deal.
+const PLATFORM_FEE_RATE = 0.05 // 5% platform fee
+
 const STATUS_RANK: Record<string, number> = {
   signed_up: 0,
   profile_complete: 1,
@@ -111,9 +116,11 @@ export async function calculateReferralCommission(
       return { created: false }
     }
 
-    // 6. Calculate commission.
+    // 6. Calculate commission — as a percentage of the platform fee, not of
+    // the full deal amount (a partner's rate applies to Infoishai's cut).
     const commissionRate = Number(partner.commission_rate)
-    const commissionAmountCents = Math.round(dealAmountCents * (commissionRate / 100))
+    const platformFeeCents = Math.round(dealAmountCents * PLATFORM_FEE_RATE)
+    const commissionAmountCents = Math.round(platformFeeCents * (commissionRate / 100))
 
     // 7. Create the commission record.
     const { data: commission, error: commissionError } = await supabase
@@ -123,6 +130,7 @@ export async function calculateReferralCommission(
         referral_signup_id: signup.id,
         deal_id: dealId,
         deal_amount_cents: dealAmountCents,
+        platform_fee_cents: platformFeeCents,
         commission_rate: commissionRate,
         commission_amount_cents: commissionAmountCents,
         status: 'pending',

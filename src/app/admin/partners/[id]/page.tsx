@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
-  ArrowLeft, Pencil, Pause, Play, Ban, AlertTriangle, Loader2,
-  Users, UserCheck, DollarSign, Wallet, Wallet2, Plus,
+  ArrowLeft, Pencil, Pause, Play, Ban, AlertTriangle, AlertCircle, Loader2,
+  Users, UserCheck, DollarSign, Wallet, Wallet2, Plus, RefreshCw,
 } from 'lucide-react'
 import PartnerStatsCard from '@/components/partner/PartnerStatsCard'
 import ReferralTable from '@/components/partner/ReferralTable'
@@ -30,11 +31,13 @@ const STATUS_STYLES: Record<PartnerStatus, string> = {
 
 export default function AdminPartnerDetailPage({ params }: { params: { id: string } }) {
   const partnerId = params.id
+  const router = useRouter()
 
   const [partner, setPartner] = useState<ReferralPartner | null>(null)
   const [stats, setStats] = useState<PartnerStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [loadError, setLoadError] = useState(false)
 
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState('')
@@ -50,23 +53,32 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
   const [activeTab, setActiveTab] = useState<Tab>('referrals')
   const [referrals, setReferrals] = useState<ReferralSignup[]>([])
   const [referralsLoading, setReferralsLoading] = useState(true)
+  const [referralsError, setReferralsError] = useState(false)
   const [commissions, setCommissions] = useState<ReferralCommission[]>([])
   const [commissionsLoading, setCommissionsLoading] = useState(true)
+  const [commissionsError, setCommissionsError] = useState(false)
   const [commissionActionId, setCommissionActionId] = useState<string | null>(null)
   const [confirmCancelCommissionId, setConfirmCancelCommissionId] = useState<string | null>(null)
   const [payouts, setPayouts] = useState<ReferralPayout[]>([])
   const [payoutsLoading, setPayoutsLoading] = useState(true)
+  const [payoutsError, setPayoutsError] = useState(false)
   const [showPayoutModal, setShowPayoutModal] = useState(false)
 
   const fetchDetail = useCallback(async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const res = await fetch(`/api/admin/partners/${partnerId}`)
+      if (res.status === 401 || res.status === 403) {
+        router.push('/admin/login')
+        return
+      }
       if (res.status === 404) {
         setNotFound(true)
         setLoading(false)
         return
       }
+      if (!res.ok) {throw new Error('Failed to load partner')}
       const data = await res.json()
       setPartner(data.partner)
       setStats(data.stats)
@@ -76,19 +88,23 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
       setEditStatus(data.partner.status)
     } catch (err) {
       console.error('Error fetching partner detail:', err)
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
-  }, [partnerId])
+  }, [partnerId, router])
 
   const fetchPayouts = useCallback(async () => {
     setPayoutsLoading(true)
+    setPayoutsError(false)
     try {
       const res = await fetch(`/api/admin/partners/${partnerId}/payouts`)
+      if (!res.ok) {throw new Error('Failed to load payouts')}
       const data = await res.json()
       setPayouts(data.payouts ?? [])
     } catch (err) {
       console.error('Error fetching payouts:', err)
+      setPayoutsError(true)
     } finally {
       setPayoutsLoading(false)
     }
@@ -96,29 +112,43 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
 
   const fetchCommissions = useCallback(async () => {
     setCommissionsLoading(true)
+    setCommissionsError(false)
     try {
       const res = await fetch(`/api/admin/partners/${partnerId}/commissions`)
+      if (!res.ok) {throw new Error('Failed to load commissions')}
       const data = await res.json()
       setCommissions(data.commissions ?? [])
     } catch (err) {
       console.error('Error fetching commissions:', err)
+      setCommissionsError(true)
     } finally {
       setCommissionsLoading(false)
+    }
+  }, [partnerId])
+
+  const fetchReferrals = useCallback(async () => {
+    setReferralsLoading(true)
+    setReferralsError(false)
+    try {
+      const res = await fetch(`/api/admin/partners/${partnerId}/referrals`)
+      if (!res.ok) {throw new Error('Failed to load referrals')}
+      const data = await res.json()
+      setReferrals(data.referrals ?? [])
+    } catch (err) {
+      console.error('Error fetching referrals:', err)
+      setReferralsError(true)
+    } finally {
+      setReferralsLoading(false)
     }
   }, [partnerId])
 
   useEffect(() => { fetchDetail() }, [fetchDetail])
 
   useEffect(() => {
-    fetch(`/api/admin/partners/${partnerId}/referrals`)
-      .then((res) => res.json())
-      .then((data) => setReferrals(data.referrals ?? []))
-      .catch((err) => console.error('Error fetching referrals:', err))
-      .finally(() => setReferralsLoading(false))
-
+    fetchReferrals()
     fetchCommissions()
     fetchPayouts()
-  }, [partnerId, fetchCommissions, fetchPayouts])
+  }, [fetchReferrals, fetchCommissions, fetchPayouts])
 
   const handleApproveCommission = async (commissionId: string) => {
     setCommissionActionId(commissionId)
@@ -222,13 +252,29 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
     )
   }
 
-  if (notFound || !partner) {
+  if (notFound) {
     return (
       <div className="py-20 text-center">
         <p className="text-gray-500 font-medium">Partner not found</p>
         <Link href="/admin/partners" className="mt-4 inline-block text-sm text-violet-600 hover:text-violet-700">
           Back to Partners
         </Link>
+      </div>
+    )
+  }
+
+  if (loadError || !partner) {
+    return (
+      <div className="py-20 text-center">
+        <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+        <p className="text-gray-700 font-medium mb-1">Couldn&apos;t load this partner</p>
+        <p className="text-sm text-gray-400 mb-4">Something went wrong fetching this data.</p>
+        <button
+          onClick={() => fetchDetail()}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700"
+        >
+          <RefreshCw className="w-4 h-4" /> Retry
+        </button>
       </div>
     )
   }
@@ -399,17 +445,33 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
         </nav>
       </div>
 
-      {activeTab === 'referrals' && <ReferralTable referrals={referrals} isLoading={referralsLoading} />}
-      {activeTab === 'commissions' && (
-        <CommissionTable
-          commissions={commissions}
-          isLoading={commissionsLoading}
-          onApprove={handleApproveCommission}
-          onCancel={(id) => setConfirmCancelCommissionId(id)}
-          actionLoadingId={commissionActionId}
-        />
+      {activeTab === 'referrals' && (
+        referralsError ? (
+          <TabError onRetry={fetchReferrals} />
+        ) : (
+          <ReferralTable referrals={referrals} isLoading={referralsLoading} />
+        )
       )}
-      {activeTab === 'payouts' && <PayoutTable payouts={payouts} isLoading={payoutsLoading} />}
+      {activeTab === 'commissions' && (
+        commissionsError ? (
+          <TabError onRetry={fetchCommissions} />
+        ) : (
+          <CommissionTable
+            commissions={commissions}
+            isLoading={commissionsLoading}
+            onApprove={handleApproveCommission}
+            onCancel={(id) => setConfirmCancelCommissionId(id)}
+            actionLoadingId={commissionActionId}
+          />
+        )
+      )}
+      {activeTab === 'payouts' && (
+        payoutsError ? (
+          <TabError onRetry={fetchPayouts} />
+        ) : (
+          <PayoutTable payouts={payouts} isLoading={payoutsLoading} />
+        )
+      )}
 
       {/* Deactivate confirmation */}
       {confirmDeactivate && (
@@ -481,6 +543,22 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
           }}
         />
       )}
+    </div>
+  )
+}
+
+function TabError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+      <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+      <p className="text-gray-700 font-medium mb-1">Couldn&apos;t load this data</p>
+      <p className="text-sm text-gray-400 mb-4">Something went wrong. Please try again.</p>
+      <button
+        onClick={onRetry}
+        className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700"
+      >
+        <RefreshCw className="w-4 h-4" /> Retry
+      </button>
     </div>
   )
 }

@@ -51,7 +51,7 @@ export default function PayoutTable({ payouts, isLoading }: PayoutTableProps) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
         <Wallet className="w-12 h-12 text-gray-300 mx-auto" />
-        <p className="mt-4 text-gray-500">No payouts yet. Request a payout when you have pending earnings.</p>
+        <p className="mt-4 text-gray-500">No payouts yet. Request a payout when you reach the minimum balance.</p>
       </div>
     )
   }

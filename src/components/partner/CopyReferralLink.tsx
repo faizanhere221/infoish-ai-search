@@ -11,6 +11,7 @@ const BASE_URL = 'https://infoishai.com'
 
 export default function CopyReferralLink({ code }: CopyReferralLinkProps) {
   const [copied, setCopied] = useState(false)
+  const [showToast, setShowToast] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const link = `${BASE_URL}/signup/creator?ref=${code}`
 
@@ -18,23 +19,34 @@ export default function CopyReferralLink({ code }: CopyReferralLinkProps) {
     try {
       await navigator.clipboard.writeText(link)
       setCopied(true)
+      setShowToast(true)
       setTimeout(() => setCopied(false), 2000)
+      setTimeout(() => setShowToast(false), 2500)
     } catch (err) {
       console.error('Copy failed:', err)
     }
   }
 
-  const shareText = encodeURIComponent('Join Infoishai as a tech creator and start landing brand deals:')
   const encodedLink = encodeURIComponent(link)
+  const twitterText = encodeURIComponent(`Join @infoishai - the tech influencer marketplace! ${link}`)
+  const linkedInTitle = encodeURIComponent('Join Infoishai - the tech influencer marketplace')
+  const linkedInSummary = encodeURIComponent('Infoishai connects B2B brands with verified tech creators. Check it out:')
+  const emailSubject = encodeURIComponent('Join me on Infoishai')
+  const emailBody = encodeURIComponent(
+    `Hey!\n\nI wanted to share Infoishai with you — the tech influencer marketplace connecting B2B brands with verified tech creators.\n\nJoin here: ${link}\n`
+  )
 
   const shareOptions = [
-    { label: 'Twitter / X', icon: Twitter, href: `https://twitter.com/intent/tweet?text=${shareText}&url=${encodedLink}` },
-    { label: 'LinkedIn', icon: Linkedin, href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedLink}` },
-    { label: 'Email', icon: Mail, href: `mailto:?subject=${encodeURIComponent('Join Infoishai')}&body=${shareText}%20${encodedLink}` },
+    { label: 'Twitter / X', icon: Twitter, href: `https://twitter.com/intent/tweet?text=${twitterText}` },
+    // LinkedIn's share endpoint officially only reads `url` (it scrapes OG
+    // tags for the rest); title/summary are passed best-effort and may be
+    // ignored depending on how LinkedIn is currently rendering shares.
+    { label: 'LinkedIn', icon: Linkedin, href: `https://www.linkedin.com/shareArticle?mini=true&url=${encodedLink}&title=${linkedInTitle}&summary=${linkedInSummary}` },
+    { label: 'Email', icon: Mail, href: `mailto:?subject=${emailSubject}&body=${emailBody}` },
   ]
 
   return (
-    <div className="flex flex-col sm:flex-row gap-2">
+    <div className="relative flex flex-col sm:flex-row gap-2">
       <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 min-w-0">
         <input
           type="text"
@@ -88,6 +100,14 @@ export default function CopyReferralLink({ code }: CopyReferralLinkProps) {
           )}
         </div>
       </div>
+
+      {/* Toast */}
+      {showToast && (
+        <div className="absolute -bottom-11 left-0 sm:left-auto sm:right-0 flex items-center gap-2 px-3 py-2 bg-gray-900 text-white text-xs font-medium rounded-lg shadow-lg z-30">
+          <Check className="w-3.5 h-3.5 text-emerald-400" />
+          Referral link copied!
+        </div>
+      )}
     </div>
   )
 }
