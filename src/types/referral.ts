@@ -54,6 +54,7 @@ export interface ReferralCommission {
   referral_signup_id: string
   deal_id: string | null
   deal_amount_cents: number
+  platform_fee_cents: number | null
   commission_rate: number
   commission_amount_cents: number
   status: CommissionStatus

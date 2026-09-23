@@ -15,6 +15,7 @@ interface PartnerTableProps {
   sortField: string
   sortDir: 'asc' | 'desc'
   onSort: (field: string) => void
+  hasFilters?: boolean
 }
 
 const STATUS_STYLES: Record<PartnerStatus, string> = {
@@ -55,7 +56,7 @@ function SortTh({
   )
 }
 
-export default function PartnerTable({ partners, isLoading, sortField, sortDir, onSort }: PartnerTableProps) {
+export default function PartnerTable({ partners, isLoading, sortField, sortDir, onSort, hasFilters }: PartnerTableProps) {
   if (isLoading) {
     return (
       <div className="py-20 text-center">
@@ -69,7 +70,9 @@ export default function PartnerTable({ partners, isLoading, sortField, sortDir, 
     return (
       <div className="py-20 text-center">
         <Filter className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-        <p className="text-gray-500 font-medium">No partners found</p>
+        <p className="text-gray-500 font-medium">
+          {hasFilters ? 'No partners match your filters' : 'No referral partners yet. Add your first partner to get started.'}
+        </p>
       </div>
     )
   }

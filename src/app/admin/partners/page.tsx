@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, RefreshCw, Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, RefreshCw, Search, X, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react'
 import PartnerTable, { type AdminPartnerRow } from '@/components/admin/PartnerTable'
 import PartnerStats from '@/components/admin/PartnerStats'
 import AddPartnerModal from '@/components/admin/AddPartnerModal'
@@ -40,6 +40,7 @@ export default function AdminPartnersPage() {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState(false)
 
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
@@ -50,6 +51,7 @@ export default function AdminPartnersPage() {
 
   const fetchPartners = useCallback(async (isRefresh = false) => {
     if (isRefresh) {setRefreshing(true)} else {setLoading(true)}
+    setError(false)
     try {
       const params = new URLSearchParams({ page: String(page), limit: '20', sort_by: sortField, sort_order: sortDir })
       if (search) {params.set('search', search)}
@@ -57,10 +59,14 @@ export default function AdminPartnersPage() {
 
       const res = await fetch(`/api/admin/partners?${params}`)
       if (res.status === 401 || res.status === 403) { router.push('/admin/login'); return }
+      if (!res.ok) {throw new Error('Failed to load partners')}
       const data = await res.json()
       setPartners(data.partners ?? [])
       setTotal(data.total ?? 0)
       setSummary(data.summary ?? null)
+    } catch (err) {
+      console.error('Error fetching partners:', err)
+      setError(true)
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -83,7 +89,7 @@ export default function AdminPartnersPage() {
     setPage(1)
   }
 
-  const hasFilters = search || filterStatus !== 'all'
+  const hasFilters = Boolean(search || filterStatus !== 'all')
 
   return (
     <div className="space-y-4">
@@ -149,8 +155,24 @@ export default function AdminPartnersPage() {
 
       {/* Table */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <PartnerTable partners={partners} isLoading={loading} sortField={sortField} sortDir={sortDir} onSort={handleSort} />
-        <Pagination page={page} total={total} limit={20} onPage={setPage} />
+        {error ? (
+          <div className="py-20 text-center">
+            <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+            <p className="text-gray-700 font-medium mb-1">Couldn&apos;t load partners</p>
+            <p className="text-sm text-gray-400 mb-4">Something went wrong fetching this data.</p>
+            <button
+              onClick={() => fetchPartners()}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700"
+            >
+              <RefreshCw className="w-4 h-4" /> Retry
+            </button>
+          </div>
+        ) : (
+          <>
+            <PartnerTable partners={partners} isLoading={loading} sortField={sortField} sortDir={sortDir} onSort={handleSort} hasFilters={hasFilters} />
+            <Pagination page={page} total={total} limit={20} onPage={setPage} />
+          </>
+        )}
       </div>
 
       {showAddModal && (

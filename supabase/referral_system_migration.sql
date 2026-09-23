@@ -72,12 +72,21 @@ CREATE TABLE IF NOT EXISTS referral_commissions (
   referral_signup_id VARCHAR(255) NOT NULL REFERENCES referral_signups(id) ON DELETE CASCADE,
   deal_id VARCHAR(255),
   deal_amount_cents INTEGER NOT NULL,
+  -- Infoishai's cut of deal_amount_cents (currently a flat 5%, see
+  -- PLATFORM_FEE_RATE in src/lib/referral-commissions.ts). commission_rate
+  -- below applies to THIS, not to deal_amount_cents directly — a partner's
+  -- "20% commission" is 20% of the platform fee, not 20% of the deal.
+  platform_fee_cents INTEGER,
   commission_rate NUMERIC(5,2) NOT NULL,
   commission_amount_cents INTEGER NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'paid', 'cancelled')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   paid_at TIMESTAMPTZ
 );
+
+-- Patches an already-existing table (this migration was run once already,
+-- before platform_fee_cents existed) without disturbing anything else.
+ALTER TABLE referral_commissions ADD COLUMN IF NOT EXISTS platform_fee_cents INTEGER;
 
 CREATE INDEX IF NOT EXISTS idx_referral_commissions_partner ON referral_commissions(partner_id);
 CREATE INDEX IF NOT EXISTS idx_referral_commissions_status ON referral_commissions(status);
