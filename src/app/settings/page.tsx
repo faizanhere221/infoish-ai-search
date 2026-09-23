@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -18,6 +18,7 @@ import {
   DollarSign,
 } from 'lucide-react'
 import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES, SERVICE_TYPES } from '@/utils/constants'
+import AvatarUpload from '@/components/AvatarUpload'
 
 type SettingsTab = 'profile' | 'services' | 'platforms' | 'notifications' | 'security'
 
@@ -359,57 +360,23 @@ function ProfileSettings({
   profile, 
   setProfile,
   userEmail
-}: { 
+}: {
   profile: CreatorProfile
   setProfile: (p: CreatorProfile) => void
   userEmail: string
 }) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [uploadingAvatar, setUploadingAvatar] = useState(false)
-  const [avatarError, setAvatarError] = useState<string | null>(null)
-
   const updateProfile = (field: keyof CreatorProfile, value: CreatorProfile[keyof CreatorProfile]) => {
     setProfile({ ...profile, [field]: value })
   }
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file) {return}
+  const handleAvatarUploaded = (url: string) => {
+    updateProfile('profile_photo_url', url)
 
-    setAvatarError(null)
-    setUploadingAvatar(true)
-
-    try {
-      const token = localStorage.getItem('auth_token')
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const res = await fetch(`/api/creators/${profile.id}/avatar`, {
-        method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        body: formData,
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setAvatarError(data.error || 'Failed to upload avatar')
-        return
-      }
-
-      updateProfile('profile_photo_url', data.profile_photo_url)
-
-      const profileStr = localStorage.getItem('auth_profile')
-      if (profileStr) {
-        const savedProfile = JSON.parse(profileStr)
-        savedProfile.profile_photo_url = data.profile_photo_url
-        localStorage.setItem('auth_profile', JSON.stringify(savedProfile))
-      }
-    } catch {
-      setAvatarError('Network error. Please try again.')
-    } finally {
-      setUploadingAvatar(false)
+    const profileStr = localStorage.getItem('auth_profile')
+    if (profileStr) {
+      const savedProfile = JSON.parse(profileStr)
+      savedProfile.profile_photo_url = url
+      localStorage.setItem('auth_profile', JSON.stringify(savedProfile))
     }
   }
 
@@ -439,38 +406,14 @@ function ProfileSettings({
       </div>
 
       {/* Avatar */}
-      <div className="flex items-center gap-6 pb-6 border-b border-gray-200">
-        {profile.profile_photo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={profile.profile_photo_url}
-            alt={profile.display_name || 'Avatar'}
-            className="w-20 h-20 rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-white text-2xl font-bold">
-            {profile.display_name?.charAt(0) || 'U'}
-          </div>
-        )}
-        <div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/gif,image/webp"
-            onChange={handleAvatarChange}
-            className="hidden"
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploadingAvatar}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-          >
-            {uploadingAvatar ? 'Uploading...' : 'Change Avatar'}
-          </button>
-          <p className="text-xs text-gray-500 mt-2">JPG, PNG or GIF. Max 2MB.</p>
-          {avatarError && <p className="text-xs text-red-600 mt-1">{avatarError}</p>}
-        </div>
+      <div className="pb-6 border-b border-gray-200">
+        <AvatarUpload
+          currentUrl={profile.profile_photo_url}
+          fallbackLetter={profile.display_name?.charAt(0) || 'U'}
+          uploadUrl={`/api/creators/${profile.id}/avatar`}
+          size={80}
+          onUploaded={handleAvatarUploaded}
+        />
       </div>
 
       {/* Form */}

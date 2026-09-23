@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
@@ -235,6 +235,18 @@ export default function CreatorProfilePage() {
       checkIfOwnProfile()
     }
   }, [username, fetchCreator, checkIfOwnProfile])
+
+  // Track a public profile view once we know both who the creator is and
+  // whether the viewer is the owner — never counts the owner viewing their
+  // own profile. Best-effort, fire-and-forget.
+  const viewTrackedRef = useRef(false)
+  useEffect(() => {
+    if (!creator || isOwnProfile || viewTrackedRef.current) {return}
+    viewTrackedRef.current = true
+    fetch(`/api/creators/${creator.id}/view`, { method: 'POST' }).catch((err) => {
+      console.error('Error tracking profile view:', err)
+    })
+  }, [creator, isOwnProfile])
 
   if (loading) {
     return (
