@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { 
+import {
   Search,
-  DollarSign, 
-  Briefcase, 
-  Users, 
+  DollarSign,
+  Briefcase,
+  Users,
   Heart,
   Building2,
   Clock,
@@ -16,9 +16,11 @@ import {
   Loader2,
   Plus,
   Megaphone,
+  Gift,
   type LucideIcon
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
+import { usePartner } from '@/hooks/usePartner'
 
 interface BrandProfile {
   id: string
@@ -57,6 +59,7 @@ export default function BrandDashboard() {
   const [deals, setDeals] = useState<Deal[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { isPartner } = usePartner()
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -362,7 +365,7 @@ export default function BrandDashboard() {
                   </div>
                   <span className="font-medium text-gray-900">Edit Company Profile</span>
                 </Link>
-                <Link 
+                <Link
                   href="/dashboard/deals"
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >
@@ -371,6 +374,17 @@ export default function BrandDashboard() {
                   </div>
                   <span className="font-medium text-gray-900">View All Deals</span>
                 </Link>
+                {isPartner && (
+                  <Link
+                    href="/dashboard/partner"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="w-10 h-10 bg-rose-100 rounded-lg flex items-center justify-center">
+                      <Gift className="w-5 h-5 text-rose-600" />
+                    </div>
+                    <span className="font-medium text-gray-900">Partner Dashboard</span>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
