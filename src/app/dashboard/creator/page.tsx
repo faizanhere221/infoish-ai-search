@@ -16,10 +16,12 @@ import {
   Share2,
   Megaphone,
   Briefcase,
+  Gift,
   type LucideIcon,
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import { PLATFORMS } from '@/utils/constants'
+import { usePartner } from '@/hooks/usePartner'
 
 interface Platform {
   id?: string
@@ -73,6 +75,7 @@ export default function CreatorDashboard() {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { isPartner } = usePartner()
 
   useEffect(() => {
     fetchDashboardData()
@@ -405,6 +408,9 @@ export default function CreatorDashboard() {
                 <QuickAction href="/dashboard/applications" icon={Briefcase} iconBg="bg-indigo-100" iconColor="text-indigo-600" label="My Applications" />
                 <QuickAction href="/messages" icon={MessageSquare} iconBg="bg-emerald-100" iconColor="text-emerald-600" label="Messages" />
                 <QuickAction href={`/creators/${profile.username}`} icon={Eye} iconBg="bg-amber-100" iconColor="text-amber-600" label="View Public Profile" />
+                {isPartner && (
+                  <QuickAction href="/dashboard/partner" icon={Gift} iconBg="bg-rose-100" iconColor="text-rose-600" label="Partner Dashboard" />
+                )}
               </div>
             </div>
 

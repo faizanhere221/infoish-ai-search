@@ -26,8 +26,10 @@ import {
   Mic,
   Music2,
   Edit,
+  Gift,
   type LucideIcon
 } from 'lucide-react'
+import { usePartner } from '@/hooks/usePartner'
 
 interface CreatorProfile {
   id: string
@@ -122,7 +124,8 @@ export default function CreatorProfilePage() {
   const params = useParams()
   const router = useRouter()
   const username = params.username as string
-  
+  const { isPartner } = usePartner()
+
   const [creator, setCreator] = useState<CreatorProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -303,8 +306,17 @@ export default function CreatorProfilePage() {
               <span>{isOwnProfile ? 'Back to Dashboard' : 'Back'}</span>
             </button>
             <div className="flex items-center gap-4">
+              {isOwnProfile && isPartner && (
+                <Link
+                  href="/dashboard/partner"
+                  className="flex items-center gap-2 px-4 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"
+                >
+                  <Gift className="w-4 h-4" />
+                  Partner Dashboard
+                </Link>
+              )}
               {isOwnProfile && (
-                <Link 
+                <Link
                   href="/settings"
                   className="flex items-center gap-2 px-4 py-2 text-violet-600 hover:bg-violet-50 rounded-lg font-medium"
                 >
