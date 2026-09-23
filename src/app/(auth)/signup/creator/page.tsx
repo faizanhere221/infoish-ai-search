@@ -21,6 +21,7 @@ import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES } from '@/utils/constants'
 import { validateEmail } from '@/utils/validateEmail'
 import { getReferralCode, setReferralCode, clearReferralCode } from '@/lib/referral-tracking'
 import ReferralBanner from '@/components/referral/ReferralBanner'
+import AvatarUpload from '@/components/AvatarUpload'
 
 type Step = 1 | 2 | 3
 
@@ -50,6 +51,7 @@ function CreatorSignupContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [emailWarning, setEmailWarning] = useState<string | null>(null)
   const [referralPartnerName, setReferralPartnerName] = useState<string | null>(null)
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
 
   const [formData, setFormData] = useState<FormData>({
     email: '',
@@ -270,6 +272,26 @@ function CreatorSignupContent() {
         return
       }
 
+      // Upload the avatar picked in step 2, now that a creator id exists
+      // (best-effort — never fail signup over a photo upload hiccup).
+      if (avatarFile) {
+        try {
+          const avatarFormData = new FormData()
+          avatarFormData.append('file', avatarFile)
+          const avatarRes = await fetch(`/api/creators/${creatorData.creator.id}/avatar`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${loginData.token}` },
+            body: avatarFormData,
+          })
+          if (avatarRes.ok) {
+            const avatarData = await avatarRes.json()
+            creatorData.creator.profile_photo_url = avatarData.profile_photo_url
+          }
+        } catch (err) {
+          console.error('Avatar upload failed during signup (non-blocking):', err)
+        }
+      }
+
       // Re-login to get a fresh JWT that includes the new profileId
       const reLoginRes = await fetch('/api/auth/login', {
         method: 'POST',
@@ -460,6 +482,16 @@ function CreatorSignupContent() {
                       className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Profile photo <span className="text-gray-400 font-normal">(optional — add a photo to stand out!)</span>
+                  </label>
+                  <AvatarUpload
+                    fallbackLetter={formData.displayName.charAt(0) || 'U'}
+                    onFileSelected={setAvatarFile}
+                  />
                 </div>
 
                 <div>
