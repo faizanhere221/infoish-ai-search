@@ -10,11 +10,9 @@ import {
   LogOut,
   Briefcase,
   MessageSquare,
-  Bell,
   ChevronDown,
   ExternalLink,
   HelpCircle,
-  CreditCard,
   Users,
   Building2,
   Gift
@@ -228,21 +226,6 @@ export default function ProfileDropdown({
               </Link>
             )}
 
-            {/* Notifications */}
-            <Link
-              href="/notifications"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50"
-            >
-              <Bell className="w-5 h-5 text-gray-400" />
-              <span>Notifications</span>
-              {unreadNotifications > 0 && (
-                <span className="ml-auto px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                  {unreadNotifications}
-                </span>
-              )}
-            </Link>
-
             {/* Partner Dashboard (only for referral partners) */}
             {isPartner && (
               <Link
@@ -269,16 +252,6 @@ export default function ProfileDropdown({
             >
               <Settings className="w-5 h-5 text-gray-400" />
               <span>Settings</span>
-            </Link>
-
-            {/* Billing (if applicable) */}
-            <Link
-              href={userType === 'brand' ? '/settings/brand' : '/settings'}
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50"
-            >
-              <CreditCard className="w-5 h-5 text-gray-400" />
-              <span>{userType === 'brand' ? 'Billing & Payments' : 'Earnings & Payouts'}</span>
             </Link>
 
             {/* Help */}

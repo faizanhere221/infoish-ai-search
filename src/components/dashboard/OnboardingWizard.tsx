@@ -2,167 +2,242 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { X, ArrowRight, ArrowLeft, Check, Loader2 } from 'lucide-react'
+import { X, ArrowRight, Check, Loader2, AlertCircle } from 'lucide-react'
 import AvatarUpload from '@/components/AvatarUpload'
 import { PLATFORMS } from '@/utils/constants'
+import { calculateProfileCompletion } from '@/lib/profile-completion'
+
+interface WizardPlatform {
+  platform: string
+  platform_username: string | null
+  platform_url: string | null
+  followers: number
+}
+
+interface WizardService {
+  title: string
+  description?: string | null
+  content_type?: string | null
+  platform?: string | null
+  price: number
+  delivery_days?: number
+  revisions_included?: number
+  is_active: boolean
+}
+
+interface WizardCreator {
+  id: string
+  username: string
+  display_name: string
+  profile_photo_url: string | null
+  bio: string | null
+  niches: string[]
+  creator_platforms: WizardPlatform[]
+  creator_services: WizardService[]
+}
 
 interface OnboardingWizardProps {
-  creatorId: string
-  username: string
-  displayName: string
-  currentAvatarUrl: string | null
-  currentBio: string | null
+  creator: WizardCreator
+  /** Called after any step saves successfully so the dashboard can refetch fresh data. */
+  onSaved: () => void
   onComplete: () => void
   onDismiss: () => void
 }
 
-type Step = 1 | 2 | 3 | 4 | 5
+type StepId = 'avatar' | 'bio' | 'platforms' | 'rates'
 
 const BIO_TIPS = [
   'Mention the topics or niches you cover',
   'Note your typical audience (developers, founders, etc.)',
-  'Keep it to 2-3 sentences — brands skim, they don\'t read essays',
+  "Keep it to 2-3 sentences — brands skim, they don't read essays",
 ]
 
-export default function OnboardingWizard({
-  creatorId,
-  username,
-  displayName,
-  currentAvatarUrl,
-  currentBio,
-  onComplete,
-  onDismiss,
-}: OnboardingWizardProps) {
-  const [step, setStep] = useState<Step>(1)
-  const [avatarUrl, setAvatarUrl] = useState(currentAvatarUrl)
-  const [bio, setBio] = useState(currentBio || '')
-  const [savingBio, setSavingBio] = useState(false)
+export default function OnboardingWizard({ creator, onSaved, onComplete, onDismiss }: OnboardingWizardProps) {
+  // Only walk the creator through what's actually missing — computed once
+  // from the data we were given, so steps don't vanish mid-flow as data saves.
+  const [steps] = useState<StepId[]>(() => {
+    const completion = calculateProfileCompletion(creator)
+    const missing = new Set(completion.items.filter((i) => !i.isComplete).map((i) => i.id))
+    return (['avatar', 'bio', 'platforms', 'rates'] as StepId[]).filter((s) => missing.has(s))
+  })
+  const [index, setIndex] = useState(0)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const [bio, setBio] = useState(creator.bio || '')
 
   const [platformChoice, setPlatformChoice] = useState<string>(PLATFORMS[0]?.id || '')
   const [platformUsername, setPlatformUsername] = useState('')
   const [platformFollowers, setPlatformFollowers] = useState('')
-  const [addedPlatforms, setAddedPlatforms] = useState<{ platform: string; platform_username: string; followers: number }[]>([])
-  const [savingPlatforms, setSavingPlatforms] = useState(false)
+  const [addedPlatforms, setAddedPlatforms] = useState<WizardPlatform[]>([])
 
   const [rateTitle, setRateTitle] = useState('')
   const [ratePrice, setRatePrice] = useState('')
-  const [savingRate, setSavingRate] = useState(false)
+
+  const currentStep: StepId | 'done' = index < steps.length ? steps[index] : 'done'
+  const totalSteps = steps.length + 1
 
   const authHeaders = () => {
     const token = localStorage.getItem('auth_token')
     return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
   }
 
-  const saveBio = async () => {
-    setSavingBio(true)
+  const advance = () => {
+    setError(null)
+    setIndex((i) => i + 1)
+    onSaved()
+  }
+
+  /** PUTs and only advances on a real success — otherwise shows the server's error. */
+  const save = async (url: string, body: unknown, failMessage: string) => {
+    setSaving(true)
+    setError(null)
     try {
-      await fetch(`/api/creators/${creatorId}`, {
-        method: 'PUT',
-        headers: authHeaders(),
-        body: JSON.stringify({ bio }),
-      })
+      const res = await fetch(url, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || failMessage)
+        return false
+      }
+      return true
     } catch (err) {
-      console.error('Error saving bio:', err)
+      console.error(failMessage, err)
+      setError('Network error. Please try again.')
+      return false
     } finally {
-      setSavingBio(false)
-      setStep(3)
+      setSaving(false)
+    }
+  }
+
+  const handleContinue = async () => {
+    if (currentStep === 'avatar') {
+      // Avatar uploads immediately on selection; Continue only makes sense once one exists.
+      setError('Upload a photo to continue, or skip for now.')
+      return
+    }
+
+    if (currentStep === 'bio') {
+      if (bio.trim().length <= 20) {
+        setError('Write a little more — at least 21 characters.')
+        return
+      }
+      if (await save(`/api/creators/${creator.id}`, { bio: bio.trim() }, 'Failed to save your bio')) {advance()}
+      return
+    }
+
+    if (currentStep === 'platforms') {
+      if (addedPlatforms.length === 0) {
+        setError('Add at least one platform, or skip for now.')
+        return
+      }
+      const newIds = new Set(addedPlatforms.map((p) => p.platform))
+      // The API replaces the whole list, so send existing platforms too.
+      const merged = [
+        ...creator.creator_platforms.filter((p) => !newIds.has(p.platform)),
+        ...addedPlatforms,
+      ].map((p) => ({
+        platform: p.platform,
+        platform_username: p.platform_username || null,
+        platform_url: p.platform_url || null,
+        followers: p.followers || 0,
+      }))
+      if (await save(`/api/creators/${creator.id}/platforms`, { platforms: merged }, 'Failed to save platforms')) {advance()}
+      return
+    }
+
+    if (currentStep === 'rates') {
+      const price = parseFloat(ratePrice)
+      if (!rateTitle.trim() || !price || price <= 0) {
+        setError('Enter a service name and a price above $0, or skip for now.')
+        return
+      }
+      // The API replaces the whole list, so send existing services too.
+      const merged = [
+        ...creator.creator_services.map((s) => ({
+          title: s.title,
+          description: s.description ?? null,
+          content_type: s.content_type ?? null,
+          platform: s.platform ?? null,
+          price: s.price,
+          delivery_days: s.delivery_days ?? 7,
+          revisions_included: s.revisions_included ?? 1,
+          is_active: s.is_active,
+        })),
+        {
+          title: rateTitle.trim(),
+          description: null,
+          content_type: null,
+          platform: creator.creator_platforms[0]?.platform || addedPlatforms[0]?.platform || null,
+          price,
+          delivery_days: 7,
+          revisions_included: 1,
+          is_active: true,
+        },
+      ]
+      if (await save(`/api/creators/${creator.id}/services`, { services: merged }, 'Failed to save your rate')) {advance()}
     }
   }
 
   const addPlatform = () => {
-    if (!platformChoice || !platformUsername.trim()) {return}
+    if (!platformChoice || !platformUsername.trim()) {
+      setError('Enter your handle for this platform.')
+      return
+    }
+    setError(null)
     setAddedPlatforms((prev) => [
       ...prev.filter((p) => p.platform !== platformChoice),
-      { platform: platformChoice, platform_username: platformUsername.trim(), followers: parseInt(platformFollowers) || 0 },
+      {
+        platform: platformChoice,
+        platform_username: platformUsername.trim(),
+        platform_url: null,
+        followers: parseInt(platformFollowers) || 0,
+      },
     ])
     setPlatformUsername('')
     setPlatformFollowers('')
   }
 
-  const savePlatforms = async () => {
-    if (addedPlatforms.length === 0) {
-      setStep(4)
-      return
-    }
-    setSavingPlatforms(true)
-    try {
-      await fetch(`/api/creators/${creatorId}/platforms`, {
-        method: 'PUT',
-        headers: authHeaders(),
-        body: JSON.stringify({
-          platforms: addedPlatforms.map((p) => ({ ...p, platform_url: null })),
-        }),
-      })
-    } catch (err) {
-      console.error('Error saving platforms:', err)
-    } finally {
-      setSavingPlatforms(false)
-      setStep(4)
-    }
+  const skip = () => {
+    setError(null)
+    setIndex((i) => i + 1)
   }
-
-  const saveRate = async () => {
-    if (!rateTitle.trim() || !ratePrice) {
-      setStep(5)
-      return
-    }
-    setSavingRate(true)
-    try {
-      await fetch(`/api/creators/${creatorId}/services`, {
-        method: 'PUT',
-        headers: authHeaders(),
-        body: JSON.stringify({
-          services: [{
-            title: rateTitle.trim(),
-            description: null,
-            content_type: 'post',
-            platform: addedPlatforms[0]?.platform || PLATFORMS[0]?.id || 'other',
-            price: parseFloat(ratePrice) || 0,
-            delivery_days: 7,
-            revisions_included: 1,
-            is_active: true,
-          }],
-        }),
-      })
-    } catch (err) {
-      console.error('Error saving rate:', err)
-    } finally {
-      setSavingRate(false)
-      setStep(5)
-    }
-  }
-
-  const stepLabel = ['', 'Profile Picture', 'Bio', 'Platforms', 'Rates', 'Done'][step]
 
   return (
     <div className="bg-white rounded-xl border border-violet-200 shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-6 pt-5">
         <div className="flex items-center gap-2">
-          {[1, 2, 3, 4, 5].map((s) => (
-            <div key={s} className={`h-1.5 w-8 rounded-full ${s <= step ? 'bg-violet-600' : 'bg-gray-200'}`} />
+          {Array.from({ length: totalSteps }, (_, i) => (
+            <div key={i} className={`h-1.5 w-8 rounded-full ${i <= index ? 'bg-violet-600' : 'bg-gray-200'}`} />
           ))}
         </div>
-        <button onClick={onDismiss} className="p-1 rounded hover:bg-gray-100" title="Skip setup">
+        <button onClick={onDismiss} className="p-1 rounded hover:bg-gray-100" title="Close setup guide">
           <X className="w-4 h-4 text-gray-400" />
         </button>
       </div>
 
       <div className="p-6">
-        {step === 1 && (
+        {error && (
+          <div className="mb-4 flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            {error}
+          </div>
+        )}
+
+        {currentStep === 'avatar' && (
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Add a profile picture</h3>
             <p className="text-sm text-gray-500 mt-1 mb-5">Creators with photos get far more inquiries from brands.</p>
             <AvatarUpload
-              currentUrl={avatarUrl}
-              fallbackLetter={displayName.charAt(0) || 'U'}
-              uploadUrl={`/api/creators/${creatorId}/avatar`}
+              currentUrl={creator.profile_photo_url}
+              fallbackLetter={creator.display_name.charAt(0) || 'U'}
+              uploadUrl={`/api/creators/${creator.id}/avatar`}
               size={88}
-              onUploaded={(url) => { setAvatarUrl(url); setStep(2) }}
+              onUploaded={() => advance()}
             />
           </div>
         )}
 
-        {step === 2 && (
+        {currentStep === 'bio' && (
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Write your bio</h3>
             <p className="text-sm text-gray-500 mt-1 mb-4">Tell brands about yourself and the content you create.</p>
@@ -174,9 +249,7 @@ export default function OnboardingWizard({
               placeholder="I'm a tech creator covering AI tools and developer productivity for an audience of 50K engineers..."
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 resize-none"
             />
-            <div className="flex items-center justify-between mt-1">
-              <span className="text-xs text-gray-400">{bio.length}/2000</span>
-            </div>
+            <span className="text-xs text-gray-400">{bio.trim().length}/2000 (min 21)</span>
             <ul className="mt-3 space-y-1">
               {BIO_TIPS.map((tip) => (
                 <li key={tip} className="text-xs text-gray-500 flex items-start gap-1.5">
@@ -187,11 +260,10 @@ export default function OnboardingWizard({
           </div>
         )}
 
-        {step === 3 && (
+        {currentStep === 'platforms' && (
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Add your platforms</h3>
-            <p className="text-sm text-gray-500 mt-1 mb-4">Where do you create content? Add at least one to get started.</p>
-
+            <p className="text-sm text-gray-500 mt-1 mb-4">Where do you create content? Add a platform, then continue.</p>
             <div className="flex flex-col sm:flex-row gap-2 mb-3">
               <select
                 value={platformChoice}
@@ -223,12 +295,11 @@ export default function OnboardingWizard({
                 Add
               </button>
             </div>
-
             {addedPlatforms.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {addedPlatforms.map((p) => (
                   <span key={p.platform} className="px-3 py-1 bg-violet-50 text-violet-700 rounded-full text-xs font-medium">
-                    {PLATFORMS.find((pl) => pl.id === p.platform)?.name || p.platform}: @{p.platform_username}
+                    {PLATFORMS.find((pl) => pl.id === p.platform)?.name || p.platform}: {p.platform_username}
                   </span>
                 ))}
               </div>
@@ -236,10 +307,10 @@ export default function OnboardingWizard({
           </div>
         )}
 
-        {step === 4 && (
+        {currentStep === 'rates' && (
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Set your rates</h3>
-            <p className="text-sm text-gray-500 mt-1 mb-4">Optional — let brands know your starting price. You can add more later.</p>
+            <p className="text-sm text-gray-500 mt-1 mb-4">Let brands know your starting price. You can add more services later.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
                 type="text"
@@ -250,7 +321,7 @@ export default function OnboardingWizard({
               />
               <input
                 type="number"
-                min="0"
+                min="1"
                 value={ratePrice}
                 onChange={(e) => setRatePrice(e.target.value)}
                 placeholder="Price ($)"
@@ -260,16 +331,20 @@ export default function OnboardingWizard({
           </div>
         )}
 
-        {step === 5 && (
+        {currentStep === 'done' && (
           <div className="text-center py-4">
             <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-7 h-7 text-emerald-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">You&apos;re all set!</h3>
-            <p className="text-sm text-gray-500 mt-1 mb-6">Your profile is ready. Keep it fresh — the more complete it is, the more brands will find you.</p>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {steps.length === 0 ? 'Nothing left to set up!' : "You're all set!"}
+            </h3>
+            <p className="text-sm text-gray-500 mt-1 mb-6">
+              Anything you skipped will stay in your profile checklist below.
+            </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
-                href={`/creators/${username}`}
+                href={`/creators/${creator.username}`}
                 className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 View My Profile
@@ -286,37 +361,26 @@ export default function OnboardingWizard({
         )}
       </div>
 
-      {step < 5 && (
+      {currentStep !== 'done' && (
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
-          <button
-            onClick={() => (step > 1 ? setStep((step - 1) as Step) : onDismiss())}
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ArrowLeft className="w-4 h-4" /> {step > 1 ? 'Back' : 'Skip for now'}
-          </button>
+          <span className="text-xs text-gray-400">Step {index + 1} of {steps.length}</span>
           <div className="flex items-center gap-3">
-            <button onClick={onDismiss} className="text-sm text-gray-400 hover:text-gray-600">
+            <button onClick={skip} className="text-sm text-gray-500 hover:text-gray-700">
               Skip for now
             </button>
-            <button
-              onClick={() => {
-                if (step === 2) {saveBio()}
-                else if (step === 3) {savePlatforms()}
-                else if (step === 4) {saveRate()}
-                else {setStep((step + 1) as Step)}
-              }}
-              disabled={savingBio || savingPlatforms || savingRate}
-              className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 disabled:opacity-50"
-            >
-              {(savingBio || savingPlatforms || savingRate) && <Loader2 className="w-4 h-4 animate-spin" />}
-              Continue <ArrowRight className="w-4 h-4" />
-            </button>
+            {currentStep !== 'avatar' && (
+              <button
+                onClick={handleContinue}
+                disabled={saving}
+                className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 disabled:opacity-50"
+              >
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                Save &amp; Continue <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       )}
-
-      {step === 5 && <div className="pb-1" />}
-      {step !== 5 && <div className="px-6 pb-2 text-center text-xs text-gray-400">{stepLabel} &middot; Step {step} of 5</div>}
     </div>
   )
 }

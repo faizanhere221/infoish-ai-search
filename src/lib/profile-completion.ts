@@ -9,11 +9,11 @@ export interface ProfileCompletionItem {
 
 /** Minimal shape needed to score completion — matches (a subset of) the Creator row plus its joined relations. */
 export interface CompletionCreator {
-  profile_photo_url: string | null
-  bio: string | null
-  niches: string[] | null
+  profile_photo_url?: string | null
+  bio?: string | null
+  niches?: string[] | null
   creator_platforms?: { platform: string }[] | null
-  creator_services?: { is_active: boolean }[] | null
+  creator_services?: { is_active?: boolean }[] | null
 }
 
 export interface ProfileCompletionResult {
@@ -22,13 +22,15 @@ export interface ProfileCompletionResult {
   nextStep: ProfileCompletionItem | null
 }
 
+const hasItems = (value: unknown): boolean => Array.isArray(value) && value.length > 0
+
 export function calculateProfileCompletion(creator: CompletionCreator): ProfileCompletionResult {
   const items: ProfileCompletionItem[] = [
     {
       id: 'avatar',
       label: 'Add a profile picture',
       description: 'Creators with photos get far more inquiries from brands.',
-      isComplete: !!creator.profile_photo_url,
+      isComplete: !!(creator.profile_photo_url && creator.profile_photo_url.trim() !== ''),
       link: '/settings',
       priority: 1,
     },
@@ -36,7 +38,7 @@ export function calculateProfileCompletion(creator: CompletionCreator): ProfileC
       id: 'bio',
       label: 'Write your bio',
       description: 'Tell brands about yourself and the content you create.',
-      isComplete: !!creator.bio && creator.bio.trim().length > 20,
+      isComplete: !!(creator.bio && creator.bio.trim().length > 20),
       link: '/settings',
       priority: 2,
     },
@@ -44,7 +46,7 @@ export function calculateProfileCompletion(creator: CompletionCreator): ProfileC
       id: 'platforms',
       label: 'Add your platforms',
       description: 'Show where you create content so brands can find you.',
-      isComplete: (creator.creator_platforms?.length ?? 0) > 0,
+      isComplete: hasItems(creator.creator_platforms),
       link: '/settings?tab=platforms',
       priority: 3,
     },
@@ -52,7 +54,7 @@ export function calculateProfileCompletion(creator: CompletionCreator): ProfileC
       id: 'rates',
       label: 'Set your rates',
       description: 'Let brands know your pricing up front.',
-      isComplete: (creator.creator_services?.filter((s) => s.is_active).length ?? 0) > 0,
+      isComplete: hasItems(creator.creator_services),
       link: '/settings?tab=services',
       priority: 4,
     },
@@ -60,7 +62,7 @@ export function calculateProfileCompletion(creator: CompletionCreator): ProfileC
       id: 'niches',
       label: 'Select your niches',
       description: 'Help brands find you when they search by category.',
-      isComplete: (creator.niches?.length ?? 0) > 0,
+      isComplete: hasItems(creator.niches),
       link: '/settings',
       priority: 5,
     },

@@ -5,10 +5,8 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   User,
-  Bell,
   Shield,
   Briefcase,
-  LogOut,
   ArrowLeft,
   Check,
   Plus,
@@ -19,8 +17,9 @@ import {
 } from 'lucide-react'
 import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES, SERVICE_TYPES } from '@/utils/constants'
 import AvatarUpload from '@/components/AvatarUpload'
+import DashboardHeader from '@/components/DashboardHeader'
 
-type SettingsTab = 'profile' | 'services' | 'platforms' | 'notifications' | 'security'
+type SettingsTab = 'profile' | 'services' | 'platforms' | 'security'
 
 interface CreatorProfile {
   id: string
@@ -75,7 +74,7 @@ function SettingsPageInner() {
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab') as SettingsTab | null
   const [activeTab, setActiveTab] = useState<SettingsTab>(
-    initialTab && ['profile', 'services', 'platforms', 'notifications', 'security'].includes(initialTab)
+    initialTab && ['profile', 'services', 'platforms', 'security'].includes(initialTab)
       ? initialTab
       : 'profile'
   )
@@ -91,9 +90,8 @@ function SettingsPageInner() {
 
   const tabs = [
     { id: 'profile' as SettingsTab, label: 'Profile', icon: User },
-    { id: 'services' as SettingsTab, label: 'Services & Rates', icon: DollarSign },
     { id: 'platforms' as SettingsTab, label: 'Platforms', icon: Briefcase },
-    { id: 'notifications' as SettingsTab, label: 'Notifications', icon: Bell },
+    { id: 'services' as SettingsTab, label: 'Services & Rates', icon: DollarSign },
     { id: 'security' as SettingsTab, label: 'Security', icon: Shield },
   ]
 
@@ -147,12 +145,45 @@ function SettingsPageInner() {
 
     const sectionErrors: string[] = []
 
+    // Validate up front so a bad row produces a clear message instead of a
+    // silent/opaque 400 from the API (empty service titles were rejected).
+    const untitled = services.findIndex((s) => !s.title || !s.title.trim())
+    if (untitled !== -1) {
+      setError(`Service #${untitled + 1} needs a title before it can be saved.`)
+      setActiveTab('services')
+      setSaving(false)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    const seenPlatforms = new Set<string>()
+    for (const p of platforms) {
+      if (seenPlatforms.has(p.platform)) {
+        setError('Each platform can only be added once. Remove the duplicate and try again.')
+        setActiveTab('platforms')
+        setSaving(false)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        return
+      }
+      seenPlatforms.add(p.platform)
+    }
+
     try {
       // Update profile
       const profileRes = await fetch(`/api/creators/${profile.id}`, {
         method: 'PUT',
         headers: authHeaders,
-        body: JSON.stringify(profile),
+        body: JSON.stringify({
+          display_name: profile.display_name,
+          bio: profile.bio,
+          country: profile.country,
+          city: profile.city,
+          niches: profile.niches,
+          languages: profile.languages,
+          is_available: profile.is_available,
+          min_budget: profile.min_budget,
+          response_time: profile.response_time,
+          profile_photo_url: profile.profile_photo_url,
+        }),
       })
 
       if (!profileRes.ok) {
@@ -164,7 +195,14 @@ function SettingsPageInner() {
       const platformsRes = await fetch(`/api/creators/${profile.id}/platforms`, {
         method: 'PUT',
         headers: authHeaders,
-        body: JSON.stringify({ platforms }),
+        body: JSON.stringify({
+          platforms: platforms.map((p) => ({
+            platform: p.platform,
+            platform_username: p.platform_username?.trim() || null,
+            platform_url: p.platform_url?.trim() || null,
+            followers: Number.isFinite(p.followers) ? Math.max(0, Math.floor(p.followers)) : 0,
+          })),
+        }),
       })
 
       if (!platformsRes.ok) {
@@ -179,7 +217,18 @@ function SettingsPageInner() {
       const servicesRes = await fetch(`/api/creators/${profile.id}/services`, {
         method: 'PUT',
         headers: authHeaders,
-        body: JSON.stringify({ services }),
+        body: JSON.stringify({
+          services: services.map((s) => ({
+            title: s.title.trim(),
+            description: s.description?.trim() || null,
+            content_type: s.content_type || null,
+            platform: s.platform || null,
+            price: Number.isFinite(s.price) ? Math.max(0, s.price) : 0,
+            delivery_days: Math.min(365, Math.max(1, Math.floor(s.delivery_days) || 7)),
+            revisions_included: Math.min(20, Math.max(0, Math.floor(s.revisions_included) || 0)),
+            is_active: s.is_active,
+          })),
+        }),
       })
 
       if (!servicesRes.ok) {
@@ -196,8 +245,17 @@ function SettingsPageInner() {
         return
       }
 
-      // Update localStorage
-      localStorage.setItem('auth_profile', JSON.stringify(profile))
+      // Reload from the server so the UI reflects exactly what was persisted
+      const freshRes = await fetch(`/api/creators/${profile.user_id}`, { cache: 'no-store' })
+      if (freshRes.ok) {
+        const fresh = await freshRes.json()
+        setProfile(fresh.creator)
+        setPlatforms(fresh.creator.creator_platforms || [])
+        setServices(fresh.creator.creator_services || [])
+        localStorage.setItem('auth_profile', JSON.stringify(fresh.creator))
+      } else {
+        localStorage.setItem('auth_profile', JSON.stringify(profile))
+      }
 
       setSaving(false)
       setSaved(true)
@@ -207,13 +265,6 @@ function SettingsPageInner() {
       setError(err instanceof Error ? err.message : 'Failed to save changes')
       setSaving(false)
     }
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
-    localStorage.removeItem('auth_profile')
-    router.push('/login')
   }
 
   if (loading) {
@@ -240,7 +291,9 @@ function SettingsPageInner() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      <DashboardHeader userType="creator" profile={profile} />
+
+      {/* Page title + save bar */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -308,15 +361,6 @@ function SettingsPageInner() {
                   </button>
                 )
               })}
-              <div className="border-t border-gray-200">
-                <button 
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-600 hover:bg-red-50"
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span className="font-medium">Sign Out</span>
-                </button>
-              </div>
             </nav>
           </aside>
 
@@ -343,7 +387,6 @@ function SettingsPageInner() {
                   setPlatforms={setPlatforms}
                 />
               )}
-              {activeTab === 'notifications' && <NotificationSettings />}
               {activeTab === 'security' && <SecuritySettings />}
             </div>
           </main>
@@ -897,84 +940,6 @@ function PlatformsSettings({
           ))}
         </div>
       )}
-    </div>
-  )
-}
-
-// ============================================================================
-// NOTIFICATION SETTINGS
-// ============================================================================
-function NotificationSettings() {
-  const [notifications, setNotifications] = useState({
-    emailMessages: true,
-    profileViews: true,
-    platformUpdates: true,
-    emailMarketing: false,
-  })
-
-  const toggle = (key: keyof typeof notifications) => {
-    setNotifications({ ...notifications, [key]: !notifications[key] })
-  }
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900">Notification Settings</h2>
-        <p className="text-sm text-gray-500 mt-1">Choose how you want to be notified.</p>
-      </div>
-
-      <div className="space-y-4">
-        <ToggleItem
-          title="New Messages"
-          description="Get notified when you receive new messages from brands"
-          enabled={notifications.emailMessages}
-          onToggle={() => toggle('emailMessages')}
-        />
-        <ToggleItem
-          title="Profile Views"
-          description="Get notified when brands view your public profile"
-          enabled={notifications.profileViews}
-          onToggle={() => toggle('profileViews')}
-        />
-        <ToggleItem
-          title="Platform Updates"
-          description="News and updates about Infoishai features"
-          enabled={notifications.platformUpdates}
-          onToggle={() => toggle('platformUpdates')}
-        />
-        <ToggleItem
-          title="Marketing & Promotions"
-          description="Receive tips, product updates, and promotional content"
-          enabled={notifications.emailMarketing}
-          onToggle={() => toggle('emailMarketing')}
-        />
-      </div>
-    </div>
-  )
-}
-
-function ToggleItem({ title, description, enabled, onToggle }: { 
-  title: string
-  description: string
-  enabled: boolean
-  onToggle: () => void 
-}) {
-  return (
-    <div className="flex items-center justify-between py-3">
-      <div>
-        <p className="font-medium text-gray-900">{title}</p>
-        <p className="text-sm text-gray-500">{description}</p>
-      </div>
-      <button
-        onClick={onToggle}
-        className={`relative w-12 h-6 rounded-full transition-colors ${
-          enabled ? 'bg-violet-600' : 'bg-gray-300'
-        }`}
-      >
-        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-          enabled ? 'left-7' : 'left-1'
-        }`} />
-      </button>
     </div>
   )
 }

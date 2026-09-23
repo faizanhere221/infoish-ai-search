@@ -15,9 +15,10 @@ import ProfileDropdown, { type ProfileDropdownProfile } from './ProfileDropdown'
 interface DashboardHeaderProps {
   userType: 'brand' | 'creator'
   profile: ProfileDropdownProfile | null
+  hideNotifications?: boolean
 }
 
-export default function DashboardHeader({ userType, profile }: DashboardHeaderProps) {
+export default function DashboardHeader({ userType, profile, hideNotifications = false }: DashboardHeaderProps) {
   const pathname = usePathname()
   const [unreadMessages, setUnreadMessages] = useState(0)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
@@ -141,7 +142,7 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
                   }`}
                 >
                   {item.label}
-                  {item.badge && item.badge > 0 && (
+                  {item.badge !== undefined && item.badge > 0 && (
                     <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full min-w-[20px] text-center font-bold">
                       {item.badge}
                     </span>
@@ -159,17 +160,19 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
           {/* Right Side */}
           <div className="flex items-center gap-2">
             {/* Notifications Bell */}
-            <Link
-              href="/notifications"
-              className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              <Bell className="w-5 h-5" />
-              {unreadNotifications > 0 && (
-                <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-xs rounded-full font-bold border-2 border-white">
-                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
-                </span>
-              )}
-            </Link>
+            {!hideNotifications && userType === 'brand' && (
+              <Link
+                href="/notifications"
+                className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadNotifications > 0 && (
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-xs rounded-full font-bold border-2 border-white">
+                    {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {/* Messages (Quick access) */}
             <Link
@@ -218,7 +221,7 @@ export default function DashboardHeader({ userType, profile }: DashboardHeaderPr
                   }`}
                 >
                   {item.label}
-                  {item.badge && item.badge > 0 && (
+                  {item.badge !== undefined && item.badge > 0 && (
                     <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full font-bold">
                       {item.badge}
                     </span>
