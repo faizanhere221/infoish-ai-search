@@ -9,6 +9,7 @@ const UpdatePartnerSchema = z.object({
   referral_code: z.string().min(5).max(30).optional(),
   commission_rate: z.number().min(0).max(100).optional(),
   status: z.enum(['active', 'paused', 'deactivated']).optional(),
+  user_id: z.string().max(255).nullable().optional(),
 })
 
 // GET - Partner detail, with recent referrals (admin only, enforced by middleware)
@@ -82,6 +83,18 @@ export async function PUT(
         return NextResponse.json({ error: 'Referral code is already taken' }, { status: 409 })
       }
       parsed.data.referral_code = code
+    }
+
+    if (parsed.data.user_id) {
+      const { data: existing } = await supabase
+        .from('referral_partners')
+        .select('id')
+        .eq('user_id', parsed.data.user_id)
+        .neq('id', params.id)
+        .single()
+      if (existing) {
+        return NextResponse.json({ error: 'That user is already linked to another partner' }, { status: 409 })
+      }
     }
 
     const { data: partner, error } = await supabase

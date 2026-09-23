@@ -5,13 +5,15 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft, Pencil, Pause, Play, Ban, AlertTriangle, AlertCircle, Loader2,
-  Users, UserCheck, DollarSign, Wallet, Wallet2, Plus, RefreshCw,
+  Users, UserCheck, DollarSign, Wallet, Wallet2, Plus, RefreshCw, UserPlus,
 } from 'lucide-react'
 import PartnerStatsCard from '@/components/partner/PartnerStatsCard'
+import CopyReferralLink from '@/components/partner/CopyReferralLink'
 import ReferralTable from '@/components/partner/ReferralTable'
 import CommissionTable from '@/components/partner/CommissionTable'
 import PayoutTable from '@/components/partner/PayoutTable'
 import RecordPayoutModal from '@/components/admin/RecordPayoutModal'
+import LinkUserModal from '@/components/admin/LinkUserModal'
 import { formatCents } from '@/lib/referral'
 import type { PartnerStats, PartnerStatus, ReferralCommission, ReferralPartner, ReferralPayout, ReferralSignup } from '@/types/referral'
 
@@ -49,6 +51,7 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
 
   const [statusActionLoading, setStatusActionLoading] = useState(false)
   const [confirmDeactivate, setConfirmDeactivate] = useState(false)
+  const [showLinkUserModal, setShowLinkUserModal] = useState(false)
 
   const [activeTab, setActiveTab] = useState<Tab>('referrals')
   const [referrals, setReferrals] = useState<ReferralSignup[]>([])
@@ -295,10 +298,23 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
                 {partner.status}
               </span>
             </div>
-            <p className="text-sm text-gray-500 mt-1">{partner.email} &middot; code: <span className="font-mono">{partner.referral_code}</span></p>
+            <p className="text-sm text-gray-500 mt-1">{partner.email}</p>
+            {!partner.user_id && (
+              <p className="mt-1.5 inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1">
+                No linked user account — they can&apos;t log in to their own dashboard yet
+              </p>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {!partner.user_id && (
+              <button
+                onClick={() => setShowLinkUserModal(true)}
+                className="flex items-center gap-2 px-3 py-2 border border-violet-200 bg-violet-50 text-violet-700 rounded-lg text-sm font-medium hover:bg-violet-100"
+              >
+                <UserPlus className="w-4 h-4" /> Link User Account
+              </button>
+            )}
             {partner.status === 'active' && (
               <button
                 onClick={() => handleStatusAction('paused')}
@@ -333,6 +349,11 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
               <Pencil className="w-4 h-4" /> {isEditing ? 'Cancel Edit' : 'Edit'}
             </button>
           </div>
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-gray-100">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Referral link</label>
+          <CopyReferralLink code={partner.referral_code} />
         </div>
 
         {/* Inline Edit Form */}
@@ -539,6 +560,17 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
           onSuccess={() => {
             setShowPayoutModal(false)
             fetchPayouts()
+            fetchDetail()
+          }}
+        />
+      )}
+
+      {showLinkUserModal && (
+        <LinkUserModal
+          partnerId={partnerId}
+          onClose={() => setShowLinkUserModal(false)}
+          onSuccess={() => {
+            setShowLinkUserModal(false)
             fetchDetail()
           }}
         />

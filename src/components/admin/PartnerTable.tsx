@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Filter } from 'lucide-react'
+import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Filter, Trash2 } from 'lucide-react'
 import { formatCents } from '@/lib/referral'
 import type { PartnerStatus, ReferralPartner } from '@/types/referral'
 
@@ -16,6 +16,7 @@ interface PartnerTableProps {
   sortDir: 'asc' | 'desc'
   onSort: (field: string) => void
   hasFilters?: boolean
+  onDelete?: (partner: AdminPartnerRow) => void
 }
 
 const STATUS_STYLES: Record<PartnerStatus, string> = {
@@ -56,7 +57,7 @@ function SortTh({
   )
 }
 
-export default function PartnerTable({ partners, isLoading, sortField, sortDir, onSort, hasFilters }: PartnerTableProps) {
+export default function PartnerTable({ partners, isLoading, sortField, sortDir, onSort, hasFilters, onDelete }: PartnerTableProps) {
   if (isLoading) {
     return (
       <div className="py-20 text-center">
@@ -106,10 +107,20 @@ export default function PartnerTable({ partners, isLoading, sortField, sortDir, 
               <td className="px-4 py-3 text-sm text-gray-700 text-right whitespace-nowrap">{formatCents(partner.total_paid_cents)}</td>
               <td className="px-4 py-3"><StatusBadge status={partner.status} /></td>
               <td className="px-4 py-3">
-                <div className="flex items-center justify-end">
+                <div className="flex items-center justify-end gap-1">
                   <Link href={`/admin/partners/${partner.id}`} title="View / Edit" className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600">
                     <Eye className="w-4 h-4" />
                   </Link>
+                  {onDelete && partner.status !== 'deactivated' && (
+                    <button
+                      type="button"
+                      onClick={() => onDelete(partner)}
+                      title="Deactivate"
+                      className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </td>
             </tr>
