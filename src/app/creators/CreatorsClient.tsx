@@ -20,6 +20,8 @@ import {
   Globe,
   Award
 } from 'lucide-react'
+import DashboardHeader from '@/components/DashboardHeader'
+import type { ProfileDropdownProfile } from '@/components/ProfileDropdown'
 import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES } from '@/utils/constants'
 
 export interface Creator {
@@ -113,6 +115,7 @@ export default function CreatorsClient({ initialCreators }: { initialCreators: C
   const [creators] = useState<Creator[]>(initialCreators)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userType, setUserType] = useState<string | null>(null)
+  const [authProfile, setAuthProfile] = useState<ProfileDropdownProfile | null>(null)
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('')
@@ -150,6 +153,12 @@ export default function CreatorsClient({ initialCreators }: { initialCreators: C
       const user = JSON.parse(userStr)
       setIsLoggedIn(true)
       setUserType(user.user_type)
+      try {
+        const profileStr = localStorage.getItem('auth_profile')
+        if (profileStr) {setAuthProfile(JSON.parse(profileStr))}
+      } catch {
+        // ignore malformed cached profile
+      }
     }
   }
 
@@ -333,6 +342,9 @@ export default function CreatorsClient({ initialCreators }: { initialCreators: C
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
+      {isLoggedIn && (userType === 'creator' || userType === 'brand') ? (
+        <DashboardHeader userType={userType} profile={authProfile} />
+      ) : (
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -392,6 +404,7 @@ export default function CreatorsClient({ initialCreators }: { initialCreators: C
           </div>
         </div>
       </header>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header - H1 + SEO intro */}

@@ -1,10 +1,8 @@
-import { Eye, Users, MessageSquare, Briefcase, type LucideIcon } from 'lucide-react'
+import { Eye, Users, type LucideIcon } from 'lucide-react'
 
 interface DashboardStatsProps {
   profileViews: number
   totalFollowers: number
-  unreadMessages: number
-  pendingApplications: number
 }
 
 function formatNumber(num: number): string {
@@ -18,13 +16,11 @@ function StatCard({ icon: Icon, label, value, subtext, color }: {
   label: string
   value: string
   subtext: string
-  color: 'violet' | 'blue' | 'emerald' | 'amber'
+  color: 'violet' | 'blue'
 }) {
   const colors = {
     violet: 'bg-violet-100 text-violet-600',
     blue: 'bg-blue-100 text-blue-600',
-    emerald: 'bg-emerald-100 text-emerald-600',
-    amber: 'bg-amber-100 text-amber-600',
   }
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -40,13 +36,11 @@ function StatCard({ icon: Icon, label, value, subtext, color }: {
   )
 }
 
-export default function DashboardStats({ profileViews, totalFollowers, unreadMessages, pendingApplications }: DashboardStatsProps) {
+export default function DashboardStats({ profileViews, totalFollowers }: DashboardStatsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <StatCard icon={Eye} label="Profile Views" value={formatNumber(profileViews)} subtext="All time" color="violet" />
       <StatCard icon={Users} label="Total Followers" value={formatNumber(totalFollowers)} subtext="Across all platforms" color="blue" />
-      <StatCard icon={MessageSquare} label="Messages" value={unreadMessages.toString()} subtext={unreadMessages > 0 ? 'Unread' : 'All caught up'} color="emerald" />
-      <StatCard icon={Briefcase} label="Applications" value={pendingApplications.toString()} subtext="Awaiting a decision" color="amber" />
     </div>
   )
 }

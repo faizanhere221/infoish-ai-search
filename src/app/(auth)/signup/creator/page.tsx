@@ -146,6 +146,10 @@ function CreatorSignupContent() {
       setError('Username can only contain letters, numbers, and underscores')
       return false
     }
+    if (!avatarFile) {
+      setError('Please upload a profile picture')
+      return false
+    }
     return true
   }
 
@@ -173,6 +177,11 @@ function CreatorSignupContent() {
   }
 
   const handleSubmit = async () => {
+    if (!avatarFile) {
+      setError('Please upload a profile picture')
+      setStep(2)
+      return
+    }
     if (!validateStep3()) {return}
     
     setIsLoading(true)
@@ -486,11 +495,11 @@ function CreatorSignupContent() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Profile photo <span className="text-gray-400 font-normal">(optional — add a photo to stand out!)</span>
+                    Profile photo * <span className="text-gray-400 font-normal">(required — brands want to see who they&apos;re working with)</span>
                   </label>
                   <AvatarUpload
                     fallbackLetter={formData.displayName.charAt(0) || 'U'}
-                    onFileSelected={setAvatarFile}
+                    onFileSelected={(file) => { setAvatarFile(file); setError(null) }}
                   />
                 </div>
 

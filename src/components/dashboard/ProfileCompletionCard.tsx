@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Check, Circle } from 'lucide-react'
 import type { ProfileCompletionResult } from '@/lib/profile-completion'
@@ -6,19 +9,47 @@ interface ProfileCompletionCardProps {
   completion: ProfileCompletionResult
 }
 
+const PROFILE_COMPLETE_KEY = 'infoishai_profile_complete_seen'
+
 export default function ProfileCompletionCard({ completion }: ProfileCompletionCardProps) {
   const { percentage, items } = completion
+  // Start hidden until localStorage is checked, so a dismissed message never flashes.
+  const [showCompleteMessage, setShowCompleteMessage] = useState(false)
+
+  useEffect(() => {
+    try {
+      setShowCompleteMessage(localStorage.getItem(PROFILE_COMPLETE_KEY) !== 'true')
+    } catch {
+      setShowCompleteMessage(true)
+    }
+  }, [])
+
+  const handleDismissComplete = () => {
+    try {
+      localStorage.setItem(PROFILE_COMPLETE_KEY, 'true')
+    } catch {
+      // storage unavailable — still hide for this session
+    }
+    setShowCompleteMessage(false)
+  }
 
   if (percentage === 100) {
+    if (!showCompleteMessage) {return null}
     return (
       <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 border border-emerald-200 rounded-xl p-6 flex items-center gap-4">
         <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
           <Check className="w-5 h-5 text-white" />
         </div>
-        <div>
+        <div className="flex-1">
           <p className="font-semibold text-emerald-900">Your profile is complete!</p>
           <p className="text-sm text-emerald-700">Brands can now find and evaluate you with confidence.</p>
         </div>
+        <button
+          onClick={handleDismissComplete}
+          className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 flex-shrink-0"
+        >
+          Got it!
+        </button>
       </div>
     )
   }
