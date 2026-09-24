@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import NewsletterForm from '@/components/NewsletterForm'
 import ProfileDropdown, { type ProfileDropdownProfile } from '@/components/ProfileDropdown'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
@@ -69,9 +70,7 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-blue-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
+            <Image src="/logo.png" alt="Infoishai" width={40} height={40} className="w-10 h-10 rounded-xl" />
             <span className="text-xl font-bold text-gray-900">Infoishai</span>
           </Link>
 
@@ -117,7 +116,7 @@ export function Navigation() {
                         <Link
                           key={country.href}
                           href={country.href}
-                          className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-violet-50 hover:text-violet-700 rounded-lg transition-colors"
+                          className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-brand-pink/10 hover:text-brand-purple-dark rounded-lg transition-colors"
                           onClick={() => setCountriesOpen(false)}
                         >
                           <span aria-hidden="true">{country.flag}</span>
@@ -154,7 +153,7 @@ export function Navigation() {
                 </Link>
                 <Link
                   href="/signup"
-                  className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-full font-medium hover:shadow-lg hover:shadow-violet-500/25 transition-all"
+                  className="px-5 py-2.5 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-medium hover:shadow-lg hover:shadow-brand-pink/25 transition-all"
                 >
                   Get Started Free
                 </Link>
@@ -209,7 +208,7 @@ export function Navigation() {
                     <Link
                       key={country.href}
                       href={country.href}
-                      className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 font-medium py-2.5 px-2 rounded-lg hover:bg-violet-50 min-h-[44px]"
+                      className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 font-medium py-2.5 px-2 rounded-lg hover:bg-brand-pink/10 min-h-[44px]"
                       onClick={() => {
                         setMobileMenuOpen(false)
                         setMobileCountriesOpen(false)
@@ -248,7 +247,7 @@ export function Navigation() {
                     </Link>
                     <Link
                       href="/signup"
-                      className="text-center py-3 bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-full font-medium"
+                      className="text-center py-3 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-medium"
                     >
                       Get Started Free
                     </Link>
@@ -259,6 +258,7 @@ export function Navigation() {
           </div>
         )}
       </nav>
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-pink to-brand-purple" />
     </header>
   )
 }
@@ -276,58 +276,73 @@ export function HeroSection() {
   return (
     <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-50 via-white to-blue-50" />
-      <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-violet-100/50 to-transparent rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gradient-to-tr from-blue-100/50 to-transparent rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-brand-pink/10 via-white to-brand-purple/10" />
+      <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-brand-pink/20 to-transparent rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gradient-to-tr from-brand-purple/20 to-transparent rounded-full blur-3xl" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-4xl mx-auto">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-100 text-violet-700 rounded-full text-sm font-medium mb-8">
-            <Sparkles className="w-4 h-4" />
-            <span>#1 Tech Influencer Marketplace</span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left Column - Text */}
+          <div className="text-center lg:text-left">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-pink/10 text-brand-purple-dark rounded-full text-sm font-medium mb-8">
+              <Sparkles className="w-4 h-4" />
+              <span>#1 Tech Influencer Marketplace</span>
+            </div>
+
+            {/* H1 - Main Keyword */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
+              Find Tech Influencers
+              <span className="block mt-2 bg-gradient-to-r from-brand-pink to-brand-purple bg-clip-text text-transparent">
+                Marketplace for B2B Brands
+              </span>
+            </h1>
+
+            {/* Subheadline */}
+            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+              Discover verified <strong>AI, SaaS, and tech creators</strong> for authentic sponsorships.
+              Connect with YouTube, Twitter, LinkedIn influencers.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-12">
+              <Link
+                href="/creators"
+                className="group w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-semibold text-lg hover:shadow-xl hover:shadow-brand-pink/25 transition-all flex items-center justify-center gap-2"
+              >
+                <Search className="w-5 h-5" />
+                Find Tech Creators
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link
+                href="/signup/creator"
+                className="w-full sm:w-auto px-8 py-4 bg-white border-2 border-gray-200 text-gray-700 rounded-full font-semibold text-lg hover:border-brand-pink-light hover:bg-brand-pink/10 transition-all"
+              >
+                Join as Creator
+              </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-8 lg:gap-12">
+              {stats.map((stat, index) => (
+                <div key={index} className="text-center lg:text-left">
+                  <p className="text-3xl lg:text-4xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-gray-500">{stat.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* H1 - Main Keyword */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-            Find Tech Influencers
-            <span className="block mt-2 bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
-              Marketplace for B2B Brands
-            </span>
-          </h1>
-
-          {/* Subheadline */}
-          <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Discover verified <strong>AI, SaaS, and tech creators</strong> for authentic sponsorships. 
-            Connect with YouTube, Twitter, LinkedIn influencers. Escrow payment protection.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <Link 
-              href="/creators"
-              className="group w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-full font-semibold text-lg hover:shadow-xl hover:shadow-violet-500/25 transition-all flex items-center justify-center gap-2"
-            >
-              <Search className="w-5 h-5" />
-              Find Tech Creators
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link 
-              href="/signup/creator"
-              className="w-full sm:w-auto px-8 py-4 bg-white border-2 border-gray-200 text-gray-700 rounded-full font-semibold text-lg hover:border-violet-300 hover:bg-violet-50 transition-all"
-            >
-              Join as Creator
-            </Link>
-          </div>
-
-          {/* Stats */}
-          <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <p className="text-3xl lg:text-4xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-gray-500">{stat.label}</p>
-              </div>
-            ))}
+          {/* Right Column - Image */}
+          <div className="relative">
+            <Image
+              src="/images/hero-image.png"
+              alt="Tech influencers creating content"
+              width={1376}
+              height={768}
+              className="w-full h-auto rounded-2xl shadow-xl"
+              priority
+            />
           </div>
         </div>
 
@@ -376,8 +391,8 @@ export function AboutSection() {
           </p>
           <p>
             Key benefits include verified metrics so you never work with fake followers, advanced
-            filtering by niche, platform, budget, and audience, direct messaging and deal management in
-            one place, and escrow payment protection for both sides of every deal. Whether you're
+            filtering by niche, platform, budget, and audience, and direct messaging and deal management
+            in one place. Whether you're
             searching for AI influencers, SaaS influencers, or developer advocates, Infoishai's tech
             influencer marketplace helps you go from discovery to signed deal in days, not weeks.
           </p>
@@ -392,7 +407,7 @@ export function AboutSection() {
           </Link>
           <Link
             href="/signup/creator"
-            className="w-full sm:w-auto px-6 py-3 bg-violet-50 text-violet-700 rounded-full font-semibold hover:bg-violet-100 transition-colors text-center"
+            className="w-full sm:w-auto px-6 py-3 bg-brand-pink/10 text-brand-purple-dark rounded-full font-semibold hover:bg-brand-pink/20 transition-colors text-center"
           >
             For Creators: Join Free
           </Link>
@@ -409,23 +424,23 @@ export function HowInfoishaiWorksSection() {
   const steps = [
     {
       icon: Search,
-      title: 'Browse & Filter',
-      description: 'Search verified tech content creators by niche, platform, budget, and audience location.',
+      title: 'Browse Campaigns',
+      description: 'Discover brand campaigns looking for tech creators like you.',
+    },
+    {
+      icon: Briefcase,
+      title: 'Apply to Campaigns',
+      description: 'Submit your proposal with your rates and approach.',
     },
     {
       icon: MessageSquare,
       title: 'Message Directly',
-      description: 'Contact creators through the platform and discuss campaign goals and deliverables.',
+      description: 'Discuss campaign goals and deliverables directly with the brand.',
     },
     {
-      icon: Briefcase,
-      title: 'Send a Deal',
-      description: 'Agree on scope and price, then send a deal proposal with clear terms.',
-    },
-    {
-      icon: Shield,
-      title: 'Pay with Escrow',
-      description: 'Funds are held safely in escrow until the creator delivers and the brand approves.',
+      icon: CheckCircle,
+      title: 'Get Hired',
+      description: 'Brands review applications and hire the best fit.',
     },
   ]
 
@@ -445,29 +460,14 @@ export function HowInfoishaiWorksSection() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {steps.map((item, index) => (
             <div key={index} className="p-6 bg-white rounded-2xl border border-gray-200">
-              <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center mb-4">
-                <item.icon className="w-6 h-6 text-violet-600" />
+              <div className="w-12 h-12 bg-brand-pink/10 rounded-xl flex items-center justify-center mb-4">
+                <item.icon className="w-6 h-6 text-brand-purple" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
               <p className="text-gray-600 text-sm">{item.description}</p>
             </div>
           ))}
         </div>
-      </div>
-    </section>
-  )
-}
-
-// ============================================================================
-// TRUSTED BY SECTION
-// ============================================================================
-export function TrustedBySection() {
-  return (
-    <section className="py-12 bg-gray-50 border-y border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p className="text-center text-sm font-semibold text-gray-500">
-          TRUSTED BY 100+ TECH BRANDS WORLDWIDE
-        </p>
       </div>
     </section>
   )
@@ -489,9 +489,9 @@ export function ForBrandsSection() {
       description: 'Every creator profile is verified. Real engagement data. Real audience metrics.',
     },
     {
-      icon: Shield,
-      title: 'Escrow Payments',
-      description: 'Pay securely through escrow. Funds are released when deliverables are confirmed.',
+      icon: MessageSquare,
+      title: 'Direct Messaging',
+      description: 'Message creators directly and discuss campaign goals and deliverables in real time.',
     },
   ]
 
@@ -504,16 +504,14 @@ export function ForBrandsSection() {
           </h2>
           <div className="max-w-3xl mx-auto space-y-5 text-lg text-gray-600 leading-relaxed">
             <p>
-              Infoishai gives your brand direct access to 2,000+ verified tech influencers across
+              Infoishai gives your brand direct access to verified tech influencers across
               YouTube, Twitter/X, LinkedIn, Instagram, and newsletters. Search creators by niche,
               platform, audience size, country, and engagement rate. Every profile is verified.
               Every creator is active and accepting partnerships.
             </p>
             <p>
               Search and message creators for free. No subscription fees. No platform commissions
-              on search. When you are ready to launch a campaign, Infoishai&apos;s escrow payment
-              system protects both your budget and the creator&apos;s work. Pay when deliverables
-              are confirmed. Run campaigns across 9 countries from a single dashboard.
+              on search. Run campaigns across 9 countries from a single dashboard.
             </p>
           </div>
         </div>
@@ -521,8 +519,8 @@ export function ForBrandsSection() {
         <div className="grid md:grid-cols-3 gap-8 mb-12">
           {features.map((feature, index) => (
             <div key={index} className="p-8 bg-gray-50 rounded-2xl border border-gray-100">
-              <div className="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center mb-6">
-                <feature.icon className="w-7 h-7 text-violet-600" />
+              <div className="w-14 h-14 bg-brand-pink/10 rounded-xl flex items-center justify-center mb-6">
+                <feature.icon className="w-7 h-7 text-brand-purple" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
               <p className="text-gray-600">{feature.description}</p>
@@ -539,7 +537,7 @@ export function ForBrandsSection() {
           </Link>
           <Link
             href="/signup/brand"
-            className="w-full sm:w-auto px-6 py-3 bg-violet-50 text-violet-700 rounded-full font-semibold hover:bg-violet-100 transition-colors text-center"
+            className="w-full sm:w-auto px-6 py-3 bg-brand-pink/10 text-brand-purple-dark rounded-full font-semibold hover:bg-brand-pink/20 transition-colors text-center"
           >
             Sign Up Free as a Brand
           </Link>
@@ -565,9 +563,9 @@ export function ForCreatorsSection() {
       description: 'You control your pricing. No rate caps. No undercutting. Your content, your rates.',
     },
     {
-      icon: Shield,
-      title: 'Secure Payments',
-      description: 'Escrow protects your work. Funds are held until the brand confirms deliverables.',
+      icon: Zap,
+      title: 'Fast Payouts',
+      description: 'Get paid quickly once brands confirm your deliverables are complete.',
     },
   ]
 
@@ -587,8 +585,8 @@ export function ForCreatorsSection() {
             </p>
             <p>
               Set your own rates. Choose the brands you work with. Manage deliverables and
-              timelines through the platform. Get paid securely through escrow. No exclusivity
-              requirements. No platform fees on your earnings.
+              timelines through the platform. No exclusivity requirements. No platform fees on
+              your earnings.
             </p>
           </div>
         </div>
@@ -596,8 +594,8 @@ export function ForCreatorsSection() {
         <div className="grid md:grid-cols-3 gap-8 mb-12">
           {features.map((feature, index) => (
             <div key={index} className="p-8 bg-white rounded-2xl border border-gray-100">
-              <div className="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center mb-6">
-                <feature.icon className="w-7 h-7 text-violet-600" />
+              <div className="w-14 h-14 bg-brand-pink/10 rounded-xl flex items-center justify-center mb-6">
+                <feature.icon className="w-7 h-7 text-brand-purple" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
               <p className="text-gray-600">{feature.description}</p>
@@ -614,7 +612,7 @@ export function ForCreatorsSection() {
           </Link>
           <Link
             href="/creators"
-            className="w-full sm:w-auto px-6 py-3 bg-violet-50 text-violet-700 rounded-full font-semibold hover:bg-violet-100 transition-colors text-center"
+            className="w-full sm:w-auto px-6 py-3 bg-brand-pink/10 text-brand-purple-dark rounded-full font-semibold hover:bg-brand-pink/20 transition-colors text-center"
           >
             See Creator Profiles
           </Link>
@@ -679,13 +677,13 @@ export function ProblemSection() {
 // ============================================================================
 export function SolutionSection() {
   return (
-    <section className="py-20 lg:py-32 bg-gradient-to-br from-violet-600 to-blue-600 text-white">
+    <section className="py-20 lg:py-32 bg-gradient-to-br from-brand-pink to-brand-purple text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">
             Infoishai Makes It Simple
           </h2>
-          <p className="text-xl text-violet-100 max-w-2xl mx-auto">
+          <p className="text-xl text-white/80 max-w-2xl mx-auto">
             A tech influencers marketplace that helps brands discover verified creators, 
             analyze their audience, and collaborate directly.
           </p>
@@ -693,15 +691,15 @@ export function SolutionSection() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { icon: Search, title: 'Search 2,000+ Creators', desc: 'Filter by niche, platform, engagement' },
+            { icon: Search, title: 'Search Creators', desc: 'Filter by niche, platform, engagement' },
             { icon: CheckCircle, title: 'Verified Profiles', desc: 'Real metrics, authentic audiences' },
-            { icon: Shield, title: 'Escrow Protection', desc: 'Safe payments for both sides' },
+            { icon: Briefcase, title: 'Campaign Management', desc: 'Manage deals and deliverables in one place' },
             { icon: MessageSquare, title: 'Direct Messaging', desc: 'Connect instantly with creators' },
           ].map((item, index) => (
             <div key={index} className="p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
               <item.icon className="w-10 h-10 text-white mb-4" />
               <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-              <p className="text-violet-100 text-sm">{item.desc}</p>
+              <p className="text-white/80 text-sm">{item.desc}</p>
             </div>
           ))}
         </div>
@@ -779,12 +777,12 @@ export function PlatformSection() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {platforms.map((platform, index) => (
-            <div key={index} className="p-6 bg-white rounded-2xl border border-gray-200 hover:border-violet-300 hover:shadow-lg transition-all group">
+            <div key={index} className="p-6 bg-white rounded-2xl border border-gray-200 hover:border-brand-pink-light hover:shadow-lg transition-all group">
               <div className="flex items-start justify-between mb-4">
                 <div className={`w-12 h-12 ${platform.color} rounded-xl flex items-center justify-center`}>
                   <platform.icon className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-sm font-medium text-violet-600 bg-violet-50 px-3 py-1 rounded-full">
+                <span className="text-sm font-medium text-brand-purple bg-brand-pink/10 px-3 py-1 rounded-full">
                   {platform.creators} creators
                 </span>
               </div>
@@ -792,7 +790,7 @@ export function PlatformSection() {
               <p className="text-gray-600 text-sm mb-4">{platform.description}</p>
               <Link 
                 href={`/creators?platform=${platform.name.toLowerCase()}`}
-                className="inline-flex items-center text-violet-600 font-medium text-sm group-hover:gap-2 transition-all"
+                className="inline-flex items-center text-brand-purple font-medium text-sm group-hover:gap-2 transition-all"
               >
                 Browse {platform.name} Creators
                 <ChevronRight className="w-4 h-4 ml-1" />
@@ -865,13 +863,13 @@ export function CategoriesSection() {
             <Link 
               key={index}
               href={`/creators?niche=${category.title.toLowerCase().replace(' ', '-')}`}
-              className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-200 hover:border-violet-300 hover:shadow-lg transition-all group"
+              className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-200 hover:border-brand-pink-light hover:shadow-lg transition-all group"
             >
               <div className="flex items-center gap-4 mb-4">
                 <span className="text-4xl">{category.icon}</span>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">{category.title}</h3>
-                  <span className="text-sm text-violet-600">{category.count} creators</span>
+                  <span className="text-sm text-brand-purple">{category.count} creators</span>
                 </div>
               </div>
               <p className="text-gray-600 text-sm">{category.description}</p>
@@ -921,7 +919,7 @@ export function HowItWorksSection() {
     {
       step: '05',
       title: 'Start Collaboration',
-      description: 'Reach out directly through our platform and begin your partnership with escrow protection.',
+      description: 'Reach out directly through our platform and begin your partnership.',
     },
   ]
 
@@ -941,21 +939,21 @@ export function HowItWorksSection() {
         <div className="grid md:grid-cols-5 gap-6">
           {steps.map((item, index) => (
             <div key={index} className="relative">
-              <div className="text-6xl font-bold text-violet-500/20 mb-4">{item.step}</div>
+              <div className="text-6xl font-bold text-brand-pink-light mb-4">{item.step}</div>
               <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
               <p className="text-gray-400 text-sm">{item.description}</p>
               {index < steps.length - 1 && (
-                <ChevronRight className="hidden md:block absolute top-8 -right-3 w-6 h-6 text-violet-500" />
+                <ChevronRight className="hidden md:block absolute top-8 -right-3 w-6 h-6 text-brand-purple" />
               )}
             </div>
           ))}
         </div>
 
         <div className="text-center mt-12">
-          <p className="text-violet-400 mb-4">Infoishai simplifies this entire process with AI-powered influencer discovery.</p>
+          <p className="text-brand-pink-light mb-4">Infoishai simplifies this entire process with AI-powered influencer discovery.</p>
           <Link 
             href="/creators"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-violet-600 text-white rounded-full font-semibold hover:bg-violet-700 transition-colors"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-purple text-white rounded-full font-semibold hover:bg-brand-purple-dark transition-colors"
           >
             Start Finding Creators
             <ArrowRight className="w-5 h-5" />
@@ -993,8 +991,8 @@ export function WhyMarketplaceSection() {
     },
     {
       icon: Shield,
-      title: 'Escrow Protection',
-      description: 'Safe payments held until work is delivered and approved by both parties.',
+      title: 'Trusted Profiles',
+      description: 'Real metrics and verified accounts, so you always know who you are working with.',
     },
     {
       icon: Globe,
@@ -1018,8 +1016,8 @@ export function WhyMarketplaceSection() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {benefits.map((benefit, index) => (
             <div key={index} className="flex gap-4">
-              <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <benefit.icon className="w-6 h-6 text-violet-600" />
+              <div className="w-12 h-12 bg-brand-pink/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <benefit.icon className="w-6 h-6 text-brand-purple" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{benefit.title}</h3>
@@ -1027,81 +1025,6 @@ export function WhyMarketplaceSection() {
               </div>
             </div>
           ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ============================================================================
-// COMPARISON SECTION
-// ============================================================================
-export function ComparisonSection() {
-  return (
-    <section className="py-20 lg:py-32 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-            Tech Influencers vs Traditional Advertising
-          </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Influencer marketing has become one of the most effective digital marketing strategies for technology brands.
-          </p>
-        </div>
-
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-6 bg-gradient-to-br from-violet-600 to-blue-600 text-white rounded-2xl">
-              <h3 className="text-xl font-bold mb-6 text-center">Influencer Marketing</h3>
-              <ul className="space-y-4">
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-300" />
-                  <span>Authentic audience trust</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-300" />
-                  <span>Niche communities</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-300" />
-                  <span>High engagement rates</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-300" />
-                  <span>Creator storytelling</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-300" />
-                  <span>Long-term relationships</span>
-                </li>
-              </ul>
-            </div>
-            <div className="p-6 bg-gray-200 text-gray-600 rounded-2xl">
-              <h3 className="text-xl font-bold mb-6 text-center text-gray-900">Traditional Ads</h3>
-              <ul className="space-y-4">
-                <li className="flex items-center gap-3">
-                  <X className="w-5 h-5 text-red-400" />
-                  <span>Often ignored by users</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <X className="w-5 h-5 text-red-400" />
-                  <span>Broad targeting</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <X className="w-5 h-5 text-red-400" />
-                  <span>Expensive CPC</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <X className="w-5 h-5 text-red-400" />
-                  <span>Generic ad messaging</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <X className="w-5 h-5 text-red-400" />
-                  <span>One-time impressions</span>
-                </li>
-              </ul>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -1149,7 +1072,7 @@ export function UseCasesSection() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {useCases.map((useCase, index) => (
-            <div key={index} className="p-6 bg-gradient-to-br from-violet-50 to-blue-50 rounded-2xl border border-violet-100">
+            <div key={index} className="p-6 bg-gradient-to-br from-brand-pink/10 to-brand-purple/10 rounded-2xl border border-brand-pink/20">
               <span className="text-4xl mb-4 block">{useCase.icon}</span>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{useCase.title}</h3>
               <p className="text-gray-600 text-sm">{useCase.description}</p>
@@ -1204,10 +1127,6 @@ export function FAQSection() {
       question: 'Why should startups work with tech influencers?',
       answer: 'Tech influencers help startups build credibility, reach targeted audiences of developers and tech enthusiasts, and generate product awareness quickly through authentic recommendations.',
     },
-    {
-      question: 'How does escrow payment protection work?',
-      answer: 'When a deal is agreed upon, the brand deposits funds into our secure escrow system. The money is held safely until the creator delivers the work and the brand approves it, protecting both parties.',
-    },
   ]
 
   return (
@@ -1249,19 +1168,19 @@ export function FAQSection() {
             Learn More
           </p>
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm">
-            <Link href="/blog/how-to-find-tech-influencers-b2b-2026" className="text-violet-600 hover:text-violet-700 font-medium">
+            <Link href="/blog/how-to-find-tech-influencers-b2b-2026" className="text-brand-purple hover:text-brand-purple-dark font-medium">
               How to Find Tech Influencers for B2B
             </Link>
-            <Link href="/blog/complete-guide-influencer-marketing-pakistan-2025" className="text-violet-600 hover:text-violet-700 font-medium">
+            <Link href="/blog/complete-guide-influencer-marketing-pakistan-2025" className="text-brand-purple hover:text-brand-purple-dark font-medium">
               Influencer Marketing in Pakistan Guide
             </Link>
-            <Link href="/blog/top-10-benefits-tech-influencer-marketing-2026" className="text-violet-600 hover:text-violet-700 font-medium">
+            <Link href="/blog/top-10-benefits-tech-influencer-marketing-2026" className="text-brand-purple hover:text-brand-purple-dark font-medium">
               Top 10 Benefits of Influencer Marketing
             </Link>
-            <Link href="/tools" className="text-violet-600 hover:text-violet-700 font-medium">
+            <Link href="/tools" className="text-brand-purple hover:text-brand-purple-dark font-medium">
               Free Marketing Tools
             </Link>
-            <Link href="/creators" className="text-violet-600 hover:text-violet-700 font-medium">
+            <Link href="/creators" className="text-brand-purple hover:text-brand-purple-dark font-medium">
               Browse Tech Creators
             </Link>
           </div>
@@ -1276,19 +1195,19 @@ export function FAQSection() {
 // ============================================================================
 export function FinalCTASection() {
   return (
-    <section className="py-20 lg:py-32 bg-gradient-to-br from-violet-600 to-blue-600 text-white">
+    <section className="py-20 lg:py-32 bg-gradient-to-br from-brand-pink to-brand-purple text-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-3xl lg:text-5xl font-bold mb-6">
           Ready to Find Your Perfect Tech Creator?
         </h2>
-        <p className="text-xl text-violet-100 mb-10 max-w-2xl mx-auto">
+        <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
           Join 500+ brands using Infoishai to connect with verified tech influencers. 
           Free to start, no credit card required.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link 
             href="/signup"
-            className="w-full sm:w-auto px-8 py-4 bg-white text-violet-600 rounded-full font-semibold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 py-4 bg-white text-brand-purple rounded-full font-semibold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
           >
             Get Started Free
             <ArrowRight className="w-5 h-5" />
@@ -1335,19 +1254,22 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-blue-600 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
+              <Image src="/logo.png" alt="Infoishai" width={40} height={40} className="w-10 h-10 rounded-xl" />
               <span className="text-xl font-bold text-white">Infoishai</span>
             </Link>
             <p className="text-sm mb-4 max-w-xs">
               The #1 tech influencer marketplace connecting AI, SaaS, and tech brands with verified content creators.
             </p>
             <div className="flex items-center gap-4">
-              <a href="#" className="hover:text-white transition-colors"><Twitter className="w-5 h-5" /></a>
-              <a href="#" className="hover:text-white transition-colors"><Linkedin className="w-5 h-5" /></a>
-              <a href="#" className="hover:text-white transition-colors"><Youtube className="w-5 h-5" /></a>
-              <a href="#" className="hover:text-white transition-colors"><Github className="w-5 h-5" /></a>
+              <a
+                href="https://www.linkedin.com/company/infoishai/?viewAsMember=true"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors"
+                aria-label="Follow us on LinkedIn"
+              >
+                <Linkedin className="w-5 h-5" />
+              </a>
             </div>
           </div>
 

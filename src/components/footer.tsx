@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
-import { MapPin, Mail, Phone, Linkedin, Instagram, Youtube } from 'lucide-react'
+import Image from 'next/image'
+import { MapPin, Mail, Phone, Linkedin } from 'lucide-react'
 import { useState } from 'react'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
 
@@ -62,7 +63,7 @@ export default function Footer() {
   return (
     <footer className="bg-black text-white">
       {/* Newsletter Section */}
-      <div className="bg-gradient-to-r from-blue-500/10 to-green-500/10 border-b border-white/10">
+      <div className="bg-gradient-to-r from-brand-pink/10 to-brand-purple/10 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="max-w-2xl mx-auto text-center">
             <h3 className="font-bold text-white text-2xl mb-3">Stay Updated</h3>
@@ -77,12 +78,12 @@ export default function Footer() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   disabled={isSubmitting}
-                  className="flex-1 px-5 py-4 rounded-xl bg-white/10 backdrop-blur-lg border border-white/20 text-white placeholder-white/60 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                  className="flex-1 px-5 py-4 rounded-xl bg-white/10 backdrop-blur-lg border border-white/20 text-white placeholder-white/60 focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple disabled:opacity-50"
                 />
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transform hover:scale-105"
+                  className="bg-gradient-to-r from-brand-pink to-brand-purple hover:from-brand-pink-dark hover:to-brand-purple-dark text-white px-8 py-4 rounded-xl font-semibold hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transform hover:scale-105"
                 >
                   {isSubmitting ? (
                     <>
@@ -99,7 +100,7 @@ export default function Footer() {
                   subscriptionStatus.includes('Successfully') 
                     ? 'text-green-400 bg-green-500/20 border border-green-500/30' 
                     : subscriptionStatus.includes('already subscribed')
-                    ? 'text-blue-400 bg-blue-500/20 border border-blue-500/30'
+                    ? 'text-brand-pink-light bg-brand-purple/20 border border-brand-purple/30'
                     : 'text-red-400 bg-red-500/20 border border-red-500/30'
                 }`}>
                   {subscriptionStatus}
@@ -120,15 +121,13 @@ export default function Footer() {
           
           {/* Company Info */}
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-xl">I</span>
-              </div>
+            <Link href="/" className="flex items-center gap-3 mb-6">
+              <Image src="/logo.png" alt="Infoishai" width={48} height={48} className="w-12 h-12 rounded-2xl shadow-lg" />
               <div>
                 <span className="font-bold text-xl text-white">Infoishai</span>
                 <p className="text-xs text-white/60">AI Influencer Search</p>
               </div>
-            </div>
+            </Link>
             <p className="text-white/70 mb-6 leading-relaxed">
               Pakistan's leading AI-powered platform to discover and connect with top influencers and content creators. Free campaign management system included.
             </p>
@@ -140,13 +139,13 @@ export default function Footer() {
                 <span className="text-sm text-white/80">Multan, Pakistan</span>
               </div>
               <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-blue-500" />
+                <Mail className="w-5 h-5 text-brand-purple" />
                 <a href="mailto:infoishfounder@gmail.com" className="text-sm text-white/80 hover:text-green-400 transition-colors">
                   infoishfounder@gmail.com
                 </a>
               </div>
               <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-blue-500" />
+                <Phone className="w-5 h-5 text-brand-purple" />
                 <a href="tel:+923228837325" className="text-sm text-white/80 hover:text-green-400 transition-colors">
                   +92 322 8837325
                 </a>
@@ -261,32 +260,14 @@ export default function Footer() {
             <div className="flex items-center gap-6">
               <span className="text-sm text-white/70 hidden sm:block">Follow us:</span>
               <div className="flex gap-4">
-                <a 
-                  href="https://linkedin.com/company/infoishai" 
+                <a
+                  href="https://www.linkedin.com/company/infoishai/?viewAsMember=true"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white/70 hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-white/10"
+                  className="text-white/70 hover:text-brand-purple transition-colors p-2 rounded-lg hover:bg-white/10"
                   aria-label="Follow us on LinkedIn"
                 >
                   <Linkedin className="w-5 h-5" />
-                </a>
-                <a 
-                  href="https://instagram.com/infoishai" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white/70 hover:text-green-500 transition-colors p-2 rounded-lg hover:bg-white/10"
-                  aria-label="Follow us on Instagram"
-                >
-                  <Instagram className="w-5 h-5" />
-                </a>
-                <a 
-                  href="https://youtube.com/@kakayrao" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white/70 hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-white/10"
-                  aria-label="Subscribe to our YouTube channel"
-                >
-                  <Youtube className="w-5 h-5" />
                 </a>
               </div>
             </div>
@@ -299,7 +280,7 @@ export default function Footer() {
                   <span>1,800+ Influencers</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-brand-purple rounded-full animate-pulse"></div>
                   <span>Active Platform</span>
                 </div>
               </div>

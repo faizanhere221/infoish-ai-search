@@ -55,14 +55,14 @@ export default function CampaignFilters({ filters, onChange }: CampaignFiltersPr
             value={filters.search}
             onChange={(e) => update('search', e.target.value)}
             placeholder="Search campaigns by title or description..."
-            className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-purple"
           />
         </div>
 
         <select
           value={filters.category}
           onChange={(e) => update('category', e.target.value as CampaignCategory | '')}
-          className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple"
         >
           <option value="">All Categories</option>
           {CAMPAIGN_CATEGORIES.map((c) => (
@@ -79,7 +79,7 @@ export default function CampaignFilters({ filters, onChange }: CampaignFiltersPr
             value={filters.budgetMin}
             onChange={(e) => update('budgetMin', e.target.value)}
             placeholder="Min $"
-            className="w-24 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="w-24 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple"
           />
           <span className="text-gray-400">–</span>
           <input
@@ -88,7 +88,7 @@ export default function CampaignFilters({ filters, onChange }: CampaignFiltersPr
             value={filters.budgetMax}
             onChange={(e) => update('budgetMax', e.target.value)}
             placeholder="Max $"
-            className="w-24 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="w-24 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple"
           />
         </div>
 
@@ -114,7 +114,7 @@ export default function CampaignFilters({ filters, onChange }: CampaignFiltersPr
               onClick={() => togglePlatform(p.value)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                 selected
-                  ? 'bg-violet-50 border-violet-300 text-violet-700'
+                  ? 'bg-brand-pink/10 border-brand-pink-light text-brand-purple-dark'
                   : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >

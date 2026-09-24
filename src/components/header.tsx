@@ -309,21 +309,20 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
   if (isLoading) {
     return (
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-200' 
-          : 'bg-white/80 backdrop-blur-lg border-b border-gray-100'
+        isScrolled
+          ? 'bg-white/95 backdrop-blur-xl shadow-lg'
+          : 'bg-white/80 backdrop-blur-lg'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-xl flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-lg">I</span>
-              </div>
+              <Image src="/logo.png" alt="Infoishai" width={40} height={40} className="w-10 h-10 rounded-xl" />
               <span className="text-xl font-bold text-gray-900">Infoishai</span>
             </div>
             <div className="animate-pulse bg-gray-200 rounded-full w-10 h-10"></div>
           </div>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-pink to-brand-purple" />
       </header>
     )
   }
@@ -331,9 +330,9 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
   return (
     <>
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-200' 
-          : 'bg-white/80 backdrop-blur-lg border-b border-gray-100'
+        isScrolled
+          ? 'bg-white/95 backdrop-blur-xl shadow-lg'
+          : 'bg-white/80 backdrop-blur-lg'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -341,11 +340,15 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative">
-                <div className={`w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-xl flex items-center justify-center shadow-md transition-all duration-300 ${
-                  isScrolled ? 'shadow-lg' : 'group-hover:shadow-xl group-hover:scale-105'
-                }`}>
-                  <span className="text-white font-bold text-lg">I</span>
-                </div>
+                <Image
+                  src="/logo.png"
+                  alt="Infoishai"
+                  width={40}
+                  height={40}
+                  className={`w-10 h-10 rounded-xl shadow-md transition-all duration-300 ${
+                    isScrolled ? 'shadow-lg' : 'group-hover:shadow-xl group-hover:scale-105'
+                  }`}
+                />
                 {user?.subscription_tier === 'pro' && (
                   <Crown className="w-4 h-4 text-yellow-500 absolute -top-1 -right-1" />
                 )}
@@ -360,7 +363,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
             <nav className="hidden lg:flex items-center gap-1">
               <Link 
                 href="/about" 
-                className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 font-medium rounded-lg transition-all"
+                className="px-4 py-2 text-gray-700 hover:text-brand-purple hover:bg-brand-pink/10 font-medium rounded-lg transition-all"
               >
                 About
               </Link>
@@ -368,7 +371,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
 <div className="relative">
   <button
     onClick={() => setShowToolsDropdown(!showToolsDropdown)}
-    className="px-4 py-2 text-gray-700 hover:text-purple-600 hover:bg-purple-50 font-medium rounded-lg transition-all flex items-center gap-2"
+    className="px-4 py-2 text-gray-700 hover:text-brand-purple hover:bg-brand-pink/10 font-medium rounded-lg transition-all flex items-center gap-2"
   >
     <Wrench className="w-4 h-4" />
     Tools
@@ -388,10 +391,10 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
         
         <Link
           href="/tools/instagram-profile-analyzer"
-          className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition-colors"
+          className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-brand-pink/10 transition-colors"
           onClick={() => setShowToolsDropdown(false)}
         >
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 bg-gradient-to-br from-brand-purple to-brand-pink rounded-lg flex items-center justify-center flex-shrink-0">
             <Instagram className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
@@ -402,10 +405,10 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
 
         <Link
           href="/tools/instagram-hashtag-generator"
-          className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-pink-50 transition-colors"
+          className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-brand-pink/10 transition-colors"
           onClick={() => setShowToolsDropdown(false)}
         >
-          <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 bg-gradient-to-br from-brand-pink to-brand-purple rounded-lg flex items-center justify-center flex-shrink-0">
             <Calculator className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
@@ -417,7 +420,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
         <div className="border-t border-gray-100 mt-2 pt-2">
           <Link
             href="/tools"
-            className="flex items-center justify-between px-4 py-2 text-sm text-purple-600 hover:text-purple-700 font-semibold"
+            className="flex items-center justify-between px-4 py-2 text-sm text-brand-purple hover:text-brand-purple-dark font-semibold"
             onClick={() => setShowToolsDropdown(false)}
           >
             <span>View All Tools</span>
@@ -433,7 +436,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
               <div className="relative">
                 <button
                   onClick={() => setShowCountriesDropdown(!showCountriesDropdown)}
-                  className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 font-medium rounded-lg transition-all flex items-center gap-2"
+                  className="px-4 py-2 text-gray-700 hover:text-brand-purple hover:bg-brand-pink/10 font-medium rounded-lg transition-all flex items-center gap-2"
                 >
                   <Globe className="w-4 h-4" />
                   Countries
@@ -456,7 +459,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                           <Link
                             key={country.href}
                             href={country.href}
-                            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-brand-pink/10 hover:text-brand-purple rounded-lg transition-colors"
                             onClick={() => setShowCountriesDropdown(false)}
                           >
                             <span aria-hidden="true">{country.flag}</span>
@@ -480,7 +483,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                 <div className="relative ml-2">
                   <button
                     onClick={() => setShowLoginDropdown(!showLoginDropdown)}
-                    className="px-5 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm flex items-center gap-2"
+                    className="px-5 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm flex items-center gap-2"
                   >
                     Login
                     <ChevronDown className={`w-4 h-4 transition-transform ${showLoginDropdown ? 'rotate-180' : ''}`} />
@@ -495,10 +498,10 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                       <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
                         <Link
                           href="/login"
-                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition-colors"
+                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-brand-pink/10 transition-colors"
                           onClick={() => setShowLoginDropdown(false)}
                         >
-                          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                          <div className="w-8 h-8 bg-gradient-to-br from-brand-purple to-brand-pink rounded-lg flex items-center justify-center">
                             <User className="w-4 h-4 text-white" />
                           </div>
                           <div>
@@ -514,9 +517,9 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                             setShowLoginDropdown(false)
                             handleGoogleLogin()
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-brand-pink/10 transition-colors"
                         >
-                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                          <div className="w-8 h-8 bg-gradient-to-br from-brand-pink to-brand-purple rounded-lg flex items-center justify-center">
                             <Building className="w-4 h-4 text-white" />
                           </div>
                           <div className="text-left">
@@ -540,7 +543,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                     <div className="hidden md:flex items-center gap-2">
                       <Link
                         href="/creators"
-                        className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        className="p-2 text-gray-600 hover:text-brand-purple hover:bg-brand-pink/10 rounded-lg transition-all"
                         title="Search Influencers"
                       >
                         <Search className="w-5 h-5" />
@@ -577,7 +580,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                           className="w-8 h-8 rounded-lg border border-gray-200 object-cover"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-green-400 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-pink-light to-brand-purple-light flex items-center justify-center">
                           <User className="w-4 h-4 text-white" />
                         </div>
                       )}
@@ -601,7 +604,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                         />
                         <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
                           {/* Header */}
-                          <div className="p-4 bg-gradient-to-br from-blue-50 to-green-50 border-b border-gray-200">
+                          <div className="p-4 bg-gradient-to-br from-brand-pink/10 to-brand-purple/10 border-b border-gray-200">
                             <div className="flex items-center gap-3 mb-3">
                               {user.profile_picture ? (
                                 <Image
@@ -612,7 +615,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                                   className="w-14 h-14 rounded-xl border-2 border-white shadow-md"
                                 />
                               ) : (
-                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-400 to-green-400 flex items-center justify-center shadow-md">
+                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-brand-pink-light to-brand-purple-light flex items-center justify-center shadow-md">
                                   <User className="w-7 h-7 text-white" />
                                 </div>
                               )}
@@ -642,7 +645,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                           <div className="p-2">
                             <Link
                               href={getDashboardUrl()}
-                              className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-all"
+                              className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-brand-pink/10 hover:text-brand-purple rounded-lg transition-all"
                               onClick={() => setShowDropdown(false)}
                             >
                               <Settings className="w-5 h-5" />
@@ -653,7 +656,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                               <>
                                 <Link
                                   href="/creators"
-                                  className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-all"
+                                  className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-brand-pink/10 hover:text-brand-purple rounded-lg transition-all"
                                   onClick={() => setShowDropdown(false)}
                                 >
                                   <Search className="w-5 h-5" />
@@ -673,7 +676,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                             
                             <Link
                               href="/contact"
-                              className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-all"
+                              className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-brand-pink/10 hover:text-brand-purple rounded-lg transition-all"
                               onClick={() => setShowDropdown(false)}
                             >
                               <Mail className="w-5 h-5" />
@@ -699,13 +702,13 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                 <div className="flex items-center gap-3">
                   <Link
                     href="/contact"
-                    className="hidden sm:block text-gray-700 hover:text-blue-600 font-medium transition-colors px-3 py-2"
+                    className="hidden sm:block text-gray-700 hover:text-brand-purple font-medium transition-colors px-3 py-2"
                   >
                     Contact
                   </Link>
                   <Link
                     href="/login"
-                    className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-5 py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
+                    className="bg-gradient-to-r from-brand-pink to-brand-purple hover:from-brand-pink-dark hover:to-brand-purple-dark text-white px-5 py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
                   >
                     <span className="hidden sm:inline">Get Started Free</span>
                     <span className="sm:hidden">Login</span>
@@ -736,7 +739,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                   <>
                     <Link 
                       href="/login"
-                      className="flex items-center gap-3 text-purple-600 hover:text-purple-700 font-semibold py-3 px-4 rounded-lg transition-all hover:bg-purple-50 border-2 border-purple-200"
+                      className="flex items-center gap-3 text-brand-purple hover:text-brand-purple-dark font-semibold py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10 border-2 border-brand-purple/30"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <User className="w-5 h-5" />
@@ -751,7 +754,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                   <>
                     <Link 
                       href="/creators"
-                      className="flex items-center gap-3 text-gray-700 hover:text-blue-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-blue-50"
+                      className="flex items-center gap-3 text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <Search className="w-5 h-5" />
@@ -773,14 +776,14 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                 
                 <Link 
                   href="/about" 
-                  className="text-gray-700 hover:text-blue-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-gray-50"
+                  className="text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-gray-50"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   About
                 </Link>
                 <Link
                   href="/tools"
-                  className="flex items-center gap-2 text-gray-700 hover:text-purple-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-purple-50"
+                  className="flex items-center gap-2 text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <Wrench className="w-5 h-5" />
@@ -791,7 +794,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                 <button
                   onClick={() => setIsMobileCountriesOpen(!isMobileCountriesOpen)}
                   aria-expanded={isMobileCountriesOpen}
-                  className="w-full flex items-center justify-between gap-2 text-gray-700 hover:text-blue-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-blue-50 min-h-[48px]"
+                  className="w-full flex items-center justify-between gap-2 text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10 min-h-[48px]"
                 >
                   <span className="flex items-center gap-2">
                     <Globe className="w-5 h-5" />
@@ -806,7 +809,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                       <Link
                         key={country.href}
                         href={country.href}
-                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 font-medium py-2.5 px-3 rounded-lg transition-all hover:bg-blue-50 min-h-[44px]"
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand-purple font-medium py-2.5 px-3 rounded-lg transition-all hover:bg-brand-pink/10 min-h-[44px]"
                         onClick={() => {
                           setIsMobileMenuOpen(false)
                           setIsMobileCountriesOpen(false)
@@ -858,7 +861,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                         handleGoogleLogin()
                         setIsMobileMenuOpen(false)
                       }}
-                      className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-lg font-bold text-sm hover:shadow-lg transition-all"
+                      className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-brand-pink to-brand-purple text-white px-4 py-3 rounded-lg font-bold text-sm hover:shadow-lg transition-all"
                     >
                       Get Started Free
                     </button>
@@ -868,6 +871,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
             </div>
           )}
         </div>
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-pink to-brand-purple" />
       </header>
 
       {/* Spacer */}

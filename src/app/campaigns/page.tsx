@@ -129,7 +129,7 @@ export default function CampaignsPage() {
   if (!authChecked) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />
       </div>
     )
   }
@@ -160,7 +160,7 @@ export default function CampaignsPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple"
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -178,7 +178,7 @@ export default function CampaignsPage() {
             <p className="text-gray-500 mt-1">Something went wrong. Please try again.</p>
             <button
               onClick={fetchCampaigns}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-brand-purple text-white rounded-lg font-medium hover:bg-brand-purple-dark"
             >
               <RotateCcw className="w-4 h-4" />
               Retry
@@ -199,7 +199,7 @@ export default function CampaignsPage() {
               activeFilterCount > 0 || filters.search ? (
                 <button
                   onClick={() => setFilters(EMPTY_FILTERS)}
-                  className="px-4 py-2 text-violet-600 hover:bg-violet-50 rounded-lg font-medium"
+                  className="px-4 py-2 text-brand-purple hover:bg-brand-pink/10 rounded-lg font-medium"
                 >
                   Clear all filters
                 </button>
@@ -219,7 +219,7 @@ function GuestHeader() {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-brand-purple rounded-lg flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">Infoishai</span>
@@ -228,7 +228,7 @@ function GuestHeader() {
               <Link href="/creators" className="text-gray-600 hover:text-gray-900">
                 Find Creators
               </Link>
-              <Link href="/campaigns" className="text-violet-600 font-medium">
+              <Link href="/campaigns" className="text-brand-purple font-medium">
                 Campaigns
               </Link>
             </nav>
@@ -239,7 +239,7 @@ function GuestHeader() {
             </Link>
             <Link
               href="/signup"
-              className="px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
+              className="px-4 py-2 bg-brand-purple text-white rounded-lg font-medium hover:bg-brand-purple-dark"
             >
               Get Started
             </Link>

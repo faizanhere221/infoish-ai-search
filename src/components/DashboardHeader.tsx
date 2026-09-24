@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
-  Sparkles,
   MessageSquare,
   Bell,
   Menu,
@@ -117,15 +117,13 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
   }
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <header className="relative bg-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Nav */}
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
+              <Image src="/logo.png" alt="Infoishai" width={32} height={32} className="w-8 h-8 rounded-lg" />
               <span className="text-xl font-bold text-gray-900">Infoishai</span>
             </Link>
 
@@ -137,7 +135,7 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
                   href={item.href}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                     isActive(item.href)
-                      ? 'bg-violet-50 text-violet-700'
+                      ? 'bg-brand-pink/10 text-brand-purple-dark'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                 >
@@ -148,7 +146,7 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
                     </span>
                   )}
                   {item.countBadge !== undefined && item.countBadge > 0 && (
-                    <span className="px-1.5 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full min-w-[20px] text-center font-semibold">
+                    <span className="px-1.5 py-0.5 bg-brand-pink/20 text-brand-purple-dark text-xs rounded-full min-w-[20px] text-center font-semibold">
                       {item.countBadge}
                     </span>
                   )}
@@ -216,7 +214,7 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
                   onClick={() => setMobileMenuOpen(false)}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-between ${
                     isActive(item.href)
-                      ? 'bg-violet-50 text-violet-700'
+                      ? 'bg-brand-pink/10 text-brand-purple-dark'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                 >
@@ -227,7 +225,7 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
                     </span>
                   )}
                   {item.countBadge !== undefined && item.countBadge > 0 && (
-                    <span className="px-1.5 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full font-semibold">
+                    <span className="px-1.5 py-0.5 bg-brand-pink/20 text-brand-purple-dark text-xs rounded-full font-semibold">
                       {item.countBadge}
                     </span>
                   )}
@@ -237,6 +235,7 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
           </div>
         )}
       </div>
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-pink to-brand-purple" />
     </header>
   )
 }
