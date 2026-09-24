@@ -8,9 +8,9 @@
    CSS CUSTOM PROPERTIES
    ============================================================================= */
 :root {
-  --color-brand-primary: #7c3aed;
-  --color-brand-secondary: #2563eb;
-  --color-brand-accent: #06b6d4;
+  --color-brand-primary: #de5688;
+  --color-brand-secondary: #b153c8;
+  --color-brand-accent: #9a45ad;
   --background-primary: #ffffff;
   --background-secondary: #f9fafb;
   --text-primary: #111827;
@@ -39,13 +39,13 @@
   }
 
   *:focus-visible {
-    outline: 2px solid #7c3aed;
+    outline: 2px solid #b153c8;
     outline-offset: 2px;
   }
 
   ::selection {
-    background-color: #ddd6fe;
-    color: #4c1d95;
+    background-color: rgba(222, 86, 136, 0.25);
+    color: #9a45ad;
   }
 
   /* Scrollbar */
@@ -91,13 +91,13 @@
   }
 
   .btn-primary {
-    background: linear-gradient(to right, #7c3aed, #2563eb);
+    background: linear-gradient(to right, #de5688, #b153c8);
     color: white;
-    box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.25);
+    box-shadow: 0 10px 15px -3px rgba(177, 83, 200, 0.25);
   }
 
   .btn-primary:hover {
-    box-shadow: 0 20px 25px -5px rgba(124, 58, 237, 0.3);
+    box-shadow: 0 20px 25px -5px rgba(177, 83, 200, 0.3);
   }
 
   .btn-secondary {
@@ -153,8 +153,8 @@
   }
 
   .input:focus {
-    border-color: #7c3aed;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    border-color: #b153c8;
+    box-shadow: 0 0 0 3px rgba(177, 83, 200, 0.1);
   }
 
   .input-error {
@@ -225,7 +225,7 @@
 
   /* Gradient text */
   .gradient-text {
-    background: linear-gradient(to right, #7c3aed, #2563eb, #06b6d4);
+    background: linear-gradient(to right, #de5688, #b153c8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -243,7 +243,7 @@
     animation: spin 1s linear infinite;
     border-radius: 9999px;
     border: 2px solid #e5e7eb;
-    border-top-color: #7c3aed;
+    border-top-color: #b153c8;
   }
 
   .spinner-sm { width: 1rem; height: 1rem; }

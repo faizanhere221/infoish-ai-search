@@ -68,7 +68,7 @@ export default function CampaignDetail({
             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${status.bg} ${status.text}`}>
               {status.label}
             </span>
-            <span className="px-2 py-0.5 bg-violet-50 text-violet-700 rounded-full text-xs font-medium">
+            <span className="px-2 py-0.5 bg-brand-pink/10 text-brand-purple-dark rounded-full text-xs font-medium">
               {categoryLabel(campaign.category)}
             </span>
           </div>
@@ -76,7 +76,7 @@ export default function CampaignDetail({
           <h1 className="text-2xl font-bold text-gray-900">{campaign.title}</h1>
 
           <div className="flex items-center gap-3 mt-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-pink to-brand-purple flex items-center justify-center text-white font-semibold flex-shrink-0">
               {campaign.brand?.company_name?.charAt(0) || 'B'}
             </div>
             <div>
@@ -212,7 +212,7 @@ export default function CampaignDetail({
 
           {viewerRole === 'other' && !isLoggedIn && (
             <div className="text-sm text-gray-500">
-              <Link href="/login" className="text-violet-600 font-medium hover:text-violet-700">
+              <Link href="/login" className="text-brand-purple font-medium hover:text-brand-purple-dark">
                 Sign in
               </Link>{' '}
               as a creator to apply to this campaign.
@@ -236,7 +236,7 @@ function CreatorActions({
   if (myApplication) {
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-2 px-4 py-3 bg-violet-50 text-violet-700 rounded-lg text-sm font-medium">
+        <div className="flex items-center gap-2 px-4 py-3 bg-brand-pink/10 text-brand-purple-dark rounded-lg text-sm font-medium">
           <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
           Application Submitted
         </div>
@@ -267,7 +267,7 @@ function CreatorActions({
   return (
     <Link
       href={`/campaigns/${campaignId}/apply`}
-      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-700"
+      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-brand-purple text-white rounded-xl font-medium hover:bg-brand-purple-dark"
     >
       Apply Now
     </Link>
@@ -292,7 +292,7 @@ function OwnerActions({
       {campaign.status === 'draft' && (
         <Link
           href={`/campaigns/${campaign.id}/edit`}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-purple text-white rounded-lg font-medium hover:bg-brand-purple-dark"
         >
           <Pencil className="w-4 h-4" />
           Edit Campaign
@@ -321,7 +321,7 @@ function OwnerActions({
           type="button"
           onClick={onReopen}
           disabled={reopening}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700 disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-purple text-white rounded-lg font-medium hover:bg-brand-purple-dark disabled:opacity-50"
         >
           {reopening ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
           Reopen Campaign
@@ -345,7 +345,7 @@ function DescriptionText({ text }: { text: string }) {
         <button
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
-          className="mt-2 text-sm font-medium text-violet-600 hover:text-violet-700"
+          className="mt-2 text-sm font-medium text-brand-purple hover:text-brand-purple-dark"
         >
           {expanded ? 'Show less' : 'Read more'}
         </button>

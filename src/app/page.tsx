@@ -4,7 +4,6 @@ import {
   HeroSection,
   AboutSection,
   HowInfoishaiWorksSection,
-  TrustedBySection,
   ForBrandsSection,
   ForCreatorsSection,
   ProblemSection,
@@ -13,7 +12,6 @@ import {
   CategoriesSection,
   HowItWorksSection,
   WhyMarketplaceSection,
-  ComparisonSection,
   UseCasesSection,
   FAQSection,
   FinalCTASection,
@@ -25,8 +23,8 @@ import {
 // SEO METADATA - Optimized for "find tech influencers marketplace"
 // ============================================================================
 export const metadata: Metadata = {
-  title: 'Tech Influencer Marketplace | Find 2,000+ Verified Creators Free',
-  description: 'Search 2,000+ verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn. Free to join. No subscription.',
+  title: 'Tech Influencer Marketplace | Find Verified Creators Free',
+  description: 'Search verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn. Free to join. No subscription.',
   keywords: [
     'find tech influencers',
     'tech influencer marketplace',
@@ -63,8 +61,8 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://infoishai.com',
     siteName: 'Infoishai',
-    title: 'Tech Influencer Marketplace | Find 2,000+ Verified Creators Free',
-    description: 'Search 2,000+ verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn. Free to join. No subscription.',
+    title: 'Tech Influencer Marketplace | Find Verified Creators Free',
+    description: 'Search verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn. Free to join. No subscription.',
     images: [
       {
         url: 'https://infoishai.com/og-image.jpg',
@@ -76,8 +74,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tech Influencer Marketplace | Find 2,000+ Verified Creators Free',
-    description: 'Search 2,000+ verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn.',
+    title: 'Tech Influencer Marketplace | Find Verified Creators Free',
+    description: 'Search verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn.',
     site: '@infoishai',
     creator: '@infoishai',
     images: ['https://infoishai.com/twitter-image.jpg'],
@@ -204,14 +202,6 @@ const faqData = {
         text: 'Tech influencers help startups build credibility, reach targeted audiences of developers and tech enthusiasts, and generate product awareness quickly through authentic recommendations.',
       },
     },
-    {
-      '@type': 'Question',
-      name: 'How does escrow payment protection work?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'When a deal is agreed upon, the brand deposits funds into our secure escrow system. The money is held safely until the creator delivers the work and the brand approves it, protecting both parties.',
-      },
-    },
   ],
 }
 
@@ -258,9 +248,6 @@ export default function HomePage() {
         {/* About - What Infoishai is, who it's for, key benefits */}
         <AboutSection />
 
-        {/* Social Proof */}
-        <TrustedBySection />
-
         {/* For Brands - what brands get from the platform */}
         <ForBrandsSection />
 
@@ -287,10 +274,7 @@ export default function HomePage() {
         
         {/* Why Use a Marketplace */}
         <WhyMarketplaceSection />
-        
-        {/* Influencer vs Traditional Ads Comparison */}
-        <ComparisonSection />
-        
+
         {/* Use Cases */}
         <UseCasesSection />
         

@@ -32,11 +32,11 @@ function CreatorCampaignCard({ campaign }: { campaign: Campaign }) {
   return (
     <Link
       href={`/campaigns/${campaign.id}`}
-      className="flex flex-col bg-white rounded-xl border border-gray-200 p-6 hover:border-violet-300 hover:shadow-lg transition-all h-full"
+      className="flex flex-col bg-white rounded-xl border border-gray-200 p-6 hover:border-brand-pink-light hover:shadow-lg transition-all h-full"
     >
       {/* Brand */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
+        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-pink to-brand-purple flex items-center justify-center text-white font-semibold flex-shrink-0">
           {campaign.brand?.company_name?.charAt(0) || 'B'}
         </div>
         <div className="min-w-0">
@@ -51,7 +51,7 @@ function CreatorCampaignCard({ campaign }: { campaign: Campaign }) {
 
       {/* Title + category */}
       <h3 className="font-semibold text-gray-900 text-lg line-clamp-2">{campaign.title}</h3>
-      <span className="inline-block w-fit mt-2 px-2 py-1 bg-violet-50 text-violet-700 rounded-full text-xs font-medium">
+      <span className="inline-block w-fit mt-2 px-2 py-1 bg-brand-pink/10 text-brand-purple-dark rounded-full text-xs font-medium">
         {categoryLabel(campaign.category)}
       </span>
 
@@ -99,7 +99,7 @@ function CreatorCampaignCard({ campaign }: { campaign: Campaign }) {
           <Users className="w-4 h-4" />
           {campaign.applications_count} applicant{campaign.applications_count === 1 ? '' : 's'}
         </span>
-        <span className="flex items-center gap-1 text-violet-600 font-medium">
+        <span className="flex items-center gap-1 text-brand-purple font-medium">
           View Details
           <ArrowRight className="w-4 h-4" />
         </span>

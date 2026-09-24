@@ -8,17 +8,17 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          50: '#f5f3ff',
-          100: '#ede9fe',
-          200: '#ddd6fe',
-          300: '#c4b5fd',
-          400: '#a78bfa',
-          500: '#8b5cf6',
-          600: '#7c3aed',
-          700: '#6d28d9',
-          800: '#5b21b6',
-          900: '#4c1d95',
+          pink: '#de5688',
+          purple: '#b153c8',
+          'pink-light': '#e87aa3',
+          'purple-light': '#c474d6',
+          'pink-dark': '#c44a75',
+          'purple-dark': '#9a45ad',
         },
+      },
+      backgroundImage: {
+        'brand-gradient': 'linear-gradient(to right, #de5688, #b153c8)',
+        'brand-gradient-hover': 'linear-gradient(to right, #c44a75, #9a45ad)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

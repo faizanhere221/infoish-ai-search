@@ -6,10 +6,9 @@ import {
   Search, 
   BarChart3, 
   Shield, 
-  Target, 
-  Zap, 
-  Globe, 
-  TrendingUp,
+  Target,
+  Zap,
+  Globe,
   Sparkles,
   CheckCircle,
   ArrowRight,
@@ -27,7 +26,7 @@ import { Navigation, Footer } from '@/components/landing'
 // ============================================================================
 export const metadata: Metadata = {
   title: 'About Us | Free Tech Influencer Marketplace for B2B Brands',
-  description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Escrow payments. Trusted by startups and enterprises in 55+ countries.',
+  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Trusted by startups and enterprises in 55+ countries.',
   keywords: [
     'about infoishai',
     'tech influencer platform',
@@ -39,7 +38,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
-    description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Escrow payments. Trusted by startups and enterprises in 55+ countries.',
+    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Trusted by startups and enterprises in 55+ countries.',
     url: 'https://infoishai.com/about',
     siteName: 'Infoishai',
     type: 'website',
@@ -47,7 +46,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
-    description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Escrow payments. Trusted by startups and enterprises in 55+ countries.',
+    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Trusted by startups and enterprises in 55+ countries.',
   },
   alternates: {
     canonical: 'https://infoishai.com/about',
@@ -58,7 +57,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'AboutPage',
   name: 'About Infoishai',
-  description: 'Infoishai connects B2B brands with 2,000+ verified tech creators across YouTube, Twitter/X, and LinkedIn.',
+  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn.',
   url: 'https://infoishai.com/about',
   mainEntity: {
     '@type': 'Organization',
@@ -79,7 +78,7 @@ const team = [
   {
     name: 'Faizan Islam',
     role: 'Founder & CEO',
-    bio: 'CS student at BZU, President of Zakariyan Tech Society. Building the future of creator economy.',
+    bio: 'AI Engineer & GTM Strategist. Building the future of creator economy with Infoishai.',
     image: '/images/team/founder.jpg',
     linkedin: 'https://www.linkedin.com/in/faizan-islam-41a3ab28b/',
   },
@@ -105,7 +104,6 @@ const team = [
 const stats = [
   { value: '10+', label: 'Verified Creators', icon: Users },
   { value: '6', label: 'Platforms Covered', icon: Globe },
-  { value: '1M+', label: 'Total Audience Reach', icon: TrendingUp },
   { value: '15+', label: 'Tech Niches', icon: Target },
 ]
 
@@ -122,18 +120,18 @@ export default function AboutPage() {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="pt-32 pb-20 bg-gradient-to-br from-violet-50 via-white to-blue-50">
+      <section className="pt-32 pb-20 bg-gradient-to-br from-brand-pink/10 via-white to-brand-purple/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-100 text-violet-700 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-pink/10 text-brand-purple-dark rounded-full text-sm font-medium mb-6">
               <Sparkles className="w-4 h-4" />
               <span>#1 Tech Creator Marketplace</span>
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
               About{' '}
-              <span className="bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-brand-pink to-brand-purple bg-clip-text text-transparent">
                 Infoishai
               </span>
             </h1>
@@ -169,11 +167,11 @@ export default function AboutPage() {
       {/* Stats Section */}
       <section className="py-16 bg-white border-y border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="w-14 h-14 bg-violet-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <stat.icon className="w-7 h-7 text-violet-600" />
+                <div className="w-14 h-14 bg-brand-pink/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <stat.icon className="w-7 h-7 text-brand-purple" />
                 </div>
                 <p className="text-3xl lg:text-4xl font-bold text-gray-900">{stat.value}</p>
                 <p className="text-gray-500">{stat.label}</p>
@@ -204,10 +202,10 @@ export default function AboutPage() {
               </p>
               
               <div className="flex flex-wrap gap-3">
-                <span className="px-4 py-2 bg-violet-100 text-violet-700 rounded-full text-sm font-medium">
+                <span className="px-4 py-2 bg-brand-pink/10 text-brand-purple-dark rounded-full text-sm font-medium">
                   Tech-Focused
                 </span>
-                <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                <span className="px-4 py-2 bg-brand-purple/10 text-brand-purple-dark rounded-full text-sm font-medium">
                   B2B Specialized
                 </span>
                 <span className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
@@ -216,14 +214,13 @@ export default function AboutPage() {
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-violet-100 to-blue-100 rounded-3xl p-8 lg:p-12">
+            <div className="bg-gradient-to-br from-brand-pink/10 to-brand-purple/10 rounded-3xl p-8 lg:p-12">
               <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">What Makes Us Different</h3>
               <div className="space-y-6">
                 {[
-                  'Only tech & B2B creators (no lifestyle influencers)',
+                  'Only tech & B2B creators',
                   'Multi-platform: YouTube, Twitter, LinkedIn, GitHub, Newsletters, Podcasts',
                   'Verified metrics and authentic engagement',
-                  'Escrow payment protection for safe deals',
                   'Direct messaging with creators',
                   'Free to join for both brands and creators',
                 ].map((item, index) => (
@@ -288,13 +285,13 @@ export default function AboutPage() {
                 icon: Shield,
                 title: 'Transparency',
                 description: 'We provide accurate, verified data about every creator. No fake followers, no inflated metrics—just honest insights to help you make informed decisions.',
-                color: 'bg-violet-100 text-violet-600',
+                color: 'bg-brand-purple/10 text-brand-purple',
               },
               {
                 icon: Target,
                 title: 'Precision',
                 description: 'Our AI algorithms help you find the perfect creator match based on niche expertise, audience demographics, engagement quality, and content style.',
-                color: 'bg-blue-100 text-blue-600',
+                color: 'bg-brand-pink/10 text-brand-pink',
               },
               {
                 icon: Zap,
@@ -303,7 +300,7 @@ export default function AboutPage() {
                 color: 'bg-emerald-100 text-emerald-600',
               },
             ].map((value, index) => (
-              <div key={index} className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-violet-300 hover:shadow-lg transition-all text-center">
+              <div key={index} className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-brand-pink-light hover:shadow-lg transition-all text-center">
                 <div className={`w-16 h-16 ${value.color} rounded-2xl flex items-center justify-center mx-auto mb-6`}>
                   <value.icon className="w-8 h-8" />
                 </div>
@@ -332,7 +329,7 @@ export default function AboutPage() {
             {team.map((member, index) => (
               <div key={index} className="bg-white rounded-2xl p-8 border border-gray-200 text-center hover:shadow-lg transition-all">
                 {/* Team Image with gradient background fallback */}
-                <div className="w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden border-4 border-violet-100 bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
+                <div className="w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden border-4 border-brand-pink/20 bg-gradient-to-br from-brand-pink to-brand-purple flex items-center justify-center">
                   <Image
                     src={member.image}
                     alt={`${member.name} - ${member.role} at Infoishai`}
@@ -342,14 +339,14 @@ export default function AboutPage() {
                   />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-1">{member.name}</h3>
-                <p className="text-violet-600 font-medium mb-4">{member.role}</p>
+                <p className="text-brand-purple font-medium mb-4">{member.role}</p>
                 <p className="text-gray-600 leading-relaxed mb-6">{member.bio}</p>
                 <div className="flex items-center justify-center gap-4">
                   <a
                     href={member.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-violet-100 hover:text-violet-600 transition-colors"
+                    className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-brand-pink/10 hover:text-brand-purple transition-colors"
                   >
                     <Linkedin className="w-5 h-5" />
                   </a>
@@ -385,9 +382,9 @@ export default function AboutPage() {
                 description: 'We specialize in AI, SaaS, DevOps, and developer content creators exclusively.',
               },
               {
-                icon: Shield,
-                title: 'Escrow Protection',
-                description: 'Safe payments held until work is delivered and approved by both parties.',
+                icon: Target,
+                title: 'Precise Matching',
+                description: 'AI-powered filters match your brand with creators who fit your niche and audience.',
               },
               {
                 icon: Globe,
@@ -401,8 +398,8 @@ export default function AboutPage() {
               },
             ].map((feature, index) => (
               <div key={index} className="flex gap-4">
-                <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <feature.icon className="w-6 h-6 text-violet-600" />
+                <div className="w-12 h-12 bg-brand-pink/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <feature.icon className="w-6 h-6 text-brand-purple" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
@@ -419,15 +416,15 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Explore Infoishai</h2>
           <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-            Ready to see what Infoishai can do for you? <Link href="/creators" className="text-violet-600 hover:text-violet-700 font-medium">Browse our creator directory</Link>,{' '}
-            <Link href="/blog" className="text-violet-600 hover:text-violet-700 font-medium">read our blog</Link> for tech influencer marketing strategy, or{' '}
-            <Link href="/tools" className="text-violet-600 hover:text-violet-700 font-medium">try our free tools</Link> to analyze creator engagement before you commit budget.
+            Ready to see what Infoishai can do for you? <Link href="/creators" className="text-brand-purple hover:text-brand-purple-dark font-medium">Browse our creator directory</Link>,{' '}
+            <Link href="/blog" className="text-brand-purple hover:text-brand-purple-dark font-medium">read our blog</Link> for tech influencer marketing strategy, or{' '}
+            <Link href="/tools" className="text-brand-purple hover:text-brand-purple-dark font-medium">try our free tools</Link> to analyze creator engagement before you commit budget.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-6">
-            <Link href="/signup/brand" className="text-violet-600 hover:text-violet-700 font-medium">
+            <Link href="/signup/brand" className="text-brand-purple hover:text-brand-purple-dark font-medium">
               Sign up as a brand
             </Link>
-            <Link href="/signup/creator" className="text-violet-600 hover:text-violet-700 font-medium">
+            <Link href="/signup/creator" className="text-brand-purple hover:text-brand-purple-dark font-medium">
               Join as a creator
             </Link>
           </div>
@@ -435,19 +432,19 @@ export default function AboutPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-violet-600 to-blue-600 text-white">
+      <section className="py-20 lg:py-32 bg-gradient-to-br from-brand-pink to-brand-purple text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold mb-6">
             Ready to Find Your Perfect Tech Creator?
           </h2>
-          <p className="text-xl text-violet-100 mb-10 max-w-2xl mx-auto">
+          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
             Join hundreds of brands using Infoishai to connect with verified tech influencers.
             Free to start, no credit card required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/creators"
-              className="w-full sm:w-auto px-8 py-4 bg-white text-violet-600 rounded-full font-semibold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 bg-white text-brand-purple rounded-full font-semibold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
             >
               Browse Creators
               <ArrowRight className="w-5 h-5" />
