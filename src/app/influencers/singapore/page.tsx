@@ -22,9 +22,9 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Find Tech Influencers in Singapore | APAC Tech Creators',
+  title: '100+ Singapore Tech Influencers | ASEAN Gateway | Infoishai',
   description:
-    "Find verified Singaporean tech influencers for your brand. Browse creators covering AI, fintech, SaaS, and developer niches. Gateway to Southeast Asia's 650M+ market. Free to search.",
+    'Browse 100+ verified Singapore tech influencers. ASEAN coverage. Filter by niche, platform, budget. Rates in SGD. Free messaging.',
   keywords: [
     'tech influencers Singapore',
     'Singapore tech creators',
@@ -39,9 +39,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Find Tech Influencers in Singapore | Infoishai',
+    title: '100+ Singapore Tech Influencers | ASEAN Gateway | Infoishai',
     description:
-      "Find verified Singaporean tech influencers for your brand. Gateway to Southeast Asia's 650M+ market. Free to search.",
+      'Browse 100+ verified Singapore tech influencers. ASEAN coverage. Filter by niche, platform, budget. Rates in SGD. Free messaging.',
     url: 'https://infoishai.com/influencers/singapore',
     siteName: 'Infoishai',
     type: 'website',
@@ -49,9 +49,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Find Tech Influencers in Singapore | Infoishai',
+    title: '100+ Singapore Tech Influencers | ASEAN Gateway | Infoishai',
     description:
-      "Find verified Singaporean tech influencers for your brand. Gateway to Southeast Asia's 650M+ market. Free to search.",
+      'Browse 100+ verified Singapore tech influencers. ASEAN coverage. Filter by niche, platform, budget. Rates in SGD. Free messaging.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/singapore',

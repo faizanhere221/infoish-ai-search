@@ -19,9 +19,9 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Find Tech Influencers in Canada | Canadian Tech Creators',
+  title: '200+ Canadian Tech Influencers | Rates in CAD | Infoishai',
   description:
-    'Find 200+ verified Canadian tech influencers. Browse creators in Toronto, Vancouver, Montreal, and Waterloo. AI, SaaS, and developer niches. 20-30% lower rates than US creators. Free to search.',
+    'Browse 200+ verified Canadian tech influencers. Filter by niche, platform, budget. Compare rates in CAD. Free messaging. No subscription.',
   keywords: [
     'tech influencers Canada',
     'Canadian tech creators',
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Find Tech Influencers in Canada | Infoishai',
+    title: '200+ Canadian Tech Influencers | Rates in CAD | Infoishai',
     description:
-      'Find 200+ verified Canadian tech influencers. Browse creators in Toronto, Vancouver, Montreal, and Waterloo. AI, SaaS, and developer niches. 20-30% lower rates than US creators. Free to search.',
+      'Browse 200+ verified Canadian tech influencers. Filter by niche, platform, budget. Compare rates in CAD. Free messaging. No subscription.',
     url: 'https://infoishai.com/influencers/canada',
     siteName: 'Infoishai',
     type: 'website',
@@ -44,9 +44,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Find Tech Influencers in Canada | Infoishai',
+    title: '200+ Canadian Tech Influencers | Rates in CAD | Infoishai',
     description:
-      'Find 200+ verified Canadian tech influencers. Browse creators in Toronto, Vancouver, Montreal, and Waterloo. AI, SaaS, and developer niches. 20-30% lower rates than US creators. Free to search.',
+      'Browse 200+ verified Canadian tech influencers. Filter by niche, platform, budget. Compare rates in CAD. Free messaging. No subscription.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/canada',

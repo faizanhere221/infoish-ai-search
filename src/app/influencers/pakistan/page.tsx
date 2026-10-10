@@ -22,9 +22,9 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Find Tech Influencers in Pakistan | Pakistani Tech Creators',
+  title: '100+ Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai',
   description:
-    'Find verified Pakistani tech influencers for your brand. Browse creators in Lahore, Karachi, and Islamabad covering AI, SaaS, mobile apps, freelancing, and developer niches. Free to search.',
+    'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No subscription.',
   keywords: [
     'tech influencers Pakistan',
     'Pakistani tech creators',
@@ -39,9 +39,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Find Tech Influencers in Pakistan | Infoishai',
+    title: '100+ Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai',
     description:
-      'Find verified Pakistani tech influencers for your brand. Browse creators in Lahore, Karachi, and Islamabad covering AI, SaaS, and developer niches. Free to search.',
+      'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No subscription.',
     url: 'https://infoishai.com/influencers/pakistan',
     siteName: 'Infoishai',
     type: 'website',
@@ -49,9 +49,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Find Tech Influencers in Pakistan | Infoishai',
+    title: '100+ Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai',
     description:
-      'Find verified Pakistani tech influencers for your brand. Browse creators in Lahore, Karachi, and Islamabad covering AI, SaaS, and developer niches. Free to search.',
+      'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No subscription.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/pakistan',

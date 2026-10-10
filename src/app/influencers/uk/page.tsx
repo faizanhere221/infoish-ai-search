@@ -19,9 +19,9 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Tech Influencers UK | 300+ Verified British Creators',
+  title: '300+ UK Tech Influencers | Rates from GBP 200 | Infoishai',
   description:
-    'Find 300+ verified British tech influencers. Browse UK creators in AI, SaaS, fintech, and developer niches. YouTube, LinkedIn, and Twitter/X. Rates from £400. European reach. Free to search.',
+    'Browse 300+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No subscription.',
   keywords: [
     'tech influencers UK',
     'British tech creators',
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Tech Influencers UK | 300+ Verified British Creators | Infoishai',
+    title: '300+ UK Tech Influencers | Rates from GBP 200 | Infoishai',
     description:
-      'Find 300+ verified British tech influencers. Browse UK creators in AI, SaaS, fintech, and developer niches. YouTube, LinkedIn, and Twitter/X. Rates from £400. European reach. Free to search.',
+      'Browse 300+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No subscription.',
     url: 'https://infoishai.com/influencers/uk',
     siteName: 'Infoishai',
     type: 'website',
@@ -44,9 +44,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tech Influencers UK | 300+ Verified British Creators | Infoishai',
+    title: '300+ UK Tech Influencers | Rates from GBP 200 | Infoishai',
     description:
-      'Find 300+ verified British tech influencers. Browse UK creators in AI, SaaS, fintech, and developer niches. YouTube, LinkedIn, and Twitter/X. Rates from £400. European reach. Free to search.',
+      'Browse 300+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No subscription.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/uk',

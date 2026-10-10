@@ -21,9 +21,9 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Find Tech Influencers in Germany | German Tech Creators',
+  title: '200+ German Tech Influencers | DACH Region | Infoishai',
   description:
-    'Find verified German tech influencers for your brand. Browse creators in Berlin, Munich, and Hamburg covering AI, SaaS, Industry 4.0, and developer niches. DACH region coverage. Free to search.',
+    'Browse 200+ verified German tech influencers. DACH region coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
   keywords: [
     'tech influencers Germany',
     'German tech creators',
@@ -38,9 +38,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Find Tech Influencers in Germany | Infoishai',
+    title: '200+ German Tech Influencers | DACH Region | Infoishai',
     description:
-      'Find verified German tech influencers for your brand. Browse creators in Berlin, Munich, and Hamburg. DACH region coverage. Free to search.',
+      'Browse 200+ verified German tech influencers. DACH region coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
     url: 'https://infoishai.com/influencers/germany',
     siteName: 'Infoishai',
     type: 'website',
@@ -48,9 +48,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Find Tech Influencers in Germany | Infoishai',
+    title: '200+ German Tech Influencers | DACH Region | Infoishai',
     description:
-      'Find verified German tech influencers for your brand. Browse creators in Berlin, Munich, and Hamburg. DACH region coverage. Free to search.',
+      'Browse 200+ verified German tech influencers. DACH region coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/germany',

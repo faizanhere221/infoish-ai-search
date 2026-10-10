@@ -21,9 +21,9 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Find Tech Influencers in Netherlands | Dutch Tech Creators',
+  title: '100+ Dutch Tech Influencers | Benelux & EU Reach | Infoishai',
   description:
-    'Find verified Dutch tech influencers for your brand. Browse creators in Amsterdam, Eindhoven, and Rotterdam covering AI, SaaS, fintech, and developer niches. Benelux region coverage. Free to search.',
+    'Browse 100+ verified Dutch tech influencers. Benelux and EU coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
   keywords: [
     'tech influencers Netherlands',
     'Dutch tech creators',
@@ -38,9 +38,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Find Tech Influencers in Netherlands | Infoishai',
+    title: '100+ Dutch Tech Influencers | Benelux & EU Reach | Infoishai',
     description:
-      'Find verified Dutch tech influencers for your brand. Browse creators in Amsterdam, Eindhoven, and Rotterdam. Benelux coverage. Free to search.',
+      'Browse 100+ verified Dutch tech influencers. Benelux and EU coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
     url: 'https://infoishai.com/influencers/netherlands',
     siteName: 'Infoishai',
     type: 'website',
@@ -48,9 +48,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Find Tech Influencers in Netherlands | Infoishai',
+    title: '100+ Dutch Tech Influencers | Benelux & EU Reach | Infoishai',
     description:
-      'Find verified Dutch tech influencers for your brand. Browse creators in Amsterdam, Eindhoven, and Rotterdam. Benelux coverage. Free to search.',
+      'Browse 100+ verified Dutch tech influencers. Benelux and EU coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/netherlands',

@@ -20,9 +20,9 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Find Tech Influencers in Australia | Aussie Tech Creators',
+  title: '150+ Australian Tech Influencers | APAC Reach | Infoishai',
   description:
-    'Find verified Australian tech influencers for your brand. Browse creators in Sydney, Melbourne, and Brisbane covering AI, SaaS, fintech, and developer niches. Free to search.',
+    'Browse 150+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No subscription.',
   keywords: [
     'tech influencers Australia',
     'Australian tech creators',
@@ -36,9 +36,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Find Tech Influencers in Australia | Infoishai',
+    title: '150+ Australian Tech Influencers | APAC Reach | Infoishai',
     description:
-      'Find verified Australian tech influencers for your brand. Browse creators in Sydney, Melbourne, and Brisbane covering AI, SaaS, and developer niches. Free to search.',
+      'Browse 150+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No subscription.',
     url: 'https://infoishai.com/influencers/australia',
     siteName: 'Infoishai',
     type: 'website',
@@ -46,9 +46,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Find Tech Influencers in Australia | Infoishai',
+    title: '150+ Australian Tech Influencers | APAC Reach | Infoishai',
     description:
-      'Find verified Australian tech influencers for your brand. Browse creators in Sydney, Melbourne, and Brisbane. Free to search.',
+      'Browse 150+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No subscription.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/australia',

@@ -1,0 +1,29 @@
+# Infoishai
+> Infoishai is a free tech influencer marketplace connecting B2B brands with verified tech content creators across 9 countries.
+
+## About
+Infoishai helps brands find and hire tech influencers for product reviews, sponsored content, and creator partnerships. The platform lists verified creators covering AI, SaaS, developer tools, cloud, fintech, cybersecurity, and 10+ other tech niches.
+
+## Key Pages
+- [Homepage](https://infoishai.com): Main marketplace search
+- [Creator Directory](https://infoishai.com/creators): Browse all tech influencers
+- [Tech Influencer Rates 2026](https://infoishai.com/blog/tech-influencer-rates-2026): Complete pricing guide
+- [Find Tech YouTubers](https://infoishai.com/blog/how-to-find-tech-youtubers-product-reviews-2026): YouTube creator guide
+- [First Campaign Guide](https://infoishai.com/blog/first-tech-influencer-campaign-startup-guide-2026): Startup guide
+
+## Country Pages
+- [USA](https://infoishai.com/influencers/usa)
+- [UK](https://infoishai.com/influencers/uk)
+- [Canada](https://infoishai.com/influencers/canada)
+- [India](https://infoishai.com/influencers/india)
+- [Pakistan](https://infoishai.com/influencers/pakistan)
+- [Australia](https://infoishai.com/influencers/australia)
+- [Germany](https://infoishai.com/influencers/germany)
+- [Netherlands](https://infoishai.com/influencers/netherlands)
+- [Singapore](https://infoishai.com/influencers/singapore)
+
+## For Brands
+Free search and messaging. No subscription fees. Filter creators by niche, platform, country, and engagement rate.
+
+## For Creators
+Free profile creation. Get discovered by brands. Set your own rates. No platform fees on earnings.
