@@ -561,6 +561,9 @@ export default function B2BvsB2CInfluencerMarketingPage() {
 
         {/* Related Articles */}
         <div className="mt-16 pt-12 border-t border-gray-200">
+          <p className="text-gray-700 leading-relaxed mb-8">
+            Whichever model fits your brand, Infoishai lists verified <Link href="/influencers/usa" className="text-blue-600 hover:text-blue-700 font-semibold">US tech influencers</Link> and <Link href="/influencers/germany" className="text-blue-600 hover:text-blue-700 font-semibold">German tech influencers</Link> across the DACH region and beyond.
+          </p>
           <h3 className="text-2xl font-bold text-gray-900 mb-6">Related Articles</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link href="/blog/top-10-benefits-tech-influencer-marketing-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
@@ -572,6 +575,11 @@ export default function B2BvsB2CInfluencerMarketingPage() {
               <span className="text-sm text-blue-600 font-medium">Strategy</span>
               <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">How to Find Tech Influencers for Your B2B Product in 2026</h4>
               <p className="text-gray-600 text-sm mt-2">Where to search, what to look for, rates, and outreach templates.</p>
+            </Link>
+            <Link href="/blog/b2c-influencer-marketing-strategies-tech-brands-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
+              <span className="text-sm text-blue-600 font-medium">Marketing</span>
+              <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">Top B2C Influencer Marketing Strategies for Tech Brands 2026</h4>
+              <p className="text-gray-600 text-sm mt-2">Tactics for reaching consumer tech buyers through creators.</p>
             </Link>
           </div>
         </div>

@@ -543,6 +543,9 @@ export default function TechCreatorSponsorshipRatesPage() {
 
         {/* Related Articles */}
         <div className="mt-16 pt-12 border-t border-gray-200">
+          <p className="text-gray-700 leading-relaxed mb-8">
+            Want to see how your rates compare? Browse profiles of <Link href="/influencers/india" className="text-blue-600 hover:text-blue-700 font-semibold">Indian tech influencers</Link> and <Link href="/influencers/pakistan" className="text-blue-600 hover:text-blue-700 font-semibold">Pakistani tech influencers</Link> already listed on Infoishai.
+          </p>
           <h3 className="text-2xl font-bold text-gray-900 mb-6">Related Articles</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link href="/blog/tech-influencer-rates-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
@@ -554,6 +557,11 @@ export default function TechCreatorSponsorshipRatesPage() {
               <span className="text-sm text-blue-600 font-medium">Strategy</span>
               <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">Tech Creator&apos;s Guide: How to Get Brand Deals in 2026</h4>
               <p className="text-gray-600 text-sm mt-2">Build your profile, pitch brands, and land paid sponsorships.</p>
+            </Link>
+            <Link href="/blog/creator-media-kit-guide-tech-influencers" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
+              <span className="text-sm text-blue-600 font-medium">Creator Guide</span>
+              <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">How to Build a Creator Media Kit: Guide for Tech Influencers</h4>
+              <p className="text-gray-600 text-sm mt-2">What to include so brands say yes faster.</p>
             </Link>
           </div>
         </div>

@@ -74,7 +74,7 @@ const jsonLd = {
   description: 'Pakistani micro-influencers deliver 3x higher engagement at PKR 5,000 to PKR 25,000 per post. See real rate comparisons, engagement data, and a step-by-step guide to finding verified micro-influencers for your brand.',
   image: 'https://infoishai.com/blog/micro-influencers-pakistan-guide.jpg',
   datePublished: '2025-12-27',
-  dateModified: '2025-12-27',
+  dateModified: '2026-10-11',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -138,7 +138,7 @@ export default function MicroInfluencersPakistanBlog() {
               Data-Driven
             </span>
             <span className="px-3 py-1 bg-purple-100 text-purple-700 text-sm font-medium rounded-full">
-              2025 Guide
+              2026 Guide
             </span>
           </div>
           
@@ -389,7 +389,7 @@ export default function MicroInfluencersPakistanBlog() {
             </h2>
 
             <p className="text-gray-700 mb-6 text-lg leading-relaxed">
-              Here's the real <strong>influencer pricing in Pakistan</strong> as of late 2025. These rates are based on our conversations with hundreds of creators:
+              Here's the real <strong>influencer pricing in Pakistan</strong> as of 2026. These rates are based on our conversations with hundreds of creators:
             </p>
 
             <div className="overflow-x-auto mb-8 rounded-xl border border-gray-200">
@@ -489,7 +489,7 @@ export default function MicroInfluencersPakistanBlog() {
                   <div>
                     <h4 className="font-bold text-gray-900 mb-2 text-lg">Use an AI-Powered Platform (Fastest Method)</h4>
                     <p className="text-gray-700 mb-4">
-                      Platforms like <strong>Infoishai</strong> let you search <strong>1,800+ verified Pakistani influencers</strong> by niche, city, follower count, and engagement rate. Find the perfect micro-influencers in seconds instead of spending hours scrolling.
+                      Platforms like <strong>Infoishai</strong> let you search <strong>1,800+ verified Pakistani influencers</strong> by niche, city, follower count, and engagement rate. Find the perfect micro-influencers in seconds instead of spending hours scrolling, or jump straight to the <Link href="/influencers/pakistan" className="text-blue-600 hover:text-blue-700 font-semibold">Pakistan tech influencer directory</Link>.
                     </p>
                     <Link 
                       href="/creators"

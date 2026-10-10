@@ -192,6 +192,18 @@ const tools = [
   { name: 'Notion', description: 'Build a media kit as a Notion page and share the link directly. Notion pages look clean and update in real time when your stats change.' },
 ]
 
+const howToJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'How to Build a Creator Media Kit: Guide for Tech Influencers',
+  description: 'Build a media kit as a tech creator. Free template with audience stats, rate cards, and past results. Land more brand deals with a professional one-pager.',
+  step: sections.map((section) => ({
+    '@type': 'HowToStep',
+    name: `Section ${section.number}: ${section.title}`,
+    text: section.body,
+  })),
+}
+
 export default function CreatorMediaKitGuidePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -202,6 +214,10 @@ export default function CreatorMediaKitGuidePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
       />
 
       <Header />
@@ -459,6 +475,9 @@ export default function CreatorMediaKitGuidePage() {
 
         {/* Related Articles */}
         <div className="mt-16 pt-12 border-t border-gray-200">
+          <p className="text-gray-700 leading-relaxed mb-8">
+            Ready to get discovered? Create your profile and get found alongside other <Link href="/influencers/usa" className="text-blue-600 hover:text-blue-700 font-semibold">US tech influencers</Link> on Infoishai.
+          </p>
           <h3 className="text-2xl font-bold text-gray-900 mb-6">Related Articles</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link href="/blog/tech-creator-sponsorship-rates-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">

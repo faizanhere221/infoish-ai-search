@@ -66,10 +66,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/blog/how-to-find-tech-influencers-b2b-2026`, lastModified: new Date('2026-07-06'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/free-instagram-profile-analyzer-complete-guide`, lastModified: new Date('2025-11-29'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/free-instagram-hashtag-generator-2025`, lastModified: new Date('2025-12-01'), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${baseUrl}/blog/complete-guide-influencer-marketing-pakistan-2025`, lastModified: new Date('2024-11-20'), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${baseUrl}/blog/find-right-pakistani-influencers-brand`, lastModified: new Date('2024-11-20'), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${baseUrl}/blog/ai-powered-influencer-marketing-tools-game-changer`, lastModified: new Date('2024-11-20'), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${baseUrl}/blog/micro-influencers-pakistan-guide`, lastModified: new Date('2024-11-20'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/complete-guide-influencer-marketing-pakistan-2025`, lastModified: new Date('2026-10-11'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/find-right-pakistani-influencers-brand`, lastModified: new Date('2026-10-11'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/ai-powered-influencer-marketing-tools-game-changer`, lastModified: new Date('2026-10-11'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/micro-influencers-pakistan-guide`, lastModified: new Date('2026-10-11'), changeFrequency: 'monthly', priority: 0.7 },
 
     // Support / info pages
     { url: `${baseUrl}/help`, lastModified: today, changeFrequency: 'monthly', priority: 0.6 },

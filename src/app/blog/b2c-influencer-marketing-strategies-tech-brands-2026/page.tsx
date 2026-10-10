@@ -627,6 +627,11 @@ export default function B2CInfluencerMarketingStrategiesPage() {
               <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">Tech Creator&apos;s Guide: How to Get Brand Deals in 2026</h4>
               <p className="text-gray-600 text-sm mt-2">Build your profile, set rates, pitch brands, and land paid sponsorships.</p>
             </Link>
+            <Link href="/blog/tech-influencer-rates-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
+              <span className="text-sm text-blue-600 font-medium">Pricing</span>
+              <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">Tech Influencer Rates 2026: What Every Brand Should Know</h4>
+              <p className="text-gray-600 text-sm mt-2">Rate benchmarks by platform, country, and audience size.</p>
+            </Link>
           </div>
         </div>
       </article>

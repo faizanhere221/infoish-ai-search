@@ -37,7 +37,7 @@ const jsonLd = {
   description: 'How to find and vet Pakistani influencers for your brand. Engagement benchmarks, pricing data, red flags to avoid, and free tools to verify audience quality.',
   image: 'https://infoishai.com/blog/find-right-pakistani-influencers-brand.jpg',
   datePublished: '2025-10-18',
-  dateModified: '2025-10-18',
+  dateModified: '2026-10-11',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -312,7 +312,7 @@ export default function FindRightInfluencersPage() {
               </ul>
 
               <p className="text-gray-700 leading-relaxed mt-6">
-                Before you default to the biggest name available, it's worth understanding <Link href="/blog/micro-influencers-pakistan-guide" className="text-blue-600 hover:text-blue-700 font-semibold">why micro-influencers outperform celebrities in Pakistan</Link> on engagement and ROI — smaller creators often deliver better results for a fraction of the budget.
+                Before you default to the biggest name available, it's worth understanding <Link href="/blog/micro-influencers-pakistan-guide" className="text-blue-600 hover:text-blue-700 font-semibold">why micro-influencers outperform celebrities in Pakistan</Link> on engagement and ROI — smaller creators often deliver better results for a fraction of the budget. You can also browse the full <Link href="/influencers/pakistan" className="text-blue-600 hover:text-blue-700 font-semibold">Pakistani tech influencer directory</Link> or check current <Link href="/blog/tech-influencer-rates-2026" className="text-blue-600 hover:text-blue-700 font-semibold">tech influencer rates for 2026</Link> before you budget your campaign.
               </p>
 
               <div className="mt-6">

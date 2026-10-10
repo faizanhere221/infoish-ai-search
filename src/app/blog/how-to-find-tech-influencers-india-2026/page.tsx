@@ -155,6 +155,23 @@ const cities = [
   { name: 'Chennai', description: 'Strong in IT services and enterprise computing, with content in English and Tamil. The gateway to South Indian tech audiences.' },
 ]
 
+const howToJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'How to Find Tech Influencers in India: Complete Brand Guide',
+  description: 'Find tech influencers in India for your brand. Covers vetting, rates (INR 5,000 to INR 5,00,000), platforms, niches, English vs Hindi creators, and outreach tips.',
+  step: [
+    { '@type': 'HowToStep', name: 'Define Your Target Audience Within India', text: 'Identify which regions, languages, and buyer personas within India your campaign should reach before searching for creators.' },
+    { '@type': 'HowToStep', name: 'Know Which Platforms Indian Tech Influencers Use', text: 'Understand where Indian tech creators are most active, including YouTube, Instagram, LinkedIn, Twitter/X, Telegram, and Discord.' },
+    { '@type': 'HowToStep', name: 'Search by Niche, Not by Follower Count', text: 'Filter creators by tech niche and relevance to your product rather than by raw audience size.' },
+    { '@type': 'HowToStep', name: 'Vet Creators Before Reaching Out', text: 'Check engagement quality, audience authenticity, and past brand collaborations before contacting a creator.' },
+    { '@type': 'HowToStep', name: 'Understand Indian Tech Influencer Rates', text: 'Learn typical sponsorship pricing in India, from INR 5,000 to INR 5,00,000 depending on platform and audience size.' },
+    { '@type': 'HowToStep', name: 'Choose Between English and Hindi Creators', text: 'Decide whether English-language or Hindi-language creators better fit your target audience and campaign goals.' },
+    { '@type': 'HowToStep', name: 'Target the Right Cities', text: 'Focus outreach on tech hubs like Bangalore, Mumbai, Delhi-NCR, and Chennai based on your product and audience.' },
+    { '@type': 'HowToStep', name: 'Write the Outreach Message', text: 'Craft a clear, personalized outreach message that gets a response from Indian tech creators.' },
+  ],
+}
+
 export default function HowToFindTechInfluencersIndiaPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -165,6 +182,10 @@ export default function HowToFindTechInfluencersIndiaPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
       />
 
       <Header />
@@ -595,6 +616,16 @@ Here is a link to the product: [URL]. Happy to set up a free account for you to 
               <span className="text-sm text-blue-600 font-medium">Strategy</span>
               <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">Micro-Influencers in Pakistan: Why They Outperform Celebrities</h4>
               <p className="text-gray-600 text-sm mt-2">Real pricing data, engagement benchmarks, and how to find verified micro-creators.</p>
+            </Link>
+            <Link href="/blog/tech-influencer-rates-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
+              <span className="text-sm text-blue-600 font-medium">Pricing</span>
+              <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">Tech Influencer Rates 2026: What Every Brand Should Know</h4>
+              <p className="text-gray-600 text-sm mt-2">Rate benchmarks by platform, country, and audience size.</p>
+            </Link>
+            <Link href="/blog/first-tech-influencer-campaign-startup-guide-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
+              <span className="text-sm text-blue-600 font-medium">Guide</span>
+              <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">How to Run Your First Tech Influencer Campaign: Startup Guide</h4>
+              <p className="text-gray-600 text-sm mt-2">A step-by-step playbook for launching your first creator campaign.</p>
             </Link>
           </div>
         </div>

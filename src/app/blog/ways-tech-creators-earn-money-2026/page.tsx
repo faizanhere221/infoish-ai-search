@@ -454,6 +454,9 @@ export default function WaysTechCreatorsEarnMoneyPage() {
 
         {/* Related Articles */}
         <div className="mt-16 pt-12 border-t border-gray-200">
+          <p className="text-gray-700 leading-relaxed mb-8">
+            Ready to start earning? Get discovered alongside other <Link href="/influencers/usa" className="text-blue-600 hover:text-blue-700 font-semibold">US tech influencers</Link> and <Link href="/influencers/india" className="text-blue-600 hover:text-blue-700 font-semibold">Indian tech influencers</Link> on Infoishai.
+          </p>
           <h3 className="text-2xl font-bold text-gray-900 mb-6">Related Articles</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link href="/blog/tech-creator-sponsorship-rates-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">

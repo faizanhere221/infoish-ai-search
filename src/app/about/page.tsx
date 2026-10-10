@@ -64,6 +64,8 @@ const jsonLd = {
     name: 'Infoishai',
     url: 'https://infoishai.com',
     logo: 'https://infoishai.com/logo.png',
+    description: 'Free tech influencer marketplace for B2B brands',
+    areaServed: ['US', 'GB', 'CA', 'IN', 'PK', 'AU', 'DE', 'NL', 'SG'],
     founder: [
       { '@type': 'Person', name: 'Faizan Islam', jobTitle: 'Founder & CEO' },
       { '@type': 'Person', name: 'Farhan Islam', jobTitle: 'Co-Founder & CTO' },

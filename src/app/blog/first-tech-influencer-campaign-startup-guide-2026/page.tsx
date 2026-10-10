@@ -161,6 +161,25 @@ const checklist = [
   'Score each creator and decide who to renew',
 ]
 
+const howToJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'How to Run Your First Tech Influencer Campaign: Startup Guide',
+  description: 'Run your first tech influencer campaign step by step. Built for startups. Covers budgets from $500, creator selection, briefs, tracking, and scaling. Free tools.',
+  step: [
+    { '@type': 'HowToStep', name: 'Set One Clear Goal', text: 'Pick a single primary objective for the campaign, such as awareness, sign-ups, or sales.' },
+    { '@type': 'HowToStep', name: 'Set Your Budget', text: 'Decide how much you can spend on your first campaign and how it will be split across creators.' },
+    { '@type': 'HowToStep', name: 'Choose Your Platform', text: 'Pick the platform, such as YouTube, LinkedIn, or Twitter/X, that best fits your product and audience.' },
+    { '@type': 'HowToStep', name: 'Find 10 to 15 Creator Candidates', text: 'Build a shortlist of creators whose niche and audience match your target customer.' },
+    { '@type': 'HowToStep', name: 'Send the Outreach', text: 'Contact your shortlist with a clear, personalized message describing the opportunity.' },
+    { '@type': 'HowToStep', name: 'Write the Campaign Brief', text: 'Document goals, key messages, deliverables, and deadlines so creators know exactly what to produce.' },
+    { '@type': 'HowToStep', name: 'Set Up Tracking Before Content Goes Live', text: 'Add unique referral links and promo codes so you can measure results per creator.' },
+    { '@type': 'HowToStep', name: 'Manage the Campaign', text: 'Review draft content, give one round of feedback, and publish and engage once it is live.' },
+    { '@type': 'HowToStep', name: 'Measure Results', text: 'Check performance at 7, 30, and 90 days after publication.' },
+    { '@type': 'HowToStep', name: 'Decide What to Do Next', text: 'Score each creator on performance and decide which partnerships to renew or scale.' },
+  ],
+}
+
 export default function FirstTechInfluencerCampaignPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -171,6 +190,10 @@ export default function FirstTechInfluencerCampaignPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
       />
 
       <Header />
@@ -645,6 +668,9 @@ Renew for next campaign (yes/no):`}
 
         {/* Related Articles */}
         <div className="mt-16 pt-12 border-t border-gray-200">
+          <p className="text-gray-700 leading-relaxed mb-8">
+            Ready to launch? Browse verified <Link href="/influencers/uk" className="text-blue-600 hover:text-blue-700 font-semibold">UK tech influencers</Link> on Infoishai for your first campaign.
+          </p>
           <h3 className="text-2xl font-bold text-gray-900 mb-6">Related Articles</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link href="/blog/tech-influencer-rates-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">

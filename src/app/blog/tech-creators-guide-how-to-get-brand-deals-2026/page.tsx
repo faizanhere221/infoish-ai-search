@@ -612,6 +612,9 @@ My media kit is attached. I am open to discussing formats and timelines.
 
         {/* Related Articles */}
         <div className="mt-16 pt-12 border-t border-gray-200">
+          <p className="text-gray-700 leading-relaxed mb-8">
+            Looking for creators to work with? Browse verified <Link href="/influencers/india" className="text-blue-600 hover:text-blue-700 font-semibold">Indian tech influencers</Link> or <Link href="/influencers/pakistan" className="text-blue-600 hover:text-blue-700 font-semibold">Pakistani tech influencers</Link> on Infoishai, free to search and message.
+          </p>
           <h3 className="text-2xl font-bold text-gray-900 mb-6">Related Articles</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link href="/blog/how-to-find-tech-influencers-b2b-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
@@ -623,6 +626,16 @@ My media kit is attached. I am open to discussing formats and timelines.
               <span className="text-sm text-blue-600 font-medium">Marketing</span>
               <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">Top 10 Benefits of Tech Influencer Marketing in 2026</h4>
               <p className="text-gray-600 text-sm mt-2">Why tech brands are increasing creator partnership budgets this year.</p>
+            </Link>
+            <Link href="/blog/creator-media-kit-guide-tech-influencers" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
+              <span className="text-sm text-blue-600 font-medium">Creator Guide</span>
+              <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">How to Build a Creator Media Kit: Guide for Tech Influencers</h4>
+              <p className="text-gray-600 text-sm mt-2">What to include so brands say yes faster.</p>
+            </Link>
+            <Link href="/blog/tech-creator-sponsorship-rates-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
+              <span className="text-sm text-blue-600 font-medium">Pricing</span>
+              <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">How Much Should Tech Creators Charge for Sponsorships? (2026)</h4>
+              <p className="text-gray-600 text-sm mt-2">Rate benchmarks so you don't undercharge your next deal.</p>
             </Link>
           </div>
         </div>

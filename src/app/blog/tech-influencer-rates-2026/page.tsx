@@ -556,6 +556,16 @@ export default function TechInfluencerRates2026Page() {
               <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">B2B vs B2C Influencer Marketing: What Works for Tech in 2026</h4>
               <p className="text-gray-600 text-sm mt-2">Compare strategies, budgets, platforms, and ROI metrics for both models.</p>
             </Link>
+            <Link href="/blog/tech-creator-sponsorship-rates-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
+              <span className="text-sm text-blue-600 font-medium">Pricing</span>
+              <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">How Much Should Tech Creators Charge for Sponsorships? (2026)</h4>
+              <p className="text-gray-600 text-sm mt-2">The creator-side view of the same rate data.</p>
+            </Link>
+            <Link href="/blog/how-to-find-tech-youtubers-product-reviews-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
+              <span className="text-sm text-blue-600 font-medium">Guide</span>
+              <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">How to Find Tech YouTubers for Product Reviews in 2026</h4>
+              <p className="text-gray-600 text-sm mt-2">Where to search, how to vet, and what to pay for a YouTube review.</p>
+            </Link>
           </div>
         </div>
       </article>
