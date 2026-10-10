@@ -322,6 +322,9 @@ export default function SingaporeInfluencersPage() {
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
             Find Tech Influencers in Singapore
           </h1>
+          <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
+            Singapore tech influencers provide gateway access to the entire ASEAN market (680 million people). A mid-tier Singapore tech creator charges SGD 400-SGD 3,000 per sponsored video. Singapore&apos;s tech ecosystem spans fintech, cybersecurity, cloud, and AI. Infoishai lists 100+ verified Singapore tech influencers with free search.
+          </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified Singaporean tech creators across YouTube, LinkedIn, Twitter/X,
             and newsletters. Your gateway to Southeast Asia&apos;s 650 million person market.

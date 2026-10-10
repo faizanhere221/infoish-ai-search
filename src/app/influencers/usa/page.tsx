@@ -310,6 +310,9 @@ export default function UsaInfluencersPage() {
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
             Find Tech Influencers in the United States
           </h1>
+          <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
+            American tech influencers reach the world&apos;s largest SaaS market ($195 billion) across YouTube, LinkedIn, Twitter, and TikTok. A mid-tier US tech creator charges $500-$3,000 per sponsored video. Infoishai lists 500+ verified US tech creators. Brands search free, filter by niche and platform, and message creators directly with no subscription fees.
+          </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified American tech creators across YouTube, Twitter/X, LinkedIn, and
             newsletters. Browse by niche, audience size, and engagement rate. Free to search.

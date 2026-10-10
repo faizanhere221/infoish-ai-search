@@ -312,6 +312,9 @@ export default function AustraliaInfluencersPage() {
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
             Find Tech Influencers in Australia
           </h1>
+          <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
+            Australian tech influencers provide access to the APAC region&apos;s highest-spending B2B market. A mid-tier Australian tech creator charges AUD 300-AUD 2,000 per sponsored video. Sydney, Melbourne, and Brisbane produce the most tech content. Infoishai lists 150+ verified Australian tech influencers with free search and messaging.
+          </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified Australian tech creators across YouTube, Twitter/X, LinkedIn,
             and newsletters. Browse by niche, audience size, and engagement rate. Free to search.

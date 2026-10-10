@@ -369,6 +369,9 @@ export default function PakistanInfluencersPage() {
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
             Find Tech Influencers in Pakistan
           </h1>
+          <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
+            Pakistani tech influencers serve a rapidly growing market of 120 million internet users. A mid-tier Pakistani tech creator charges PKR 10,000-PKR 100,000 per sponsored video. Lahore, Karachi, and Islamabad lead in tech content creation. Infoishai lists 100+ verified Pakistani tech influencers searchable by niche and platform.
+          </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified Pakistani tech creators across YouTube, Instagram, Twitter/X,
             and LinkedIn. Browse by niche, language, audience size, and engagement rate. Free to

@@ -314,6 +314,9 @@ export default function NetherlandsInfluencersPage() {
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
             Find Tech Influencers in the Netherlands
           </h1>
+          <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
+            Dutch tech influencers serve the Benelux region and broader EU market from Europe&apos;s tech startup capital. A mid-tier Dutch tech creator charges EUR 250-EUR 1,500 per sponsored video. Amsterdam, Eindhoven, and Rotterdam lead in tech content. Infoishai lists 100+ verified Dutch tech influencers.
+          </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified Dutch tech creators across YouTube, LinkedIn, Twitter/X, and
             newsletters. Reach the Benelux region and wider European market. Browse by niche,

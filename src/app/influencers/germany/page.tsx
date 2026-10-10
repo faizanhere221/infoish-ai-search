@@ -329,6 +329,9 @@ export default function GermanyInfluencersPage() {
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
             Find Tech Influencers in Germany
           </h1>
+          <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
+            German tech influencers reach the DACH region (Germany, Austria, Switzerland), Europe&apos;s largest economy. A mid-tier German tech creator charges EUR 300-EUR 2,000 per sponsored video. Berlin, Munich, and Hamburg lead in tech content. Infoishai lists 200+ verified German tech influencers across YouTube, LinkedIn, XING, and Twitter.
+          </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified German tech creators across YouTube, LinkedIn, Twitter/X, and
             newsletters. Reach the DACH region. Browse by niche, language, and engagement rate.

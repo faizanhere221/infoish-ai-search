@@ -352,6 +352,9 @@ export default function IndiaInfluencersPage() {
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
             Find Tech Influencers in India
           </h1>
+          <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
+            Indian tech influencers reach the world&apos;s largest developer population (5.8 million engineers) at rates 70-80% lower than US equivalents. A mid-tier Indian tech creator charges INR 5,000-INR 50,000 per sponsored video. Bangalore, Mumbai, and Delhi-NCR produce the most tech content. Infoishai lists 800+ verified Indian tech influencers.
+          </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified Indian tech creators across YouTube, Twitter/X, LinkedIn, and
             Instagram. Browse by niche, language, audience size, and engagement rate. Free to
