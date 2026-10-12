@@ -91,3 +91,5 @@ supabase/.temp
 # Supabase Storage bucket (see supabase/rate_limiting_migration.sql sibling
 # notes / PAYMENT_PROOFS_SETUP below) — never meant to be in git either.
 /private-uploads/
+# Sentry Config File
+.env.sentry-build-plugin
