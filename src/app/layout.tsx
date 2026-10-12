@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
 import './globals.css'
 import { OrganizationJsonLd, WebSiteJsonLd, SoftwareApplicationJsonLd } from '@/components/seo/JsonLd'
+import CookieConsent from '@/components/CookieConsent'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -95,18 +95,16 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // GA4 is no longer rendered server-side here — CookieConsent.tsx loads it
+  // client-side only after the visitor consents (or immediately on mount for
+  // a returning visitor who already consented, via the cookie_consent
+  // cookie). Deciding this server-side would require calling cookies() in
+  // the root layout, which opts every single page out of static rendering —
+  // not worth it for a few hundred ms of earlier analytics loading.
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-white text-gray-900 antialiased`}>
-        <Script src="https://www.googletagmanager.com/gtag/js?id=G-Y97NRDZSBB" strategy="afterInteractive" />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-Y97NRDZSBB');
-          `}
-        </Script>
+        <CookieConsent />
 
         <OrganizationJsonLd />
         <WebSiteJsonLd />
