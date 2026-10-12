@@ -69,6 +69,13 @@ export default function NotFound() {
             <Search className="w-5 h-5" />
             Search Influencers
           </Link>
+
+          <Link
+            href="/help"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-gray-700 border-2 border-gray-200 font-semibold rounded-xl hover:bg-gray-50 transition-all"
+          >
+            Help Center
+          </Link>
         </div>
 
         {/* Quick Links */}
