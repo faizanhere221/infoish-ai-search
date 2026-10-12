@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES } from '@/utils/constants'
 import { validateEmail } from '@/utils/validateEmail'
+import { trackSignupComplete, trackTrialStarted } from '@/lib/analytics'
 import { getReferralCode, setReferralCode, clearReferralCode } from '@/lib/referral-tracking'
 import ReferralBanner from '@/components/referral/ReferralBanner'
 import AvatarUpload from '@/components/AvatarUpload'
@@ -316,6 +317,9 @@ function CreatorSignupContent() {
       localStorage.setItem('auth_token', freshAuth.token)
       localStorage.setItem('auth_user', JSON.stringify(freshAuth.user))
       localStorage.setItem('auth_profile', JSON.stringify(creatorData.creator))
+
+      trackSignupComplete('email')
+      trackTrialStarted('free')
 
       // Redirect to dashboard
       router.push('/dashboard/creator')

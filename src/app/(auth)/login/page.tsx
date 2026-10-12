@@ -14,6 +14,7 @@ import {
   Sparkles
 } from 'lucide-react'
 import { validateEmail } from '@/utils/validateEmail'
+import { trackLogin, identifyUser } from '@/lib/analytics'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -64,6 +65,9 @@ export default function LoginPage() {
       if (data.profile) {
         localStorage.setItem('auth_profile', JSON.stringify(data.profile))
       }
+
+      trackLogin('email')
+      if (data.user?.id) {identifyUser(data.user.id, data.user.email, data.user.user_type)}
 
       // Redirect based on user type
       if (data.user.user_type === 'creator') {

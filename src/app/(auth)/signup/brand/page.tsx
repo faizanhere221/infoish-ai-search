@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { COUNTRIES, INDUSTRIES, COMPANY_SIZES } from '@/utils/constants'
 import { validateEmail } from '@/utils/validateEmail'
+import { trackSignupComplete, trackTrialStarted } from '@/lib/analytics'
 
 type Step = 1 | 2
 
@@ -202,6 +203,9 @@ export default function BrandSignupPage() {
       localStorage.setItem('auth_token', freshAuth.token)
       localStorage.setItem('auth_user', JSON.stringify(freshAuth.user))
       localStorage.setItem('auth_profile', JSON.stringify(profileData.brand))
+
+      trackSignupComplete('email')
+      trackTrialStarted('free')
 
       // Redirect to dashboard
       router.push('/dashboard/brand')

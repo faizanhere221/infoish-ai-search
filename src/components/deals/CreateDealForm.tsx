@@ -13,6 +13,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import type { CreatorProfile, Service, Deliverable } from '@/types/marketplace'
+import { track } from '@/lib/analytics'
 
 interface CreateDealFormProps {
   creator: CreatorProfile
@@ -115,11 +116,18 @@ export function CreateDealForm({
     }
 
     const result = await onSubmit(formData)
-    
+
     if (!result.success) {
       setError(result.error || 'Failed to create deal')
       setIsSubmitting(false)
+      return
     }
+
+    track('deal_created', {
+      amount_cents: formData.amount_cents,
+      creator_id: creator.id,
+      event_category: 'deal',
+    })
   }
 
   // Calculate platform fee
