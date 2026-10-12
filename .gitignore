@@ -78,3 +78,11 @@ ehthumbs.db
 # Supabase
 supabase/.branches
 supabase/.temp
+
+# User data / PII (flat-file submission logs, never meant for version control)
+/data/*.json
+!/data/.gitkeep
+
+# User-uploaded payment proofs (private, must not be served as public static files)
+/public/uploads/payment-proofs/*
+!/public/uploads/payment-proofs/.gitkeep
