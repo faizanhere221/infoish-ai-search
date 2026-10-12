@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
+import * as Sentry from '@sentry/nextjs'
 import './globals.css'
 import { OrganizationJsonLd, WebSiteJsonLd, SoftwareApplicationJsonLd } from '@/components/seo/JsonLd'
 import CookieConsent from '@/components/CookieConsent'
@@ -20,74 +21,79 @@ export const viewport: Viewport = {
   ],
 }
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://infoishai.com'),
-  title: {
-    default: 'Infoishai - Tech Creator Sponsorship Marketplace',
-    template: '%s | Infoishai',
-  },
-  description: 'The marketplace where AI, SaaS, and tech brands find verified content creators for authentic sponsorships. Escrow payment protection. 2,000+ creators. Free to start.',
-  applicationName: 'Infoishai',
-  keywords: [
-    'tech creator marketplace',
-    'influencer sponsorship platform',
-    'SaaS marketing',
-    'developer content creators',
-    'tech YouTubers',
-    'AI influencers',
-    'B2B influencer marketing',
-    'creator sponsorships',
-  ],
-  authors: [{ name: 'Infoishai', url: 'https://infoishai.com' }],
-  creator: 'Infoishai',
-  publisher: 'Infoishai',
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+export function generateMetadata(): Metadata {
+  return {
+    metadataBase: new URL('https://infoishai.com'),
+    title: {
+      default: 'Infoishai - Tech Creator Sponsorship Marketplace',
+      template: '%s | Infoishai',
+    },
+    description: 'The marketplace where AI, SaaS, and tech brands find verified content creators for authentic sponsorships. Escrow payment protection. 2,000+ creators. Free to start.',
+    applicationName: 'Infoishai',
+    keywords: [
+      'tech creator marketplace',
+      'influencer sponsorship platform',
+      'SaaS marketing',
+      'developer content creators',
+      'tech YouTubers',
+      'AI influencers',
+      'B2B influencer marketing',
+      'creator sponsorships',
+    ],
+    authors: [{ name: 'Infoishai', url: 'https://infoishai.com' }],
+    creator: 'Infoishai',
+    publisher: 'Infoishai',
+    robots: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-  },
-  manifest: '/site.webmanifest',
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://infoishai.com',
-    siteName: 'Infoishai',
-    title: 'Infoishai - Tech Creator Sponsorship Marketplace',
-    description: 'Connect with 2,000+ verified tech creators for authentic sponsorships. Escrow protection. Free to start.',
-    images: [
-      {
-        url: 'https://infoishai.com/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Infoishai - Tech Creator Marketplace',
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
       },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Infoishai - Tech Creator Sponsorship Marketplace',
-    description: 'Connect with 2,000+ verified tech creators for authentic sponsorships.',
-    site: '@infoishai',
-    creator: '@infoishai',
-    images: ['https://infoishai.com/twitter-image.jpg'],
-  },
-  alternates: {
-    canonical: 'https://infoishai.com',
-  },
-  category: 'technology',
-  verification: {
-    google: 'google9b21ca159a20a693',
-  },
+    },
+    icons: {
+      icon: '/favicon.ico',
+      apple: '/apple-touch-icon.png',
+    },
+    manifest: '/site.webmanifest',
+    openGraph: {
+      type: 'website',
+      locale: 'en_US',
+      url: 'https://infoishai.com',
+      siteName: 'Infoishai',
+      title: 'Infoishai - Tech Creator Sponsorship Marketplace',
+      description: 'Connect with 2,000+ verified tech creators for authentic sponsorships. Escrow protection. Free to start.',
+      images: [
+        {
+          url: 'https://infoishai.com/og-image.jpg',
+          width: 1200,
+          height: 630,
+          alt: 'Infoishai - Tech Creator Marketplace',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Infoishai - Tech Creator Sponsorship Marketplace',
+      description: 'Connect with 2,000+ verified tech creators for authentic sponsorships.',
+      site: '@infoishai',
+      creator: '@infoishai',
+      images: ['https://infoishai.com/twitter-image.jpg'],
+    },
+    alternates: {
+      canonical: 'https://infoishai.com',
+    },
+    category: 'technology',
+    verification: {
+      google: 'google9b21ca159a20a693',
+    },
+    other: {
+      ...Sentry.getTraceData(),
+    },
+  }
 }
 
 export default function RootLayout({
