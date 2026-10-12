@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   ArrowLeft,
   Calendar,
@@ -228,10 +229,11 @@ export default function ApplicantDetailPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-start gap-4">
             {creator?.profile_photo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={creator.profile_photo_url}
                 alt={creator.display_name}
+                width={64}
+                height={64}
                 className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
               />
             ) : (

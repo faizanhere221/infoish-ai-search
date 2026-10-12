@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { CheckCircle, Clock, AlertCircle, Share2 } from 'lucide-react'
 import ProfileCompletionCard from '@/components/dashboard/ProfileCompletionCard'
 import DashboardStats from '@/components/dashboard/DashboardStats'
@@ -132,10 +133,11 @@ export default function CreatorDashboard() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-6">
           {profile.profile_photo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={profile.profile_photo_url}
               alt={profile.display_name}
+              width={96}
+              height={96}
               className="w-24 h-24 rounded-full object-cover flex-shrink-0"
             />
           ) : (
