@@ -19,13 +19,33 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [emailWarning, setEmailWarning] = useState<string | null>(null)
+  // Honeypot: a field real visitors never see or fill in. Bots that
+  // auto-fill every input in a form will populate it, so a non-empty value
+  // here means "not human" — handled silently (server also re-checks it).
+  const [website, setWebsite] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (website) {
+      // Silently succeed for bots without actually submitting anything.
+      setSubmitted(true)
+      return
+    }
+
     const emailCheck = validateEmail(formData.email)
     if (!emailCheck.valid) {
       alert('Please enter a valid email address')
+      return
+    }
+
+    if (formData.message.trim().length < 10) {
+      alert('Please enter a message of at least 10 characters')
+      return
+    }
+
+    if (formData.message.length > 5000) {
+      alert('Message is too long (max 5000 characters)')
       return
     }
 
@@ -37,7 +57,7 @@ export default function ContactPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ ...formData, website })
       })
 
       const result = await response.json()
@@ -118,6 +138,20 @@ export default function ContactPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Honeypot — hidden from real users via CSS, not display:none
+                    (some bots skip hidden fields), left out of tab order. */}
+                <div className="absolute -left-[9999px]" aria-hidden="true">
+                  <label htmlFor="website">Website</label>
+                  <input
+                    type="text"
+                    id="website"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                  />
+                </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="name" className="block text-sm font-semibold text-black mb-2">

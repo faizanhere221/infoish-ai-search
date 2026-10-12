@@ -8,6 +8,7 @@ export default function NewsletterForm() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
   const [emailWarning, setEmailWarning] = useState<string | null>(null)
+  const [website, setWebsite] = useState('') // honeypot
 
   const handleBlur = () => {
     if (!email) {
@@ -24,6 +25,13 @@ export default function NewsletterForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (website) {
+      // Bot — pretend success without actually submitting.
+      setStatus('success')
+      setMessage('Successfully subscribed! Thank you for joining us.')
+      return
+    }
 
     if (!email) {
       setStatus('error')
@@ -44,7 +52,7 @@ export default function NewsletterForm() {
       const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'footer' }),
+        body: JSON.stringify({ email, source: 'footer', website }),
       })
 
       const data = await response.json()
@@ -72,6 +80,19 @@ export default function NewsletterForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Honeypot — hidden from real users, bots that auto-fill every field will trip it */}
+      <div className="absolute -left-[9999px]" aria-hidden="true">
+        <label htmlFor="newsletter-website">Website</label>
+        <input
+          type="text"
+          id="newsletter-website"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+        />
+      </div>
       <div className="flex flex-col sm:flex-row gap-4">
         <input
           type="email"

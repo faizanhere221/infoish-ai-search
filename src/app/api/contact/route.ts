@@ -15,6 +15,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+
+    // Honeypot: real users never fill this in (hidden off-screen, excluded
+    // from tab order). A non-empty value means a bot. Pretend success so the
+    // bot doesn't learn to look for a different signal.
+    if (String(body.website ?? '').trim()) {
+      return NextResponse.json({ success: true, message: 'Message sent successfully', emailWarning: null }, { status: 201 })
+    }
+
     const name = String(body.name ?? '').trim()
     const email = String(body.email ?? '').trim().toLowerCase()
     const company = body.company ? String(body.company).trim() : null
@@ -23,6 +31,14 @@ export async function POST(request: NextRequest) {
 
     if (!name || !email || !message) {
       return NextResponse.json({ error: 'Name, email, and message are required' }, { status: 400 })
+    }
+
+    if (message.length < 10 || message.length > 5000) {
+      return NextResponse.json({ error: 'Message must be between 10 and 5000 characters' }, { status: 400 })
+    }
+
+    if (name.length > 255 || email.length > 255 || (company && company.length > 255) || subject.length > 100) {
+      return NextResponse.json({ error: 'One or more fields exceed the maximum length' }, { status: 400 })
     }
 
     const emailCheck = validateEmail(email)

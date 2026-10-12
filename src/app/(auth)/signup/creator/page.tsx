@@ -126,6 +126,10 @@ function CreatorSignupContent() {
       setError('Password must be at least 8 characters')
       return false
     }
+    if (!/[a-zA-Z]/.test(formData.password) || !/[0-9]/.test(formData.password)) {
+      setError('Password must contain at least one letter and one number')
+      return false
+    }
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match')
       return false
@@ -325,6 +329,7 @@ function CreatorSignupContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-blue-50 py-8 px-4">
+      <h1 className="sr-only">Create Your Creator Account on Infoishai</h1>
       <div className="max-w-xl mx-auto">
         {/* Logo */}
         <div className="text-center mb-6">

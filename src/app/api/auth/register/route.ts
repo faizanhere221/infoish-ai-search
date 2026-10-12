@@ -51,6 +51,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+    if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+      return NextResponse.json(
+        { error: 'Password must contain at least one letter and one number' },
+        { status: 400 }
+      )
+    }
 
     const supabase = createServerSupabase()
 
