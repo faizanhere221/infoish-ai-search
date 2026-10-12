@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, Target, DollarSign, Layers, Search, Mail, FileText, BarChart3, Settings, TrendingUp, ListChecks } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'How to Run Your First Tech Influencer Campaign: Startup Guide',
   description: 'Run your first tech influencer campaign step by step. Built for startups. Covers budgets from $500, creator selection, briefs, tracking, and scaling. Free tools.',

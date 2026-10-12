@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'How to Find B2B Tech Influencers in 2026: Vetting, Outreach, and Rates',
   description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 2,000+ verified tech creators. Updated for 2026.',

@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, AlertCircle, DollarSign } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'How to Get Tech Brand Deals in 2026: Step-by-Step Guide for Creators',
   description: 'Get brand deals as a tech creator. Step-by-step guide covering media kits, rate setting (with 2026 rate tables), outreach templates, and where to find sponsorship opportunities. Works for YouTubers, Twitter, and LinkedIn creators.',

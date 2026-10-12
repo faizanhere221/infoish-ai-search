@@ -18,6 +18,8 @@ import {
   Gamepad2,
 } from 'lucide-react'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: '200+ Canadian Tech Influencers | Rates in CAD | Infoishai',
   description:

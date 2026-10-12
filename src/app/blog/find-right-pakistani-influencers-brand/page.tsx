@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, Calendar, User, Clock } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'How to Find Pakistani Influencers (Without Wasting Hours)',
   description: 'How to find and vet Pakistani influencers for your brand. Engagement benchmarks, pricing data, red flags to avoid, and free tools to verify audience quality.',

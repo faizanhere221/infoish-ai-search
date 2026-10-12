@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, FileText, BarChart3, Globe, DollarSign, Award, PlayCircle, Mail, XCircle, Wrench, RefreshCw } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'How to Build a Creator Media Kit: Guide for Tech Influencers',
   description: 'Build a media kit as a tech creator. Free template with audience stats, rate cards, and past results. Land more brand deals with a professional one-pager.',

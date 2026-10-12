@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, TrendingUp, Target, Globe, DollarSign, Users, Zap, BarChart3, Rocket } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'Top 10 Benefits of Tech Influencer Marketing in 2026',
   description: 'Why do tech brands invest in influencer marketing in 2026? Here are 10 proven benefits with real data, examples, and strategies to grow your brand faster.',

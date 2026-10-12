@@ -21,6 +21,8 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: '100+ Singapore Tech Influencers | ASEAN Gateway | Infoishai',
   description:

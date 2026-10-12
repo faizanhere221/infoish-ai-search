@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, Calendar, User, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'AI Tool That Help Pakistani Brands Find Influencers 10x Faster',
   description: 'Discover the best AI-powered influencer marketing tools for Pakistani brands in 2026. Find verified creators, check fake followers, and launch campaigns faster.',

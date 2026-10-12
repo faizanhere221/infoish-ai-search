@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, Target, Users, DollarSign, TrendingUp, Zap, AlertTriangle, BarChart3 } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'Top B2C Influencer Marketing Strategies for Tech Brands 2026',
   description: 'B2C influencer marketing strategies for tech brands in 2026. Platform-by-platform playbook with real budgets, creator selection criteria, and ROI benchmarks.',

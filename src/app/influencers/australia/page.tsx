@@ -19,6 +19,8 @@ import {
   Globe2,
 } from 'lucide-react'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: '150+ Australian Tech Influencers | APAC Reach | Infoishai',
   description:

@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, Link2, Briefcase, Youtube, Mail, GraduationCap, Users, Heart, Mic, Repeat, Code2, Layers } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'Top 10 Ways Tech Creators Earn Money in 2026',
   description: '10 proven income streams for tech creators in 2026. Brand deals, affiliates, newsletters, courses, consulting, and more. Real earning benchmarks included.',

@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, Target, Users } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'B2B vs B2C Influencer Marketing: Key Differences for Tech Brands (2026)',
   description: 'What are the differences between B2B and B2C influencer marketing? Side-by-side comparison of platforms, content formats, budgets, metrics, and creator selection for tech brands. Data-backed guide with rate tables.',

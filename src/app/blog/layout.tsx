@@ -1,5 +1,7 @@
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'Blog | Influencer Marketing Tips & Guides',
   description: 'Guides on tech influencer marketing, creator sponsorship rates, and B2B campaign strategies. Data-backed articles updated weekly. Free tools and templates.',

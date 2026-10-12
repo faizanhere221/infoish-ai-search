@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, MapPin, DollarSign, Languages, AlertTriangle, Search } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'How to Find Tech Influencers in India: Complete Brand Guide',
   description: 'Find tech influencers in India for your brand. Covers vetting, rates (INR 5,000 to INR 5,00,000), platforms, niches, English vs Hindi creators, and outreach tips.',

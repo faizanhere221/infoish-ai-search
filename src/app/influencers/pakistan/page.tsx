@@ -21,6 +21,8 @@ import {
   Wallet,
 } from 'lucide-react'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: '100+ Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai',
   description:

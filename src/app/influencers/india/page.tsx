@@ -19,6 +19,8 @@ import {
   Languages,
 } from 'lucide-react'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: '800+ Indian Tech Influencers | Rates from INR 5,000 | Infoishai',
   description:

@@ -18,6 +18,8 @@ import {
   Landmark,
 } from 'lucide-react'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: '500+ US Tech Influencers | Free Search & Messaging | Infoishai',
   description:

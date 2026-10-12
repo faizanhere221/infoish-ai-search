@@ -20,6 +20,8 @@ import {
   Scale,
 } from 'lucide-react'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: '200+ German Tech Influencers | DACH Region | Infoishai',
   description:

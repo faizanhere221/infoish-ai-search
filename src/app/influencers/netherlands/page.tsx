@@ -20,6 +20,8 @@ import {
   Cpu,
 } from 'lucide-react'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: '100+ Dutch Tech Influencers | Benelux & EU Reach | Infoishai',
   description:

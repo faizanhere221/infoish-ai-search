@@ -18,6 +18,8 @@ import {
   HeartPulse,
 } from 'lucide-react'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: '300+ UK Tech Influencers | Rates from GBP 200 | Infoishai',
   description:

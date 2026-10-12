@@ -24,6 +24,8 @@ import {
   Shield,
 } from 'lucide-react'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'Micro-Influencers in Pakistan: 3x More Engagement Than Celebrities (Data + Rates)',
   description: 'Pakistani micro-influencers deliver 3x higher engagement at PKR 5,000 to PKR 25,000 per post. See real rate comparisons, engagement data, and a step-by-step guide to finding verified micro-influencers for your brand.',

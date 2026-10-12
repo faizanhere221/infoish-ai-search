@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, Search, DollarSign, Globe, Mail, FileText, BarChart3, Users, AlertTriangle } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'How to Find Tech YouTubers for Product Reviews in 2026',
   description: 'Find tech YouTubers for your product review. Step-by-step guide to searching, vetting, and hiring YouTube creators in AI, SaaS, and developer niches. Free database.',

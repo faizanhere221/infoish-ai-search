@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, DollarSign, Globe, TrendingUp, AlertTriangle } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'Tech Influencer Rates 2026: What Every Brand Should Know',
   description: 'Tech influencer rates by platform, country, and audience size for 2026. YouTube, LinkedIn, Twitter/X, Instagram pricing with data from 9 markets. Free rate guide.',

@@ -6,6 +6,8 @@ import { ArrowLeft, Calendar, User, Clock } from 'lucide-react'
 import { Metadata } from 'next'
 
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'Influencer Marketing Pakistan 2026: Rates, Platforms, and ROI Data',
   description: 'The complete guide to influencer marketing in Pakistan. Real rates from PKR 5,000 to PKR 5,00,000. Platform comparison (YouTube, Instagram, TikTok). ROI benchmarks. 400+ verified creators. Updated for 2026.',

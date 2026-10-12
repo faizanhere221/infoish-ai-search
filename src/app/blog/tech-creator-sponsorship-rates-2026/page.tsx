@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, Calculator, DollarSign, TrendingUp, TrendingDown, FileText, Scale, ArrowUpCircle, AlertTriangle } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'How Much Should Tech Creators Charge for Sponsorships? (2026)',
   description: 'Tech creator sponsorship rates for 2026. Pricing formulas by platform, audience size, and niche. Rate cards for YouTube, LinkedIn, Twitter/X, and newsletters.',

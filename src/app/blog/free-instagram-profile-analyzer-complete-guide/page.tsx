@@ -6,6 +6,8 @@ import { ArrowLeft, Calendar, User, Clock, CheckCircle, TrendingUp, BarChart3, A
 import { Metadata } from 'next'
 
 // SEO Metadata
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'Free Instagram Profile Analyzer — Spot Fake Influencers Instantly',
   description: 'Analyze any Instagram profile for free. Check engagement rates, detect fake followers, and verify influencers before you pay. Complete guide for Pakistani brands.',
