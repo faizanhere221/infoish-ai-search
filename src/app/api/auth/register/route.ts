@@ -8,7 +8,7 @@ import { validateEmail } from '@/utils/validateEmail'
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
-    const { allowed, retryAfterMs } = rateLimit(`register:${ip}`, 50, 60 * 60 * 1000)
+    const { allowed, retryAfterMs } = await rateLimit(`register:${ip}`, 50, 60 * 60 * 1000)
     if (!allowed) {
       return NextResponse.json(
         { error: 'Too many registration attempts. Please try again later.' },

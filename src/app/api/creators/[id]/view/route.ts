@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { rateLimit } from '@/lib/rate-limit'
 
 // POST - Increment a creator's public profile view count (public, no auth).
 // Fire-and-forget from the client; failures are non-fatal to the caller.
 // Best-effort: if profile_views doesn't exist yet (migration not applied),
 // this silently no-ops rather than 500ing.
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+    const { allowed } = await rateLimit(`creator-view:${ip}`, 30, 60 * 1000)
+    if (!allowed) {
+      return NextResponse.json({ tracked: false }, { status: 429 })
+    }
+
     const supabase = createServerSupabase()
 
     const { data: creator } = await supabase

@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { validateEmail } from '@/utils/validateEmail'
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+    const { allowed, retryAfterMs } = await rateLimit(`contact:${ip}`, 10, 60 * 1000)
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again shortly.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } }
+      )
+    }
+
     const body = await request.json()
     const name = String(body.name ?? '').trim()
     const email = String(body.email ?? '').trim().toLowerCase()
