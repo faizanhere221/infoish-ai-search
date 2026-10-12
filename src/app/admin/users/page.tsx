@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, Trash2, X, RefreshCw, LogIn,
@@ -120,6 +121,7 @@ function Pagination({ page, total, limit, onPage }: { page: number; total: numbe
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AdminUsersPage() {
+  useDocumentTitle('Users')
   const router = useRouter()
 
   // Data state

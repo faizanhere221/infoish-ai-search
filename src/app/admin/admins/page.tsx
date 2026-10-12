@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, Shield, ShieldOff, X, Eye, EyeOff, CheckCircle, AlertTriangle } from 'lucide-react'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 interface Admin {
   id: string
@@ -23,6 +24,7 @@ function timeAgo(iso: string | null) {
 }
 
 export default function AdminsPage() {
+  useDocumentTitle('Admin Management')
   const [admins, setAdmins]   = useState<Admin[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)

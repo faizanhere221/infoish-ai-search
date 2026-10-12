@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Search, RefreshCw, Download, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 interface ActivityLog {
   id: string
@@ -63,6 +64,7 @@ function timeAgo(iso: string) {
 }
 
 export default function ActivityPage() {
+  useDocumentTitle('Activity Logs')
   const [logs, setLogs] = useState<ActivityLog[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)

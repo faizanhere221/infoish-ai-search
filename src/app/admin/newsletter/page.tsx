@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Mail, Calendar, Download, Eye, Users, TrendingUp } from 'lucide-react';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 interface NewsletterSubscription {
   id: string;
@@ -13,6 +14,7 @@ interface NewsletterSubscription {
 }
 
 export default function NewsletterAdminPage() {
+  useDocumentTitle('Newsletter Subscribers');
   const [subscriptions, setSubscriptions] = useState<NewsletterSubscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'active' | 'unsubscribed'>('all');

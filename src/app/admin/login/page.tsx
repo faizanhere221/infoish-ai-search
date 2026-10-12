@@ -3,8 +3,10 @@
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, Eye, EyeOff } from 'lucide-react'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export default function AdminLoginPage() {
+  useDocumentTitle('Admin Access')
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

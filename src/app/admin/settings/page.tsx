@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Save, AlertTriangle, CheckCircle, Info } from 'lucide-react'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 interface Settings {
   site_name: string
@@ -63,6 +64,7 @@ function Field({ label, description, children }: { label: string; description?: 
 }
 
 export default function SettingsPage() {
+  useDocumentTitle('Platform Settings')
   const [settings, setSettings] = useState<Settings>(DEFAULT)
   const [loading, setLoading]   = useState(true)
   const [saving, setSaving]     = useState(false)

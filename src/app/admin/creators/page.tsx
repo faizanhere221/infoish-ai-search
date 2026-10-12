@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, Star, Shield, ShieldCheck, ShieldX,
@@ -117,6 +118,7 @@ function Pagination({ page, total, limit, onPage }: { page: number; total: numbe
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function AdminCreatorsPage() {
+  useDocumentTitle('Creators')
   const router = useRouter()
 
   const [creators, setCreators] = useState<AdminCreator[]>([])

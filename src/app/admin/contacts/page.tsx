@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { Mail, User, Building, Calendar, MessageSquare, Eye, Reply, Trash, Check } from 'lucide-react';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 interface ContactSubmission {
   id: string;
@@ -14,6 +15,7 @@ interface ContactSubmission {
 }
 
 const ContactAdminDashboard: React.FC = () => {
+  useDocumentTitle('Contact Messages');
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubmission, setSelectedSubmission] = useState<ContactSubmission | null>(null);

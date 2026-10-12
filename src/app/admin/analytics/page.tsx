@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Download, RefreshCw, TrendingUp, Users, DollarSign, MessageSquare } from 'lucide-react'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface AnalyticsData {
@@ -173,6 +174,7 @@ const DEAL_COLORS: Record<string, string> = {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
+  useDocumentTitle('Analytics & Reports')
   const PRESETS = presets()
   const last30Days = PRESETS.find(p => p.label === 'Last 30 days') ?? PRESETS[0]
   const [active, setActive]   = useState('Last 30 days')

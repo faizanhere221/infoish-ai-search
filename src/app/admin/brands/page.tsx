@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, ShieldCheck, ShieldX, Shield,
@@ -104,6 +105,7 @@ function Pagination({ page, total, limit, onPage }: { page: number; total: numbe
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function AdminBrandsPage() {
+  useDocumentTitle('Brands')
   const router = useRouter()
 
   const [brands, setBrands] = useState<AdminBrand[]>([])

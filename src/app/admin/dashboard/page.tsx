@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import {
   Users, UserSquare, Building2, Handshake, DollarSign, Activity,
   RefreshCw, TrendingUp, TrendingDown, Minus, UserPlus, MessageSquare,
@@ -288,6 +289,7 @@ const STATUS_COLORS: Record<string, string> = {
 // ─── Main dashboard ───────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
+  useDocumentTitle('Dashboard')
   const router = useRouter()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [activities, setActivities] = useState<ActivityItem[]>([])

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Search, Users, UserSquare, Building2, Handshake, Download } from 'lucide-react'
 import Link from 'next/link'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 type EntityType = 'all' | 'users' | 'creators' | 'brands' | 'deals'
 
@@ -49,6 +50,7 @@ function fmt(n: number) {
 }
 
 function SearchContent() {
+  useDocumentTitle('Advanced Search')
   const searchParams = useSearchParams()
   const router = useRouter()
   const [q, setQ]             = useState(searchParams.get('q') ?? '')
