@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X, Loader2 } from 'lucide-react'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface RecordPayoutModalProps {
   partnerId: string
@@ -13,6 +14,7 @@ interface RecordPayoutModalProps {
 const PAYMENT_METHODS = ['PayPal', 'Wire Transfer', 'Wise', 'Bank Transfer', 'Other']
 
 export default function RecordPayoutModal({ partnerId, pendingBalanceCents, onClose, onSuccess }: RecordPayoutModalProps) {
+  useEscapeKey(onClose)
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState(PAYMENT_METHODS[0])
   const [reference, setReference] = useState('')

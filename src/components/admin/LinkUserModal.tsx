@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { X, Loader2, Search } from 'lucide-react'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface UserOption {
   id: string
@@ -16,6 +17,7 @@ interface LinkUserModalProps {
 }
 
 export default function LinkUserModal({ partnerId, onClose, onSuccess }: LinkUserModalProps) {
+  useEscapeKey(onClose)
   const [userQuery, setUserQuery] = useState('')
   const [userResults, setUserResults] = useState<UserOption[]>([])
   const [selectedUser, setSelectedUser] = useState<UserOption | null>(null)

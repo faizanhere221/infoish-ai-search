@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, Loader2, Check, AlertCircle, Search, Copy, PartyPopper } from 'lucide-react'
 import { isValidReferralCode } from '@/lib/referral'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface UserOption {
   id: string
@@ -31,6 +32,7 @@ function slugifyName(name: string): string {
 }
 
 export default function AddPartnerModal({ onClose, onSuccess }: AddPartnerModalProps) {
+  useEscapeKey(onClose)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [referralCode, setReferralCode] = useState('')

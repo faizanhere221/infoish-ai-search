@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import type { CreatorProfile, Service, Deliverable } from '@/types/marketplace'
 import { track } from '@/lib/analytics'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface CreateDealFormProps {
   creator: CreatorProfile
@@ -37,6 +38,7 @@ export function CreateDealForm({
   onSubmit,
   onCancel,
 }: CreateDealFormProps) {
+  useEscapeKey(onCancel)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [selectedServices, setSelectedServices] = useState<Service[]>([])

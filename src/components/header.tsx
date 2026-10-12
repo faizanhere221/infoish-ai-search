@@ -603,6 +603,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={isMobileMenuOpen}
                 className="lg:hidden min-w-[48px] min-h-[48px] flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition-all"
               >
                 {isMobileMenuOpen ? (
