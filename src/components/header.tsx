@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, LogOut, Instagram, Calculator, Wrench, Globe } from 'lucide-react'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
 
@@ -32,7 +32,6 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
   const [isMobileCountriesOpen, setIsMobileCountriesOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const router = useRouter()
-  const pathname = usePathname()
   const [userType, setUserType] = useState<'brand' | 'influencer' | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [showLoginDropdown, setShowLoginDropdown] = useState(false)
@@ -51,75 +50,18 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
     }
   }, [])
 
-  const detectAndSetUserType = useCallback((backendUserType?: string) => {
-    if (backendUserType) {
-      const type = backendUserType === 'influencer' ? 'influencer' : 'brand'
-      setUserType(type)
-      localStorage.setItem('user_type', type)
-      return
-    }
-
-    if (pathname?.includes('/influencer')) {
-      setUserType('influencer')
-      localStorage.setItem('user_type', 'influencer')
-      return
-    }
-
-    const storedType = localStorage.getItem('user_type')
-    if (storedType === 'influencer' || storedType === 'brand') {
-      setUserType(storedType)
-      return
-    }
-
-    setUserType('brand')
-    localStorage.setItem('user_type', 'brand')
-  }, [pathname])
-
+  // NOTE: this used to call a FastAPI backend (infoish-ai-search-production
+  // on Railway) that predates the current Next.js/Supabase app and no longer
+  // exists as part of this codebase — every call to it failed silently.
+  // `isLoggedIn` below (sourced from the real auth_token) is the actual
+  // source of truth for whether to show the signed-in header state.
+  // `user` intentionally stays null: the subscription-tier/search-quota UI
+  // it used to feed reads fields (subscription_tier, monthly_searches,
+  // search_limit) that don't exist on this app's users table, so that UI is
+  // effectively retired rather than fed fake data.
   const checkAuthStatus = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('auth_token')
-      if (!token) {
-        setIsLoading(false)
-        return
-      }
-
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
-
-      const response = await fetch(`${backendUrl}/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (response.ok) {
-        const userData = await response.json()
-        setUser({
-          id: userData.id,
-          email: userData.email,
-          full_name: userData.full_name,
-          profile_picture: userData.profile_picture,
-          subscription_tier: userData.subscription_tier,
-          monthly_searches: userData.monthly_searches,
-          search_limit: userData.search_limit,
-          user_type: userData.user_type
-        })
-        
-        detectAndSetUserType(userData.user_type)
-      } else {
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('user_type')
-        setUser(null)
-        setUserType(null)
-      }
-    } catch (error) {
-      console.warn('Auth check failed (backend unreachable):', error)
-      setUser(null)
-      setUserType(null)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [detectAndSetUserType])
+    setIsLoading(false)
+  }, [])
 
   useEffect(() => {
     checkAuthStatus()
@@ -131,71 +73,12 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
     return () => window.removeEventListener('scroll', handleScroll)
   }, [checkAuthStatus])
 
-  useEffect(() => {
-    const handleSearchUpdate = () => {
-      const refreshHeaderData = async () => {
-        try {
-          const token = localStorage.getItem('auth_token')
-          if (!token) {return}
-
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
-
-          const response = await fetch(`${backendUrl}/auth/me`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          })
-
-          if (response.ok) {
-            const userData = await response.json()
-            setUser({
-              id: userData.id,
-              email: userData.email,
-              full_name: userData.full_name,
-              profile_picture: userData.profile_picture,
-              subscription_tier: userData.subscription_tier,
-              monthly_searches: userData.monthly_searches,
-              search_limit: userData.search_limit,
-              user_type: userData.user_type
-            })
-
-            detectAndSetUserType(userData.user_type)
-          }
-        } catch (error) {
-          console.warn('Failed to refresh header data (backend unreachable):', error)
-        }
-      }
-      refreshHeaderData()
-    }
-
-    window.addEventListener('searchCompleted', handleSearchUpdate)
-    return () => {
-      window.removeEventListener('searchCompleted', handleSearchUpdate)
-    }
-  }, [pathname, detectAndSetUserType])
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem('auth_token')
-      
-      if (token) {
-        try {
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://infoish-ai-search-production.up.railway.app'
-          await fetch(`${backendUrl}/auth/logout`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          })
-        } catch (error) {
-          console.warn('Backend logout failed (non-critical):', error)
-        }
-      }
-      
       localStorage.removeItem('auth_token')
-      localStorage.removeItem('user_data')
+      localStorage.removeItem('auth_user')
+      localStorage.removeItem('auth_profile')
       localStorage.removeItem('user_type')
       setUser(null)
       setUserType(null)
