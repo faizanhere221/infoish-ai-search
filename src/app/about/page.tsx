@@ -81,14 +81,14 @@ const team = [
     name: 'Faizan Islam',
     role: 'Founder & CEO',
     bio: 'AI Engineer & GTM Strategist. Building the future of creator economy with Infoishai.',
-    image: '/images/team/founder.jpg',
+    image: '/images/team/founder.webp',
     linkedin: 'https://www.linkedin.com/in/faizan-islam-41a3ab28b/',
   },
   {
     name: 'Farhan Islam',
     role: 'Co-Founder & CTO',
     bio: 'Full-stack developer with expertise in Next.js, Python, and AI. Building scalable tech solutions.',
-    image: '/images/team/cto.jpg',
+    image: '/images/team/cto.webp',
     linkedin: 'https://www.linkedin.com/in/farhan-islam-570685303/',
   },
   {

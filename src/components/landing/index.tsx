@@ -336,7 +336,7 @@ export function HeroSection() {
           {/* Right Column - Image */}
           <div className="relative">
             <Image
-              src="/images/hero-image.png"
+              src="/images/hero-image.webp"
               alt="Tech influencers creating content"
               width={1376}
               height={768}
