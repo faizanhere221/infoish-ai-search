@@ -35,6 +35,29 @@ function stripAuthHeaders(request: NextRequest): Headers {
   return headers
 }
 
+// Applied to every response the middleware returns, for every matched route
+// (see config.matcher below — now all page routes, not just /api and /admin).
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://lh3.googleusercontent.com https://ypdspiwxsojwjzbagaip.supabase.co",
+  "font-src 'self'",
+  "connect-src 'self' https://www.google-analytics.com https://ypdspiwxsojwjzbagaip.supabase.co",
+  "frame-ancestors 'none'",
+].join('; ')
+
+function withSecurityHeaders(response: NextResponse): NextResponse {
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  response.headers.set('X-XSS-Protection', '1; mode=block')
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
+  response.headers.set('Content-Security-Policy', CSP)
+  return response
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const method = request.method
@@ -42,69 +65,77 @@ export async function middleware(request: NextRequest) {
 
   // ── Admin page routes ───────────────────────────────────────────────────────
   if (pathname.startsWith('/admin/')) {
-    if (pathname === '/admin/login') {return NextResponse.next()}
+    if (pathname === '/admin/login') {return withSecurityHeaders(NextResponse.next())}
 
-    if (!secret) {return NextResponse.redirect(new URL('/admin/login', request.url))}
+    if (!secret) {return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))}
 
     const cookieToken = request.cookies.get('auth_token')?.value
-    if (!cookieToken) {return NextResponse.redirect(new URL('/admin/login', request.url))}
+    if (!cookieToken) {return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))}
 
     try {
       const { payload } = await jwtVerify(cookieToken, new TextEncoder().encode(secret))
       const role = String(payload.role ?? '')
       if (role !== 'admin' && role !== 'super_admin') {
-        return NextResponse.redirect(new URL('/admin/login', request.url))
+        return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))
       }
-      return NextResponse.next()
+      return withSecurityHeaders(NextResponse.next())
     } catch {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
+      return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))
     }
   }
 
   // ── API routes ──────────────────────────────────────────────────────────────
-  if (!pathname.startsWith('/api/')) {return NextResponse.next()}
-  if (isPublicApiRoute(pathname, method)) {return NextResponse.next()}
+  if (pathname.startsWith('/api/')) {
+    if (isPublicApiRoute(pathname, method)) {return withSecurityHeaders(NextResponse.next())}
 
-  const optionalAuth = isOptionalAuthApiRoute(pathname, method)
+    const optionalAuth = isOptionalAuthApiRoute(pathname, method)
 
-  const authHeader = request.headers.get('authorization')
-  const cookieToken = request.cookies.get('auth_token')?.value
-  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : cookieToken
+    const authHeader = request.headers.get('authorization')
+    const cookieToken = request.cookies.get('auth_token')?.value
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : cookieToken
 
-  if (!token || !secret) {
-    if (optionalAuth) {
-      return NextResponse.next({ request: { headers: stripAuthHeaders(request) } })
-    }
-    if (!token) {return NextResponse.json({ error: 'Authentication required' }, { status: 401 })}
-    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 })
-  }
-
-  try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret))
-
-    // Admin-only API routes require admin or super_admin role
-    if (pathname.startsWith('/api/admin/')) {
-      const role = String(payload.role ?? '')
-      if (role !== 'admin' && role !== 'super_admin') {
-        return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    if (!token || !secret) {
+      if (optionalAuth) {
+        return withSecurityHeaders(NextResponse.next({ request: { headers: stripAuthHeaders(request) } }))
       }
+      if (!token) {return withSecurityHeaders(NextResponse.json({ error: 'Authentication required' }, { status: 401 }))}
+      return withSecurityHeaders(NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 }))
     }
 
-    const requestHeaders = new Headers(request.headers)
-    requestHeaders.set('x-user-id', String(payload.userId ?? ''))
-    requestHeaders.set('x-user-type', String(payload.userType ?? ''))
-    requestHeaders.set('x-profile-id', String(payload.profileId ?? ''))
-    requestHeaders.set('x-user-role', String(payload.role ?? 'user'))
+    try {
+      const { payload } = await jwtVerify(token, new TextEncoder().encode(secret))
 
-    return NextResponse.next({ request: { headers: requestHeaders } })
-  } catch {
-    if (optionalAuth) {
-      return NextResponse.next({ request: { headers: stripAuthHeaders(request) } })
+      // Admin-only API routes require admin or super_admin role
+      if (pathname.startsWith('/api/admin/')) {
+        const role = String(payload.role ?? '')
+        if (role !== 'admin' && role !== 'super_admin') {
+          return withSecurityHeaders(NextResponse.json({ error: 'Admin access required' }, { status: 403 }))
+        }
+      }
+
+      const requestHeaders = new Headers(request.headers)
+      requestHeaders.set('x-user-id', String(payload.userId ?? ''))
+      requestHeaders.set('x-user-type', String(payload.userType ?? ''))
+      requestHeaders.set('x-profile-id', String(payload.profileId ?? ''))
+      requestHeaders.set('x-user-role', String(payload.role ?? 'user'))
+
+      return withSecurityHeaders(NextResponse.next({ request: { headers: requestHeaders } }))
+    } catch {
+      if (optionalAuth) {
+        return withSecurityHeaders(NextResponse.next({ request: { headers: stripAuthHeaders(request) } }))
+      }
+      return withSecurityHeaders(NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 }))
     }
-    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
   }
+
+  // ── Everything else (pages) ─────────────────────────────────────────────────
+  return withSecurityHeaders(NextResponse.next())
 }
 
 export const config = {
-  matcher: ['/api/:path*', '/admin/:path*'],
+  // Previously only /api and /admin — widened so every page response also
+  // gets the security headers below. Static assets are excluded since they
+  // don't need these headers and this keeps the middleware off the hot path
+  // for every image/font/js chunk request.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|ico|woff2?)$).*)'],
 }
