@@ -86,3 +86,8 @@ supabase/.temp
 # User-uploaded payment proofs (private, must not be served as public static files)
 /public/uploads/payment-proofs/*
 !/public/uploads/payment-proofs/.gitkeep
+
+# Local staging area for files awaiting manual upload to the private
+# Supabase Storage bucket (see supabase/rate_limiting_migration.sql sibling
+# notes / PAYMENT_PROOFS_SETUP below) — never meant to be in git either.
+/private-uploads/
