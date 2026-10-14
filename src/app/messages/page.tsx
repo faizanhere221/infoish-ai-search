@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -12,82 +12,35 @@ import {
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import type { ProfileDropdownProfile } from '@/components/ProfileDropdown'
+import { useConversationsList, type ConversationSummary } from '@/hooks/useConversationsList'
 
-interface Conversation {
-  id: string
-  creator_id: string
-  brand_id: string
-  last_message_at: string | null
-  last_message_preview: string | null
-  creator_unread: number
-  brand_unread: number
-  created_at: string
-  creator?: {
-    id: string
-    username: string
-    display_name: string
-    profile_photo_url: string | null
-  }
-  brand?: {
-    id: string
-    company_name: string
-    logo_url: string | null
-    contact_name: string | null
-  }
-}
+type Conversation = ConversationSummary
 
 export default function MessagesPage() {
   const router = useRouter()
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [loading, setLoading] = useState(true)
   const [userType, setUserType] = useState<'brand' | 'creator' | null>(null)
   const [profile, setProfile] = useState<ProfileDropdownProfile | null>(null)
+  const [token, setToken] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
 
-  const loadData = useCallback(async () => {
-    try {
-      const userStr = localStorage.getItem('auth_user')
-      const profileStr = localStorage.getItem('auth_profile')
+  useEffect(() => {
+    const userStr = localStorage.getItem('auth_user')
+    const profileStr = localStorage.getItem('auth_profile')
 
-      if (!userStr) {
-        router.push('/login')
-        return
-      }
-
-      const user = JSON.parse(userStr)
-      setUserType(user.user_type)
-
-      if (profileStr) {
-        setProfile(JSON.parse(profileStr))
-      }
-
-      // Fetch conversations
-      const params = new URLSearchParams()
-      if (user.user_type === 'brand' && profileStr) {
-        const brandProfile = JSON.parse(profileStr)
-        params.set('brand_id', brandProfile.id)
-      } else if (user.user_type === 'creator' && profileStr) {
-        const creatorProfile = JSON.parse(profileStr)
-        params.set('creator_id', creatorProfile.id)
-      }
-
-      const res = await fetch(`/api/conversations?${params.toString()}`)
-      if (res.ok) {
-        const data = await res.json()
-        setConversations(data.conversations || [])
-      }
-
-      setLoading(false)
-    } catch (err) {
-      console.error('Error loading conversations:', err)
-      setLoading(false)
+    if (!userStr) {
+      router.push('/login')
+      return
     }
+
+    const user = JSON.parse(userStr)
+    setUserType(user.user_type)
+    setToken(localStorage.getItem('auth_token'))
+    if (profileStr) {setProfile(JSON.parse(profileStr))}
   }, [router])
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
+  // Polls every 10s (paused while the tab is hidden, refetched on refocus)
+  const { conversations, loading } = useConversationsList(userType, profile?.id ?? null, token)
 
   // Get unread count for current user
   const getUnreadCount = (conv: Conversation) => {

@@ -11,6 +11,8 @@ import {
   X
 } from 'lucide-react'
 import ProfileDropdown, { type ProfileDropdownProfile } from './ProfileDropdown'
+import { useConversationsList } from '@/hooks/useConversationsList'
+import { usePolling } from '@/hooks/usePolling'
 
 interface DashboardHeaderProps {
   userType: 'brand' | 'creator'
@@ -20,78 +22,59 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ userType, profile, hideNotifications = false }: DashboardHeaderProps) {
   const pathname = usePathname()
-  const [unreadMessages, setUnreadMessages] = useState(0)
+  const [authToken, setAuthToken] = useState<string | null>(null)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [campaignBadgeCount, setCampaignBadgeCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const fetchUnreadCounts = useCallback(async () => {
-    if (!profile?.id) {return}
+  useEffect(() => {
+    setAuthToken(localStorage.getItem('auth_token'))
+  }, [])
+
+  // Messages unread badge: polled every 10s (paused while hidden, refetched
+  // on refocus) by the same hook the inbox itself uses.
+  const { unreadTotal: unreadMessages } = useConversationsList(userType, profile?.id ?? null, authToken)
+
+  const fetchNotificationAndCampaignCounts = useCallback(async () => {
+    if (!profile?.id || !authToken) {return}
 
     try {
-      // Fetch unread messages
-      const params = new URLSearchParams()
-      if (userType === 'brand') {
-        params.set('brand_id', profile.id)
-      } else {
-        params.set('creator_id', profile.id)
-      }
-
-      const convRes = await fetch(`/api/conversations?${params.toString()}`)
-      if (convRes.ok) {
-        const data = await convRes.json()
-        const conversations = data.conversations || []
-        const unread = conversations.reduce((sum: number, conv: { brand_unread?: number; creator_unread?: number }) => {
-          const count = userType === 'brand' ? (conv.brand_unread || 0) : (conv.creator_unread || 0)
-          return sum + count
-        }, 0)
-        setUnreadMessages(unread)
-      }
-
-      // Fetch unread notification count
-      const authToken = localStorage.getItem('auth_token')
-      if (authToken) {
-        const notifRes = await fetch('/api/notifications?unread=true&limit=1', {
-          headers: { Authorization: `Bearer ${authToken}` },
-        })
-        if (notifRes.ok) {
-          const notifData = await notifRes.json()
-          setUnreadNotifications(notifData.unread_count ?? 0)
-        }
+      const notifRes = await fetch('/api/notifications?unread=true&limit=1', {
+        headers: { Authorization: `Bearer ${authToken}` },
+      })
+      if (notifRes.ok) {
+        const notifData = await notifRes.json()
+        setUnreadNotifications(notifData.unread_count ?? 0)
       }
 
       // Fetch campaign-related count badge: active campaigns for brands,
       // total applications for creators
-      if (authToken) {
-        if (userType === 'brand') {
-          const campaignsRes = await fetch('/api/campaigns?status=published&limit=50', {
-            headers: { Authorization: `Bearer ${authToken}` },
-          })
-          if (campaignsRes.ok) {
-            const campaignsData = await campaignsRes.json()
-            setCampaignBadgeCount(campaignsData.total ?? (campaignsData.campaigns || []).length)
-          }
-        } else {
-          const applicationsRes = await fetch('/api/applications', {
-            headers: { Authorization: `Bearer ${authToken}` },
-          })
-          if (applicationsRes.ok) {
-            const applicationsData = await applicationsRes.json()
-            setCampaignBadgeCount((applicationsData.applications || []).length)
-          }
+      if (userType === 'brand') {
+        const campaignsRes = await fetch('/api/campaigns?status=published&limit=50', {
+          headers: { Authorization: `Bearer ${authToken}` },
+        })
+        if (campaignsRes.ok) {
+          const campaignsData = await campaignsRes.json()
+          setCampaignBadgeCount(campaignsData.total ?? (campaignsData.campaigns || []).length)
+        }
+      } else {
+        const applicationsRes = await fetch('/api/applications', {
+          headers: { Authorization: `Bearer ${authToken}` },
+        })
+        if (applicationsRes.ok) {
+          const applicationsData = await applicationsRes.json()
+          setCampaignBadgeCount((applicationsData.applications || []).length)
         }
       }
     } catch (err) {
       console.error('Error fetching unread counts:', err)
     }
-  }, [profile, userType])
+  }, [profile, userType, authToken])
 
   useEffect(() => {
-    fetchUnreadCounts()
-    // Poll for updates every 5 seconds for real-time feel
-    const interval = setInterval(fetchUnreadCounts, 5000)
-    return () => clearInterval(interval)
-  }, [fetchUnreadCounts])
+    fetchNotificationAndCampaignCounts()
+  }, [fetchNotificationAndCampaignCounts])
+  usePolling(fetchNotificationAndCampaignCounts, 5000, { enabled: Boolean(profile?.id && authToken) })
 
   const navItems = userType === 'brand' ? [
     { href: '/dashboard/brand', label: 'Dashboard' },
