@@ -7,11 +7,13 @@ import Image from 'next/image'
 import {
   AlertCircle, ArrowLeft, Loader2, Plus, Trash2, Pencil, MessageSquare,
   ExternalLink, Download, RotateCcw, DollarSign, TrendingUp, Users,
+  FileClock, AlertTriangle, Info,
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import { AddCreatorToTrackerModal } from '@/components/campaigns/AddCreatorToTrackerModal'
 import { EditCampaignCreatorModal } from '@/components/campaigns/EditCampaignCreatorModal'
 import { ShareLinkPanel } from '@/components/campaigns/ShareLinkPanel'
+import { CampaignCreatorDrawer } from '@/components/campaigns/CampaignCreatorDrawer'
 import { formatMoney, formatDate, CAMPAIGN_CREATOR_STATUS_BADGE } from '@/components/campaigns/utils'
 import {
   CAMPAIGN_CREATOR_STATUSES,
@@ -46,6 +48,8 @@ export default function CampaignTrackerPage() {
 
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingRow, setEditingRow] = useState<CampaignCreator | null>(null)
+  const [drawerRow, setDrawerRow] = useState<CampaignCreator | null>(null)
+  const [pendingReviewCount, setPendingReviewCount] = useState(0)
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -101,6 +105,7 @@ export default function CampaignTrackerPage() {
       if (rowsRes.ok) {
         const rowsData = await rowsRes.json()
         setRows(rowsData.campaign_creators || [])
+        setPendingReviewCount(rowsData.pending_review_count || 0)
       } else {
         setLoadError(true)
       }
@@ -307,6 +312,13 @@ export default function CampaignTrackerPage() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {pendingReviewCount > 0 && (
+          <div className="flex items-center gap-2 p-3 mb-6 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+            <FileClock className="w-4 h-4 flex-shrink-0" />
+            {pendingReviewCount} draft{pendingReviewCount === 1 ? '' : 's'} waiting for review
+          </div>
+        )}
+
         {/* Summary cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -466,7 +478,14 @@ export default function CampaignTrackerPage() {
                                   )}
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="font-medium text-gray-900 truncate">{row.creator?.display_name}</p>
+                                  <p className="font-medium text-gray-900 truncate flex items-center gap-1.5">
+                                    {row.creator?.display_name}
+                                    {!!row.deliverables_overdue && (
+                                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-semibold" title="Overdue deliverable">
+                                        <AlertTriangle className="w-2.5 h-2.5" /> {row.deliverables_overdue}
+                                      </span>
+                                    )}
+                                  </p>
                                   <p className="text-xs text-gray-500 truncate">@{row.creator?.username} {row.creator?.primary_platform ? `· ${row.creator.primary_platform}` : ''}</p>
                                 </div>
                               </div>
@@ -508,6 +527,14 @@ export default function CampaignTrackerPage() {
                             </td>
                             <td className="p-3 align-top">
                               <div className="flex items-center gap-1">
+                                <button onClick={() => setDrawerRow(row)} className="relative p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg" aria-label="Offer and deliverables" title="Offer & deliverables">
+                                  <Info className="w-4 h-4" />
+                                  {!!row.deliverables_pending_review && (
+                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-[9px] rounded-full flex items-center justify-center font-bold">
+                                      {row.deliverables_pending_review}
+                                    </span>
+                                  )}
+                                </button>
                                 <button onClick={() => messageCreator(row.creator_id)} disabled={isPending} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg" aria-label="Message creator" title="Message">
                                   <MessageSquare className="w-4 h-4" />
                                 </button>
@@ -572,11 +599,14 @@ export default function CampaignTrackerPage() {
                         </div>
                         <p className="text-xs text-gray-500 mb-3">Planned: {formatDate(row.planned_date)}</p>
                         <div className="flex items-center gap-2">
+                          <button onClick={() => setDrawerRow(row)} className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600">
+                            <Info className="w-3.5 h-3.5" /> Offer
+                          </button>
                           <button onClick={() => messageCreator(row.creator_id)} className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600">
                             <MessageSquare className="w-3.5 h-3.5" /> Message
                           </button>
-                          <button onClick={() => setEditingRow(row)} className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600">
-                            <Pencil className="w-3.5 h-3.5" /> Edit
+                          <button onClick={() => setEditingRow(row)} className="p-1.5 border border-gray-200 rounded-lg text-gray-600">
+                            <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button onClick={() => removeRow(row.id)} className="p-1.5 text-red-500 border border-gray-200 rounded-lg">
                             <Trash2 className="w-3.5 h-3.5" />
@@ -614,6 +644,18 @@ export default function CampaignTrackerPage() {
             await updateRow(editingRow.id, updates)
             setEditingRow(null)
           }}
+        />
+      )}
+
+      {drawerRow && (
+        <CampaignCreatorDrawer
+          campaignCreatorId={drawerRow.id}
+          creatorId={drawerRow.creator_id}
+          creatorName={drawerRow.creator?.display_name || 'Creator'}
+          currency={drawerRow.currency}
+          token={token}
+          onClose={() => setDrawerRow(null)}
+          onChanged={load}
         />
       )}
 

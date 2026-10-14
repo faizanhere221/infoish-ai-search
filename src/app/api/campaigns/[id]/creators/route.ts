@@ -114,16 +114,50 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
       const { creators, platformByCreator, campaignSummary } = await attachJoins(supabase, rows || [], campaign, true)
 
+      // Deliverable counts per row, for the "N drafts waiting for review"
+      // banner and overdue indicators — one extra query, not N+1.
+      const rowIds = (rows || []).map((r) => r.id)
+      type DeliverableCountRow = { campaign_creator_id: string; status: string; draft_due: string | null; publish_due: string | null }
+      const { data: deliverableRows } = rowIds.length > 0
+        ? await supabase
+            .from('creator_deliverables')
+            .select('campaign_creator_id, status, draft_due, publish_due')
+            .in('campaign_creator_id', rowIds)
+        : { data: [] as DeliverableCountRow[] }
+
+      const now = new Date()
+      const countsByRow: Record<string, { pendingReview: number; overdue: number }> = {}
+      let totalPendingReview = 0
+      for (const d of (deliverableRows || []) as DeliverableCountRow[]) {
+        const counts = countsByRow[d.campaign_creator_id] || { pendingReview: 0, overdue: 0 }
+        if (d.status === 'draft_submitted') {
+          counts.pendingReview += 1
+          totalPendingReview += 1
+        }
+        const isActive = d.status !== 'posted' && d.status !== 'completed'
+        const dueDate = d.draft_due || d.publish_due
+        if (isActive && dueDate && new Date(dueDate) < now) {
+          counts.overdue += 1
+        }
+        countsByRow[d.campaign_creator_id] = counts
+      }
+
       const withRelations = (rows || []).map((row) => {
         const creator = creators.find((c) => c.id === row.creator_id) || null
+        const counts = countsByRow[row.id] || { pendingReview: 0, overdue: 0 }
         return {
           ...row,
           creator: creator ? { ...creator, primary_platform: platformByCreator[creator.id] ?? null } : null,
           campaign: campaignSummary,
+          deliverables_pending_review: counts.pendingReview,
+          deliverables_overdue: counts.overdue,
         }
       })
 
-      return NextResponse.json({ campaign_creators: withRelations })
+      return NextResponse.json({
+        campaign_creators: withRelations,
+        pending_review_count: totalPendingReview,
+      })
     }
 
     if (callerUserType === 'creator' && callerProfileId) {

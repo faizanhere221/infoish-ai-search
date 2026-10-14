@@ -49,7 +49,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const { data: rows, error } = await supabase
       .from('campaign_creators')
-      .update({ status: parsed.data.status, updated_at: new Date().toISOString() })
+      // Manual override — stop the deliverable auto-sync trigger from
+      // reverting it on the next deliverable event.
+      .update({ status: parsed.data.status, status_locked: true, updated_at: new Date().toISOString() })
       .eq('campaign_id', id)
       .in('id', parsed.data.ids)
       .select('id')

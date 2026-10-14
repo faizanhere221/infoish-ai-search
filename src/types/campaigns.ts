@@ -216,6 +216,10 @@ export interface CampaignCreator {
   application_id: string | null
   created_at: string
   updated_at: string
+  status_locked?: boolean
+  // Server-computed from creator_deliverables (brand-owner view only)
+  deliverables_pending_review?: number
+  deliverables_overdue?: number
   // Joined data
   creator?: TrackerCreatorSummary
   campaign?: Pick<Campaign, 'id' | 'title' | 'client_name'>

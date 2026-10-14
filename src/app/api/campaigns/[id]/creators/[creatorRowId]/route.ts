@@ -74,6 +74,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const updates: Record<string, unknown> = { ...parsed.data, updated_at: new Date().toISOString() }
     if (updates.posted_url === '') {updates.posted_url = null}
+    // A manual status change is a deliberate override — stop the Phase 3
+    // deliverable auto-sync trigger from silently reverting it on the next
+    // deliverable event.
+    if (parsed.data.status !== undefined) {updates.status_locked = true}
 
     const { data: row, error } = await supabase
       .from('campaign_creators')

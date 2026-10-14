@@ -1,0 +1,255 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import { ExternalLink, FileText, Loader2, Plus } from 'lucide-react'
+import { formatDate, DELIVERABLE_STATUS_BADGE } from '@/components/campaigns/utils'
+import { DELIVERABLE_FORMATS, type CreatorDeliverable } from '@/types/campaigns'
+
+interface DeliverablesTabProps {
+  campaignCreatorId: string
+  token: string | null
+}
+
+const EMPTY_NEW = { title: '', platform: '', format: '', draft_due: '', publish_due: '', revisions_allowed: '2' }
+
+export function DeliverablesTab({ campaignCreatorId, token }: DeliverablesTabProps) {
+  const [deliverables, setDeliverables] = useState<CreatorDeliverable[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showAdd, setShowAdd] = useState(false)
+  const [newDeliverable, setNewDeliverable] = useState(EMPTY_NEW)
+  const [feedbackDrafts, setFeedbackDrafts] = useState<Record<string, string>>({})
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const authHeader = useCallback((): Record<string, string> => (token ? { Authorization: `Bearer ${token}` } : {}), [token])
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables`, { headers: authHeader() })
+      if (res.ok) {
+        const data = await res.json()
+        setDeliverables(data.deliverables || [])
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [campaignCreatorId, authHeader])
+
+  useEffect(() => { load() }, [load])
+
+  async function addDeliverable() {
+    setBusyId('new')
+    setError(null)
+    try {
+      const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables`, {
+        method: 'POST',
+        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newDeliverable.title,
+          platform: newDeliverable.platform || null,
+          format: newDeliverable.format || null,
+          draft_due: newDeliverable.draft_due || null,
+          publish_due: newDeliverable.publish_due || null,
+          revisions_allowed: Number(newDeliverable.revisions_allowed) || 2,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Failed to add deliverable')
+        return
+      }
+      setNewDeliverable(EMPTY_NEW)
+      setShowAdd(false)
+      await load()
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function act(deliverableId: string, action: 'approve' | 'request-changes' | 'complete') {
+    setBusyId(deliverableId)
+    setError(null)
+    try {
+      const body = action === 'request-changes' ? { feedback: feedbackDrafts[deliverableId] || '' } : undefined
+      const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables/${deliverableId}/${action}`, {
+        method: 'POST',
+        headers: { ...authHeader(), ...(body ? { 'Content-Type': 'application/json' } : {}) },
+        body: body ? JSON.stringify(body) : undefined,
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || `Failed to ${action.replace('-', ' ')}`)
+        return
+      }
+      setFeedbackDrafts((prev) => ({ ...prev, [deliverableId]: '' }))
+      await load()
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function viewDraft(deliverableId: string, path: string) {
+    const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables/${deliverableId}/attachment/sign?path=${encodeURIComponent(path)}`, {
+      headers: authHeader(),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      window.open(data.url, '_blank', 'noopener,noreferrer')
+    }
+  }
+
+  if (loading) {
+    return <div className="flex items-center justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>
+  }
+
+  return (
+    <div className="space-y-4">
+      {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>}
+
+      {deliverables.length === 0 && !showAdd && (
+        <p className="text-sm text-gray-500 text-center py-4">No deliverables yet. Accepting an offer creates one automatically, or add one manually.</p>
+      )}
+
+      {deliverables.map((d) => {
+        const badge = DELIVERABLE_STATUS_BADGE[d.status]
+        const revisionsExhausted = d.revisions_used >= d.revisions_allowed
+        return (
+          <div key={d.id} className="border border-gray-200 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-medium text-gray-900">{d.title}</h4>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}>{badge.label}</span>
+            </div>
+            <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-2">
+              {d.format && <span className="capitalize">{d.format}</span>}
+              {d.draft_due && <span>Draft due {formatDate(d.draft_due)}</span>}
+              {d.publish_due && <span>Publish due {formatDate(d.publish_due)}</span>}
+              <span>{d.revisions_used}/{d.revisions_allowed} revisions used</span>
+            </div>
+
+            {(d.draft_url || d.draft_attachment_path) && (
+              <div className="flex items-center gap-2 mb-2">
+                {d.draft_url && (
+                  <a href={d.draft_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-purple-dark hover:underline">
+                    <ExternalLink className="w-3.5 h-3.5" /> Draft link
+                  </a>
+                )}
+                {d.draft_attachment_path && (
+                  <button onClick={() => viewDraft(d.id, d.draft_attachment_path as string)} className="inline-flex items-center gap-1 text-sm text-brand-purple-dark hover:underline">
+                    <FileText className="w-3.5 h-3.5" /> Draft file
+                  </button>
+                )}
+              </div>
+            )}
+
+            {d.posted_url && (
+              <a href={d.posted_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-purple-dark hover:underline mb-2">
+                <ExternalLink className="w-3.5 h-3.5" /> View posted content
+              </a>
+            )}
+
+            {d.latest_feedback && d.status === 'changes_requested' && (
+              <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 mb-2">{d.latest_feedback}</p>
+            )}
+
+            {d.status === 'draft_submitted' && (
+              <div className="space-y-2 mt-2">
+                <textarea
+                  value={feedbackDrafts[d.id] || ''}
+                  onChange={(e) => setFeedbackDrafts((prev) => ({ ...prev, [d.id]: e.target.value }))}
+                  placeholder="Feedback if requesting changes…"
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-pink"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => act(d.id, 'approve')}
+                    disabled={busyId === d.id}
+                    className="flex-1 px-3 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg text-sm font-medium hover:shadow-lg disabled:opacity-50"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => act(d.id, 'request-changes')}
+                    disabled={busyId === d.id || revisionsExhausted || !feedbackDrafts[d.id]?.trim()}
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                    title={revisionsExhausted ? 'All revisions used' : undefined}
+                  >
+                    Request changes
+                  </button>
+                </div>
+                {revisionsExhausted && <p className="text-xs text-red-500">All revisions used — approve or raise the revision cap.</p>}
+              </div>
+            )}
+
+            {d.status === 'posted' && (
+              <button
+                onClick={() => act(d.id, 'complete')}
+                disabled={busyId === d.id}
+                className="mt-2 px-3 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg text-sm font-medium hover:shadow-lg disabled:opacity-50"
+              >
+                Mark complete
+              </button>
+            )}
+          </div>
+        )
+      })}
+
+      {showAdd ? (
+        <div className="border border-gray-200 rounded-xl p-4 space-y-3">
+          <input
+            value={newDeliverable.title}
+            onChange={(e) => setNewDeliverable((f) => ({ ...f, title: e.target.value }))}
+            placeholder="Deliverable title"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-pink"
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <select
+              value={newDeliverable.format}
+              onChange={(e) => setNewDeliverable((f) => ({ ...f, format: e.target.value }))}
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            >
+              <option value="">Format…</option>
+              {DELIVERABLE_FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+            </select>
+            <input
+              value={newDeliverable.platform}
+              onChange={(e) => setNewDeliverable((f) => ({ ...f, platform: e.target.value }))}
+              placeholder="Platform"
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Draft due</label>
+              <input type="date" value={newDeliverable.draft_due} onChange={(e) => setNewDeliverable((f) => ({ ...f, draft_due: e.target.value }))} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Publish due</label>
+              <input type="date" value={newDeliverable.publish_due} onChange={(e) => setNewDeliverable((f) => ({ ...f, publish_due: e.target.value }))} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => setShowAdd(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600">Cancel</button>
+            <button
+              onClick={addDeliverable}
+              disabled={busyId === 'new' || !newDeliverable.title.trim()}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg text-sm font-medium disabled:opacity-50"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowAdd(true)}
+          className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 border border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50"
+        >
+          <Plus className="w-4 h-4" /> Add deliverable
+        </button>
+      )}
+    </div>
+  )
+}
+
+export default DeliverablesTab

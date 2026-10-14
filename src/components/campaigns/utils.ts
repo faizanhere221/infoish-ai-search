@@ -1,5 +1,5 @@
-import { CAMPAIGN_CATEGORIES, PLATFORMS, CAMPAIGN_CREATOR_STATUS_LABELS } from '@/types/campaigns'
-import type { Campaign, CampaignStatus, CampaignCreatorStatus } from '@/types/campaigns'
+import { CAMPAIGN_CATEGORIES, PLATFORMS, CAMPAIGN_CREATOR_STATUS_LABELS, DELIVERABLE_STATUS_LABELS } from '@/types/campaigns'
+import type { Campaign, CampaignStatus, CampaignCreatorStatus, DeliverableStatus } from '@/types/campaigns'
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: '$',
@@ -86,6 +86,15 @@ export const CAMPAIGN_CREATOR_STATUS_BADGE: Record<CampaignCreatorStatus, { labe
   posted: { label: CAMPAIGN_CREATOR_STATUS_LABELS.posted, bg: 'bg-emerald-100', text: 'text-emerald-700' },
   completed: { label: CAMPAIGN_CREATOR_STATUS_LABELS.completed, bg: 'bg-green-100', text: 'text-green-700' },
   dropped: { label: CAMPAIGN_CREATOR_STATUS_LABELS.dropped, bg: 'bg-red-100', text: 'text-red-700' },
+}
+
+export const DELIVERABLE_STATUS_BADGE: Record<DeliverableStatus, { label: string; bg: string; text: string }> = {
+  pending: { label: DELIVERABLE_STATUS_LABELS.pending, bg: 'bg-gray-100', text: 'text-gray-700' },
+  draft_submitted: { label: DELIVERABLE_STATUS_LABELS.draft_submitted, bg: 'bg-blue-100', text: 'text-blue-700' },
+  changes_requested: { label: DELIVERABLE_STATUS_LABELS.changes_requested, bg: 'bg-amber-100', text: 'text-amber-700' },
+  approved: { label: DELIVERABLE_STATUS_LABELS.approved, bg: 'bg-indigo-100', text: 'text-indigo-700' },
+  posted: { label: DELIVERABLE_STATUS_LABELS.posted, bg: 'bg-emerald-100', text: 'text-emerald-700' },
+  completed: { label: DELIVERABLE_STATUS_LABELS.completed, bg: 'bg-green-100', text: 'text-green-700' },
 }
 
 export function categoryLabel(value: string | null): string {
