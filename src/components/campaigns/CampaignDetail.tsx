@@ -197,7 +197,12 @@ export default function CampaignDetail({
         {/* Actions */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
           {viewerRole === 'creator' && (
-            <CreatorActions campaignId={campaign.id} deadline={deadline} myApplication={myApplication} />
+            <CreatorActions
+              campaignId={campaign.id}
+              deadline={deadline}
+              myApplication={myApplication}
+              isPrivate={campaign.visibility === 'private'}
+            />
           )}
 
           {viewerRole === 'owner' && (
@@ -228,10 +233,12 @@ function CreatorActions({
   campaignId,
   deadline,
   myApplication,
+  isPrivate,
 }: {
   campaignId: string
   deadline: ReturnType<typeof getDeadlineInfo>
   myApplication: MyApplicationSummary | null
+  isPrivate: boolean
 }) {
   if (myApplication) {
     return (
@@ -251,6 +258,15 @@ function CreatorActions({
           View My Application
           <ArrowRight className="w-4 h-4" />
         </Link>
+      </div>
+    )
+  }
+
+  if (isPrivate) {
+    return (
+      <div className="flex items-center gap-2 px-4 py-3 bg-gray-100 text-gray-500 rounded-lg text-sm font-medium">
+        <Clock className="w-5 h-5 flex-shrink-0" />
+        This is a private campaign. The brand adds creators directly.
       </div>
     )
   }

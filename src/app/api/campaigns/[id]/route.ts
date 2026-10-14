@@ -76,7 +76,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const isOwner = callerUserType === 'brand' && callerProfileId === campaign.brand_id
     const isPubliclyVisible = campaign.status === 'published' && campaign.visibility === 'public'
 
-    if (!isPubliclyVisible && !isOwner) {
+    let isTrackedCreator = false
+    if (!isPubliclyVisible && !isOwner && callerUserType === 'creator' && callerProfileId) {
+      // A creator the brand has added directly to a private campaign's
+      // tracker must still be able to view the brief, even though it's
+      // neither published-public nor theirs to own.
+      const { data: trackerRow } = await supabase
+        .from('campaign_creators')
+        .select('id')
+        .eq('campaign_id', id)
+        .eq('creator_id', callerProfileId)
+        .single()
+      isTrackedCreator = !!trackerRow
+    }
+
+    if (!isPubliclyVisible && !isOwner && !isTrackedCreator) {
       // Don't distinguish "doesn't exist" from "not visible to you"
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
     }
