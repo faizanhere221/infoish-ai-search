@@ -2,7 +2,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { captureError } from '@/lib/error-tracking'
 
 interface DealSystemMessageParams {
-  dealId: string
+  // Optional — only set on the conversation when provided. Phase 3's
+  // campaign_creators-driven system messages (offers, deliverables) have no
+  // associated deal, so they omit it.
+  dealId?: string
   creatorId: string
   brandId: string
   senderUserId: string
@@ -10,13 +13,13 @@ interface DealSystemMessageParams {
   content: string
 }
 
-// Posts a system message into the deal's conversation, finding or creating
-// the conversation by (creator_id, brand_id) since `deals` has no
-// conversation_id column (only the reverse: conversations.deal_id). Also
-// bumps the OTHER party's unread counter and the conversation preview, same
-// as a normal message, so the system message surfaces in the inbox list.
-// Fire-and-forget: logs on error, never throws (never blocks the deal
-// status transition that triggered it).
+// Posts a system message into the creator/brand pair's conversation, finding
+// or creating it by (creator_id, brand_id) since neither `deals` nor
+// `campaign_creators` has a conversation_id column (only the reverse:
+// conversations.deal_id). Also bumps the OTHER party's unread counter and
+// the conversation preview, same as a normal message, so the system message
+// surfaces in the inbox list. Fire-and-forget: logs on error, never throws
+// (never blocks the status transition that triggered it).
 export async function postDealSystemMessage(
   supabase: SupabaseClient,
   params: DealSystemMessageParams
@@ -44,7 +47,7 @@ export async function postDealSystemMessage(
       .insert({
         creator_id: creatorId,
         brand_id: brandId,
-        deal_id: dealId,
+        ...(dealId ? { deal_id: dealId } : {}),
         creator_unread: 0,
         brand_unread: 0,
       })

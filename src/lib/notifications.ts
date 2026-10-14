@@ -14,10 +14,20 @@ export type NotificationType =
   | 'campaign_application_update'
   | 'referral_commission_earned'
   | 'referral_commission_approved'
+  | 'offer_received'
+  | 'offer_accepted'
+  | 'offer_declined'
+  | 'offer_countered'
+  | 'offer_withdrawn'
+  | 'deliverable_draft_submitted'
+  | 'deliverable_changes_requested'
+  | 'deliverable_approved'
+  | 'deliverable_posted'
+  | 'deliverable_completed'
 
 // related_type values used by the `related_type`/`related_id` columns below,
 // resolved back into a link by the notifications page (src/app/notifications/page.tsx)
-export type NotificationRelatedType = 'deal' | 'campaign' | 'campaign_application' | 'partner'
+export type NotificationRelatedType = 'deal' | 'campaign' | 'campaign_application' | 'partner' | 'campaign_creator'
 
 interface NotificationPayload {
   userId: string
