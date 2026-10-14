@@ -49,3 +49,27 @@ export async function loadAuthorizedCampaignCreatorRow(
   }
   return null
 }
+
+// Same, but also loads and scopes a creator_deliverables row that must
+// belong to this campaign_creators row.
+export async function loadAuthorizedDeliverable(
+  supabase: SupabaseClient,
+  rowId: string,
+  deliverableId: string,
+  callerProfileId: string | null,
+  callerUserType: string | null
+) {
+  const authorized = await loadAuthorizedCampaignCreatorRow(supabase, rowId, callerProfileId, callerUserType)
+  if (!authorized) {return null}
+
+  const { data: deliverable } = await supabase
+    .from('creator_deliverables')
+    .select('*')
+    .eq('id', deliverableId)
+    .eq('campaign_creator_id', rowId)
+    .single()
+
+  if (!deliverable) {return null}
+
+  return { ...authorized, deliverable }
+}
