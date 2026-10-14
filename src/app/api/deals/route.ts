@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
+import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
 const CreateDealSchema = z.object({
@@ -199,17 +200,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Notify the creator that they have a new deal offer
-    const creatorUserId = await getUserIdFromCreator(supabase, creator_id)
-    if (creatorUserId) {
-      await createNotification(supabase, {
-        userId: creatorUserId,
-        type: 'deal_created',
-        title: 'New deal offer',
-        content: `You received a new deal offer: "${title}"`,
-        relatedType: 'deal',
-        relatedId: deal.id,
-      })
+    // Notify the creator that they have a new deal offer. The deal is
+    // already created at this point — a notification failure (network
+    // blip, unexpected throw) must never turn into a failed deal creation.
+    try {
+      const creatorUserId = await getUserIdFromCreator(supabase, creator_id)
+      if (creatorUserId) {
+        await createNotification(supabase, {
+          userId: creatorUserId,
+          type: 'deal_created',
+          title: 'New deal offer',
+          content: `You received a new deal offer: "${title}"`,
+          relatedType: 'deal',
+          relatedId: deal.id,
+        })
+      }
+    } catch (notifyError) {
+      captureError(notifyError, { route: 'POST /api/deals', context: 'deal_created notification' })
     }
 
     return NextResponse.json({

@@ -23,39 +23,49 @@ interface RecordActionParams {
 // Every offer/deliverable action does the same three things: log it to the
 // row's activity timeline, post a system message in the Phase 1 thread, and
 // notify the other party. Centralized here so no route forgets one of them.
-// Fire-and-forget: logs on error, never throws (never blocks the action that
-// triggered it).
+//
+// Fire-and-forget, guaranteed: the whole body is wrapped in try/catch, not
+// just each individual Supabase call. createNotification()/
+// postDealSystemMessage() already swallow their own query errors, but a
+// genuinely unexpected throw (a network blip, a malformed argument) must
+// still never fail the offer/deliverable action that triggered this —
+// losing a side-effect message is a bug, failing an offer a creator already
+// committed to is a much worse one.
 export async function recordCampaignCreatorAction(
   supabase: SupabaseClient,
   params: RecordActionParams
 ): Promise<void> {
-  const { error: eventError } = await supabase.from('campaign_creator_events').insert({
-    campaign_creator_id: params.campaignCreatorId,
-    actor_user_id: params.actorUserId,
-    actor_type: params.actorType,
-    event_type: params.eventType,
-    payload: params.payload ?? {},
-  })
-  if (eventError) {
-    captureError(eventError, { context: 'recordCampaignCreatorAction: event log', eventType: params.eventType })
-  }
-
-  await postDealSystemMessage(supabase, {
-    creatorId: params.creatorId,
-    brandId: params.brandId,
-    senderUserId: params.actorUserId,
-    senderType: params.actorType,
-    content: params.systemMessage,
-  })
-
-  if (params.notification?.recipientUserId) {
-    await createNotification(supabase, {
-      userId: params.notification.recipientUserId,
-      type: params.notification.type,
-      title: params.notification.title,
-      content: params.notification.content,
-      relatedType: 'campaign_creator',
-      relatedId: params.campaignCreatorId,
+  try {
+    const { error: eventError } = await supabase.from('campaign_creator_events').insert({
+      campaign_creator_id: params.campaignCreatorId,
+      actor_user_id: params.actorUserId,
+      actor_type: params.actorType,
+      event_type: params.eventType,
+      payload: params.payload ?? {},
     })
+    if (eventError) {
+      captureError(eventError, { context: 'recordCampaignCreatorAction: event log', eventType: params.eventType })
+    }
+
+    await postDealSystemMessage(supabase, {
+      creatorId: params.creatorId,
+      brandId: params.brandId,
+      senderUserId: params.actorUserId,
+      senderType: params.actorType,
+      content: params.systemMessage,
+    })
+
+    if (params.notification?.recipientUserId) {
+      await createNotification(supabase, {
+        userId: params.notification.recipientUserId,
+        type: params.notification.type,
+        title: params.notification.title,
+        content: params.notification.content,
+        relatedType: 'campaign_creator',
+        relatedId: params.campaignCreatorId,
+      })
+    }
+  } catch (error) {
+    captureError(error, { context: 'recordCampaignCreatorAction', eventType: params.eventType })
   }
 }

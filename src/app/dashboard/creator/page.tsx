@@ -9,6 +9,7 @@ import DashboardStats from '@/components/dashboard/DashboardStats'
 import CreatorPlatforms from '@/components/dashboard/CreatorPlatforms'
 import CreatorServices from '@/components/dashboard/CreatorServices'
 import OnboardingWizard from '@/components/dashboard/OnboardingWizard'
+import { PendingOffersWidget } from '@/components/campaigns/PendingOffersWidget'
 import { calculateProfileCompletion } from '@/lib/profile-completion'
 
 interface Platform {
@@ -129,6 +130,8 @@ export default function CreatorDashboard() {
 
   return (
     <div className="space-y-6">
+      <PendingOffersWidget />
+
       {/* Profile card — first thing creators see */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-6">
