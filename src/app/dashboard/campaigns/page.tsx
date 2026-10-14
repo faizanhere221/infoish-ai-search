@@ -45,6 +45,7 @@ function BrandCampaignsDashboardContent() {
   const [loadError, setLoadError] = useState(false)
   const [tab, setTab] = useState<Tab>('all')
   const [clientFilter, setClientFilter] = useState('')
+  const [overdueByCampaign, setOverdueByCampaign] = useState<Record<string, number>>({})
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(
     searchParams.get('created') === '1' ? 'Campaign saved as draft' : null
@@ -76,14 +77,23 @@ function BrandCampaignsDashboardContent() {
     setLoadError(false)
 
     try {
-      const res = await fetch('/api/campaigns?limit=50', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (res.ok) {
-        const data = await res.json()
+      const [campaignsRes, calendarRes] = await Promise.all([
+        fetch('/api/campaigns?limit=50', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/calendar', { headers: { Authorization: `Bearer ${token}` } }),
+      ])
+      if (campaignsRes.ok) {
+        const data = await campaignsRes.json()
         setCampaigns(data.campaigns || [])
       } else {
         setLoadError(true)
+      }
+      if (calendarRes.ok) {
+        const data = await calendarRes.json()
+        const counts: Record<string, number> = {}
+        for (const item of data.items || []) {
+          if (item.overdue) {counts[item.campaign_id] = (counts[item.campaign_id] || 0) + 1}
+        }
+        setOverdueByCampaign(counts)
       }
     } catch (err) {
       console.error('Error fetching campaigns:', err)
@@ -239,6 +249,7 @@ function BrandCampaignsDashboardContent() {
                 onClose={handleClose}
                 onReopen={handleReopen}
                 pending={pendingId === campaign.id}
+                overdueCount={overdueByCampaign[campaign.id] || 0}
               />
             ))}
           </div>

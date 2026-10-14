@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     let rowIds: string[] = []
     const rowToCampaign: Record<string, string> = {}
     const rowToCreator: Record<string, string> = {}
+    const rowToCurrency: Record<string, string> = {}
 
     if (callerUserType === 'brand') {
       let campaignQuery = supabase.from('campaigns').select('id, title, brand_id, client_name').eq('brand_id', callerProfileId)
@@ -40,13 +41,14 @@ export async function GET(request: NextRequest) {
 
       const { data: rows } = await supabase
         .from('campaign_creators')
-        .select('id, campaign_id, creator_id')
+        .select('id, campaign_id, creator_id, currency')
         .in('campaign_id', campaigns.map((c) => c.id))
 
       rowIds = (rows || []).map((r) => r.id)
       for (const r of rows || []) {
         rowToCampaign[r.id] = r.campaign_id
         rowToCreator[r.id] = r.creator_id
+        rowToCurrency[r.id] = r.currency
       }
     } else {
       const { data: rows } = await supabase
@@ -100,6 +102,12 @@ export async function GET(request: NextRequest) {
       const campaign = campaigns.find((c) => c.id === campaignId)
       const creator = callerUserType === 'brand' ? creators?.find((c) => c.id === rowToCreator[d.campaign_creator_id]) : null
 
+      const brandOnlyFields = callerUserType === 'brand' ? {
+        client_name: campaign?.client_name ?? null,
+        creator_id: rowToCreator[d.campaign_creator_id] ?? null,
+        currency: rowToCurrency[d.campaign_creator_id] ?? 'USD',
+      } : {}
+
       const entries: Record<string, unknown>[] = []
       if (d.draft_due) {
         entries.push({
@@ -107,7 +115,7 @@ export async function GET(request: NextRequest) {
           campaign_creator_id: d.campaign_creator_id,
           campaign_id: campaignId,
           campaign_title: campaign?.title ?? null,
-          ...(callerUserType === 'brand' ? { client_name: campaign?.client_name ?? null } : {}),
+          ...brandOnlyFields,
           creator_name: creator?.display_name ?? null,
           title: d.title,
           kind: 'draft_due',
@@ -122,7 +130,7 @@ export async function GET(request: NextRequest) {
           campaign_creator_id: d.campaign_creator_id,
           campaign_id: campaignId,
           campaign_title: campaign?.title ?? null,
-          ...(callerUserType === 'brand' ? { client_name: campaign?.client_name ?? null } : {}),
+          ...brandOnlyFields,
           creator_name: creator?.display_name ?? null,
           title: d.title,
           kind: 'publish_due',

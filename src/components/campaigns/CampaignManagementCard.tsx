@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Calendar, Eye, Loader2, Lock, Pencil, RotateCcw, Table2, Users, XCircle } from 'lucide-react'
+import { AlertTriangle, Calendar, Eye, Loader2, Lock, Pencil, RotateCcw, Table2, Users, XCircle } from 'lucide-react'
 import type { Campaign } from '@/types/campaigns'
 import { STATUS_BADGE, categoryLabel, formatRelativeDate } from './utils'
 
@@ -10,9 +10,10 @@ interface CampaignManagementCardProps {
   onClose: (campaignId: string) => void
   onReopen: (campaignId: string) => void
   pending: boolean
+  overdueCount?: number
 }
 
-export default function CampaignManagementCard({ campaign, onClose, onReopen, pending }: CampaignManagementCardProps) {
+export default function CampaignManagementCard({ campaign, onClose, onReopen, pending, overdueCount = 0 }: CampaignManagementCardProps) {
   const status = STATUS_BADGE[campaign.status]
 
   return (
@@ -36,6 +37,11 @@ export default function CampaignManagementCard({ campaign, onClose, onReopen, pe
         {campaign.client_name && (
           <span className="px-2 py-1 bg-brand-pink/10 text-brand-purple-dark rounded-full text-xs font-medium">
             Client: {campaign.client_name}
+          </span>
+        )}
+        {overdueCount > 0 && (
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+            <AlertTriangle className="w-3 h-3" /> {overdueCount} overdue
           </span>
         )}
       </div>
