@@ -250,7 +250,7 @@ export interface CampaignCreatorForShare {
   planned_date: string | null
   posted_at: string | null
   posted_url: string | null
-  charge_amount?: number
+  charge_amount?: number | null
   currency: string
   creator: TrackerCreatorSummary
 }

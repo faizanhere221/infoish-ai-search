@@ -9,7 +9,8 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   EUR: '€',
 }
 
-export function formatMoney(amount: number, currency: string): string {
+export function formatMoney(amount: number | null | undefined, currency: string): string {
+  if (amount === null || amount === undefined) {return '—'}
   const symbol = CURRENCY_SYMBOLS[currency]
   return symbol ? `${symbol}${amount.toLocaleString()}` : `${amount.toLocaleString()} ${currency}`
 }

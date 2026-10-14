@@ -32,7 +32,7 @@ interface ShareCreatorRow {
   posted_at: string | null
   posted_url: string | null
   currency: string
-  charge_amount?: number
+  charge_amount?: number | null
   creator: {
     id: string
     username: string
@@ -182,7 +182,7 @@ export default function SharePage() {
                       </td>
                       {data.show_charge && (
                         <td className="p-4 text-right text-gray-900">
-                          {row.charge_amount !== undefined ? formatMoney(row.charge_amount, row.currency) : '—'}
+                          {formatMoney(row.charge_amount, row.currency)}
                         </td>
                       )}
                     </tr>
