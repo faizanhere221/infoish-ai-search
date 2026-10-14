@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
 
 // GET - Get conversation by ID with messages
 export async function GET(
@@ -22,6 +23,14 @@ export async function GET(
         { error: 'Conversation not found' },
         { status: 404 }
       )
+    }
+
+    // Caller must be one of the two parties. Return 404 (not 403) for a
+    // non-party so a stranger can't use the status code to confirm a
+    // conversation id exists.
+    const callerProfileId = request.headers.get('x-profile-id')
+    if (callerProfileId !== conversation.creator_id && callerProfileId !== conversation.brand_id) {
+      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
     }
 
     // Fetch creator and brand
@@ -54,7 +63,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error fetching conversation:', error)
+    captureError(error, { route: 'GET /api/conversations/[id]' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -108,7 +117,7 @@ export async function DELETE(
     return NextResponse.json({ message: 'Conversation deleted' })
 
   } catch (error) {
-    console.error('Error deleting conversation:', error)
+    captureError(error, { route: 'DELETE /api/conversations/[id]' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

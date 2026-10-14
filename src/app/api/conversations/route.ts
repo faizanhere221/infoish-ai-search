@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
 const CreateConversationSchema = z.object({
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
     const { data: conversations, error } = await query
 
     if (error) {
-      console.error('Error fetching conversations:', error)
+      captureError(error, { route: 'GET /api/conversations' })
       return NextResponse.json(
         { error: 'Failed to fetch conversations' },
         { status: 500 }
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ conversations: conversationsWithRelations })
 
   } catch (error) {
-    console.error('Conversations fetch error:', error)
+    captureError(error, { route: 'GET /api/conversations' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -169,7 +170,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error creating conversation:', error)
+      captureError(error, { route: 'POST /api/conversations' })
       return NextResponse.json(
         { error: 'Failed to create conversation' },
         { status: 500 }
@@ -199,7 +200,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 })
 
   } catch (error) {
-    console.error('Conversation creation error:', error)
+    captureError(error, { route: 'POST /api/conversations' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

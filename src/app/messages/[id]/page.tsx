@@ -86,9 +86,9 @@ export default function ConversationPage() {
         setConversation(data.conversation)
         setMessages(data.conversation.messages || [])
 
-        // Mark messages as read
+        // Mark messages as read (identity comes from the auth header server-side)
         await fetch(
-          `/api/conversations/${conversationId}/messages?mark_as_read=true&user_id=${user.id}`,
+          `/api/conversations/${conversationId}/messages?mark_as_read=true`,
           { headers: authHeader }
         )
       } else {
@@ -123,7 +123,6 @@ export default function ConversationPage() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          sender_id: userId,
           content: newMessage.trim(),
         }),
       })
