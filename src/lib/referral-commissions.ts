@@ -158,8 +158,8 @@ export async function calculateReferralCommission(
         userId: partner.user_id,
         type: 'referral_commission_earned',
         title: 'You earned a commission!',
-        message: `You earned ${formatCents(commissionAmountCents)} commission from ${creatorName}'s deal.`,
-        link: '/dashboard/partner',
+        content: `You earned ${formatCents(commissionAmountCents)} commission from ${creatorName}'s deal.`,
+        relatedType: 'partner',
       })
     }
 

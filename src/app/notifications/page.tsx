@@ -21,10 +21,29 @@ interface Notification {
   user_id: string
   type: string
   title: string
-  message: string
-  link: string | null
+  content: string
+  related_type: string | null
+  related_id: string | null
   is_read: boolean
   created_at: string
+}
+
+// Resolves a notification's related_type/related_id into a destination link.
+// Mirrors the relatedType values set by createNotification() call sites
+// (src/lib/notifications.ts).
+function notificationLink(n: Notification): string | null {
+  switch (n.related_type) {
+    case 'deal':
+      return n.related_id ? `/dashboard/deals/${n.related_id}` : null
+    case 'campaign':
+      return n.related_id ? `/dashboard/campaigns/${n.related_id}/applications` : null
+    case 'campaign_application':
+      return n.related_id ? `/dashboard/applications/${n.related_id}` : null
+    case 'partner':
+      return '/dashboard/partner'
+    default:
+      return null
+  }
 }
 
 const TYPE_META: Record<string, { icon: React.ElementType; color: string }> = {
@@ -206,7 +225,7 @@ export default function NotificationsPage() {
                     <p className={`text-sm font-semibold ${!n.is_read ? 'text-gray-900' : 'text-gray-700'}`}>
                       {n.title}
                     </p>
-                    <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
+                    <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{n.content}</p>
                     <p className="text-xs text-gray-400 mt-1">{formatTime(n.created_at)}</p>
                   </div>
                   {!n.is_read && (
@@ -215,8 +234,9 @@ export default function NotificationsPage() {
                 </div>
               )
 
-              return n.link ? (
-                <Link key={n.id} href={n.link} className="block cursor-pointer">
+              const href = notificationLink(n)
+              return href ? (
+                <Link key={n.id} href={href} className="block cursor-pointer">
                   {inner}
                 </Link>
               ) : (

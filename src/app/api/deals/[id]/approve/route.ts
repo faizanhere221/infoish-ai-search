@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
 import { calculateReferralCommission } from '@/lib/referral-commissions'
+import { postDealSystemMessage } from '@/lib/deal-messages'
+import { captureError, captureMessage } from '@/lib/error-tracking'
 
 interface RouteParams {
   params: { id: string }
@@ -71,7 +73,7 @@ export async function POST(
       .single()
 
     if (error) {
-      console.error('Error approving deal:', error)
+      captureError(error, { route: 'POST /api/deals/[id]/approve' })
       return NextResponse.json(
         { error: 'Failed to approve deal' },
         { status: 500 }
@@ -87,12 +89,12 @@ export async function POST(
         dealAmountCents: deal.amount_cents || 0,
       })
       if (commissionResult.created) {
-        console.warn(`Referral commission created for deal ${id}: ${commissionResult.commissionAmountCents} cents to partner ${commissionResult.partnerId}`)
+        captureMessage(`Referral commission created for deal ${id}: ${commissionResult.commissionAmountCents} cents to partner ${commissionResult.partnerId}`, 'info')
       } else if (commissionResult.error) {
-        console.error(`Referral commission calculation failed for deal ${id}:`, commissionResult.error)
+        captureError(commissionResult.error, { route: 'POST /api/deals/[id]/approve', context: 'referral commission' })
       }
     } catch (commissionError) {
-      console.error('Unexpected error calculating referral commission:', commissionError)
+      captureError(commissionError, { route: 'POST /api/deals/[id]/approve', context: 'referral commission (unexpected throw)' })
     }
 
     // Update creator stats
@@ -129,19 +131,14 @@ export async function POST(
         .eq('id', deal.brand_id)
     }
 
-    // Create system message in conversation
-    if (deal.conversation_id) {
-      await supabase
-        .from('messages')
-        .insert({
-          conversation_id: deal.conversation_id,
-          sender_id: deal.brand_id,
-          sender_type: 'brand',
-          content: `✅ Deal completed! "${deal.title}" has been approved.`,
-          is_system_message: true,
-          attachments: [],
-        })
-    }
+    await postDealSystemMessage(supabase, {
+      dealId: id,
+      creatorId: deal.creator_id,
+      brandId: deal.brand_id,
+      senderUserId: request.headers.get('x-user-id') ?? deal.brand_id,
+      senderType: 'brand',
+      content: `✅ Deal completed! "${deal.title}" has been approved.`,
+    })
 
     // Notify the creator that the deal is approved and completed
     const creatorUserId = await getUserIdFromCreator(supabase, deal.creator_id)
@@ -150,8 +147,9 @@ export async function POST(
         userId: creatorUserId,
         type: 'deal_approved',
         title: 'Deal completed!',
-        message: `"${deal.title}" has been approved by the brand. Great work!`,
-        link: `/dashboard/deals/${id}`,
+        content: `"${deal.title}" has been approved by the brand. Great work!`,
+        relatedType: 'deal',
+        relatedId: id,
       })
     }
 
@@ -161,7 +159,7 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Error approving deal:', error)
+    captureError(error, { route: 'POST /api/deals/[id]/approve' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

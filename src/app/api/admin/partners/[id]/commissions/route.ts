@@ -80,8 +80,8 @@ export async function PUT(
           userId: partner.user_id,
           type: 'referral_commission_approved',
           title: 'Commission approved',
-          message: `Your ${formatCents(commission.commission_amount_cents)} commission has been approved and added to your balance.`,
-          link: '/dashboard/partner',
+          content: `Your ${formatCents(commission.commission_amount_cents)} commission has been approved and added to your balance.`,
+          relatedType: 'partner',
         })
       }
     }

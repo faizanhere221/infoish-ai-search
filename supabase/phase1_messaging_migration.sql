@@ -54,3 +54,32 @@ DROP POLICY IF EXISTS creator_platforms_select ON creator_platforms;
 DROP POLICY IF EXISTS creator_services_select ON creator_services;
 DROP POLICY IF EXISTS creator_portfolio_select ON creator_portfolio;
 DROP POLICY IF EXISTS brands_select ON brands;
+
+
+-- ============================================================================
+-- STEP 2b — is_system column on messages
+--
+-- Lets deal-lifecycle system messages ("Deal accepted!", "Revision
+-- requested", etc. — see src/lib/deal-messages.ts) render differently from
+-- a normal chat message in the UI, instead of looking like something a
+-- person typed.
+-- ============================================================================
+
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_system BOOLEAN DEFAULT FALSE;
+
+
+-- ============================================================================
+-- STEP 2c — add 'declined' to the deal_status enum
+--
+-- src/app/api/deals/[id]/decline/route.ts sets status = 'declined', but the
+-- enum only ever had: pending, accepted, paid, in_progress, delivered,
+-- revision, completed, cancelled, disputed. Without this, every decline
+-- write either fails outright or was only working because the live
+-- database already had an out-of-band value added outside the migrations
+-- folder. ADD VALUE cannot run inside a multi-statement transaction block in
+-- older Postgres — run this file as top-level statements (the default when
+-- pasting into the Supabase SQL Editor), not wrapped in an explicit
+-- BEGIN/COMMIT.
+-- ============================================================================
+
+ALTER TYPE deal_status ADD VALUE IF NOT EXISTS 'declined';

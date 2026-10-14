@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
+import { postDealSystemMessage } from '@/lib/deal-messages'
+import { captureError } from '@/lib/error-tracking'
 
 interface RouteParams {
   params: { id: string }
@@ -84,24 +86,22 @@ export async function POST(
       .single()
 
     if (error) {
-      console.error('Error requesting revision:', error)
+      captureError(error, { route: 'POST /api/deals/[id]/revision' })
       return NextResponse.json({ error: 'Failed to request revision' }, { status: 500 })
     }
 
-    if (deal.conversation_id) {
-      const systemMsg = message
-        ? `🔄 Revision requested for "${deal.title}"\n\nFeedback: ${message}`
-        : `🔄 Revision requested for "${deal.title}". Please review the feedback and resubmit.`
+    const systemMsg = message
+      ? `🔄 Revision requested for "${deal.title}"\n\nFeedback: ${message}`
+      : `🔄 Revision requested for "${deal.title}". Please review the feedback and resubmit.`
 
-      await supabase.from('messages').insert({
-        conversation_id: deal.conversation_id,
-        sender_id: deal.brand_id,
-        sender_type: 'brand',
-        content: systemMsg,
-        is_system_message: true,
-        attachments: [],
-      })
-    }
+    await postDealSystemMessage(supabase, {
+      dealId: id,
+      creatorId: deal.creator_id,
+      brandId: deal.brand_id,
+      senderUserId: request.headers.get('x-user-id') ?? deal.brand_id,
+      senderType: 'brand',
+      content: systemMsg,
+    })
 
     const creatorUserId = await getUserIdFromCreator(supabase, deal.creator_id)
     if (creatorUserId) {
@@ -109,15 +109,16 @@ export async function POST(
         userId: creatorUserId,
         type: 'deal_revision',
         title: 'Revision requested',
-        message: `"${deal.title}" requires a revision. Please check the feedback.`,
-        link: `/dashboard/deals/${id}`,
+        content: `"${deal.title}" requires a revision. Please check the feedback.`,
+        relatedType: 'deal',
+        relatedId: id,
       })
     }
 
     return NextResponse.json({ message: 'Revision requested', deal: updatedDeal })
 
   } catch (error) {
-    console.error('Error requesting revision:', error)
+    captureError(error, { route: 'POST /api/deals/[id]/revision' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

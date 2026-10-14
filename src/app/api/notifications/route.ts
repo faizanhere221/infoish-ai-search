@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
 const CreateNotificationSchema = z.object({
@@ -9,8 +10,9 @@ const CreateNotificationSchema = z.object({
     'deal_delivered', 'deal_approved', 'deal_completed', 'new_message',
   ]),
   title: z.string().min(1).max(200),
-  message: z.string().min(1).max(1000),
-  link: z.string().max(500).optional().nullable(),
+  content: z.string().min(1).max(1000),
+  related_type: z.string().max(50).optional().nullable(),
+  related_id: z.string().uuid().optional().nullable(),
 })
 
 const MarkReadSchema = z.object({
@@ -46,7 +48,7 @@ export async function GET(request: NextRequest) {
   const { data: notifications, error, count } = await query
 
   if (error) {
-    console.error('Error fetching notifications:', error.message)
+    captureError(error, { route: 'GET /api/notifications' })
     return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 })
   }
 
@@ -88,15 +90,16 @@ export async function POST(request: NextRequest) {
       user_id: parsed.data.user_id,
       type: parsed.data.type,
       title: parsed.data.title,
-      message: parsed.data.message,
-      link: parsed.data.link ?? null,
+      content: parsed.data.content,
+      related_type: parsed.data.related_type ?? null,
+      related_id: parsed.data.related_id ?? null,
       is_read: false,
     })
     .select()
     .single()
 
   if (error) {
-    console.error('Error creating notification:', error.message)
+    captureError(error, { route: 'POST /api/notifications' })
     return NextResponse.json({ error: 'Failed to create notification' }, { status: 500 })
   }
 
@@ -133,7 +136,7 @@ export async function PATCH(request: NextRequest) {
       .eq('id', parsed.data.id)
       .eq('user_id', userId) // ownership enforced here
     if (error) {
-      console.error('Error marking notification read:', error.message)
+      captureError(error, { route: 'PATCH /api/notifications' })
       return NextResponse.json({ error: 'Failed to update notification' }, { status: 500 })
     }
     return NextResponse.json({ message: 'Notification marked as read' })
@@ -147,7 +150,7 @@ export async function PATCH(request: NextRequest) {
     .eq('is_read', false)
 
   if (error) {
-    console.error('Error marking all notifications read:', error.message)
+    captureError(error, { route: 'PATCH /api/notifications' })
     return NextResponse.json({ error: 'Failed to update notifications' }, { status: 500 })
   }
 

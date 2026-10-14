@@ -161,8 +161,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         userId: brandUserId,
         type: 'campaign_application',
         title: 'New campaign application',
-        message: `You received a new application for "${campaign.title}"`,
-        link: `/dashboard/campaigns/${id}/applications`,
+        content: `You received a new application for "${campaign.title}"`,
+        relatedType: 'campaign',
+        relatedId: id,
       })
     }
 

@@ -97,8 +97,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         userId: creatorUserId,
         type: 'campaign_application_update',
         title: notification?.title ?? 'Application status updated',
-        message: notification?.message(campaign.title) ?? `Your application for "${campaign.title}" is now ${status}.`,
-        link: `/dashboard/applications/${applicationId}`,
+        content: notification?.message(campaign.title) ?? `Your application for "${campaign.title}" is now ${status}.`,
+        relatedType: 'campaign_application',
+        relatedId: applicationId,
       })
     }
 

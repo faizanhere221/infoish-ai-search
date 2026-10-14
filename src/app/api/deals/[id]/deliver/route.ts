@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { createNotification, getUserIdFromBrand } from '@/lib/notifications'
+import { postDealSystemMessage } from '@/lib/deal-messages'
+import { captureError } from '@/lib/error-tracking'
 
 interface RouteParams {
   params: { id: string }
@@ -90,30 +92,25 @@ export async function POST(
       .single()
 
     if (error) {
-      console.error('Error delivering deal:', error)
+      captureError(error, { route: 'POST /api/deals/[id]/deliver' })
       return NextResponse.json(
         { error: 'Failed to submit delivery' },
         { status: 500 }
       )
     }
 
-    // Create system message in conversation
-    if (deal.conversation_id) {
-      const deliveryMessage = message
-        ? `📦 Delivery submitted for "${deal.title}"\n\nMessage: ${message}`
-        : `📦 Delivery submitted for "${deal.title}". Please review and approve.`
+    const deliveryMessage = message
+      ? `📦 Delivery submitted for "${deal.title}"\n\nMessage: ${message}`
+      : `📦 Delivery submitted for "${deal.title}". Please review and approve.`
 
-      await supabase
-        .from('messages')
-        .insert({
-          conversation_id: deal.conversation_id,
-          sender_id: deal.creator_id,
-          sender_type: 'creator',
-          content: deliveryMessage,
-          is_system_message: true,
-          attachments: [],
-        })
-    }
+    await postDealSystemMessage(supabase, {
+      dealId: id,
+      creatorId: deal.creator_id,
+      brandId: deal.brand_id,
+      senderUserId: request.headers.get('x-user-id') ?? deal.creator_id,
+      senderType: 'creator',
+      content: deliveryMessage,
+    })
 
     // Notify the brand that the delivery is ready for review
     const brandUserId = await getUserIdFromBrand(supabase, deal.brand_id)
@@ -122,8 +119,9 @@ export async function POST(
         userId: brandUserId,
         type: 'deal_delivered',
         title: 'Delivery ready for review',
-        message: `"${deal.title}" has been delivered. Please review and approve.`,
-        link: `/dashboard/deals/${id}`,
+        content: `"${deal.title}" has been delivered. Please review and approve.`,
+        relatedType: 'deal',
+        relatedId: id,
       })
     }
 
@@ -133,7 +131,7 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Error delivering deal:', error)
+    captureError(error, { route: 'POST /api/deals/[id]/deliver' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -206,8 +206,9 @@ export async function POST(request: NextRequest) {
         userId: creatorUserId,
         type: 'deal_created',
         title: 'New deal offer',
-        message: `You received a new deal offer: "${title}"`,
-        link: `/dashboard/deals/${deal.id}`,
+        content: `You received a new deal offer: "${title}"`,
+        relatedType: 'deal',
+        relatedId: deal.id,
       })
     }
 

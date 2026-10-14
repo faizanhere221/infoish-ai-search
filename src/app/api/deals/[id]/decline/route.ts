@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { createNotification, getUserIdFromBrand } from '@/lib/notifications'
+import { postDealSystemMessage } from '@/lib/deal-messages'
+import { captureError } from '@/lib/error-tracking'
 
 interface RouteParams {
   params: { id: string }
@@ -60,20 +62,18 @@ export async function POST(
       .single()
 
     if (error) {
-      console.error('Error declining deal:', error)
+      captureError(error, { route: 'POST /api/deals/[id]/decline' })
       return NextResponse.json({ error: 'Failed to decline deal' }, { status: 500 })
     }
 
-    if (deal.conversation_id) {
-      await supabase.from('messages').insert({
-        conversation_id: deal.conversation_id,
-        sender_id: deal.creator_id,
-        sender_type: 'creator',
-        content: `❌ Deal declined: "${deal.title}"`,
-        is_system_message: true,
-        attachments: [],
-      })
-    }
+    await postDealSystemMessage(supabase, {
+      dealId: id,
+      creatorId: deal.creator_id,
+      brandId: deal.brand_id,
+      senderUserId: request.headers.get('x-user-id') ?? deal.creator_id,
+      senderType: 'creator',
+      content: `❌ Deal declined: "${deal.title}"`,
+    })
 
     const brandUserId = await getUserIdFromBrand(supabase, deal.brand_id)
     if (brandUserId) {
@@ -81,15 +81,16 @@ export async function POST(
         userId: brandUserId,
         type: 'deal_declined',
         title: 'Deal declined',
-        message: `Your deal "${deal.title}" was declined by the creator.`,
-        link: `/dashboard/deals/${id}`,
+        content: `Your deal "${deal.title}" was declined by the creator.`,
+        relatedType: 'deal',
+        relatedId: id,
       })
     }
 
     return NextResponse.json({ message: 'Deal declined', deal: updatedDeal })
 
   } catch (error) {
-    console.error('Error declining deal:', error)
+    captureError(error, { route: 'POST /api/deals/[id]/decline' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

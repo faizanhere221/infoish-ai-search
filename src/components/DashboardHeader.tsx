@@ -158,7 +158,7 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
           {/* Right Side */}
           <div className="flex items-center gap-2">
             {/* Notifications Bell */}
-            {!hideNotifications && userType === 'brand' && (
+            {!hideNotifications && (
               <Link
                 href="/notifications"
                 className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"

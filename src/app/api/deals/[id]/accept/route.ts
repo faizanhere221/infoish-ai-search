@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { createNotification, getUserIdFromBrand } from '@/lib/notifications'
+import { postDealSystemMessage } from '@/lib/deal-messages'
+import { captureError } from '@/lib/error-tracking'
 
 interface RouteParams {
   params: { id: string }
@@ -69,26 +71,23 @@ export async function POST(
       .single()
 
     if (error) {
-      console.error('Error accepting deal:', error)
+      captureError(error, { route: 'POST /api/deals/[id]/accept' })
       return NextResponse.json(
         { error: 'Failed to accept deal' },
         { status: 500 }
       )
     }
 
-    // Create system message in conversation
-    if (deal.conversation_id) {
-      await supabase
-        .from('messages')
-        .insert({
-          conversation_id: deal.conversation_id,
-          sender_id: deal.creator_id,
-          sender_type: 'creator',
-          content: `✅ Deal accepted! Work has begun on: ${deal.title}`,
-          is_system_message: true,
-          attachments: [],
-        })
-    }
+    // Post a system message in the deal's conversation (found/created by
+    // creator+brand, since deals has no conversation_id column)
+    await postDealSystemMessage(supabase, {
+      dealId: id,
+      creatorId: deal.creator_id,
+      brandId: deal.brand_id,
+      senderUserId: request.headers.get('x-user-id') ?? deal.creator_id,
+      senderType: 'creator',
+      content: `✅ Deal accepted! Work has begun on: ${deal.title}`,
+    })
 
     // Notify the brand that the creator accepted
     const brandUserId = await getUserIdFromBrand(supabase, deal.brand_id)
@@ -97,8 +96,9 @@ export async function POST(
         userId: brandUserId,
         type: 'deal_accepted',
         title: 'Deal accepted',
-        message: `Your deal "${deal.title}" has been accepted. Work is now in progress.`,
-        link: `/dashboard/deals/${id}`,
+        content: `Your deal "${deal.title}" has been accepted. Work is now in progress.`,
+        relatedType: 'deal',
+        relatedId: id,
       })
     }
 
@@ -108,7 +108,7 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Error accepting deal:', error)
+    captureError(error, { route: 'POST /api/deals/[id]/accept' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

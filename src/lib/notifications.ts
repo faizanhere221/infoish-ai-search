@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { captureError } from '@/lib/error-tracking'
 
 export type NotificationType =
   | 'deal_created'
@@ -14,15 +15,22 @@ export type NotificationType =
   | 'referral_commission_earned'
   | 'referral_commission_approved'
 
+// related_type values used by the `related_type`/`related_id` columns below,
+// resolved back into a link by the notifications page (src/app/notifications/page.tsx)
+export type NotificationRelatedType = 'deal' | 'campaign' | 'campaign_application' | 'partner'
+
 interface NotificationPayload {
   userId: string
   type: NotificationType
   title: string
-  message: string
-  link?: string
+  content: string
+  relatedType?: NotificationRelatedType
+  relatedId?: string
 }
 
-// Fire-and-forget: logs on error, never throws (never blocks the calling route)
+// Fire-and-forget: logs on error, never throws (never blocks the calling route).
+// Columns match the real `notifications` table (schema.sql:465-485): content,
+// related_type, related_id — NOT message/link, which don't exist on the table.
 export async function createNotification(
   supabase: SupabaseClient,
   payload: NotificationPayload
@@ -31,12 +39,13 @@ export async function createNotification(
     user_id: payload.userId,
     type: payload.type,
     title: payload.title,
-    message: payload.message,
-    link: payload.link ?? null,
+    content: payload.content,
+    related_type: payload.relatedType ?? null,
+    related_id: payload.relatedId ?? null,
     is_read: false,
   })
   if (error) {
-    console.error('Failed to create notification:', error.message)
+    captureError(error, { context: 'createNotification', type: payload.type })
   }
 }
 
