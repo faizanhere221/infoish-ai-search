@@ -1,25 +1,31 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import { ExternalLink, FileText, Loader2, Plus } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ExternalLink, FileText, Loader2, Paperclip, Plus, Upload } from 'lucide-react'
 import { formatDate, DELIVERABLE_STATUS_BADGE } from '@/components/campaigns/utils'
 import { DELIVERABLE_FORMATS, type CreatorDeliverable } from '@/types/campaigns'
 
 interface DeliverablesTabProps {
   campaignCreatorId: string
+  actorType: 'brand' | 'creator'
   token: string | null
 }
 
 const EMPTY_NEW = { title: '', platform: '', format: '', draft_due: '', publish_due: '', revisions_allowed: '2' }
 
-export function DeliverablesTab({ campaignCreatorId, token }: DeliverablesTabProps) {
+export function DeliverablesTab({ campaignCreatorId, actorType, token }: DeliverablesTabProps) {
   const [deliverables, setDeliverables] = useState<CreatorDeliverable[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [newDeliverable, setNewDeliverable] = useState(EMPTY_NEW)
   const [feedbackDrafts, setFeedbackDrafts] = useState<Record<string, string>>({})
+  const [draftLinkDrafts, setDraftLinkDrafts] = useState<Record<string, string>>({})
+  const [postedUrlDrafts, setPostedUrlDrafts] = useState<Record<string, string>>({})
+  const [uploadingId, setUploadingId] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [fileTargetId, setFileTargetId] = useState<string | null>(null)
 
   const authHeader = useCallback((): Record<string, string> => (token ? { Authorization: `Bearer ${token}` } : {}), [token])
 
@@ -89,6 +95,80 @@ export function DeliverablesTab({ campaignCreatorId, token }: DeliverablesTabPro
     }
   }
 
+  async function submitDraft(deliverableId: string) {
+    setBusyId(deliverableId)
+    setError(null)
+    try {
+      const draftUrl = draftLinkDrafts[deliverableId]?.trim()
+      const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables/${deliverableId}/submit-draft`, {
+        method: 'POST',
+        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(draftUrl ? { draft_url: draftUrl } : {}),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Failed to submit draft')
+        return
+      }
+      setDraftLinkDrafts((prev) => ({ ...prev, [deliverableId]: '' }))
+      await load()
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function submitPosted(deliverableId: string) {
+    setBusyId(deliverableId)
+    setError(null)
+    try {
+      const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables/${deliverableId}/submit-posted`, {
+        method: 'POST',
+        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ posted_url: postedUrlDrafts[deliverableId]?.trim() || '' }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Failed to submit posted link')
+        return
+      }
+      await load()
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  function triggerFileSelect(deliverableId: string) {
+    setFileTargetId(deliverableId)
+    fileInputRef.current?.click()
+  }
+
+  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !fileTargetId) {return}
+    const deliverableId = fileTargetId
+    setUploadingId(deliverableId)
+    setError(null)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables/${deliverableId}/attachment`, {
+        method: 'POST',
+        headers: authHeader(),
+        body: formData,
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Failed to upload file')
+        return
+      }
+      await load()
+    } finally {
+      setUploadingId(null)
+      setFileTargetId(null)
+    }
+  }
+
   async function viewDraft(deliverableId: string, path: string) {
     const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables/${deliverableId}/attachment/sign?path=${encodeURIComponent(path)}`, {
       headers: authHeader(),
@@ -105,10 +185,14 @@ export function DeliverablesTab({ campaignCreatorId, token }: DeliverablesTabPro
 
   return (
     <div className="space-y-4">
+      <input ref={fileInputRef} type="file" onChange={handleFileSelected} className="hidden" />
+
       {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>}
 
       {deliverables.length === 0 && !showAdd && (
-        <p className="text-sm text-gray-500 text-center py-4">No deliverables yet. Accepting an offer creates one automatically, or add one manually.</p>
+        <p className="text-sm text-gray-500 text-center py-4">
+          No deliverables yet. {actorType === 'brand' ? 'Accepting an offer creates one automatically, or add one manually.' : 'They appear once the brand accepts an offer.'}
+        </p>
       )}
 
       {deliverables.map((d) => {
@@ -152,7 +236,7 @@ export function DeliverablesTab({ campaignCreatorId, token }: DeliverablesTabPro
               <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 mb-2">{d.latest_feedback}</p>
             )}
 
-            {d.status === 'draft_submitted' && (
+            {actorType === 'brand' && d.status === 'draft_submitted' && (
               <div className="space-y-2 mt-2">
                 <textarea
                   value={feedbackDrafts[d.id] || ''}
@@ -182,7 +266,7 @@ export function DeliverablesTab({ campaignCreatorId, token }: DeliverablesTabPro
               </div>
             )}
 
-            {d.status === 'posted' && (
+            {actorType === 'brand' && d.status === 'posted' && (
               <button
                 onClick={() => act(d.id, 'complete')}
                 disabled={busyId === d.id}
@@ -191,11 +275,57 @@ export function DeliverablesTab({ campaignCreatorId, token }: DeliverablesTabPro
                 Mark complete
               </button>
             )}
+
+            {actorType === 'creator' && (d.status === 'pending' || d.status === 'changes_requested') && (
+              <div className="space-y-2 mt-2">
+                <input
+                  value={draftLinkDrafts[d.id] ?? d.draft_url ?? ''}
+                  onChange={(e) => setDraftLinkDrafts((prev) => ({ ...prev, [d.id]: e.target.value }))}
+                  placeholder="Link to your draft (optional if uploading a file)"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-pink"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => triggerFileSelect(d.id)}
+                    disabled={uploadingId === d.id}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {uploadingId === d.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Paperclip className="w-4 h-4" />}
+                    {d.draft_attachment_path ? 'Replace file' : 'Attach file'}
+                  </button>
+                  <button
+                    onClick={() => submitDraft(d.id)}
+                    disabled={busyId === d.id || (!draftLinkDrafts[d.id]?.trim() && !d.draft_url && !d.draft_attachment_path)}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg text-sm font-medium hover:shadow-lg disabled:opacity-50"
+                  >
+                    <Upload className="w-4 h-4" /> Submit draft
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {actorType === 'creator' && d.status === 'approved' && (
+              <div className="flex gap-2 mt-2">
+                <input
+                  value={postedUrlDrafts[d.id] || ''}
+                  onChange={(e) => setPostedUrlDrafts((prev) => ({ ...prev, [d.id]: e.target.value }))}
+                  placeholder="Link to the posted content"
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-pink"
+                />
+                <button
+                  onClick={() => submitPosted(d.id)}
+                  disabled={busyId === d.id || !postedUrlDrafts[d.id]?.trim()}
+                  className="px-4 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg text-sm font-medium hover:shadow-lg disabled:opacity-50"
+                >
+                  Submit
+                </button>
+              </div>
+            )}
           </div>
         )
       })}
 
-      {showAdd ? (
+      {actorType === 'brand' && (showAdd ? (
         <div className="border border-gray-200 rounded-xl p-4 space-y-3">
           <input
             value={newDeliverable.title}
@@ -247,7 +377,7 @@ export function DeliverablesTab({ campaignCreatorId, token }: DeliverablesTabPro
         >
           <Plus className="w-4 h-4" /> Add deliverable
         </button>
-      )}
+      ))}
     </div>
   )
 }

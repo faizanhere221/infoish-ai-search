@@ -67,7 +67,7 @@ export function CampaignCreatorDrawer({
               onOfferAccepted={onChanged}
             />
           )}
-          {tab === 'deliverables' && <DeliverablesTab campaignCreatorId={campaignCreatorId} token={token} />}
+          {tab === 'deliverables' && <DeliverablesTab campaignCreatorId={campaignCreatorId} actorType="brand" token={token} />}
           {tab === 'activity' && <ActivityTab campaignCreatorId={campaignCreatorId} token={token} />}
         </div>
       </div>

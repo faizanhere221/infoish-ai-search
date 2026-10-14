@@ -134,7 +134,13 @@ export default function MyCampaignsPage() {
                       href={`/campaigns/${row.campaign_id}`}
                       className="px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50"
                     >
-                      View campaign
+                      View brief
+                    </Link>
+                    <Link
+                      href={`/dashboard/my-campaigns/${row.id}`}
+                      className="px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50"
+                    >
+                      Offer & deliverables
                     </Link>
                     <button
                       onClick={() => messageBrand(row)}
