@@ -132,12 +132,32 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       })
     }
 
+    // Join creator (+ platforms) the same way GET /api/campaigns/[id]/applications
+    // does — without this, the response only had the bare campaign_applications
+    // row, so the frontend's `application.creator` was undefined and fell back
+    // to "C" / "Creator" / "@unknown" every time this PUT ran (which happens
+    // automatically on first view of a submitted application).
+    const [{ data: creator }, { data: platforms }] = await Promise.all([
+      supabase
+        .from('creators')
+        .select('id, username, display_name, profile_photo_url, bio, country, niches, total_followers')
+        .eq('id', updatedApplication.creator_id)
+        .single(),
+      supabase
+        .from('creator_platforms')
+        .select('platform, followers')
+        .eq('creator_id', updatedApplication.creator_id),
+    ])
+
     return NextResponse.json({
       message: 'Application status updated successfully',
-      application: updatedApplication,
+      application: {
+        ...updatedApplication,
+        creator: creator ? { ...creator, platforms: platforms || [] } : null,
+      },
     })
   } catch (error) {
-    console.error('Error updating application status:', error)
+    captureError(error, { route: 'PUT /api/campaigns/[id]/applications/[applicationId]' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
