@@ -8,8 +8,14 @@ import * as Sentry from "@sentry/nextjs";
 Sentry.init({
   dsn: "https://87ec6c3e151dabcc08720ebaf40844f6@o4512244228882432.ingest.us.sentry.io/4512244229079040",
 
+  // Local dev would otherwise burn Sentry quota on every refresh and every
+  // 3s/10s poll tick (middleware runs on every request, polled ones
+  // included). Errors from `npm run dev` never reach Sentry — reproduce
+  // locally, then verify against a production build.
+  enabled: process.env.NODE_ENV === "production",
+
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 1,
+  tracesSampleRate: 0.1,
 
   dataCollection: {
     // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
