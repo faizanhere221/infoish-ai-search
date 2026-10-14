@@ -63,8 +63,10 @@ export async function GET(request: NextRequest) {
 
     type CreatorSummary = { id: string; username: string; display_name: string; profile_photo_url: string | null }
     type BrandSummary = { id: string; company_name: string; logo_url: string | null; contact_name: string | null }
+    type PlatformRow = { creator_id: string; platform: string; followers: number | null }
     let creators: CreatorSummary[] = []
     let brands: BrandSummary[] = []
+    let platformByCreator: Record<string, string> = {}
 
     if (creatorIds.length > 0) {
       const { data } = await supabase
@@ -72,6 +74,26 @@ export async function GET(request: NextRequest) {
         .select('id, username, display_name, profile_photo_url')
         .in('id', creatorIds)
       creators = data || []
+
+      // Primary platform shown next to a creator's name in the inbox — the
+      // one with the most followers, consistent with how CreatorCard picks
+      // which platform to lead with elsewhere in the app.
+      const { data: platformRows } = await supabase
+        .from('creator_platforms')
+        .select('creator_id, platform, followers')
+        .in('creator_id', creatorIds)
+      platformByCreator = ((platformRows || []) as PlatformRow[]).reduce<Record<string, string>>((acc, row) => {
+        const current = acc[row.creator_id]
+        if (!current) {
+          acc[row.creator_id] = row.platform
+        } else {
+          const currentFollowers = (platformRows as PlatformRow[]).find(
+            r => r.creator_id === row.creator_id && r.platform === current
+          )?.followers ?? 0
+          if ((row.followers ?? 0) > currentFollowers) {acc[row.creator_id] = row.platform}
+        }
+        return acc
+      }, {})
     }
 
     if (brandIds.length > 0) {
@@ -83,11 +105,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Combine data
-    const conversationsWithRelations = conversations.map(conv => ({
-      ...conv,
-      creator: creators.find(c => c.id === conv.creator_id) || null,
-      brand: brands.find(b => b.id === conv.brand_id) || null,
-    }))
+    const conversationsWithRelations = conversations.map(conv => {
+      const creator = creators.find(c => c.id === conv.creator_id) || null
+      return {
+        ...conv,
+        creator: creator ? { ...creator, primary_platform: platformByCreator[creator.id] ?? null } : null,
+        brand: brands.find(b => b.id === conv.brand_id) || null,
+      }
+    })
 
     return NextResponse.json({ conversations: conversationsWithRelations })
 

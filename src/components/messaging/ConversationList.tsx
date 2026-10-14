@@ -3,13 +3,30 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { MessageSquare } from 'lucide-react'
-import type { Conversation } from '@/types/marketplace'
+import type { ConversationSummary } from '@/hooks/useConversationsList'
 
 interface ConversationListProps {
-  conversations: Conversation[]
+  conversations: ConversationSummary[]
   currentConversationId?: string
   userType: 'creator' | 'brand'
   isLoading?: boolean
+  emptyMessage?: string
+}
+
+// Same emoji mapping CreatorCard uses elsewhere so a platform looks the same
+// wherever it's shown in the app.
+const PLATFORM_ICONS: Record<string, string> = {
+  youtube: '📺',
+  twitter: '𝕏',
+  instagram: '📸',
+  tiktok: '🎵',
+  linkedin: '💼',
+  twitch: '🎮',
+  newsletter: '📧',
+  podcast: '🎙️',
+  github: '💻',
+  blog: '📝',
+  other: '🌐',
 }
 
 function formatTime(dateString: string): string {
@@ -24,7 +41,7 @@ function formatTime(dateString: string): string {
   if (diffMins < 60) {return `${diffMins}m`}
   if (diffHours < 24) {return `${diffHours}h`}
   if (diffDays < 7) {return `${diffDays}d`}
-  
+
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
@@ -33,10 +50,11 @@ export function ConversationList({
   currentConversationId,
   userType,
   isLoading = false,
+  emptyMessage,
 }: ConversationListProps) {
-  if (isLoading) {
+  if (isLoading && conversations.length === 0) {
     return (
-      <div className="space-y-2 p-4">
+      <div className="space-y-2 p-4" aria-hidden="true">
         {[1, 2, 3].map(i => (
           <div key={i} className="animate-pulse">
             <div className="flex items-center gap-3 p-3">
@@ -56,11 +74,11 @@ export function ConversationList({
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
         <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-          <MessageSquare className="w-7 h-7 text-gray-400" />
+          <MessageSquare className="w-7 h-7 text-gray-400" aria-hidden="true" />
         </div>
-        <p className="text-gray-500 mb-1">No conversations yet</p>
+        <p className="text-gray-500 mb-1">{emptyMessage ?? 'No conversations yet'}</p>
         <p className="text-sm text-gray-400">
-          {userType === 'brand' 
+          {userType === 'brand'
             ? 'Start a conversation by messaging a creator'
             : 'Conversations with brands will appear here'
           }
@@ -70,92 +88,94 @@ export function ConversationList({
   }
 
   return (
-    <div className="divide-y divide-gray-100">
+    <ul className="divide-y divide-gray-100">
       {conversations.map(conversation => {
-        const unreadCount = userType === 'creator' 
-          ? conversation.creator_unread_count 
-          : conversation.brand_unread_count
+        const unreadCount = userType === 'creator' ? conversation.creator_unread : conversation.brand_unread
         const isActive = conversation.id === currentConversationId
-        
-        // Get display info based on user type
+        const isUnread = unreadCount > 0
+
         let name: string | undefined
-        let avatar: string | undefined
-        
+        let avatar: string | null | undefined
+        let platformEmoji: string | null = null
+
         if (userType === 'creator' && conversation.brand) {
           name = conversation.brand.company_name
           avatar = conversation.brand.logo_url
         } else if (userType === 'brand' && conversation.creator) {
           name = conversation.creator.display_name
           avatar = conversation.creator.profile_photo_url
+          const primaryPlatform = (conversation.creator as { primary_platform?: string | null }).primary_platform
+          platformEmoji = primaryPlatform ? PLATFORM_ICONS[primaryPlatform] ?? '🌐' : null
         }
-        
-        return (
-          <Link
-            key={conversation.id}
-            href={`/messages/${conversation.id}`}
-            className={`flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors ${
-              isActive ? 'bg-blue-50 hover:bg-blue-50' : ''
-            }`}
-          >
-            {/* Avatar */}
-            {avatar ? (
-              <Image
-                src={avatar}
-                alt={name || 'User'}
-                width={48}
-                height={48}
-                className={`w-12 h-12 object-cover shrink-0 ${
-                  userType === 'creator' ? 'rounded-lg' : 'rounded-full'
-                }`}
-              />
-            ) : (
-              <div className={`w-12 h-12 flex items-center justify-center shrink-0 ${
-                userType === 'creator' 
-                  ? 'rounded-lg bg-blue-100' 
-                  : 'rounded-full bg-violet-100'
-              }`}>
-                <span className={`font-semibold ${
-                  userType === 'creator' ? 'text-blue-600' : 'text-violet-600'
-                }`}>
-                  {name?.[0] || '?'}
-                </span>
-              </div>
-            )}
 
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className={`font-medium truncate ${
-                  unreadCount > 0 ? 'text-gray-900' : 'text-gray-700'
-                }`}>
-                  {name || 'Unknown'}
-                </h3>
-                <span className="text-xs text-gray-400 shrink-0 ml-2">
-                  {conversation.last_message_at 
-                    ? formatTime(conversation.last_message_at)
-                    : ''
-                  }
-                </span>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <p className={`text-sm truncate ${
-                  unreadCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'
-                }`}>
-                  {conversation.last_message_preview || 'No messages yet'}
-                </p>
-                
-                {unreadCount > 0 && (
-                  <span className="ml-2 min-w-[20px] h-5 bg-blue-600 text-white text-xs font-medium rounded-full flex items-center justify-center px-1.5 shrink-0">
-                    {unreadCount > 99 ? '99+' : unreadCount}
+        return (
+          <li key={conversation.id}>
+            <Link
+              href={`/messages/${conversation.id}`}
+              className={`flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-pink ${
+                isActive ? 'bg-brand-pink/5' : ''
+              }`}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {/* Avatar */}
+              <div className="relative flex-shrink-0">
+                {avatar ? (
+                  <Image
+                    src={avatar}
+                    alt=""
+                    width={48}
+                    height={48}
+                    className={`w-12 h-12 object-cover ${userType === 'creator' ? 'rounded-lg' : 'rounded-full'}`}
+                  />
+                ) : (
+                  <div className={`w-12 h-12 flex items-center justify-center ${
+                    userType === 'creator' ? 'rounded-lg bg-brand-purple/10' : 'rounded-full bg-brand-pink/10'
+                  }`}>
+                    <span className="font-semibold text-brand-purple-dark">{name?.[0] || '?'}</span>
+                  </div>
+                )}
+                {platformEmoji && (
+                  <span
+                    className="absolute -bottom-1 -right-1 w-5 h-5 flex items-center justify-center bg-white rounded-full text-xs border border-gray-200"
+                    title={(conversation.creator as { primary_platform?: string } | null)?.primary_platform}
+                    aria-hidden="true"
+                  >
+                    {platformEmoji}
                   </span>
                 )}
               </div>
-            </div>
-          </Link>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className={`truncate ${isUnread ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
+                    {name || 'Unknown'}
+                  </h3>
+                  <span className="text-xs text-gray-400 shrink-0 ml-2">
+                    {conversation.last_message_at ? formatTime(conversation.last_message_at) : ''}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-2">
+                  <p className={`text-sm truncate ${isUnread ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}>
+                    {conversation.last_message_preview || 'No messages yet'}
+                  </p>
+
+                  {isUnread && (
+                    <span
+                      className="min-w-[20px] h-5 bg-gradient-to-r from-brand-pink to-brand-purple text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shrink-0"
+                      aria-label={`${unreadCount} unread messages`}
+                    >
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </Link>
+          </li>
         )
       })}
-    </div>
+    </ul>
   )
 }
 
