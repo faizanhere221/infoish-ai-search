@@ -156,8 +156,19 @@ export async function POST(
       .single()
 
     if (rpcError || !message) {
+      // Full Postgres/PostgREST error detail server-side (code/message/
+      // details/hint) — e.g. "42883 operator does not exist: character
+      // varying = uuid" is how a parameter-type mismatch in the
+      // send_conversation_message() function (see
+      // supabase/phase4_fixes_migration.sql) actually surfaces. The
+      // client-facing message stays generic; this is what you'd check in
+      // the server terminal/Sentry, not in the browser.
       captureError(rpcError ?? new Error('send_conversation_message returned no row'), {
         route: 'POST /api/conversations/[id]/messages',
+        code: rpcError?.code,
+        details: rpcError?.details,
+        hint: rpcError?.hint,
+        pgMessage: rpcError?.message,
       })
       return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
     }
