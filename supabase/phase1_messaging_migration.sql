@@ -161,3 +161,49 @@ BEGIN
     FROM messages WHERE messages.id = v_message_id;
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- ============================================================================
+-- STEP 6 — chat-attachments Storage bucket
+--
+-- Private bucket (not public — files are only ever served through
+-- GET /api/conversations/[id]/attachments/sign, which checks the caller is
+-- a party to the conversation before minting a 5-minute signed URL).
+--
+-- `storage.buckets` is a regular Postgres table, so it can be created from
+-- the SQL Editor like this. If your Supabase plan/role blocks writing to
+-- `storage.buckets` directly, create it instead via Dashboard -> Storage ->
+-- New bucket, with these exact settings: name "chat-attachments", Private,
+-- file size limit 10 MB, and the same allowed MIME types listed below.
+--
+-- No storage.objects RLS policies are added here, matching how avatars/
+-- payment-proofs already work in this project: every read/write goes
+-- through API routes using the service-role key, which bypasses storage
+-- RLS entirely, so a permissive-looking lack of policy is not a gap here —
+-- the access control is the membership check in the API routes.
+-- ============================================================================
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'chat-attachments',
+  'chat-attachments',
+  FALSE,
+  10485760, -- 10MB
+  ARRAY[
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'video/mp4',
+    'application/zip',
+    'application/x-zip-compressed'
+  ]
+)
+ON CONFLICT (id) DO UPDATE SET
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;

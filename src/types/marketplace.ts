@@ -138,7 +138,12 @@ export interface Conversation {
 export interface Attachment {
   id: string
   type: 'image' | 'file' | 'video'
-  url: string
+  // Stable Supabase Storage object path (persisted in messages.attachments).
+  // The chat-attachments bucket is private, so this is NOT a working URL by
+  // itself — the UI resolves it to a short-lived signed `url` on demand via
+  // GET /api/conversations/[id]/attachments/sign.
+  path: string
+  url?: string
   name: string
   size?: number
   mimeType?: string

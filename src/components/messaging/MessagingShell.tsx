@@ -12,6 +12,7 @@ import { MessageInput } from './MessageInput'
 import { useConversationsList } from '@/hooks/useConversationsList'
 import { useConversationThread } from '@/hooks/useConversationThread'
 import { cn } from '@/lib/utils'
+import type { Attachment } from '@/types/marketplace'
 
 interface ConversationMeta {
   id: string
@@ -105,14 +106,44 @@ export function MessagingShell({ conversationId }: MessagingShellProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, token])
 
-  const handleSend = async () => {
+  const handleSend = async (attachments: Attachment[]) => {
     const content = newMessage.trim()
-    if (!content) {return}
+    if (!content && attachments.length === 0) {return}
     setNewMessage('')
     setSending(true)
-    await sendMessage(content)
+    await sendMessage(content, attachments)
     setSending(false)
   }
+
+  const uploadAttachment = useCallback((file: File, onProgress: (pct: number) => void): Promise<Attachment> => {
+    return new Promise((resolve, reject) => {
+      if (!conversationId || !token) {
+        reject(new Error('Not ready to upload'))
+        return
+      }
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', `/api/conversations/${conversationId}/attachments`)
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {onProgress(Math.round((e.loaded / e.total) * 100))}
+      }
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            resolve(JSON.parse(xhr.responseText).attachment)
+          } catch {
+            reject(new Error('Invalid upload response'))
+          }
+        } else {
+          reject(new Error('Upload failed'))
+        }
+      }
+      xhr.onerror = () => reject(new Error('Upload failed'))
+      const formData = new FormData()
+      formData.append('file', file)
+      xhr.send(formData)
+    })
+  }, [conversationId, token])
 
   const getUnreadCount = (conv: { brand_unread: number; creator_unread: number }) =>
     userType === 'brand' ? conv.brand_unread : conv.creator_unread
@@ -310,6 +341,8 @@ export function MessagingShell({ conversationId }: MessagingShellProps) {
                 <ChatThread
                   messages={messages}
                   currentUserId={userId || ''}
+                  conversationId={conversationId}
+                  token={token}
                   otherPartyName={otherPartyName || 'Unknown'}
                   otherPartyAvatar={otherPartyAvatar}
                   isLoading={messagesLoading}
@@ -339,6 +372,7 @@ export function MessagingShell({ conversationId }: MessagingShellProps) {
                 value={newMessage}
                 onChange={setNewMessage}
                 onSend={handleSend}
+                onUploadFile={uploadAttachment}
                 sending={sending}
                 placeholder={`Message ${otherPartyName || ''}…`}
               />

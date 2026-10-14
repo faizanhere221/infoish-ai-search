@@ -2,12 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { Check, Clock, RefreshCw, MessageSquare } from 'lucide-react'
+import { Check, Clock, RefreshCw, MessageSquare, FileText, Download, ImageOff } from 'lucide-react'
 import type { ThreadMessage } from '@/hooks/useConversationThread'
+import type { Attachment } from '@/types/marketplace'
+import { useSignedAttachmentUrl } from '@/hooks/useSignedAttachmentUrl'
 
 interface ChatThreadProps {
   messages: ThreadMessage[]
   currentUserId: string
+  conversationId: string
+  token: string | null
   otherPartyName: string
   otherPartyAvatar?: string | null
   isLoading?: boolean
@@ -15,6 +19,55 @@ interface ChatThreadProps {
   loadingOlder?: boolean
   onLoadOlder?: () => void
   onRetry?: (tempId: string) => void
+}
+
+function AttachmentPreview({
+  attachment,
+  conversationId,
+  token,
+  own,
+}: {
+  attachment: Attachment
+  conversationId: string
+  token: string | null
+  own: boolean
+}) {
+  const { url, loading, error } = useSignedAttachmentUrl(conversationId, attachment.path, token)
+
+  if (loading) {
+    return <div className="w-32 h-20 rounded-lg bg-black/10 animate-pulse" aria-label="Loading attachment" />
+  }
+
+  if (error || !url) {
+    return (
+      <div className={`flex items-center gap-2 p-2 rounded-lg text-sm ${own ? 'bg-white/20' : 'bg-gray-200'}`}>
+        <ImageOff className="w-4 h-4" aria-hidden="true" /> Couldn&apos;t load {attachment.name}
+      </div>
+    )
+  }
+
+  if (attachment.type === 'image') {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+        {/* eslint-disable-next-line @next/next/no-img-element -- signed URL with a rotating token/expiry, not a static asset next/image can cache */}
+        <img src={url} alt={attachment.name} className="max-w-[220px] max-h-[220px] rounded-lg object-cover" />
+      </a>
+    )
+  }
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      download={attachment.name}
+      className={`flex items-center gap-2 p-2 rounded-lg hover:opacity-90 ${own ? 'bg-white/20' : 'bg-gray-200'}`}
+    >
+      <FileText className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+      <span className="text-sm truncate max-w-[160px]">{attachment.name}</span>
+      <Download className="w-3.5 h-3.5 flex-shrink-0 opacity-70" aria-hidden="true" />
+    </a>
+  )
 }
 
 const GROUP_WINDOW_MS = 5 * 60 * 1000
@@ -55,6 +108,8 @@ function isGroupedWithPrevious(current: ThreadMessage, previous?: ThreadMessage)
 export function ChatThread({
   messages,
   currentUserId,
+  conversationId,
+  token,
   otherPartyName,
   otherPartyAvatar,
   isLoading = false,
@@ -168,17 +223,20 @@ export function ChatThread({
                         : 'bg-gray-100 text-gray-900 rounded-bl-md'
                     } ${message.pendingStatus === 'failed' ? 'opacity-60' : ''}`}
                   >
-                    <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                    {message.content && (
+                      <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                    )}
 
                     {message.attachments && message.attachments.length > 0 && (
-                      <div className="mt-2 space-y-2">
+                      <div className={`space-y-2 ${message.content ? 'mt-2' : ''}`}>
                         {message.attachments.map((attachment) => (
-                          <div
+                          <AttachmentPreview
                             key={attachment.id}
-                            className={`flex items-center gap-2 p-2 rounded-lg ${own ? 'bg-white/20' : 'bg-gray-200'}`}
-                          >
-                            <span className="text-sm truncate">{attachment.name || 'Attachment'}</span>
-                          </div>
+                            attachment={attachment}
+                            conversationId={conversationId}
+                            token={token}
+                            own={own}
+                          />
                         ))}
                       </div>
                     )}
