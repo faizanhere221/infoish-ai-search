@@ -23,6 +23,64 @@ export type CampaignCreatorStatus =
   | 'completed'
   | 'dropped'
 
+// Phase 3 — negotiations, deliverables + approvals, scheduling
+// (see supabase/phase3_workflow_migration.sql). Built on campaign_creators,
+// not the legacy deals table.
+
+export type OfferParty = 'brand' | 'creator'
+export type OfferStatus = 'pending' | 'accepted' | 'declined' | 'countered' | 'withdrawn' | 'expired'
+
+export interface CampaignOffer {
+  id: string
+  campaign_creator_id: string
+  from_party: OfferParty
+  amount: number
+  currency: string
+  deliverables_summary: string | null
+  publish_by: string | null
+  revisions_included: number
+  usage_rights: string | null
+  message: string | null
+  status: OfferStatus
+  expires_at: string | null
+  created_at: string
+  responded_at: string | null
+}
+
+export type DeliverableStatus = 'pending' | 'draft_submitted' | 'changes_requested' | 'approved' | 'posted' | 'completed'
+export type DeliverableFormat = 'video' | 'post' | 'thread' | 'newsletter' | 'story' | 'podcast' | 'other'
+
+export interface CreatorDeliverable {
+  id: string
+  campaign_creator_id: string
+  title: string
+  platform: string | null
+  format: DeliverableFormat | null
+  draft_due: string | null
+  publish_due: string | null
+  status: DeliverableStatus
+  draft_url: string | null
+  draft_attachment_path: string | null
+  posted_url: string | null
+  revisions_used: number
+  revisions_allowed: number
+  latest_feedback: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface CampaignCreatorEvent {
+  id: string
+  campaign_creator_id: string
+  actor_user_id: string
+  actor_type: OfferParty
+  event_type: string
+  payload: Record<string, unknown>
+  created_at: string
+}
+
+export type CreatorAvailabilityStatus = 'open' | 'limited' | 'booked'
+
 export type CampaignObjective =
   | 'brand_awareness'
   | 'product_review'
@@ -313,4 +371,44 @@ export const CAMPAIGN_CREATOR_STATUS_LABELS: Record<CampaignCreatorStatus, strin
   posted: 'Posted',
   completed: 'Completed',
   dropped: 'Dropped',
+}
+
+export const OFFER_STATUSES: OfferStatus[] = ['pending', 'accepted', 'declined', 'countered', 'withdrawn', 'expired']
+
+export const OFFER_STATUS_LABELS: Record<OfferStatus, string> = {
+  pending: 'Pending',
+  accepted: 'Accepted',
+  declined: 'Declined',
+  countered: 'Countered',
+  withdrawn: 'Withdrawn',
+  expired: 'Expired',
+}
+
+export const DELIVERABLE_STATUSES: DeliverableStatus[] = [
+  'pending', 'draft_submitted', 'changes_requested', 'approved', 'posted', 'completed',
+]
+
+export const DELIVERABLE_STATUS_LABELS: Record<DeliverableStatus, string> = {
+  pending: 'Not started',
+  draft_submitted: 'Draft submitted',
+  changes_requested: 'Changes requested',
+  approved: 'Approved',
+  posted: 'Posted',
+  completed: 'Completed',
+}
+
+export const DELIVERABLE_FORMATS: { value: DeliverableFormat; label: string }[] = [
+  { value: 'video', label: 'Video' },
+  { value: 'post', label: 'Post' },
+  { value: 'thread', label: 'Thread' },
+  { value: 'newsletter', label: 'Newsletter' },
+  { value: 'story', label: 'Story' },
+  { value: 'podcast', label: 'Podcast' },
+  { value: 'other', label: 'Other' },
+]
+
+export const CREATOR_AVAILABILITY_LABELS: Record<CreatorAvailabilityStatus, string> = {
+  open: 'Open for new campaigns',
+  limited: 'Limited availability',
+  booked: 'Fully booked',
 }
