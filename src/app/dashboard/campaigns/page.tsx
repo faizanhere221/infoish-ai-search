@@ -44,6 +44,7 @@ function BrandCampaignsDashboardContent() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [tab, setTab] = useState<Tab>('all')
+  const [clientFilter, setClientFilter] = useState('')
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(
     searchParams.get('created') === '1' ? 'Campaign saved as draft' : null
@@ -109,13 +110,14 @@ function BrandCampaignsDashboardContent() {
 
   const tabbedCampaigns = useMemo(() => {
     return campaigns.filter((c) => {
+      if (clientFilter && !(c.client_name || '').toLowerCase().includes(clientFilter.toLowerCase())) {return false}
       if (tab === 'all') {return true}
       if (tab === 'active') {return c.status === 'published'}
       if (tab === 'draft') {return c.status === 'draft'}
       if (tab === 'closed') {return c.status === 'closed' || c.status === 'cancelled' || c.status === 'completed'}
       return true
     })
-  }, [campaigns, tab])
+  }, [campaigns, tab, clientFilter])
 
   async function handleClose(campaignId: string) {
     if (!confirm('Close this campaign? Creators will no longer be able to apply.')) {return}
@@ -182,6 +184,18 @@ function BrandCampaignsDashboardContent() {
             <Plus className="w-4 h-4" />
             Create Campaign
           </Link>
+        </div>
+
+        <div className="mb-4 max-w-xs">
+          <label htmlFor="client-filter" className="sr-only">Filter by client name</label>
+          <input
+            id="client-filter"
+            type="text"
+            value={clientFilter}
+            onChange={(e) => setClientFilter(e.target.value)}
+            placeholder="Filter by client name…"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-pink"
+          />
         </div>
 
         <div className="flex flex-wrap gap-2 mb-6">

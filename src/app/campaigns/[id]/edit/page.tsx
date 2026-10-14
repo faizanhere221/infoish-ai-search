@@ -42,6 +42,8 @@ function campaignToFormData(campaign: Campaign): CampaignFormData {
     application_deadline: campaign.application_deadline ? campaign.application_deadline.split('T')[0] : '',
     campaign_start_date: campaign.campaign_start_date ? campaign.campaign_start_date.split('T')[0] : '',
     campaign_end_date: campaign.campaign_end_date ? campaign.campaign_end_date.split('T')[0] : '',
+    client_name: campaign.client_name || '',
+    visibility: campaign.visibility,
   }
 }
 

@@ -41,6 +41,8 @@ export interface CampaignFormData {
   application_deadline: string
   campaign_start_date: string
   campaign_end_date: string
+  client_name: string
+  visibility: 'public' | 'private'
 }
 
 export type WizardErrors = Record<string, string>
@@ -60,7 +62,8 @@ export interface CampaignSubmitPayload {
   application_deadline: string | null
   campaign_start_date: string | null
   campaign_end_date: string | null
-  visibility: 'public'
+  visibility: 'public' | 'private'
+  client_name: string | null
   deliverables: {
     platform: Platform
     deliverable_type: DeliverableType
@@ -103,6 +106,8 @@ function initialFormData(): CampaignFormData {
     application_deadline: '',
     campaign_start_date: '',
     campaign_end_date: '',
+    client_name: '',
+    visibility: 'public',
   }
 }
 
@@ -194,7 +199,8 @@ function buildPayload(data: CampaignFormData): CampaignSubmitPayload {
     application_deadline: data.application_deadline || null,
     campaign_start_date: data.campaign_start_date || null,
     campaign_end_date: data.campaign_end_date || null,
-    visibility: 'public',
+    visibility: data.visibility,
+    client_name: data.client_name.trim() || null,
     deliverables: data.deliverables
       .filter((d) => d.platform && d.deliverable_type)
       .map((d) => ({

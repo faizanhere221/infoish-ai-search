@@ -27,6 +27,8 @@ import {
   Music2,
   Edit,
   Gift,
+  Bookmark,
+  BookmarkCheck,
   type LucideIcon
 } from 'lucide-react'
 import { usePartner } from '@/hooks/usePartner'
@@ -134,6 +136,8 @@ export default function CreatorProfilePage() {
   const [contacting, setContacting] = useState(false)
   const [userType, setUserType] = useState<string | null>(null)
   const [brandProfile, setBrandProfile] = useState<{ id: string } | null>(null)
+  const [savingToRoster, setSavingToRoster] = useState(false)
+  const [savedToRoster, setSavedToRoster] = useState(false)
 
   const checkIfOwnProfile = useCallback(() => {
     try {
@@ -203,6 +207,28 @@ export default function CreatorProfilePage() {
     } else {
       router.push('/creators')
     }
+  }
+
+  const handleSaveToRoster = async () => {
+    if (!brandProfile || !creator || savedToRoster) {return}
+    setSavingToRoster(true)
+    try {
+      const token = localStorage.getItem('auth_token')
+      const res = await fetch('/api/roster', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ creator_id: creator.id }),
+      })
+      if (res.ok || res.status === 409) {
+        setSavedToRoster(true)
+      }
+    } catch (err) {
+      console.error('Error saving to roster:', err)
+    }
+    setSavingToRoster(false)
   }
 
   const fetchCreator = useCallback(async () => {
@@ -590,6 +616,26 @@ export default function CreatorProfilePage() {
               <p className="text-center text-sm text-gray-500 mt-3">
                 Usually responds {getResponseTimeText(creator.response_time).toLowerCase()}
               </p>
+
+              {userType === 'brand' && !isOwnProfile && (
+                <button
+                  onClick={handleSaveToRoster}
+                  disabled={savingToRoster || savedToRoster}
+                  className="w-full mt-3 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  {savedToRoster ? (
+                    <>
+                      <BookmarkCheck className="w-4 h-4 text-brand-purple-dark" />
+                      Saved to roster
+                    </>
+                  ) : (
+                    <>
+                      <Bookmark className="w-4 h-4" />
+                      {savingToRoster ? 'Saving…' : 'Save to roster'}
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Platforms */}

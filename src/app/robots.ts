@@ -13,6 +13,7 @@ export default function robots(): MetadataRoute.Robots {
           '/messages/',
           '/settings/',
           '/notifications/',
+          '/share/',
           '/auth/callback',
           '/campaigns/create',
           '/creators?*',

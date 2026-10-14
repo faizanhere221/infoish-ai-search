@@ -80,6 +80,7 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
     { href: '/dashboard/brand', label: 'Dashboard' },
     { href: '/creators', label: 'Find Creators' },
     { href: '/dashboard/campaigns', label: 'My Campaigns', countBadge: campaignBadgeCount },
+    { href: '/dashboard/roster', label: 'Roster' },
     { href: '/messages', label: 'Messages', badge: unreadMessages },
     { href: '/dashboard/deals', label: 'My Deals' },
     { href: '/settings/brand', label: 'Settings' },
@@ -88,6 +89,7 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
     { href: '/creators', label: 'Find Creators' },
     { href: '/campaigns', label: 'Campaigns' },
     { href: '/dashboard/applications', label: 'My Applications', countBadge: campaignBadgeCount },
+    { href: '/dashboard/my-campaigns', label: 'My Campaigns' },
     { href: '/messages', label: 'Messages', badge: unreadMessages },
     { href: '/settings', label: 'Settings' },
   ]

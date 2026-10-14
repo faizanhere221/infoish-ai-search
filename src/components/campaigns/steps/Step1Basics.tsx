@@ -42,6 +42,47 @@ export default function Step1Basics({ data, errors, onChange }: Step1BasicsProps
         {errors.description && <p className="mt-1.5 text-sm text-red-600">{errors.description}</p>}
       </div>
 
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Client name (optional)</label>
+        <input
+          type="text"
+          value={data.client_name}
+          onChange={(e) => onChange('client_name', e.target.value)}
+          placeholder="e.g. Acme Inc."
+          maxLength={200}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+        />
+        <p className="mt-1.5 text-xs text-gray-500">
+          Internal label if you&apos;re running this campaign on behalf of a client. Never shown to creators, on the public listing, or on a client share link.
+        </p>
+      </div>
+
+      <div>
+        <span className="block text-sm font-medium text-gray-700 mb-2">Visibility</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => onChange('visibility', 'public')}
+            className={`text-left p-4 border rounded-xl ${
+              data.visibility === 'public' ? 'border-violet-500 bg-violet-50' : 'border-gray-200'
+            }`}
+          >
+            <p className="font-medium text-gray-900">Public</p>
+            <p className="text-xs text-gray-500 mt-1">Listed in the marketplace once published. Creators can find and apply to it.</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange('visibility', 'private')}
+            className={`text-left p-4 border rounded-xl ${
+              data.visibility === 'private' ? 'border-violet-500 bg-violet-50' : 'border-gray-200'
+            }`}
+          >
+            <p className="font-medium text-gray-900">Private</p>
+            <p className="text-xs text-gray-500 mt-1">Hidden from the marketplace and doesn&apos;t accept applications. Add creators directly from the tracker.</p>
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Objective *</label>

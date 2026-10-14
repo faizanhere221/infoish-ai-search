@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Calendar, Eye, Loader2, Pencil, RotateCcw, Users, XCircle } from 'lucide-react'
+import { Calendar, Eye, Loader2, Lock, Pencil, RotateCcw, Table2, Users, XCircle } from 'lucide-react'
 import type { Campaign } from '@/types/campaigns'
 import { STATUS_BADGE, categoryLabel, formatRelativeDate } from './utils'
 
@@ -24,9 +24,21 @@ export default function CampaignManagementCard({ campaign, onClose, onReopen, pe
         </span>
       </div>
 
-      <span className="inline-block w-fit mt-2 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-        {categoryLabel(campaign.category)}
-      </span>
+      <div className="flex flex-wrap items-center gap-2 mt-2">
+        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+          {categoryLabel(campaign.category)}
+        </span>
+        {campaign.visibility === 'private' && (
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
+            <Lock className="w-3 h-3" /> Private
+          </span>
+        )}
+        {campaign.client_name && (
+          <span className="px-2 py-1 bg-brand-pink/10 text-brand-purple-dark rounded-full text-xs font-medium">
+            Client: {campaign.client_name}
+          </span>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
         <div>
@@ -71,6 +83,14 @@ export default function CampaignManagementCard({ campaign, onClose, onReopen, pe
         >
           <Users className="w-4 h-4" />
           Applications
+        </Link>
+
+        <Link
+          href={`/dashboard/campaigns/${campaign.id}/tracker`}
+          className="flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+        >
+          <Table2 className="w-4 h-4" />
+          Tracker
         </Link>
 
         {campaign.status === 'published' && (

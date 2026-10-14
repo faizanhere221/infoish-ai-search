@@ -1,5 +1,5 @@
-import { CAMPAIGN_CATEGORIES, PLATFORMS } from '@/types/campaigns'
-import type { Campaign, CampaignStatus } from '@/types/campaigns'
+import { CAMPAIGN_CATEGORIES, PLATFORMS, CAMPAIGN_CREATOR_STATUS_LABELS } from '@/types/campaigns'
+import type { Campaign, CampaignStatus, CampaignCreatorStatus } from '@/types/campaigns'
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: '$',
@@ -73,6 +73,19 @@ export const STATUS_BADGE: Record<CampaignStatus, { label: string; bg: string; t
   closed: { label: 'Closed', bg: 'bg-amber-100', text: 'text-amber-700' },
   completed: { label: 'Completed', bg: 'bg-blue-100', text: 'text-blue-700' },
   cancelled: { label: 'Cancelled', bg: 'bg-red-100', text: 'text-red-700' },
+}
+
+export const CAMPAIGN_CREATOR_STATUS_BADGE: Record<CampaignCreatorStatus, { label: string; bg: string; text: string }> = {
+  shortlisted: { label: CAMPAIGN_CREATOR_STATUS_LABELS.shortlisted, bg: 'bg-gray-100', text: 'text-gray-700' },
+  contacted: { label: CAMPAIGN_CREATOR_STATUS_LABELS.contacted, bg: 'bg-blue-100', text: 'text-blue-700' },
+  negotiating: { label: CAMPAIGN_CREATOR_STATUS_LABELS.negotiating, bg: 'bg-amber-100', text: 'text-amber-700' },
+  confirmed: { label: CAMPAIGN_CREATOR_STATUS_LABELS.confirmed, bg: 'bg-indigo-100', text: 'text-indigo-700' },
+  drafting: { label: CAMPAIGN_CREATOR_STATUS_LABELS.drafting, bg: 'bg-purple-100', text: 'text-purple-700' },
+  draft_review: { label: CAMPAIGN_CREATOR_STATUS_LABELS.draft_review, bg: 'bg-orange-100', text: 'text-orange-700' },
+  scheduled: { label: CAMPAIGN_CREATOR_STATUS_LABELS.scheduled, bg: 'bg-cyan-100', text: 'text-cyan-700' },
+  posted: { label: CAMPAIGN_CREATOR_STATUS_LABELS.posted, bg: 'bg-emerald-100', text: 'text-emerald-700' },
+  completed: { label: CAMPAIGN_CREATOR_STATUS_LABELS.completed, bg: 'bg-green-100', text: 'text-green-700' },
+  dropped: { label: CAMPAIGN_CREATOR_STATUS_LABELS.dropped, bg: 'bg-red-100', text: 'text-red-700' },
 }
 
 export function categoryLabel(value: string | null): string {
