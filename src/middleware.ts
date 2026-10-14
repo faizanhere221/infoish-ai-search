@@ -10,6 +10,7 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
   if (method === 'GET' && pathname === '/api/referral/lookup') {return true}
   if (method === 'POST' && pathname === '/api/referral/track') {return true}
   if (method === 'POST' && /^\/api\/creators\/[^/]+\/view$/.test(pathname)) {return true}
+  if (method === 'GET' && /^\/api\/share\/[^/]+$/.test(pathname)) {return true}
   return false
 }
 

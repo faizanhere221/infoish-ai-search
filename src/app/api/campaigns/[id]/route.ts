@@ -47,6 +47,7 @@ const UpdateCampaignSchema = z.object({
   campaign_start_date: z.string().optional().nullable(),
   campaign_end_date: z.string().optional().nullable(),
   visibility: z.enum(['public', 'private']).optional(),
+  client_name: z.string().max(200).optional().nullable(),
   status: z.enum(PUT_ALLOWED_STATUSES).optional(),
   deliverables: z.array(DeliverableSchema).max(20).optional(),
 })
@@ -92,9 +93,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         .eq('campaign_id', id),
     ])
 
+    // client_name is an internal-only label — strip it for anyone who isn't
+    // the owning brand, never rely on the frontend to hide it.
+    const { client_name, ...campaignFields } = campaign
+
     return NextResponse.json({
       campaign: {
-        ...campaign,
+        ...campaignFields,
+        ...(isOwner ? { client_name } : {}),
         brand: brand || null,
         deliverables: deliverables || [],
       },

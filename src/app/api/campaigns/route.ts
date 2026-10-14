@@ -38,6 +38,7 @@ const CreateCampaignSchema = z.object({
   campaign_start_date: z.string().optional().nullable(),
   campaign_end_date: z.string().optional().nullable(),
   visibility: z.enum(['public', 'private']).optional(),
+  client_name: z.string().max(200).optional().nullable(),
   deliverables: z.array(DeliverableSchema).max(20).optional(),
 })
 
@@ -59,17 +60,23 @@ export async function GET(request: NextRequest) {
 
     const supabase = createServerSupabase()
 
+    const isBrandCaller = callerUserType === 'brand' && !!callerProfileId
+    const clientNameFilter = isBrandCaller ? searchParams.get('client_name') : null
+
     let query = supabase
       .from('campaigns')
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
-    if (callerUserType === 'brand' && callerProfileId) {
+    if (isBrandCaller) {
       // Brands see only their own campaigns, in any status
       query = query.eq('brand_id', callerProfileId)
       if (status) {
         query = query.eq('status', status)
+      }
+      if (clientNameFilter) {
+        query = query.ilike('client_name', `%${clientNameFilter}%`)
       }
     } else {
       // Everyone else sees only published, public campaigns
@@ -111,10 +118,16 @@ export async function GET(request: NextRequest) {
       brands = data || []
     }
 
-    const campaignsWithRelations = campaigns.map((campaign) => ({
-      ...campaign,
-      brand: brands.find((b) => b.id === campaign.brand_id) || null,
-    }))
+    // client_name is an internal-only label — strip it for anyone who isn't
+    // the owning brand, never rely on the frontend to hide it.
+    const campaignsWithRelations = campaigns.map((campaign) => {
+      const { client_name, ...rest } = campaign
+      return {
+        ...rest,
+        ...(isBrandCaller ? { client_name } : {}),
+        brand: brands.find((b) => b.id === campaign.brand_id) || null,
+      }
+    })
 
     return NextResponse.json({
       campaigns: campaignsWithRelations,
@@ -164,6 +177,7 @@ export async function POST(request: NextRequest) {
       campaign_start_date,
       campaign_end_date,
       visibility,
+      client_name,
       deliverables,
     } = parsed.data
 
@@ -189,6 +203,7 @@ export async function POST(request: NextRequest) {
         campaign_start_date: campaign_start_date || null,
         campaign_end_date: campaign_end_date || null,
         visibility: visibility || 'public',
+        client_name: client_name || null,
         status: 'draft',
       })
       .select()

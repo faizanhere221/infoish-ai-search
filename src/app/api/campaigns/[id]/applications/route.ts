@@ -117,7 +117,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
     }
 
-    if (campaign.status !== 'published') {
+    if (campaign.status !== 'published' || campaign.visibility !== 'public') {
       return NextResponse.json(
         { error: 'This campaign is not currently accepting applications' },
         { status: 400 }

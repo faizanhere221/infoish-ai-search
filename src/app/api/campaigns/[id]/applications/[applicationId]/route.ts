@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
+import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 import { APPLICATION_STATUSES } from '@/types/campaigns'
 
@@ -89,6 +90,34 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     // applications_count / hired_count are kept in sync by DB triggers.
+
+    // Hiring an applicant and the campaign tracker used to be two completely
+    // disconnected flows (per the Phase 1 audit) — a hired applicant never
+    // got a campaign_creators row. Create one now, best-effort, so the
+    // tracker always reflects who's actually been hired. Find-or-create:
+    // a brand may have already added this creator to the tracker manually
+    // before the application was marked hired.
+    if (status === 'hired') {
+      const { data: existingRow } = await supabase
+        .from('campaign_creators')
+        .select('id')
+        .eq('campaign_id', id)
+        .eq('creator_id', application.creator_id)
+        .single()
+
+      if (!existingRow) {
+        const { error: trackerError } = await supabase.from('campaign_creators').insert({
+          campaign_id: id,
+          creator_id: application.creator_id,
+          status: 'confirmed',
+          payout_amount: application.proposed_rate !== null ? application.proposed_rate / 100 : null,
+          application_id: applicationId,
+        })
+        if (trackerError) {
+          captureError(trackerError, { route: 'PUT /api/campaigns/[id]/applications/[applicationId]', context: 'auto-create campaign_creators on hire' })
+        }
+      }
+    }
 
     const creatorUserId = await getUserIdFromCreator(supabase, application.creator_id)
     if (creatorUserId) {
