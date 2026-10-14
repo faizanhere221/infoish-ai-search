@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, LogOut, Instagram, Calculator, Wrench, Globe } from 'lucide-react'
+import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, LogOut, Globe } from 'lucide-react'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
 
 interface UserProfile {
@@ -26,7 +26,6 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
   const [user, setUser] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showDropdown, setShowDropdown] = useState(false)
-  const [showToolsDropdown, setShowToolsDropdown] = useState(false)
   const [showCountriesDropdown, setShowCountriesDropdown] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobileCountriesOpen, setIsMobileCountriesOpen] = useState(false)
@@ -250,70 +249,14 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
               >
                 About
               </Link>
-              {/* Tools Dropdown */}
-<div className="relative">
-  <button
-    onClick={() => setShowToolsDropdown(!showToolsDropdown)}
-    className="px-4 py-2 text-gray-700 hover:text-brand-purple hover:bg-brand-pink/10 font-medium rounded-lg transition-all flex items-center gap-2"
-  >
-    <Wrench className="w-4 h-4" />
-    Tools
-    <ChevronDown className={`w-4 h-4 transition-transform ${showToolsDropdown ? 'rotate-180' : ''}`} />
-  </button>
-  
-  {showToolsDropdown && (
-    <>
-      <div 
-        className="fixed inset-0 z-40" 
-        onClick={() => setShowToolsDropdown(false)}
-      />
-      <div className="absolute left-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
-        <div className="px-4 py-2 border-b border-gray-100">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Free Marketing Tools</p>
-        </div>
-        
-        <Link
-          href="/tools/instagram-profile-analyzer"
-          className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-brand-pink/10 transition-colors"
-          onClick={() => setShowToolsDropdown(false)}
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-brand-purple to-brand-pink rounded-lg flex items-center justify-center flex-shrink-0">
-            <Instagram className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex-1">
-            <p className="font-semibold text-sm text-gray-900">Instagram Profile Analyzer</p>
-            <p className="text-xs text-gray-500 mt-0.5">Check engagement rates instantly</p>
-          </div>
-        </Link>
-
-        <Link
-          href="/tools/instagram-hashtag-generator"
-          className="flex items-start gap-3 px-4 py-3 text-gray-700 hover:bg-brand-pink/10 transition-colors"
-          onClick={() => setShowToolsDropdown(false)}
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-brand-pink to-brand-purple rounded-lg flex items-center justify-center flex-shrink-0">
-            <Calculator className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex-1">
-            <p className="font-semibold text-sm text-gray-900">Instagram Hashtag Generator</p>
-            <p className="text-xs text-gray-500 mt-0.5">Generate hashtags faster</p>
-          </div>
-        </Link>
-
-        <div className="border-t border-gray-100 mt-2 pt-2">
-          <Link
-            href="/tools"
-            className="flex items-center justify-between px-4 py-2 text-sm text-brand-purple hover:text-brand-purple-dark font-semibold"
-            onClick={() => setShowToolsDropdown(false)}
-          >
-            <span>View All Tools</span>
-            <ChevronDown className="w-4 h-4 -rotate-90" />
-          </Link>
-        </div>
-      </div>
-    </>
-  )}
-</div>
+              {/* Contact */}
+              <Link
+                href="/contact"
+                className="px-4 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm flex items-center gap-2"
+              >
+                <Mail className="w-4 h-4" />
+                Contact
+              </Link>
 
               {/* Countries Dropdown */}
               <div className="relative">
@@ -666,12 +609,12 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                   About
                 </Link>
                 <Link
-                  href="/tools"
+                  href="/contact"
                   className="flex items-center gap-2 text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <Wrench className="w-5 h-5" />
-                  Tools
+                  <Mail className="w-5 h-5" />
+                  Contact
                 </Link>
 
                 {/* Countries - inline expandable */}

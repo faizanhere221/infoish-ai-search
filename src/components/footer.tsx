@@ -153,23 +153,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Free Tools - IMPORTANT FOR SITELINKS */}
-          <div>
-            <h3 className="font-semibold text-white mb-6">Free Tools</h3>
-            <ul className="space-y-4">
-              <li>
-                <Link href="/tools/instagram-profile-analyzer" className="text-white/70 hover:text-green-400 transition-colors">
-                  Instagram Analyzer
-                </Link>
-              </li>
-              <li>
-                <Link href="/tools" className="text-white/70 hover:text-green-400 transition-colors font-semibold">
-                  All Tools →
-                </Link>
-              </li>
-            </ul>
-          </div>
-
           {/* Resources - IMPORTANT FOR SITELINKS */}
           <div>
             <h3 className="font-semibold text-white mb-6">Resources</h3>

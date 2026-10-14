@@ -29,7 +29,6 @@ import {
   ChevronDown,
   Menu,
   X,
-  Wrench,
   BookOpen
 } from 'lucide-react'
 
@@ -88,9 +87,12 @@ export function Navigation() {
               <BookOpen className="w-4 h-4" />
               Blog
             </Link>
-            <Link href="/tools" className="text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1">
-              <Wrench className="w-4 h-4" />
-              Tools
+            <Link
+              href="/contact"
+              className="px-5 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-medium hover:shadow-lg hover:shadow-brand-pink/25 transition-all flex items-center gap-2"
+            >
+              <Mail className="w-4 h-4" />
+              Contact
             </Link>
 
             {/* Countries Dropdown */}
@@ -187,10 +189,6 @@ export function Navigation() {
               <Link href="/blog" className="text-gray-600 hover:text-gray-900 font-medium py-2">
                 Blog
               </Link>
-              <Link href="/tools" className="text-gray-600 hover:text-gray-900 font-medium py-2">
-                Tools
-              </Link>
-
               {/* Countries - inline expandable */}
               <button
                 onClick={() => setMobileCountriesOpen(!mobileCountriesOpen)}
@@ -1291,7 +1289,6 @@ export function Footer() {
             <h4 className="text-white font-semibold mb-4">Resources</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
-              <li><Link href="/tools" className="hover:text-white transition-colors">Free Tools</Link></li>
               <li><Link href="/help" className="hover:text-white transition-colors">Help Center</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
             </ul>
