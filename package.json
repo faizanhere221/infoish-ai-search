@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:security": "node scripts/security-check.mjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^11.7.0",
