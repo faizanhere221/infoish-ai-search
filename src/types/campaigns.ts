@@ -11,6 +11,18 @@ export type CampaignStatus = 'draft' | 'published' | 'closed' | 'completed' | 'c
 export type CampaignVisibility = 'public' | 'private'
 export type BudgetType = 'fixed' | 'range' | 'negotiable'
 
+export type CampaignCreatorStatus =
+  | 'shortlisted'
+  | 'contacted'
+  | 'negotiating'
+  | 'confirmed'
+  | 'drafting'
+  | 'draft_review'
+  | 'scheduled'
+  | 'posted'
+  | 'completed'
+  | 'dropped'
+
 export type CampaignObjective =
   | 'brand_awareness'
   | 'product_review'
@@ -105,6 +117,9 @@ export interface Campaign {
   campaign_end_date: string | null
   status: CampaignStatus
   visibility: CampaignVisibility
+  // Internal label for which client this campaign is run on behalf of.
+  // Brand-only — never present in a response to a creator or the share link.
+  client_name?: string | null
   applications_count: number
   hired_count: number
   created_at: string
@@ -113,6 +128,97 @@ export interface Campaign {
   // Joined data
   brand?: CampaignBrandSummary
   deliverables?: CampaignDeliverable[]
+}
+
+// Subset of the `creators` row + platform summary the tracker joins in.
+export interface TrackerCreatorSummary {
+  id: string
+  username: string
+  display_name: string
+  profile_photo_url: string | null
+  primary_platform: string | null
+  total_followers: number
+}
+
+// Full shape — only ever returned to the owning brand. Creator-facing and
+// share-link responses use the narrower types below instead of this one.
+export interface CampaignCreator {
+  id: string
+  campaign_id: string
+  creator_id: string
+  status: CampaignCreatorStatus
+  planned_date: string | null
+  posted_at: string | null
+  posted_url: string | null
+  payout_amount: number | null
+  charge_amount: number | null
+  currency: string
+  brand_notes: string | null
+  deal_id: string | null
+  application_id: string | null
+  created_at: string
+  updated_at: string
+  // Joined data
+  creator?: TrackerCreatorSummary
+  campaign?: Pick<Campaign, 'id' | 'title' | 'client_name'>
+}
+
+// What a creator is allowed to see about their own row — no charge_amount,
+// no brand_notes, no client_name. Stripped server-side, never just hidden
+// in the UI (see GET /api/campaigns/[id]/creators with x-user-type=creator).
+export interface CampaignCreatorForCreator {
+  id: string
+  campaign_id: string
+  status: CampaignCreatorStatus
+  planned_date: string | null
+  posted_at: string | null
+  posted_url: string | null
+  payout_amount: number | null
+  currency: string
+  campaign?: Pick<Campaign, 'id' | 'title'>
+  brand?: CampaignBrandSummary
+}
+
+// What the public share link is allowed to show — no payout_amount, no
+// brand_notes, no client_name, and charge_amount only if the link owner
+// opted in (show_charge). See GET /api/share/[token].
+export interface CampaignCreatorForShare {
+  id: string
+  status: CampaignCreatorStatus
+  planned_date: string | null
+  posted_at: string | null
+  posted_url: string | null
+  charge_amount?: number
+  currency: string
+  creator: TrackerCreatorSummary
+}
+
+export interface CampaignShareLink {
+  id: string
+  campaign_id: string
+  token: string
+  show_charge: boolean
+  revoked_at: string | null
+  last_viewed_at: string | null
+  created_at: string
+}
+
+// A brand's reusable creator roster (extends `saved_creators`).
+export interface RosterEntry {
+  id: string
+  brand_id: string
+  creator_id: string
+  notes: string | null
+  typical_payout: number | null
+  typical_charge: number | null
+  currency: string
+  tags: string[]
+  created_at: string
+  // Joined data
+  creator?: TrackerCreatorSummary & {
+    avg_engagement_rate: number | null
+    avg_views: number | null
+  }
 }
 
 export interface CampaignDeliverable {
@@ -190,3 +296,21 @@ export const DELIVERABLE_TYPES: { value: DeliverableType; label: string }[] = [
 
 export const CAMPAIGN_STATUSES: CampaignStatus[] = ['draft', 'published', 'closed', 'completed', 'cancelled']
 export const APPLICATION_STATUSES: ApplicationStatus[] = ['submitted', 'viewed', 'shortlisted', 'rejected', 'hired']
+
+export const CAMPAIGN_CREATOR_STATUSES: CampaignCreatorStatus[] = [
+  'shortlisted', 'contacted', 'negotiating', 'confirmed', 'drafting',
+  'draft_review', 'scheduled', 'posted', 'completed', 'dropped',
+]
+
+export const CAMPAIGN_CREATOR_STATUS_LABELS: Record<CampaignCreatorStatus, string> = {
+  shortlisted: 'Shortlisted',
+  contacted: 'Contacted',
+  negotiating: 'Negotiating',
+  confirmed: 'Confirmed',
+  drafting: 'Drafting',
+  draft_review: 'Draft review',
+  scheduled: 'Scheduled',
+  posted: 'Posted',
+  completed: 'Completed',
+  dropped: 'Dropped',
+}
