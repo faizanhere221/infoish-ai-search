@@ -43,6 +43,12 @@ export function Navigation() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userType, setUserType] = useState<'brand' | 'creator' | null>(null)
   const [profile, setProfile] = useState<ProfileDropdownProfile | null>(null)
+  // Auth state is only known client-side (localStorage), so it starts
+  // "logged out" on both the server render and the first client paint.
+  // `mounted` gates anything that depends on isLoggedIn (like the Contact
+  // button, which should be hidden once logged in) so a logged-in visitor
+  // never sees it flash in and then disappear once the real auth state is read.
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10)
@@ -59,6 +65,7 @@ export function Navigation() {
       setUserType(user.user_type)
       setProfile(profileStr ? JSON.parse(profileStr) : null)
     }
+    setMounted(true)
   }, [])
 
   return (
@@ -87,13 +94,15 @@ export function Navigation() {
               <BookOpen className="w-4 h-4" />
               Blog
             </Link>
-            <Link
-              href="/contact"
-              className="px-5 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-medium hover:shadow-lg hover:shadow-brand-pink/25 transition-all flex items-center gap-2"
-            >
-              <Mail className="w-4 h-4" />
-              Contact
-            </Link>
+            {mounted && !isLoggedIn && (
+              <Link
+                href="/contact"
+                className="px-5 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-medium hover:shadow-lg hover:shadow-brand-pink/25 transition-all flex items-center gap-2"
+              >
+                <Mail className="w-4 h-4" />
+                Contact
+              </Link>
+            )}
 
             {/* Countries Dropdown */}
             <div className="relative">
@@ -224,9 +233,11 @@ export function Navigation() {
               <Link href="/about" className="text-gray-600 hover:text-gray-900 font-medium py-2">
                 About
               </Link>
-              <Link href="/contact" className="text-gray-600 hover:text-gray-900 font-medium py-2">
-                Contact
-              </Link>
+              {mounted && !isLoggedIn && (
+                <Link href="/contact" className="text-gray-600 hover:text-gray-900 font-medium py-2">
+                  Contact
+                </Link>
+              )}
               <div className="flex flex-col gap-2 pt-4 border-t border-gray-100">
                 {isLoggedIn && userType ? (
                   <>

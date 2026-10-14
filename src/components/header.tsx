@@ -34,6 +34,12 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
   const [userType, setUserType] = useState<'brand' | 'influencer' | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [showLoginDropdown, setShowLoginDropdown] = useState(false)
+  // Auth state is only known client-side (localStorage), so it starts
+  // "logged out" on both the server render and the first client paint.
+  // `mounted` gates anything that depends on isLoggedIn (like the Contact
+  // button, which should be hidden once logged in) so a logged-in visitor
+  // never sees it flash in and then disappear once the real auth state is read.
+  const [mounted, setMounted] = useState(false)
 
   const goToLogin = () => {
     router.push('/login')
@@ -42,11 +48,12 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
   useEffect(() => {
     const authToken = localStorage.getItem('auth_token')
     setIsLoggedIn(!!authToken)
-    
+
     const storedUserType = localStorage.getItem('user_type')
     if (storedUserType === 'influencer' || storedUserType === 'brand') {
       setUserType(storedUserType)
     }
+    setMounted(true)
   }, [])
 
   // NOTE: this used to call a FastAPI backend (infoish-ai-search-production
@@ -249,14 +256,16 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
               >
                 About
               </Link>
-              {/* Contact */}
-              <Link
-                href="/contact"
-                className="px-4 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm flex items-center gap-2"
-              >
-                <Mail className="w-4 h-4" />
-                Contact
-              </Link>
+              {/* Contact — hidden once logged in; see the `mounted` comment above */}
+              {mounted && !isLoggedIn && (
+                <Link
+                  href="/contact"
+                  className="px-4 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm flex items-center gap-2"
+                >
+                  <Mail className="w-4 h-4" />
+                  Contact
+                </Link>
+              )}
 
               {/* Countries Dropdown */}
               <div className="relative">
@@ -526,12 +535,14 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                 </>
               ) : (
                 <div className="flex items-center gap-3">
-                  <Link
-                    href="/contact"
-                    className="hidden sm:block text-gray-700 hover:text-brand-purple font-medium transition-colors px-3 py-2"
-                  >
-                    Contact
-                  </Link>
+                  {mounted && !isLoggedIn && (
+                    <Link
+                      href="/contact"
+                      className="hidden sm:block text-gray-700 hover:text-brand-purple font-medium transition-colors px-3 py-2"
+                    >
+                      Contact
+                    </Link>
+                  )}
                   <Link
                     href="/login"
                     className="bg-gradient-to-r from-brand-pink to-brand-purple hover:from-brand-pink-dark hover:to-brand-purple-dark text-white px-5 py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
@@ -608,14 +619,16 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                 >
                   About
                 </Link>
-                <Link
-                  href="/contact"
-                  className="flex items-center gap-2 text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Mail className="w-5 h-5" />
-                  Contact
-                </Link>
+                {mounted && !isLoggedIn && (
+                  <Link
+                    href="/contact"
+                    className="flex items-center gap-2 text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Mail className="w-5 h-5" />
+                    Contact
+                  </Link>
+                )}
 
                 {/* Countries - inline expandable */}
                 <button
