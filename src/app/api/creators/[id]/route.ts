@@ -13,6 +13,8 @@ const UpdateCreatorSchema = z.object({
   min_budget: z.number().nonnegative().optional().nullable(),
   response_time: z.string().max(50).optional().nullable(),
   profile_photo_url: z.string().url().max(500).optional().nullable(),
+  availability_status: z.enum(['open', 'limited', 'booked']).optional(),
+  min_lead_days: z.number().int().min(0).max(365).optional(),
 })
 
 // GET - Get creator by ID or username
