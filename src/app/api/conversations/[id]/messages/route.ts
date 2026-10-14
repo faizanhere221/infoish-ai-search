@@ -1,30 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
+import { loadAuthorizedConversation } from '@/lib/conversations'
+import type { Attachment } from '@/types/marketplace'
 
-// Loads the conversation and checks the caller (from trusted auth headers,
-// never from a client-supplied id) is one of its two parties. Returns null
-// if not found OR not a party — callers should respond 404 either way, so a
-// stranger can't use the response to confirm a conversation id exists.
-async function loadAuthorizedConversation(
-  supabase: ReturnType<typeof createServerSupabase>,
-  conversationId: string,
-  callerProfileId: string | null
-) {
-  const { data: conversation } = await supabase
-    .from('conversations')
-    .select('id, creator_id, brand_id, creator_unread, brand_unread')
-    .eq('id', conversationId)
-    .single()
+const DEFAULT_LIMIT = 50
+const MAX_LIMIT = 100
+const MAX_MESSAGE_LENGTH = 5000
 
-  if (!conversation) {return null}
-  if (callerProfileId !== conversation.creator_id && callerProfileId !== conversation.brand_id) {
-    return null
-  }
-  return conversation
+// Cursors are "<created_at ISO timestamp>|<message id>" — the pair makes the
+// ordering unambiguous even when two messages share a created_at timestamp.
+function parseCursor(raw: string | null): { createdAt: string; id: string } | null {
+  if (!raw) {return null}
+  const sep = raw.lastIndexOf('|')
+  if (sep === -1) {return null}
+  const createdAt = raw.slice(0, sep)
+  const id = raw.slice(sep + 1)
+  if (!createdAt || !id) {return null}
+  return { createdAt, id }
 }
 
-// GET - Get messages for a conversation
+// GET - Paginated messages for a conversation.
+// - No cursor: newest `limit` messages (initial load).
+// - `before`: messages strictly older than the cursor (load older history).
+// - `after`: messages strictly newer than the cursor (poll for new messages).
+// Never an unbounded select — every path is capped at `limit`.
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -39,55 +39,76 @@ export async function GET(
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
     }
 
-    const { data: messages, error } = await supabase
+    const { searchParams } = new URL(request.url)
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '') || DEFAULT_LIMIT, 1), MAX_LIMIT)
+    const before = parseCursor(searchParams.get('before'))
+    const after = parseCursor(searchParams.get('after'))
+
+    let query = supabase
       .from('messages')
       .select('*')
       .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true })
+
+    if (after) {
+      // Strictly newer than the cursor — ascending, so new messages arrive
+      // in order during polling.
+      query = query
+        .or(`created_at.gt.${after.createdAt},and(created_at.eq.${after.createdAt},id.gt.${after.id})`)
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true })
+        .limit(limit)
+    } else if (before) {
+      // Strictly older than the cursor — fetch descending (closest-to-cursor
+      // first) then reverse below so the response is always chronological.
+      query = query
+        .or(`created_at.lt.${before.createdAt},and(created_at.eq.${before.createdAt},id.lt.${before.id})`)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .limit(limit)
+    } else {
+      // Initial load — newest page, reversed to chronological below.
+      query = query
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .limit(limit)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       captureError(error, { route: 'GET /api/conversations/[id]/messages' })
-      return NextResponse.json(
-        { error: 'Failed to fetch messages' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 })
     }
 
-    // Mark-as-read side effect, scoped to the AUTHENTICATED caller only
-    // (never a client-supplied user_id). Still a GET side effect for now —
-    // Phase 1 step 3 moves this to a dedicated POST endpoint.
-    const markAsRead = new URL(request.url).searchParams.get('mark_as_read')
-    const callerUserId = request.headers.get('x-user-id')
-    const callerUserType = request.headers.get('x-user-type')
-    if (markAsRead === 'true' && callerUserId) {
-      await supabase
-        .from('messages')
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq('conversation_id', conversationId)
-        .neq('sender_id', callerUserId)
-        .eq('is_read', false)
+    const rows = data || []
+    // after-mode is already ascending; before/initial were fetched newest-first
+    // and need reversing to chronological order.
+    const messages = after ? rows : [...rows].reverse()
 
-      if (callerUserType === 'creator') {
-        await supabase.from('conversations').update({ creator_unread: 0 }).eq('id', conversationId)
-      } else if (callerUserType === 'brand') {
-        await supabase.from('conversations').update({ brand_unread: 0 }).eq('id', conversationId)
-      }
-    }
+    const hasMore = !after && rows.length === limit
+    const nextBeforeCursor = messages.length > 0 ? `${messages[0].created_at}|${messages[0].id}` : null
+    const nextAfterCursor = messages.length > 0
+      ? `${messages[messages.length - 1].created_at}|${messages[messages.length - 1].id}`
+      : (after ? `${after.createdAt}|${after.id}` : null)
 
-    return NextResponse.json({ messages: messages || [] })
+    return NextResponse.json({
+      messages,
+      has_more: hasMore,
+      next_before_cursor: nextBeforeCursor,
+      next_after_cursor: nextAfterCursor,
+    })
 
   } catch (error) {
     captureError(error, { route: 'GET /api/conversations/[id]/messages' })
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
-const MAX_MESSAGE_LENGTH = 5000
-
-// POST - Send a new message
+// POST - Send a new message. Insert + conversation preview/unread update
+// happen atomically in a single Postgres function (send_conversation_message,
+// see supabase/phase1_messaging_migration.sql) so concurrent sends from both
+// sides of a conversation can never lose an unread-count increment to a
+// read-modify-write race.
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -96,10 +117,11 @@ export async function POST(
     const conversationId = params.id
     const body = await request.json().catch(() => null)
     const content = typeof body?.content === 'string' ? body.content.trim() : ''
+    const attachments: Attachment[] = Array.isArray(body?.attachments) ? body.attachments : []
 
-    if (!content || content.length > MAX_MESSAGE_LENGTH) {
+    if ((!content && attachments.length === 0) || content.length > MAX_MESSAGE_LENGTH) {
       return NextResponse.json(
-        { error: `content is required and must be ${MAX_MESSAGE_LENGTH} characters or fewer` },
+        { error: `content (or at least one attachment) is required; content must be ${MAX_MESSAGE_LENGTH} characters or fewer` },
         { status: 400 }
       )
     }
@@ -112,6 +134,9 @@ export async function POST(
     if (!callerUserId || !callerProfileId) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
+    if (callerUserType !== 'creator' && callerUserType !== 'brand') {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
 
     const supabase = createServerSupabase()
 
@@ -120,49 +145,22 @@ export async function POST(
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
     }
 
-    // Create message
-    const { data: message, error: messageError } = await supabase
-      .from('messages')
-      .insert({
-        conversation_id: conversationId,
-        sender_id: callerUserId,
-        content,
-        attachments: [],
-        is_read: false,
+    const { data: message, error: rpcError } = await supabase
+      .rpc('send_conversation_message', {
+        p_conversation_id: conversationId,
+        p_sender_id: callerUserId,
+        p_content: content,
+        p_sender_type: callerUserType,
+        p_attachments: attachments,
       })
-      .select()
       .single()
 
-    if (messageError) {
-      captureError(messageError, { route: 'POST /api/conversations/[id]/messages' })
-      return NextResponse.json(
-        { error: 'Failed to send message' },
-        { status: 500 }
-      )
+    if (rpcError || !message) {
+      captureError(rpcError ?? new Error('send_conversation_message returned no row'), {
+        route: 'POST /api/conversations/[id]/messages',
+      })
+      return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
     }
-
-    const updateData: {
-      last_message_at: string
-      last_message_preview: string
-      updated_at: string
-      brand_unread?: number
-      creator_unread?: number
-    } = {
-      last_message_at: new Date().toISOString(),
-      last_message_preview: content.substring(0, 100),
-      updated_at: new Date().toISOString(),
-    }
-
-    if (callerUserType === 'creator') {
-      updateData.brand_unread = (conversation.brand_unread || 0) + 1
-    } else {
-      updateData.creator_unread = (conversation.creator_unread || 0) + 1
-    }
-
-    await supabase
-      .from('conversations')
-      .update(updateData)
-      .eq('id', conversationId)
 
     return NextResponse.json({
       message: 'Message sent successfully',
@@ -171,9 +169,6 @@ export async function POST(
 
   } catch (error) {
     captureError(error, { route: 'POST /api/conversations/[id]/messages' })
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

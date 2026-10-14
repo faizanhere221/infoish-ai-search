@@ -83,3 +83,81 @@ ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_system BOOLEAN DEFAULT FALSE;
 -- ============================================================================
 
 ALTER TYPE deal_status ADD VALUE IF NOT EXISTS 'declined';
+
+
+-- ============================================================================
+-- STEP 3 — Performance: composite indexes + atomic send function
+-- ============================================================================
+
+-- Covers "messages in this conversation, newest/oldest first" — the shape of
+-- every query the paginated GET /api/conversations/[id]/messages endpoint
+-- runs (initial load, before-cursor, after-cursor).
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_created
+  ON messages(conversation_id, created_at DESC);
+
+-- Covers "my conversations, most recently active first" — what the
+-- conversation list (GET /api/conversations) and the unread-badge polling
+-- both query.
+CREATE INDEX IF NOT EXISTS idx_conversations_brand_last_message
+  ON conversations(brand_id, last_message_at DESC);
+CREATE INDEX IF NOT EXISTS idx_conversations_creator_last_message
+  ON conversations(creator_id, last_message_at DESC);
+
+-- Sends a message and updates the conversation's preview/unread counter in
+-- one atomic statement. The previous application code did a
+-- read-then-write ("creator_unread: (conversation.creator_unread || 0) + 1")
+-- with a race window: two messages arriving back-to-back from the same
+-- sender could both read the same starting count and one increment would be
+-- lost. Expressing the increment as "brand_unread = brand_unread + 1"
+-- directly in the UPDATE is safe under Postgres's row-level locking even
+-- with concurrent callers, because the second UPDATE blocks until the first
+-- commits and then re-reads the now-current value — no lost update is
+-- possible. Call via supabase.rpc('send_conversation_message', {...}).
+CREATE OR REPLACE FUNCTION send_conversation_message(
+  p_conversation_id UUID,
+  p_sender_id UUID,
+  p_content TEXT,
+  p_sender_type TEXT, -- 'creator' or 'brand' — whichever side is NOT the sender gets the unread bump
+  p_attachments JSONB DEFAULT '[]'::jsonb
+) RETURNS TABLE (
+  id UUID,
+  conversation_id UUID,
+  sender_id UUID,
+  content TEXT,
+  attachments JSONB,
+  is_read BOOLEAN,
+  read_at TIMESTAMPTZ,
+  is_system BOOLEAN,
+  created_at TIMESTAMPTZ
+) AS $$
+DECLARE
+  v_message_id UUID;
+  v_created_at TIMESTAMPTZ;
+BEGIN
+  INSERT INTO messages (conversation_id, sender_id, content, attachments, is_read, is_system)
+  VALUES (p_conversation_id, p_sender_id, p_content, p_attachments, FALSE, FALSE)
+  RETURNING messages.id, messages.created_at INTO v_message_id, v_created_at;
+
+  IF p_sender_type = 'creator' THEN
+    UPDATE conversations
+    SET brand_unread = brand_unread + 1,
+        last_message_at = v_created_at,
+        last_message_preview = left(p_content, 100),
+        updated_at = NOW()
+    WHERE conversations.id = p_conversation_id;
+  ELSE
+    UPDATE conversations
+    SET creator_unread = creator_unread + 1,
+        last_message_at = v_created_at,
+        last_message_preview = left(p_content, 100),
+        updated_at = NOW()
+    WHERE conversations.id = p_conversation_id;
+  END IF;
+
+  RETURN QUERY
+    SELECT messages.id, messages.conversation_id, messages.sender_id, messages.content,
+           messages.attachments, messages.is_read, messages.read_at, messages.is_system,
+           messages.created_at
+    FROM messages WHERE messages.id = v_message_id;
+END;
+$$ LANGUAGE plpgsql;

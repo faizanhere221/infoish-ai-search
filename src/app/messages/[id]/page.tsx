@@ -40,7 +40,6 @@ interface Conversation {
     logo_url: string | null
     contact_name: string | null
   }
-  messages: Message[]
 }
 
 export default function ConversationPage() {
@@ -79,21 +78,33 @@ export default function ConversationPage() {
 
       const authHeader = { Authorization: `Bearer ${token}` }
 
-      // Fetch conversation with messages
-      const res = await fetch(`/api/conversations/${conversationId}`, { headers: authHeader })
-      if (res.ok) {
-        const data = await res.json()
-        setConversation(data.conversation)
-        setMessages(data.conversation.messages || [])
+      // Fetch conversation metadata and the newest page of messages separately
+      // (messages are no longer embedded — see api/conversations/[id]/messages
+      // for the paginated endpoint).
+      const [convRes, messagesRes] = await Promise.all([
+        fetch(`/api/conversations/${conversationId}`, { headers: authHeader }),
+        fetch(`/api/conversations/${conversationId}/messages`, { headers: authHeader }),
+      ])
 
-        // Mark messages as read (identity comes from the auth header server-side)
-        await fetch(
-          `/api/conversations/${conversationId}/messages?mark_as_read=true`,
-          { headers: authHeader }
-        )
+      if (convRes.ok) {
+        const data = await convRes.json()
+        setConversation(data.conversation)
       } else {
         console.error('Failed to fetch conversation')
       }
+
+      if (messagesRes.ok) {
+        const data = await messagesRes.json()
+        setMessages(data.messages || [])
+      } else {
+        console.error('Failed to fetch messages')
+      }
+
+      // Mark messages as read (identity comes from the auth header server-side)
+      await fetch(`/api/conversations/${conversationId}/messages/read`, {
+        method: 'POST',
+        headers: authHeader,
+      })
 
       setLoading(false)
     } catch (err) {

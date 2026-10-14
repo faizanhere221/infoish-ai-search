@@ -46,19 +46,14 @@ export async function GET(
       .eq('id', conversation.brand_id)
       .single()
 
-    // Fetch messages
-    const { data: messages } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('conversation_id', id)
-      .order('created_at', { ascending: true })
-
+    // Messages are no longer embedded here (was an unbounded select on
+    // every conversation open). Fetch them from the paginated
+    // GET /api/conversations/[id]/messages endpoint instead.
     return NextResponse.json({
       conversation: {
         ...conversation,
         creator,
         brand,
-        messages: messages || [],
       },
     })
 
