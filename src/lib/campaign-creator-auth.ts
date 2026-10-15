@@ -98,6 +98,30 @@ export async function loadAuthorizedContract(
   return { ...authorized, contract }
 }
 
+// Same pattern, scoped to a creator_payments row belonging to this
+// campaign_creators row.
+export async function loadAuthorizedPayment(
+  supabase: SupabaseClient,
+  rowId: string,
+  paymentId: string,
+  callerProfileId: string | null,
+  callerUserType: string | null
+) {
+  const authorized = await loadAuthorizedCampaignCreatorRow(supabase, rowId, callerProfileId, callerUserType)
+  if (!authorized) {return null}
+
+  const { data: payment } = await supabase
+    .from('creator_payments')
+    .select('*')
+    .eq('id', paymentId)
+    .eq('campaign_creator_id', rowId)
+    .single()
+
+  if (!payment) {return null}
+
+  return { ...authorized, payment }
+}
+
 // Expires any pending offer on a row whose expires_at has passed. Lazy
 // expiry — there's no cron infrastructure in this app, so every route that
 // reads or acts on a row's offers calls this first instead.

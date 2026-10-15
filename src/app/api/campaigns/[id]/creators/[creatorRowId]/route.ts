@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { CAMPAIGN_CREATOR_STATUSES } from '@/types/campaigns'
 import { voidContractOnTermsChange } from '@/lib/contracts/lifecycle'
 import { getUserIdFromCreator } from '@/lib/notifications'
+import { createKillFeeIfEligible } from '@/lib/payments/engine'
 
 interface RouteParams {
   params: { id: string; creatorRowId: string }
@@ -45,7 +46,7 @@ async function requireOwner(
 
   const { data: row } = await supabase
     .from('campaign_creators')
-    .select('id, creator_id, payout_amount')
+    .select('id, creator_id, payout_amount, currency')
     .eq('id', creatorRowId)
     .eq('campaign_id', campaignId)
     .single()
@@ -113,6 +114,20 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         actorUserId: callerUserId,
         reason: 'the fee changed',
         recipientUserId,
+      })
+    }
+
+    // Dropping a fully-signed engagement after a draft was submitted owes
+    // a kill fee — created automatically, not something the brand has to
+    // remember to add.
+    if (callerUserId && existingRow && brandId && parsed.data.status === 'dropped') {
+      await createKillFeeIfEligible(supabase, {
+        campaignCreatorId: creatorRowId,
+        creatorId: existingRow.creator_id,
+        brandId,
+        actorUserId: callerUserId,
+        payoutAmount: existingRow.payout_amount,
+        currency: existingRow.currency,
       })
     }
 

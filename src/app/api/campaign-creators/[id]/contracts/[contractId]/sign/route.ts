@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedContract } from '@/lib/campaign-creator-auth'
 import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
 import { getUserIdFromBrand, getUserIdFromCreator } from '@/lib/notifications'
+import { createInitialPaymentOnSign } from '@/lib/payments/engine'
 import { z } from 'zod'
 
 interface RouteParams {
@@ -127,6 +128,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         content: notificationContent,
       },
     })
+
+    if (nextStatus === 'fully_signed' && row.payout_amount) {
+      await createInitialPaymentOnSign(supabase, {
+        campaignCreatorId: id,
+        creatorId: row.creator_id,
+        brandId: row.brand_id,
+        contractId,
+        amount: row.payout_amount,
+        currency: row.currency,
+        actorUserId: callerUserId,
+      })
+    }
 
     return NextResponse.json({ message: 'Signed', contract: updated })
   } catch (error) {
