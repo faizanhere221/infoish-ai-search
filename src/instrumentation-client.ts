@@ -23,7 +23,10 @@ Sentry.init({
   // otherwise be created for every single poll tick, burning trace quota on
   // requests that are never interesting on their own.
   integrations: [
-    Sentry.replayIntegration(),
+    // Replays only ever capture around an actual error (see
+    // replaysSessionSampleRate below) and always mask page content —
+    // this is diagnostic tooling, not a record of what a user typed or saw.
+    Sentry.replayIntegration({ maskAllText: true, maskAllInputs: true, blockAllMedia: true }),
     Sentry.browserTracingIntegration({
       shouldCreateSpanForRequest: (url) => !isPolledEndpoint(url),
     }),
@@ -32,13 +35,11 @@ Sentry.init({
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
   tracesSampleRate: 0.1,
 
-  // Define how likely Replay events are sampled.
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
-  replaysSessionSampleRate: 0.1,
+  // No ambient session replay — only capture around an actual error.
+  replaysSessionSampleRate: 0,
 
   // Define how likely Replay events are sampled when an error occurs.
-  replaysOnErrorSampleRate: 1.0,
+  replaysOnErrorSampleRate: 0.1,
 
   dataCollection: {
     // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
