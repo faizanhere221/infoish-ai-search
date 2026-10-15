@@ -159,6 +159,41 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         contractStatusByRow[c.campaign_creator_id] = c.status
       }
 
+      // Payment status per row, for the tracker's payment column and
+      // "overdue payments" badge. "Worst" active status wins — a creator
+      // waiting on an overdue payment matters more than a different, paid
+      // record on the same row.
+      type PaymentStatusRow = { campaign_creator_id: string; status: string; due_date: string | null }
+      const { data: paymentRows } = rowIds.length > 0
+        ? await supabase
+            .from('creator_payments')
+            .select('campaign_creator_id, status, due_date')
+            .in('campaign_creator_id', rowIds)
+            .neq('status', 'cancelled')
+        : { data: [] as PaymentStatusRow[] }
+
+      const paymentCheckNow = new Date()
+      const PAYMENT_STATUS_RANK: Record<string, number> = {
+        disputed: 5, due: 4, marked_paid: 3, scheduled: 2, confirmed: 1,
+      }
+      const paymentSummaryByRow: Record<string, { status: string; overdue: boolean }> = {}
+      let totalOverduePayments = 0
+      const overdueRowIds = new Set<string>()
+      for (const p of (paymentRows || []) as PaymentStatusRow[]) {
+        const overdue = p.status === 'due' && !!p.due_date && new Date(p.due_date) < paymentCheckNow
+        if (overdue && !overdueRowIds.has(p.campaign_creator_id)) {
+          overdueRowIds.add(p.campaign_creator_id)
+          totalOverduePayments += 1
+        }
+        const current = paymentSummaryByRow[p.campaign_creator_id]
+        const rank = PAYMENT_STATUS_RANK[p.status] ?? 0
+        if (!current || rank > (PAYMENT_STATUS_RANK[current.status] ?? 0)) {
+          paymentSummaryByRow[p.campaign_creator_id] = { status: p.status, overdue }
+        } else if (overdue) {
+          current.overdue = true
+        }
+      }
+
       const withRelations = (rows || []).map((row) => {
         const creator = creators.find((c) => c.id === row.creator_id) || null
         const counts = countsByRow[row.id] || { pendingReview: 0, overdue: 0 }
@@ -169,12 +204,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           deliverables_pending_review: counts.pendingReview,
           deliverables_overdue: counts.overdue,
           contract_status: contractStatusByRow[row.id] ?? null,
+          payment_status: paymentSummaryByRow[row.id]?.status ?? null,
+          payment_overdue: paymentSummaryByRow[row.id]?.overdue ?? false,
         }
       })
 
       return NextResponse.json({
         campaign_creators: withRelations,
         pending_review_count: totalPendingReview,
+        overdue_payments_count: totalOverduePayments,
       })
     }
 

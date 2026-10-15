@@ -8,17 +8,19 @@ import DashboardHeader from '@/components/DashboardHeader'
 import { OfferTab } from '@/components/campaigns/drawer/OfferTab'
 import { DeliverablesTab } from '@/components/campaigns/drawer/DeliverablesTab'
 import { ContractTab } from '@/components/campaigns/drawer/ContractTab'
+import { PaymentsTab } from '@/components/campaigns/drawer/PaymentsTab'
 import { ActivityTab } from '@/components/campaigns/drawer/ActivityTab'
 import { CAMPAIGN_CREATOR_STATUS_BADGE } from '@/components/campaigns/utils'
 import type { CampaignCreatorForCreator } from '@/types/campaigns'
 
 interface Profile { id: string; [key: string]: unknown }
 
-type Tab = 'offer' | 'deliverables' | 'contract' | 'activity'
+type Tab = 'offer' | 'deliverables' | 'contract' | 'payments' | 'activity'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'offer', label: 'Offer' },
   { id: 'deliverables', label: 'Deliverables' },
   { id: 'contract', label: 'Contract' },
+  { id: 'payments', label: 'Payments' },
   { id: 'activity', label: 'Activity' },
 ]
 
@@ -138,6 +140,7 @@ export default function MyCampaignDetailPage() {
             )}
             {tab === 'deliverables' && <DeliverablesTab campaignCreatorId={row.id} actorType="creator" token={token} />}
             {tab === 'contract' && <ContractTab campaignCreatorId={row.id} actorType="creator" token={token} />}
+            {tab === 'payments' && <PaymentsTab campaignCreatorId={row.id} actorType="creator" rowStatus={row.status} token={token} />}
             {tab === 'activity' && <ActivityTab campaignCreatorId={row.id} token={token} />}
           </div>
         </div>

@@ -59,6 +59,7 @@ export default function CampaignReportPage() {
   const [currency, setCurrency] = useState('USD')
   const [totals, setTotals] = useState<ReportTotals | null>(null)
   const [creators, setCreators] = useState<CreatorReportRow[]>([])
+  const [paymentsByCurrency, setPaymentsByCurrency] = useState<{ currency: string; paid: number; outstanding: number }[]>([])
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
@@ -88,6 +89,7 @@ export default function CampaignReportPage() {
       setCurrency(data.campaign?.currency || 'USD')
       setTotals(data.totals)
       setCreators(data.creators || [])
+      setPaymentsByCurrency(data.payments_by_currency || [])
     } finally {
       setLoading(false)
     }
@@ -199,6 +201,23 @@ export default function CampaignReportPage() {
                 <p className="text-xl font-semibold text-gray-900">{totals.cost_per_engagement_payout ? money(totals.cost_per_engagement_payout, currency) : '—'}</p>
               </div>
             </div>
+
+            {paymentsByCurrency.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+                <h2 className="font-semibold text-gray-900 mb-3">Paid vs. outstanding</h2>
+                <div className="flex flex-wrap gap-6">
+                  {paymentsByCurrency.map((p) => (
+                    <div key={p.currency}>
+                      <p className="text-xs text-gray-500 mb-1">{p.currency}</p>
+                      <p className="text-sm text-gray-700">
+                        <span className="text-emerald-600 font-semibold">{money(p.paid, p.currency)}</span> paid &middot;{' '}
+                        <span className="text-amber-600 font-semibold">{money(p.outstanding, p.currency)}</span> outstanding
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-end mb-3">
               <button onClick={exportCsv} className="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">

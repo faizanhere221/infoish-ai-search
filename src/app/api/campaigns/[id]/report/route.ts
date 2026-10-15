@@ -43,7 +43,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const rowIds = (rows || []).map((r) => r.id)
     if (rowIds.length === 0) {
-      return NextResponse.json({ campaign: { title: campaign.title }, totals: null, creators: [] })
+      return NextResponse.json({ campaign: { title: campaign.title }, totals: null, creators: [], payments_by_currency: [] })
     }
 
     const { data: creators } = await supabase
@@ -63,6 +63,28 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           .select('deliverable_id, captured_at, views, likes, comments, shares, clicks, saves')
           .in('deliverable_id', deliverableIds)
       : { data: [] as ResultRow[] }
+
+    // Paid vs outstanding, per currency — never summed across currencies.
+    // 'paid' = money has moved (marked_paid or confirmed); 'outstanding' =
+    // still owed (scheduled, due, or disputed). Cancelled records don't
+    // count either way.
+    const { data: payments } = await supabase
+      .from('creator_payments')
+      .select('status, amount, currency')
+      .in('campaign_creator_id', rowIds)
+      .neq('status', 'cancelled')
+
+    const paymentsByCurrency: Record<string, { paid: number; outstanding: number }> = {}
+    for (const p of payments || []) {
+      const bucket = paymentsByCurrency[p.currency] || { paid: 0, outstanding: 0 }
+      if (p.status === 'marked_paid' || p.status === 'confirmed') {
+        bucket.paid += p.amount
+      } else {
+        bucket.outstanding += p.amount
+      }
+      paymentsByCurrency[p.currency] = bucket
+    }
+    const paymentsSummary = Object.entries(paymentsByCurrency).map(([currency, b]) => ({ currency, ...b }))
 
     const latestByDeliverable = latestResultByDeliverable((results || []) as ResultRow[])
 
@@ -127,6 +149,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         on_time_rate: onTimeRate(allDeliverablesForOnTime),
       },
       creators: creatorRows,
+      payments_by_currency: paymentsSummary,
     })
   } catch (error) {
     captureError(error, { route: 'GET /api/campaigns/[id]/report' })

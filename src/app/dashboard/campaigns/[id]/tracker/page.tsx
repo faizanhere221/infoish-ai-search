@@ -36,6 +36,14 @@ const CONTRACT_STATUS_BADGE: Record<string, { bg: string; text: string; label: s
   fully_signed: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Contract: signed' },
 }
 
+const PAYMENT_STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
+  scheduled: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Scheduled' },
+  due: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Due' },
+  marked_paid: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Marked paid' },
+  confirmed: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Paid' },
+  disputed: { bg: 'bg-red-100', text: 'text-red-700', label: 'Disputed' },
+}
+
 export default function CampaignTrackerPage() {
   const params = useParams<{ id: string }>()
   const campaignId = params.id
@@ -58,6 +66,7 @@ export default function CampaignTrackerPage() {
   const [editingRow, setEditingRow] = useState<CampaignCreator | null>(null)
   const [drawerRow, setDrawerRow] = useState<CampaignCreator | null>(null)
   const [pendingReviewCount, setPendingReviewCount] = useState(0)
+  const [overduePaymentsCount, setOverduePaymentsCount] = useState(0)
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -114,6 +123,7 @@ export default function CampaignTrackerPage() {
         const rowsData = await rowsRes.json()
         setRows(rowsData.campaign_creators || [])
         setPendingReviewCount(rowsData.pending_review_count || 0)
+        setOverduePaymentsCount(rowsData.overdue_payments_count || 0)
       } else {
         setLoadError(true)
       }
@@ -327,6 +337,16 @@ export default function CampaignTrackerPage() {
           </div>
         )}
 
+        {overduePaymentsCount > 0 && (
+          <Link
+            href="/dashboard/payments"
+            className="flex items-center gap-2 p-3 mb-6 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800 hover:bg-red-100"
+          >
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            {overduePaymentsCount} overdue payment{overduePaymentsCount === 1 ? '' : 's'}
+          </Link>
+        )}
+
         {/* Summary cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -464,6 +484,7 @@ export default function CampaignTrackerPage() {
                         <th className="p-3 text-right">Payout</th>
                         <th className="p-3 text-right">Charge</th>
                         <th className="p-3 text-right">Profit</th>
+                        <th className="p-3">Payment</th>
                         <th className="p-3 w-28">Actions</th>
                       </tr>
                     </thead>
@@ -561,6 +582,16 @@ export default function CampaignTrackerPage() {
                             <td className="p-3 align-top text-right text-gray-900">{row.charge_amount !== null ? formatMoney(row.charge_amount, row.currency) : '—'}</td>
                             <td className={`p-3 align-top text-right font-medium ${profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                               {formatMoney(profit, row.currency)}
+                            </td>
+                            <td className="p-3 align-top">
+                              {row.payment_status && PAYMENT_STATUS_BADGE[row.payment_status] ? (
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${PAYMENT_STATUS_BADGE[row.payment_status].bg} ${PAYMENT_STATUS_BADGE[row.payment_status].text}`}>
+                                  {row.payment_overdue && <AlertTriangle className="w-3 h-3" />}
+                                  {row.payment_overdue ? 'Overdue' : PAYMENT_STATUS_BADGE[row.payment_status].label}
+                                </span>
+                              ) : (
+                                <span className="text-gray-300">—</span>
+                              )}
                             </td>
                             <td className="p-3 align-top">
                               <div className="flex items-center gap-1">
@@ -700,6 +731,7 @@ export default function CampaignTrackerPage() {
           creatorId={drawerRow.creator_id}
           creatorName={drawerRow.creator?.display_name || 'Creator'}
           currency={drawerRow.currency}
+          rowStatus={drawerRow.status}
           token={token}
           onClose={() => setDrawerRow(null)}
           onChanged={load}

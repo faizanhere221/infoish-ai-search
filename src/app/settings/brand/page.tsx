@@ -493,35 +493,78 @@ function ToggleItem({ title, description, enabled, onToggle }: {
 // PAYMENT SETTINGS
 // ============================================================================
 function PaymentSettings() {
+  const [brandId, setBrandId] = useState<string | null>(null)
+  const [instructions, setInstructions] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    const profileStr = localStorage.getItem('auth_profile')
+    const token = localStorage.getItem('auth_token')
+    if (!profileStr || !token) {return}
+    const profile = JSON.parse(profileStr)
+    setBrandId(profile.id)
+
+    fetch(`/api/brands/${profile.id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setInstructions(data?.brand?.payment_instructions || ''))
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function save() {
+    const token = localStorage.getItem('auth_token')
+    if (!brandId || !token) {return}
+    setSaving(true)
+    setSaved(false)
+    try {
+      const res = await fetch(`/api/brands/${brandId}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_instructions: instructions }),
+      })
+      if (res.ok) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-gray-900">Payment Settings</h2>
-        <p className="text-sm text-gray-500 mt-1">Manage your payment methods.</p>
-      </div>
-
-      <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-            <CreditCard className="w-6 h-6 text-blue-600" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900">Payment Method</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Add a payment method to start working with creators. Payments are held in escrow until you approve the deliverables.
-            </p>
-            <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
-              Add Payment Method
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-        <p className="text-sm text-emerald-800">
-          <strong>Secure Payments:</strong> All payments are processed securely through Stripe. Your payment details are never stored on our servers.
+        <p className="text-sm text-gray-500 mt-1">
+          Payments are made directly between you and the creator. Infoishai keeps the record — see{' '}
+          <Link href="/dashboard/payments" className="text-brand-purple-dark hover:underline">your payments dashboard</Link> for every record.
         </p>
       </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Payment instructions for invoices</label>
+        <p className="text-xs text-gray-500 mb-2">Shown on every client invoice you generate — your bank details, remittance notes, or anything a client needs to pay you.</p>
+        {loading ? (
+          <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+        ) : (
+          <textarea
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            rows={4}
+            placeholder="e.g. Please pay by bank transfer within 14 days to: Acme Agency, IBAN ..."
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-pink text-sm"
+          />
+        )}
+      </div>
+
+      <button
+        onClick={save}
+        disabled={saving || loading}
+        className="px-4 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg font-medium disabled:opacity-50"
+      >
+        {saved ? 'Saved' : saving ? 'Saving…' : 'Save'}
+      </button>
     </div>
   )
 }

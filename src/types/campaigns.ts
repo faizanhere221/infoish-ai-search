@@ -223,6 +223,10 @@ export interface CampaignCreator {
   // Server-computed from the active (non-void) campaign_contracts row
   // (brand-owner view only); null if no contract has been drafted yet.
   contract_status?: string | null
+  // Server-computed from this row's non-cancelled creator_payments rows
+  // (brand-owner view only); null if no payment record exists yet.
+  payment_status?: string | null
+  payment_overdue?: boolean
   // Joined data
   creator?: TrackerCreatorSummary
   campaign?: Pick<Campaign, 'id' | 'title' | 'client_name'>

@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 import { OfferTab } from './drawer/OfferTab'
 import { DeliverablesTab } from './drawer/DeliverablesTab'
 import { ContractTab } from './drawer/ContractTab'
+import { PaymentsTab } from './drawer/PaymentsTab'
 import { ActivityTab } from './drawer/ActivityTab'
 
 interface CampaignCreatorDrawerProps {
@@ -12,22 +13,24 @@ interface CampaignCreatorDrawerProps {
   creatorId: string
   creatorName: string
   currency: string
+  rowStatus?: string
   token: string | null
   onClose: () => void
   onChanged: () => void
 }
 
-type DrawerTab = 'offer' | 'deliverables' | 'contract' | 'activity'
+type DrawerTab = 'offer' | 'deliverables' | 'contract' | 'payments' | 'activity'
 
 const TABS: { id: DrawerTab; label: string }[] = [
   { id: 'offer', label: 'Offer' },
   { id: 'deliverables', label: 'Deliverables' },
   { id: 'contract', label: 'Contract' },
+  { id: 'payments', label: 'Payments' },
   { id: 'activity', label: 'Activity' },
 ]
 
 export function CampaignCreatorDrawer({
-  campaignCreatorId, creatorId, creatorName, currency, token, onClose, onChanged,
+  campaignCreatorId, creatorId, creatorName, currency, rowStatus = '', token, onClose, onChanged,
 }: CampaignCreatorDrawerProps) {
   const [tab, setTab] = useState<DrawerTab>('offer')
 
@@ -71,6 +74,7 @@ export function CampaignCreatorDrawer({
           )}
           {tab === 'deliverables' && <DeliverablesTab campaignCreatorId={campaignCreatorId} actorType="brand" token={token} />}
           {tab === 'contract' && <ContractTab campaignCreatorId={campaignCreatorId} actorType="brand" token={token} />}
+          {tab === 'payments' && <PaymentsTab campaignCreatorId={campaignCreatorId} actorType="brand" rowStatus={rowStatus} token={token} />}
           {tab === 'activity' && <ActivityTab campaignCreatorId={campaignCreatorId} token={token} />}
         </div>
       </div>
