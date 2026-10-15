@@ -20,6 +20,7 @@ import {
   type LucideIcon
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
+import { ActionNeededWidget } from '@/components/campaigns/ActionNeededWidget'
 import { usePartner } from '@/hooks/usePartner'
 
 interface BrandProfile {
@@ -159,6 +160,8 @@ export default function BrandDashboard() {
           </h1>
           <p className="text-gray-500 mt-1">Here's what's happening with your campaigns.</p>
         </div>
+
+        <ActionNeededWidget viewerType="brand" />
 
         {/* CTA - Find Creators */}
         <div className="mb-8 p-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white">

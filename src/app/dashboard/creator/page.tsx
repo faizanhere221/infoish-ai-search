@@ -9,6 +9,7 @@ import DashboardStats from '@/components/dashboard/DashboardStats'
 import CreatorPlatforms from '@/components/dashboard/CreatorPlatforms'
 import CreatorServices from '@/components/dashboard/CreatorServices'
 import OnboardingWizard from '@/components/dashboard/OnboardingWizard'
+import { ActionNeededWidget } from '@/components/campaigns/ActionNeededWidget'
 import { PendingOffersWidget } from '@/components/campaigns/PendingOffersWidget'
 import { ResultsTodoWidget } from '@/components/campaigns/ResultsTodoWidget'
 import { MyStatsWidget } from '@/components/campaigns/MyStatsWidget'
@@ -133,6 +134,7 @@ export default function CreatorDashboard() {
 
   return (
     <div className="space-y-6">
+      <ActionNeededWidget viewerType="creator" />
       <PendingOffersWidget />
       <PaymentsTodoWidget />
       <ResultsTodoWidget />
