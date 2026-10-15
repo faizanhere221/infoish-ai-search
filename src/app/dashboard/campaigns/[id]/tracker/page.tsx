@@ -690,6 +690,7 @@ export default function CampaignTrackerPage() {
                   {visibleRows.map((row) => {
                     const badge = CAMPAIGN_CREATOR_STATUS_BADGE[row.status]
                     const profit = (row.charge_amount || 0) - (row.payout_amount || 0)
+                    const step = getNextStep(row, 'brand')
                     return (
                       <div key={row.id} className="bg-white rounded-xl border border-gray-200 p-4">
                         <div className="flex items-center justify-between mb-3">
@@ -740,6 +741,14 @@ export default function CampaignTrackerPage() {
                           </div>
                         </div>
                         <p className="text-xs text-gray-500 mb-3">Planned: {formatDate(row.planned_date)}</p>
+                        {step && (
+                          <button
+                            onClick={() => { setDrawerRow(row); setDrawerTab(step.tab) }}
+                            className={`block w-full text-left text-xs mb-3 ${step.mine ? 'text-brand-purple-dark font-medium' : 'text-gray-500'}`}
+                          >
+                            {step.label}
+                          </button>
+                        )}
                         <div className="flex items-center gap-2">
                           <button onClick={() => setDrawerRow(row)} className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600">
                             <Info className="w-3.5 h-3.5" /> Offer
