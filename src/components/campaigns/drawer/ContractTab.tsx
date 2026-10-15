@@ -205,17 +205,19 @@ export function ContractTab({ campaignCreatorId, actorType, token }: ContractTab
   if (!contract) {
     return (
       <div className="text-center py-6">
-        <FileText className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-        <p className="text-sm text-gray-500 mb-4">
-          {actorType === 'brand' ? 'No contract yet for this creator.' : 'The brand hasn’t drafted a contract yet.'}
-        </p>
+        <div className="inline-flex flex-col items-center gap-2 px-6 py-5 bg-gray-50 border border-gray-200 rounded-xl text-gray-400">
+          <FileText className="w-8 h-8" />
+          <p className="text-sm">
+            The contract is created after the creator accepts {actorType === 'brand' ? 'your' : 'the brand’s'} offer.
+          </p>
+        </div>
         {actorType === 'brand' && (
           <button
             onClick={createContract}
             disabled={busy}
-            className="px-4 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg text-sm font-medium hover:shadow-lg disabled:opacity-50"
+            className="block mx-auto mt-3 text-xs text-gray-400 hover:text-gray-600 underline"
           >
-            Draft a contract
+            This didn&apos;t happen automatically — draft one manually
           </button>
         )}
         {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
@@ -242,6 +244,12 @@ export function ContractTab({ campaignCreatorId, actorType, token }: ContractTab
               Create a new version
             </button>
           )}
+        </div>
+      )}
+
+      {contract.status === 'draft' && actorType === 'brand' && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+          Offer accepted. Review and send the contract.
         </div>
       )}
 

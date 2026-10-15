@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
@@ -13,7 +13,7 @@ import DashboardHeader from '@/components/DashboardHeader'
 import { AddCreatorToTrackerModal } from '@/components/campaigns/AddCreatorToTrackerModal'
 import { EditCampaignCreatorModal } from '@/components/campaigns/EditCampaignCreatorModal'
 import { ShareLinkPanel } from '@/components/campaigns/ShareLinkPanel'
-import { CampaignCreatorDrawer } from '@/components/campaigns/CampaignCreatorDrawer'
+import { CampaignCreatorDrawer, type DrawerTab } from '@/components/campaigns/CampaignCreatorDrawer'
 import { formatMoney, formatDate, CAMPAIGN_CREATOR_STATUS_BADGE } from '@/components/campaigns/utils'
 import {
   CAMPAIGN_CREATOR_STATUSES,
@@ -48,6 +48,7 @@ export default function CampaignTrackerPage() {
   const params = useParams<{ id: string }>()
   const campaignId = params.id
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const [token, setToken] = useState<string | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -65,6 +66,7 @@ export default function CampaignTrackerPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingRow, setEditingRow] = useState<CampaignCreator | null>(null)
   const [drawerRow, setDrawerRow] = useState<CampaignCreator | null>(null)
+  const [drawerTab, setDrawerTab] = useState<DrawerTab | undefined>(undefined)
   const [pendingReviewCount, setPendingReviewCount] = useState(0)
   const [overduePaymentsCount, setOverduePaymentsCount] = useState(0)
   const [pendingId, setPendingId] = useState<string | null>(null)
@@ -141,6 +143,23 @@ export default function CampaignTrackerPage() {
   }, [campaignId, router])
 
   useEffect(() => { load() }, [load])
+
+  // Deep link from a chat message card or notification: ?row=<id>&tab=<tab>
+  // opens that row's drawer straight to the right tab, same as clicking it
+  // manually would.
+  useEffect(() => {
+    if (rows.length === 0) {return}
+    const rowId = searchParams.get('row')
+    if (!rowId) {return}
+    const match = rows.find((r) => r.id === rowId)
+    if (match) {
+      setDrawerRow(match)
+      const tab = searchParams.get('tab')
+      if (tab) {setDrawerTab(tab as DrawerTab)}
+    }
+  }, [rows, searchParams])
+
+  const draftContractRows = useMemo(() => rows.filter((r) => r.contract_status === 'draft'), [rows])
 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {}
@@ -330,6 +349,16 @@ export default function CampaignTrackerPage() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {draftContractRows.length > 0 && (
+          <button
+            onClick={() => { setDrawerRow(draftContractRows[0]); setDrawerTab('contract') }}
+            className="flex items-center gap-2 p-3 mb-6 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 hover:bg-blue-100 w-full text-left"
+          >
+            <FileClock className="w-4 h-4 flex-shrink-0" />
+            Offer accepted for {draftContractRows.length} creator{draftContractRows.length === 1 ? '' : 's'}. Review and send the contract.
+          </button>
+        )}
+
         {pendingReviewCount > 0 && (
           <div className="flex items-center gap-2 p-3 mb-6 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
             <FileClock className="w-4 h-4 flex-shrink-0" />
@@ -505,8 +534,12 @@ export default function CampaignTrackerPage() {
                         const profit = (row.charge_amount || 0) - (row.payout_amount || 0)
                         const isPending = pendingId === row.id
                         return (
-                          <tr key={row.id} className="border-b border-gray-50 last:border-0">
-                            <td className="p-3 align-top">
+                          <tr
+                            key={row.id}
+                            onClick={() => setDrawerRow(row)}
+                            className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50"
+                          >
+                            <td className="p-3 align-top" onClick={(e) => e.stopPropagation()}>
                               <input
                                 type="checkbox"
                                 checked={selected.has(row.id)}
@@ -537,7 +570,7 @@ export default function CampaignTrackerPage() {
                                 </div>
                               </div>
                             </td>
-                            <td className="p-3 align-top">
+                            <td className="p-3 align-top" onClick={(e) => e.stopPropagation()}>
                               <select
                                 value={row.status}
                                 disabled={isPending}
@@ -571,7 +604,7 @@ export default function CampaignTrackerPage() {
                                 </span>
                               )}
                             </td>
-                            <td className="p-3 align-top">
+                            <td className="p-3 align-top" onClick={(e) => e.stopPropagation()}>
                               <input
                                 type="date"
                                 value={row.planned_date || ''}
@@ -580,7 +613,7 @@ export default function CampaignTrackerPage() {
                                 className="px-2 py-1 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-pink"
                               />
                             </td>
-                            <td className="p-3 align-top">
+                            <td className="p-3 align-top" onClick={(e) => e.stopPropagation()}>
                               {row.posted_url ? (
                                 <a href={row.posted_url} target="_blank" rel="noopener noreferrer" className="text-brand-purple-dark hover:underline inline-flex items-center gap-1" aria-label="View posted content">
                                   <ExternalLink className="w-4 h-4" />
@@ -604,12 +637,16 @@ export default function CampaignTrackerPage() {
                                 <span className="text-gray-300">—</span>
                               )}
                             </td>
-                            <td className="p-3 align-top">
+                            <td className="p-3 align-top" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center gap-1">
-                                <button onClick={() => setDrawerRow(row)} className="relative p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg" aria-label="Offer and deliverables" title="Offer & deliverables">
-                                  <Info className="w-4 h-4" />
+                                <button
+                                  onClick={() => setDrawerRow(row)}
+                                  className="relative inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-brand-purple-dark hover:bg-brand-pink/10 rounded-lg"
+                                  aria-label="Open details"
+                                >
+                                  Open
                                   {!!row.deliverables_pending_review && (
-                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-[9px] rounded-full flex items-center justify-center font-bold">
+                                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-blue-500 text-white text-[9px] rounded-full flex items-center justify-center font-bold">
                                       {row.deliverables_pending_review}
                                     </span>
                                   )}
@@ -743,8 +780,9 @@ export default function CampaignTrackerPage() {
           creatorName={drawerRow.creator?.display_name || 'Creator'}
           currency={drawerRow.currency}
           rowStatus={drawerRow.status}
+          initialTab={drawerTab}
           token={token}
-          onClose={() => setDrawerRow(null)}
+          onClose={() => { setDrawerRow(null); setDrawerTab(undefined) }}
           onChanged={load}
         />
       )}

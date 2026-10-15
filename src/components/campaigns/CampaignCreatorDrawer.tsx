@@ -14,12 +14,13 @@ interface CampaignCreatorDrawerProps {
   creatorName: string
   currency: string
   rowStatus?: string
+  initialTab?: DrawerTab
   token: string | null
   onClose: () => void
   onChanged: () => void
 }
 
-type DrawerTab = 'offer' | 'deliverables' | 'contract' | 'payments' | 'activity'
+export type DrawerTab = 'offer' | 'deliverables' | 'contract' | 'payments' | 'activity'
 
 const TABS: { id: DrawerTab; label: string }[] = [
   { id: 'offer', label: 'Offer' },
@@ -30,9 +31,9 @@ const TABS: { id: DrawerTab; label: string }[] = [
 ]
 
 export function CampaignCreatorDrawer({
-  campaignCreatorId, creatorId, creatorName, currency, rowStatus = '', token, onClose, onChanged,
+  campaignCreatorId, creatorId, creatorName, currency, rowStatus = '', initialTab, token, onClose, onChanged,
 }: CampaignCreatorDrawerProps) {
-  const [tab, setTab] = useState<DrawerTab>('offer')
+  const [tab, setTab] = useState<DrawerTab>(initialTab || 'offer')
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label={`${creatorName} details`}>

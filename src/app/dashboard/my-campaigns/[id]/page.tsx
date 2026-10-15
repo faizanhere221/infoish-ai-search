@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
@@ -28,12 +28,22 @@ export default function MyCampaignDetailPage() {
   const params = useParams<{ id: string }>()
   const rowId = params.id
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [row, setRow] = useState<CampaignCreatorForCreator | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('offer')
+
+  // Deep link from a chat message card or notification: ?tab=<tab> opens
+  // straight to the right tab, same as clicking it manually would.
+  useEffect(() => {
+    const requestedTab = searchParams.get('tab') as Tab | null
+    if (requestedTab && TABS.some((t) => t.id === requestedTab)) {
+      setTab(requestedTab)
+    }
+  }, [searchParams])
 
   const load = useCallback(async () => {
     const userStr = localStorage.getItem('auth_user')
