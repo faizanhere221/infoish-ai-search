@@ -11,6 +11,11 @@ interface DealSystemMessageParams {
   senderUserId: string
   senderType: 'creator' | 'brand'
   content: string
+  // Drives the actionable card + deep-link button in ChatThread — see
+  // src/lib/campaign-creator-cta.ts. Omitted for deal-flow messages that
+  // predate the campaign_creators workflow.
+  relatedType?: string
+  relatedId?: string
 }
 
 // Posts a system message into the creator/brand pair's conversation, finding
@@ -24,7 +29,7 @@ export async function postDealSystemMessage(
   supabase: SupabaseClient,
   params: DealSystemMessageParams
 ): Promise<void> {
-  const { dealId, creatorId, brandId, senderUserId, senderType, content } = params
+  const { dealId, creatorId, brandId, senderUserId, senderType, content, relatedType, relatedId } = params
 
   const { data: existing } = await supabase
     .from('conversations')
@@ -71,6 +76,8 @@ export async function postDealSystemMessage(
     is_system: true,
     attachments: [],
     is_read: false,
+    related_type: relatedType ?? null,
+    related_id: relatedId ?? null,
   })
 
   if (messageError) {

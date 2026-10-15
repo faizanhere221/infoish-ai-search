@@ -1,5 +1,83 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
+import { recordCampaignCreatorAction, logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
+
+interface CreateDraftContractParams {
+  campaignCreatorId: string
+  campaignId: string
+  actorUserId: string
+}
+
+// Creates the first draft version of a contract for a row, pre-filled from
+// the campaign's default payment terms / kill fee and linked to the most
+// recently accepted offer (if any). Shared by the brand's manual "Draft a
+// contract" button (POST .../contracts) and the offer-accept route, which
+// calls this automatically the moment an offer is accepted — a brand
+// shouldn't have to remember a separate step to start the contract once
+// there's a deal to put in writing. Returns null if a non-void contract
+// already exists on the row (the brand already has one in flight) rather
+// than erroring, so the automatic call site can just skip silently.
+export async function createDraftContract(
+  supabase: SupabaseClient,
+  params: CreateDraftContractParams
+): Promise<{ id: string; version: number } | null> {
+  const { data: existing } = await supabase
+    .from('campaign_contracts')
+    .select('id')
+    .eq('campaign_creator_id', params.campaignCreatorId)
+    .neq('status', 'void')
+    .maybeSingle()
+
+  if (existing) {return null}
+
+  const { data: campaign } = await supabase
+    .from('campaigns')
+    .select('default_payment_terms_days, default_kill_fee_percent')
+    .eq('id', params.campaignId)
+    .single()
+
+  const { data: latestOffer } = await supabase
+    .from('campaign_offers')
+    .select('id')
+    .eq('campaign_creator_id', params.campaignCreatorId)
+    .eq('status', 'accepted')
+    .order('responded_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const { data: existingVersions } = await supabase
+    .from('campaign_contracts')
+    .select('version')
+    .eq('campaign_creator_id', params.campaignCreatorId)
+    .order('version', { ascending: false })
+    .limit(1)
+
+  const nextVersion = existingVersions && existingVersions.length > 0 ? existingVersions[0].version + 1 : 1
+
+  const { data: created, error } = await supabase
+    .from('campaign_contracts')
+    .insert({
+      campaign_creator_id: params.campaignCreatorId,
+      offer_id: latestOffer?.id ?? null,
+      version: nextVersion,
+      status: 'draft',
+      payment_terms_days: campaign?.default_payment_terms_days ?? 14,
+      kill_fee_percent: campaign?.default_kill_fee_percent ?? 50,
+    })
+    .select('id, version')
+    .single()
+
+  if (error || !created) {return null}
+
+  await logCampaignCreatorEvent(supabase, {
+    campaignCreatorId: params.campaignCreatorId,
+    actorUserId: params.actorUserId,
+    actorType: 'brand',
+    eventType: 'contract_drafted',
+    payload: { contract_id: created.id, version: created.version },
+  })
+
+  return created
+}
 
 interface VoidOnChangeParams {
   campaignCreatorId: string

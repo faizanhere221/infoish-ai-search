@@ -13,6 +13,8 @@ export interface ThreadMessage {
   is_read: boolean
   read_at: string | null
   is_system: boolean
+  related_type: string | null
+  related_id: string | null
   created_at: string
   // Client-only: present only while a locally-sent message hasn't been
   // confirmed by the server yet (or failed to send).
@@ -161,6 +163,8 @@ export function useConversationThread(conversationId: string | null, token: stri
         is_read: false,
         read_at: null,
         is_system: false,
+        related_type: null,
+        related_id: null,
         created_at: new Date().toISOString(),
         pendingStatus: 'sending',
       }

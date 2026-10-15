@@ -78,6 +78,11 @@ export async function recordCampaignCreatorAction(
       senderUserId: params.actorUserId,
       senderType: params.actorType,
       content: params.systemMessage,
+      // Drives the actionable card + button in ChatThread, keyed off the
+      // same eventType string driving everything else about this action —
+      // see src/lib/campaign-creator-cta.ts.
+      relatedType: params.eventType,
+      relatedId: params.campaignCreatorId,
     })
 
     if (params.notification?.recipientUserId) {
@@ -86,7 +91,7 @@ export async function recordCampaignCreatorAction(
         type: params.notification.type,
         title: params.notification.title,
         content: params.notification.content,
-        relatedType: 'campaign_creator',
+        relatedType: params.eventType,
         relatedId: params.campaignCreatorId,
       })
     }

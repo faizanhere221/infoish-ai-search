@@ -5,6 +5,7 @@ import { loadAuthorizedCampaignCreatorRow, expireStaleOffers } from '@/lib/campa
 import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
 import { getUserIdFromBrand, getUserIdFromCreator } from '@/lib/notifications'
 import { formatMoney } from '@/components/campaigns/utils'
+import { createDraftContract } from '@/lib/contracts/lifecycle'
 
 interface RouteParams {
   params: { id: string; offerId: string }
@@ -75,6 +76,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         title: 'Offer accepted',
         content: `Your offer of ${formatMoney(offer.amount, offer.currency)} was accepted`,
       },
+    })
+
+    // A brand shouldn't have to remember a separate "start the contract"
+    // step — the draft exists the moment there's a deal to put in writing.
+    // Silently skips if one somehow already exists on this row.
+    await createDraftContract(supabase, {
+      campaignCreatorId: id,
+      campaignId: row.campaign_id,
+      actorUserId: callerUserId,
     })
 
     return NextResponse.json({

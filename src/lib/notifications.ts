@@ -36,7 +36,12 @@ export type NotificationType =
   | 'payout_method_missing'
 
 // related_type values used by the `related_type`/`related_id` columns below,
-// resolved back into a link by the notifications page (src/app/notifications/page.tsx)
+// resolved back into a link by the notifications page (src/app/notifications/page.tsx).
+// recordCampaignCreatorAction() also passes its own eventType string
+// straight through here (e.g. 'offer_sent', 'contract_signed_by_creator') —
+// those aren't enumerated in this union since the full list lives in
+// src/lib/campaign-creator-cta.ts's lookup table, the single source of
+// truth for both the chat-card button and the notifications link.
 export type NotificationRelatedType = 'deal' | 'campaign' | 'campaign_application' | 'partner' | 'campaign_creator'
 
 interface NotificationPayload {
@@ -44,7 +49,7 @@ interface NotificationPayload {
   type: NotificationType
   title: string
   content: string
-  relatedType?: NotificationRelatedType
+  relatedType?: NotificationRelatedType | string
   relatedId?: string
 }
 
