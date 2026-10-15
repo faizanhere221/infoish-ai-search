@@ -7,8 +7,9 @@ import { ArrowLeft, Loader2, Printer, ShieldX } from 'lucide-react'
 import { formatMoney, formatDate } from '@/components/campaigns/utils'
 
 interface LineItem {
-  description: string
+  creator_name: string
   amount: number
+  deliverables: string[]
 }
 
 interface InvoiceData {
@@ -115,8 +116,15 @@ export default function InvoicePage() {
             <tbody>
               {invoice.line_items.map((item, i) => (
                 <tr key={i} className="border-b border-gray-100">
-                  <td className="py-2 text-gray-700">{item.description}</td>
-                  <td className="py-2 text-right text-gray-900">{formatMoney(item.amount, invoice.currency)}</td>
+                  <td className="py-2 text-gray-700 align-top">
+                    <p>{item.creator_name}</p>
+                    {item.deliverables.length > 0 && (
+                      <ul className="mt-1 text-xs text-gray-500 list-disc list-inside">
+                        {item.deliverables.map((title, j) => <li key={j}>{title}</li>)}
+                      </ul>
+                    )}
+                  </td>
+                  <td className="py-2 text-right text-gray-900 align-top">{formatMoney(item.amount, invoice.currency)}</td>
                 </tr>
               ))}
             </tbody>

@@ -7,17 +7,18 @@ interface RouteParams {
 }
 
 interface LineItem {
-  description: string
+  creator_name: string
   amount: number
+  deliverables: string[]
 }
 
 // GET /api/campaigns/[id]/invoice — brand owner only. Charge amounts only —
 // payout and profit never appear here, structurally: this route never
-// selects payout_amount at all. Line items are per deliverable; since
-// charge_amount lives on the campaign_creators row (not per deliverable),
-// a row with multiple deliverables has its charge split evenly across them
-// (remainder cents on the last line) so the lines still add up exactly to
-// what the row actually charges.
+// selects payout_amount at all. One line per campaign_creators row, priced
+// at that row's actual charge_amount (never invented by splitting it across
+// deliverables) — the row's deliverables are listed under the line as
+// context, with no per-deliverable amount, since charge was never tracked
+// at that granularity.
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
@@ -69,27 +70,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       deliverablesByRow.set(d.campaign_creator_id, list)
     }
 
-    const lineItems: LineItem[] = []
-    for (const row of rows || []) {
+    const lineItems: LineItem[] = (rows || []).map((row) => {
       const creator = creators?.find((c) => c.id === row.creator_id)
-      const creatorName = creator?.display_name || 'Creator'
       const rowDeliverables = deliverablesByRow.get(row.id) || []
-      const charge = row.charge_amount as number
-
-      if (rowDeliverables.length === 0) {
-        lineItems.push({ description: creatorName, amount: charge })
-        continue
+      return {
+        creator_name: creator?.display_name || 'Creator',
+        amount: row.charge_amount as number,
+        deliverables: rowDeliverables.map((d) => d.title),
       }
-
-      const share = Math.floor((charge / rowDeliverables.length) * 100) / 100
-      let allocated = 0
-      rowDeliverables.forEach((d, index) => {
-        const isLast = index === rowDeliverables.length - 1
-        const amount = isLast ? Math.round((charge - allocated) * 100) / 100 : share
-        allocated = Math.round((allocated + amount) * 100) / 100
-        lineItems.push({ description: `${creatorName} — ${d.title}`, amount })
-      })
-    }
+    })
 
     const total = lineItems.reduce((sum, item) => sum + item.amount, 0)
     const today = new Date()
