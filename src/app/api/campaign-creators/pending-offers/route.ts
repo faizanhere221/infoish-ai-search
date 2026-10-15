@@ -28,12 +28,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ pending_offers: [] })
     }
 
+    // Doesn't lazily expire every row here (this fans out across every
+    // campaign the creator has) — just excludes anything already past its
+    // expires_at from the widget. The authoritative expiry happens on the
+    // offer's own GET/action routes via expireStaleOffers().
     const { data: offers, error } = await supabase
       .from('campaign_offers')
       .select('id, campaign_creator_id, amount, currency, created_at')
       .in('campaign_creator_id', rowIds)
       .eq('status', 'pending')
       .eq('from_party', 'brand')
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .order('created_at', { ascending: false })
 
     if (error) {

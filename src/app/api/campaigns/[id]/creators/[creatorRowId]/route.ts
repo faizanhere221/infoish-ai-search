@@ -19,6 +19,7 @@ const UpdateCreatorRowSchema = z.object({
   charge_amount: z.number().nonnegative().max(1_000_000_000).optional().nullable(),
   currency: z.string().min(3).max(10).optional(),
   brand_notes: z.string().max(2000).optional().nullable(),
+  status_locked: z.boolean().optional(),
 })
 
 async function requireOwner(
@@ -76,7 +77,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (updates.posted_url === '') {updates.posted_url = null}
     // A manual status change is a deliberate override — stop the Phase 3
     // deliverable auto-sync trigger from silently reverting it on the next
-    // deliverable event.
+    // deliverable event. A caller can still explicitly send
+    // { status_locked: false } on its own (no status field) to resume
+    // auto-sync — the spread above already carries that through.
     if (parsed.data.status !== undefined) {updates.status_locked = true}
 
     const { data: row, error } = await supabase

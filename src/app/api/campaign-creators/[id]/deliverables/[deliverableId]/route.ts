@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedDeliverable } from '@/lib/campaign-creator-auth'
+import { logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
 import { DELIVERABLE_FORMATS } from '@/types/campaigns'
 import { z } from 'zod'
 
@@ -20,13 +21,22 @@ const UpdateDeliverableSchema = z.object({
   revisions_allowed: z.number().int().min(0).max(20).optional(),
 })
 
+// Fields that redefine *what* the creator is making — locked once a draft
+// has been submitted so the brand can't change the brief out from under
+// work already in progress. revisions_allowed is a cap the brand can still
+// raise/lower at any stage.
+const LOCKED_AFTER_PENDING_FIELDS = ['title', 'platform', 'format', 'draft_due', 'publish_due'] as const
+
 // PUT /api/campaign-creators/[id]/deliverables/[deliverableId] — brand owner
-// only. Metadata edits (title/platform/format/due dates/revision cap) —
-// status transitions go through their own dedicated endpoints.
+// only. title/platform/format/due dates are only editable while the
+// deliverable is still 'pending' (no draft submitted yet); revisions_allowed
+// can be changed at any stage. Status transitions go through their own
+// dedicated endpoints.
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id, deliverableId } = params
     const callerProfileId = request.headers.get('x-profile-id')
+    const callerUserId = request.headers.get('x-user-id')
     const callerUserType = request.headers.get('x-user-type')
 
     const body = await request.json()
@@ -40,11 +50,19 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const supabase = createServerSupabase()
     const authorized = await loadAuthorizedDeliverable(supabase, id, deliverableId, callerProfileId, callerUserType)
-    if (!authorized) {
+    if (!authorized || !callerUserId) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
     if (authorized.actorType !== 'brand') {
       return NextResponse.json({ error: 'Only the brand can edit deliverable details' }, { status: 403 })
+    }
+
+    const attemptingLockedField = LOCKED_AFTER_PENDING_FIELDS.some((f) => parsed.data[f] !== undefined)
+    if (attemptingLockedField && authorized.deliverable.status !== 'pending') {
+      return NextResponse.json(
+        { error: 'Title, platform, format, and due dates can only be changed before a draft is submitted' },
+        { status: 400 }
+      )
     }
 
     const { data: updated, error } = await supabase
@@ -59,9 +77,62 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Failed to update deliverable' }, { status: 500 })
     }
 
+    await logCampaignCreatorEvent(supabase, {
+      campaignCreatorId: id,
+      actorUserId: callerUserId,
+      actorType: 'brand',
+      eventType: 'deliverable_edited',
+      payload: { deliverable_id: deliverableId, fields: Object.keys(parsed.data) },
+    })
+
     return NextResponse.json({ message: 'Updated', deliverable: updated })
   } catch (error) {
     captureError(error, { route: 'PUT /api/campaign-creators/[id]/deliverables/[deliverableId]' })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// DELETE /api/campaign-creators/[id]/deliverables/[deliverableId] — brand
+// owner only, only while 'pending' (no draft/posted work to lose).
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  try {
+    const { id, deliverableId } = params
+    const callerProfileId = request.headers.get('x-profile-id')
+    const callerUserId = request.headers.get('x-user-id')
+    const callerUserType = request.headers.get('x-user-type')
+
+    const supabase = createServerSupabase()
+    const authorized = await loadAuthorizedDeliverable(supabase, id, deliverableId, callerProfileId, callerUserType)
+    if (!authorized || !callerUserId) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+    if (authorized.actorType !== 'brand') {
+      return NextResponse.json({ error: 'Only the brand can remove a deliverable' }, { status: 403 })
+    }
+    if (authorized.deliverable.status !== 'pending') {
+      return NextResponse.json(
+        { error: 'Only a deliverable with no draft submitted yet can be removed' },
+        { status: 400 }
+      )
+    }
+
+    const { error } = await supabase.from('creator_deliverables').delete().eq('id', deliverableId)
+    if (error) {
+      captureError(error, { route: 'DELETE /api/campaign-creators/[id]/deliverables/[deliverableId]' })
+      return NextResponse.json({ error: 'Failed to remove deliverable' }, { status: 500 })
+    }
+
+    await logCampaignCreatorEvent(supabase, {
+      campaignCreatorId: id,
+      actorUserId: callerUserId,
+      actorType: 'brand',
+      eventType: 'deliverable_removed',
+      payload: { deliverable_id: deliverableId, title: authorized.deliverable.title },
+    })
+
+    return NextResponse.json({ message: 'Removed' })
+  } catch (error) {
+    captureError(error, { route: 'DELETE /api/campaign-creators/[id]/deliverables/[deliverableId]' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
-import { loadAuthorizedCampaignCreatorRow } from '@/lib/campaign-creator-auth'
+import { loadAuthorizedCampaignCreatorRow, expireStaleOffers } from '@/lib/campaign-creator-auth'
 import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
 import { getUserIdFromBrand, getUserIdFromCreator } from '@/lib/notifications'
 import { formatMoney } from '@/components/campaigns/utils'
@@ -28,19 +28,6 @@ const CLOSED_STATUSES = ['completed', 'dropped']
 // their rate on a shortlisted/contacted row").
 const CREATOR_OFFER_STATUSES = ['shortlisted', 'contacted', 'negotiating']
 
-// Expires any pending offer on this row whose expires_at has passed. Lazy
-// expiry — there's no cron infrastructure in this app, so this runs
-// whenever the row's offers are read or acted on instead.
-async function expireIfPast(supabase: ReturnType<typeof createServerSupabase>, rowId: string) {
-  await supabase
-    .from('campaign_offers')
-    .update({ status: 'expired', responded_at: new Date().toISOString() })
-    .eq('campaign_creator_id', rowId)
-    .eq('status', 'pending')
-    .lt('expires_at', new Date().toISOString())
-    .not('expires_at', 'is', null)
-}
-
 // GET /api/campaign-creators/[id]/offers — either party on the row
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
@@ -54,7 +41,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
-    await expireIfPast(supabase, id)
+    await expireStaleOffers(supabase, id)
 
     const { data: offers, error } = await supabase
       .from('campaign_offers')
@@ -109,7 +96,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    await expireIfPast(supabase, id)
+    await expireStaleOffers(supabase, id)
 
     const { data: existingPending } = await supabase
       .from('campaign_offers')

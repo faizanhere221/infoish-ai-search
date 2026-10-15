@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedCampaignCreatorRow } from '@/lib/campaign-creator-auth'
+import { logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
 import { DELIVERABLE_FORMATS } from '@/types/campaigns'
 import { z } from 'zod'
 
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
     const callerProfileId = request.headers.get('x-profile-id')
+    const callerUserId = request.headers.get('x-user-id')
     const callerUserType = request.headers.get('x-user-type')
 
     const body = await request.json()
@@ -71,7 +73,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const supabase = createServerSupabase()
     const authorized = await loadAuthorizedCampaignCreatorRow(supabase, id, callerProfileId, callerUserType)
-    if (!authorized) {
+    if (!authorized || !callerUserId) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
     if (authorized.actorType !== 'brand') {
@@ -96,6 +98,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       captureError(error, { route: 'POST /api/campaign-creators/[id]/deliverables' })
       return NextResponse.json({ error: 'Failed to create deliverable' }, { status: 500 })
     }
+
+    await logCampaignCreatorEvent(supabase, {
+      campaignCreatorId: id,
+      actorUserId: callerUserId,
+      actorType: 'brand',
+      eventType: 'deliverable_added',
+      payload: { deliverable_id: deliverable.id, title: deliverable.title },
+    })
 
     return NextResponse.json({ message: 'Deliverable added', deliverable }, { status: 201 })
   } catch (error) {

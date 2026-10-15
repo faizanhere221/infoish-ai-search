@@ -501,6 +501,23 @@ export default function CampaignTrackerPage() {
                                   <option key={s} value={s}>{CAMPAIGN_CREATOR_STATUS_LABELS[s]}</option>
                                 ))}
                               </select>
+                              {row.status_locked && (
+                                <div className="mt-1 flex items-center gap-1.5">
+                                  <span
+                                    className="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-semibold"
+                                    title="This status was set by hand and will not auto-update from deliverable progress"
+                                  >
+                                    Manual
+                                  </span>
+                                  <button
+                                    onClick={() => updateRow(row.id, { status_locked: false })}
+                                    disabled={isPending}
+                                    className="text-[10px] text-brand-purple-dark hover:underline"
+                                  >
+                                    Resume auto-sync
+                                  </button>
+                                </div>
+                              )}
                             </td>
                             <td className="p-3 align-top">
                               <input
@@ -581,7 +598,17 @@ export default function CampaignTrackerPage() {
                               <p className="text-xs text-gray-500 truncate">@{row.creator?.username}</p>
                             </div>
                           </div>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${badge.bg} ${badge.text}`}>{badge.label}</span>
+                          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}>{badge.label}</span>
+                            {row.status_locked && (
+                              <button
+                                onClick={() => updateRow(row.id, { status_locked: false })}
+                                className="text-[10px] text-brand-purple-dark hover:underline"
+                              >
+                                Manual · Resume auto-sync
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <div className="grid grid-cols-3 gap-2 text-xs text-center mb-3">
                           <div>

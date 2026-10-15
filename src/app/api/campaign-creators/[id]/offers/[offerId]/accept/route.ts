@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
-import { loadAuthorizedCampaignCreatorRow } from '@/lib/campaign-creator-auth'
+import { loadAuthorizedCampaignCreatorRow, expireStaleOffers } from '@/lib/campaign-creator-auth'
 import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
 import { getUserIdFromBrand, getUserIdFromCreator } from '@/lib/notifications'
 import { formatMoney } from '@/components/campaigns/utils'
@@ -25,6 +25,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
     const { row, actorType } = authorized
+
+    await expireStaleOffers(supabase, id)
 
     const { data: offer } = await supabase
       .from('campaign_offers')

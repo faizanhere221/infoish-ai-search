@@ -31,6 +31,31 @@ interface RecordActionParams {
 // still never fail the offer/deliverable action that triggered this —
 // losing a side-effect message is a bug, failing an offer a creator already
 // committed to is a much worse one.
+interface LogEventParams {
+  campaignCreatorId: string
+  actorUserId: string
+  actorType: 'brand' | 'creator'
+  eventType: string
+  payload?: Record<string, unknown>
+}
+
+// Activity-trail-only logging for routine CRUD (adding/editing/removing a
+// deliverable before any draft work exists) that doesn't warrant a system
+// message or notification on its own. Use recordCampaignCreatorAction()
+// instead for anything that changes the state the other party is waiting on.
+export async function logCampaignCreatorEvent(supabase: SupabaseClient, params: LogEventParams): Promise<void> {
+  const { error } = await supabase.from('campaign_creator_events').insert({
+    campaign_creator_id: params.campaignCreatorId,
+    actor_user_id: params.actorUserId,
+    actor_type: params.actorType,
+    event_type: params.eventType,
+    payload: params.payload ?? {},
+  })
+  if (error) {
+    captureError(error, { context: 'logCampaignCreatorEvent', eventType: params.eventType })
+  }
+}
+
 export async function recordCampaignCreatorAction(
   supabase: SupabaseClient,
   params: RecordActionParams

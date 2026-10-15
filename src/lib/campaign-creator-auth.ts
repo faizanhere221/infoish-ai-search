@@ -73,3 +73,16 @@ export async function loadAuthorizedDeliverable(
 
   return { ...authorized, deliverable }
 }
+
+// Expires any pending offer on a row whose expires_at has passed. Lazy
+// expiry — there's no cron infrastructure in this app, so every route that
+// reads or acts on a row's offers calls this first instead.
+export async function expireStaleOffers(supabase: SupabaseClient, campaignCreatorId: string): Promise<void> {
+  await supabase
+    .from('campaign_offers')
+    .update({ status: 'expired', responded_at: new Date().toISOString() })
+    .eq('campaign_creator_id', campaignCreatorId)
+    .eq('status', 'pending')
+    .lt('expires_at', new Date().toISOString())
+    .not('expires_at', 'is', null)
+}
