@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerSupabase()
 
-    const detailsEncrypted = encryptPayoutDetails(parsed.data.details)
+    const { ciphertext, keyVersion } = encryptPayoutDetails(parsed.data.details)
     const maskedPreview = buildMaskedPreview(parsed.data.method, parsed.data.details)
 
     // Setting this one as default means clearing any existing default first
@@ -117,7 +117,8 @@ export async function POST(request: NextRequest) {
         creator_id: callerProfileId,
         method: parsed.data.method,
         account_holder_name: parsed.data.account_holder_name,
-        details_encrypted: detailsEncrypted,
+        details_encrypted: ciphertext,
+        key_version: keyVersion,
         masked_preview: maskedPreview,
         currency: parsed.data.currency || 'USD',
         is_default: parsed.data.is_default ?? false,

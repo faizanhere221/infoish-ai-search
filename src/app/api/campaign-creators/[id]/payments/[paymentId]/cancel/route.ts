@@ -51,7 +51,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'A payment can only be cancelled once this engagement is dropped' }, { status: 400 })
     }
 
-    const record = await cancelPayment(supabase, {
+    const result = await cancelPayment(supabase, {
       campaignCreatorId: id,
       creatorId: row.creator_id,
       brandId: row.brand_id,
@@ -60,7 +60,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       actorUserId: callerUserId,
     })
 
-    return NextResponse.json({ message: 'Cancelled', payment: record })
+    if (!result.applied && result.record.status !== 'cancelled') {
+      return NextResponse.json(
+        { error: `This payment is now "${result.record.status}" — it can't be cancelled from here` },
+        { status: 409 }
+      )
+    }
+
+    return NextResponse.json({ message: 'Cancelled', payment: result.record })
   } catch (error) {
     captureError(error, { route: 'POST .../payments/[paymentId]/cancel' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

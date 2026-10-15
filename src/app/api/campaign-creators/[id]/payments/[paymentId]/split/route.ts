@@ -59,20 +59,25 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       ? await supabase.from('campaign_contracts').select('payment_terms_days').eq('id', payment.contract_id).single()
       : { data: null }
 
-    const { upfront, final } = await splitPayment(supabase, {
+    const result = await splitPayment(supabase, {
       campaignCreatorId: id,
       creatorId: row.creator_id,
       brandId: row.brand_id,
       originalPaymentId: paymentId,
-      contractId: payment.contract_id,
       upfrontAmount: parsed.data.upfront_amount,
       finalAmount: parsed.data.final_amount,
-      currency: payment.currency,
       paymentTermsDays: contract?.payment_terms_days ?? 14,
       actorUserId: callerUserId,
     })
 
-    return NextResponse.json({ message: 'Split', upfront, final })
+    if (!result.applied) {
+      return NextResponse.json(
+        { error: `This payment is already "${result.record.status}" — it can't be split (possibly split by another request already)` },
+        { status: 409 }
+      )
+    }
+
+    return NextResponse.json({ message: 'Split', upfront: result.upfront, final: result.final })
   } catch (error) {
     captureError(error, { route: 'POST .../payments/[paymentId]/split' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

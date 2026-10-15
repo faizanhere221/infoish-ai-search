@@ -50,7 +50,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: `Cannot mark paid from status "${payment.status}"` }, { status: 400 })
     }
 
-    const record = await markPaymentPaid(supabase, {
+    const result = await markPaymentPaid(supabase, {
       campaignCreatorId: id,
       creatorId: row.creator_id,
       brandId: row.brand_id,
@@ -61,7 +61,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       actorUserId: callerUserId,
     })
 
-    return NextResponse.json({ message: 'Marked as paid', payment: record })
+    // Lost a race to a concurrent call: if the other call landed on the
+    // same end state we wanted, that's an idempotent success, not an
+    // error. If it landed somewhere else entirely, it's a real conflict.
+    if (!result.applied && result.record.status !== 'marked_paid') {
+      return NextResponse.json(
+        { error: `This payment is now "${result.record.status}" — it can't be marked paid from here` },
+        { status: 409 }
+      )
+    }
+
+    return NextResponse.json({ message: 'Marked as paid', payment: result.record })
   } catch (error) {
     captureError(error, { route: 'POST .../payments/[paymentId]/mark-paid' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

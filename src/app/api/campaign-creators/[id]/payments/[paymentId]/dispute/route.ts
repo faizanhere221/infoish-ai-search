@@ -44,7 +44,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: `Cannot dispute from status "${payment.status}"` }, { status: 400 })
     }
 
-    const record = await disputePayment(supabase, {
+    const result = await disputePayment(supabase, {
       campaignCreatorId: id,
       creatorId: row.creator_id,
       brandId: row.brand_id,
@@ -53,7 +53,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       actorUserId: callerUserId,
     })
 
-    return NextResponse.json({ message: 'Disputed', payment: record })
+    if (!result.applied && result.record.status !== 'disputed') {
+      return NextResponse.json(
+        { error: `This payment is now "${result.record.status}" — it can't be disputed from here` },
+        { status: 409 }
+      )
+    }
+
+    return NextResponse.json({ message: 'Disputed', payment: result.record })
   } catch (error) {
     captureError(error, { route: 'POST .../payments/[paymentId]/dispute' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -89,7 +89,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       })
     }
 
-    const details = decryptPayoutDetails(method.details_encrypted)
+    // This ?reveal=true branch is the ONLY place in the entire codebase
+    // that ever returns fully decrypted payout details, and deliberately
+    // so: the brand is the one who has to actually wire the money to this
+    // account, so they are the only party who ever needs the real IBAN/
+    // account number/email rather than a masked preview — not even the
+    // creator's own GET /api/payout-methods returns it (they typed it in
+    // once; they don't need it read back to them). Every other response
+    // anywhere in the app that could include payout details only ever
+    // carries masked_preview or a masked-via-maskDetailsForDisplay() copy.
+    const details = decryptPayoutDetails(method.details_encrypted, method.key_version)
 
     return NextResponse.json({
       method: method.method,

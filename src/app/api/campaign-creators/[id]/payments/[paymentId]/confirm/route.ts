@@ -30,7 +30,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: `Cannot confirm from status "${payment.status}"` }, { status: 400 })
     }
 
-    const record = await confirmPaymentReceived(supabase, {
+    const result = await confirmPaymentReceived(supabase, {
       campaignCreatorId: id,
       creatorId: row.creator_id,
       brandId: row.brand_id,
@@ -38,7 +38,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       actorUserId: callerUserId,
     })
 
-    return NextResponse.json({ message: 'Confirmed', payment: record })
+    if (!result.applied && result.record.status !== 'confirmed') {
+      return NextResponse.json(
+        { error: `This payment is now "${result.record.status}" — it can't be confirmed from here` },
+        { status: 409 }
+      )
+    }
+
+    return NextResponse.json({ message: 'Confirmed', payment: result.record })
   } catch (error) {
     captureError(error, { route: 'POST .../payments/[paymentId]/confirm' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

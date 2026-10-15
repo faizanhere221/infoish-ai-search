@@ -73,7 +73,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (parsed.data.account_holder_name !== undefined) {updates.account_holder_name = parsed.data.account_holder_name}
     if (parsed.data.currency !== undefined) {updates.currency = parsed.data.currency}
     if (parsed.data.details) {
-      updates.details_encrypted = encryptPayoutDetails(parsed.data.details)
+      const { ciphertext, keyVersion } = encryptPayoutDetails(parsed.data.details)
+      updates.details_encrypted = ciphertext
+      updates.key_version = keyVersion
       updates.masked_preview = buildMaskedPreview(existing.method, parsed.data.details)
     }
 

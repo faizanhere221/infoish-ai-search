@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { paymentProvider, type PaymentRecord, type PayoutMethodType } from '@/lib/payments/provider'
+import { paymentProvider, type PaymentRecord } from '@/lib/payments/provider'
+import type { MarkPaidParams, PayoutMethodType } from '@/lib/payments/provider'
 import { recordCampaignCreatorAction, logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
 import { getUserIdFromBrand, getUserIdFromCreator } from '@/lib/notifications'
 import { formatMoney } from '@/components/campaigns/utils'
@@ -10,77 +11,107 @@ interface RowContext {
   brandId: string
 }
 
+// Returned by every brand/creator-initiated transition below, mirroring
+// the provider's TransitionResult: `applied` tells the ROUTE whether this
+// call was the one that made the change (so it knows whether the HTTP
+// response represents a fresh transition or an idempotent no-op from a
+// lost race). Side effects (event/message/notification) only ever fire
+// when `applied` is true — a losing concurrent call produces none of them,
+// which is what keeps "two calls at once" from double-firing anything.
+export interface EngineResult {
+  record: PaymentRecord
+  applied: boolean
+}
+
+// Postgres code for a unique-constraint violation.
+const UNIQUE_VIOLATION = '23505'
+
 // Called from the contract sign route the moment a contract becomes
 // fully_signed. Creates the single 'full' payment record the brand can
 // later split. Status starts 'scheduled' — it only becomes 'due' once all
 // deliverables are completed (see refreshDuePayments).
+//
+// Backed by a DB-level guard (idx_creator_payments_one_full, a partial
+// unique index on (campaign_creator_id) WHERE type='full' AND status <>
+// 'cancelled') so that even if the sign route's own conditional UPDATE
+// guard were somehow bypassed, two concurrent inserts can still never both
+// succeed — the loser hits a unique violation here and is treated as "the
+// payment already exists," not a hard failure.
 export async function createInitialPaymentOnSign(
   supabase: SupabaseClient,
   params: RowContext & { contractId: string; amount: number; currency: string; actorUserId: string }
-): Promise<PaymentRecord> {
-  const record = await paymentProvider.createPaymentRecord(supabase, {
-    campaignCreatorId: params.campaignCreatorId,
-    contractId: params.contractId,
-    amount: params.amount,
-    currency: params.currency,
-    type: 'full',
-    status: 'scheduled',
-  })
+): Promise<EngineResult> {
+  try {
+    const record = await paymentProvider.createPaymentRecord(supabase, {
+      campaignCreatorId: params.campaignCreatorId,
+      contractId: params.contractId,
+      amount: params.amount,
+      currency: params.currency,
+      type: 'full',
+      status: 'scheduled',
+    })
 
-  await logCampaignCreatorEvent(supabase, {
-    campaignCreatorId: params.campaignCreatorId,
-    actorUserId: params.actorUserId,
-    actorType: 'brand',
-    eventType: 'payment_created',
-    payload: { payment_id: record.id, amount: record.amount, currency: record.currency, type: record.type },
-  })
+    await logCampaignCreatorEvent(supabase, {
+      campaignCreatorId: params.campaignCreatorId,
+      actorUserId: params.actorUserId,
+      actorType: 'brand',
+      eventType: 'payment_created',
+      payload: { payment_id: record.id, amount: record.amount, currency: record.currency, type: record.type },
+    })
 
-  return record
+    return { record, applied: true }
+  } catch (error) {
+    const pgError = error as { code?: string }
+    if (pgError.code === UNIQUE_VIOLATION) {
+      const { data: existing } = await supabase
+        .from('creator_payments')
+        .select('*')
+        .eq('campaign_creator_id', params.campaignCreatorId)
+        .eq('type', 'full')
+        .neq('status', 'cancelled')
+        .single()
+      return { record: existing as PaymentRecord, applied: false }
+    }
+    throw error
+  }
 }
 
-// Brand splits the single 'full' record into 'upfront' + 'final'. Only
-// while the original is still 'scheduled' (not due/paid yet). The upfront
-// portion's trigger (contract signing) has already happened by definition,
-// so it starts 'due' immediately rather than waiting for the next lazy
-// refresh; the final portion stays 'scheduled' until deliverables complete.
+// Brand splits the single 'full' record into 'upfront' + 'final'. Atomic
+// via the split_payment() Postgres function (SELECT ... FOR UPDATE, same
+// row-locking pattern as accept_campaign_offer) — a concurrent second call
+// blocks on the lock, then finds the original no longer 'scheduled' and
+// raises, which this function catches and reports as applied: false rather
+// than creating a second, duplicate split.
 export async function splitPayment(
   supabase: SupabaseClient,
   params: RowContext & {
     originalPaymentId: string
-    contractId: string | null
     upfrontAmount: number
     finalAmount: number
-    currency: string
     paymentTermsDays: number
     actorUserId: string
   }
-): Promise<{ upfront: PaymentRecord; final: PaymentRecord }> {
-  const now = new Date()
-  const dueDate = new Date(now.getTime() + params.paymentTermsDays * 24 * 60 * 60 * 1000)
+): Promise<EngineResult & { upfront?: PaymentRecord; final?: PaymentRecord }> {
+  const dueDate = new Date(Date.now() + params.paymentTermsDays * 24 * 60 * 60 * 1000)
 
-  await supabase
-    .from('creator_payments')
-    .update({ status: 'cancelled', cancelled_reason: 'Split into upfront + final' })
-    .eq('id', params.originalPaymentId)
+  const { data, error } = await supabase
+    .rpc('split_payment', {
+      p_original_payment_id: params.originalPaymentId,
+      p_upfront_amount: params.upfrontAmount,
+      p_final_amount: params.finalAmount,
+      p_due_date: dueDate.toISOString().slice(0, 10),
+    })
+    .single<{ upfront_id: string; final_id: string }>()
 
-  const upfront = await paymentProvider.createPaymentRecord(supabase, {
-    campaignCreatorId: params.campaignCreatorId,
-    contractId: params.contractId,
-    amount: params.upfrontAmount,
-    currency: params.currency,
-    type: 'upfront',
-    status: 'due',
-    dueDate: dueDate.toISOString().slice(0, 10),
-  })
+  if (error) {
+    // Another request already split this payment (or it was never
+    // eligible) — not a hard failure, just nothing new to do.
+    const { record: current } = await fetchPaymentOrThrow(supabase, params.originalPaymentId)
+    return { record: current, applied: false }
+  }
 
-  const final = await paymentProvider.createPaymentRecord(supabase, {
-    campaignCreatorId: params.campaignCreatorId,
-    contractId: params.contractId,
-    amount: params.finalAmount,
-    currency: params.currency,
-    type: 'final',
-    status: 'scheduled',
-  })
+  const { data: upfront } = await supabase.from('creator_payments').select('*').eq('id', data.upfront_id).single()
+  const { data: final } = await supabase.from('creator_payments').select('*').eq('id', data.final_id).single()
 
   const recipientUserId = await getUserIdFromCreator(supabase, params.creatorId)
   await recordCampaignCreatorAction(supabase, {
@@ -90,7 +121,7 @@ export async function splitPayment(
     actorUserId: params.actorUserId,
     actorType: 'brand',
     eventType: 'payment_split',
-    payload: { original_payment_id: params.originalPaymentId, upfront_id: upfront.id, final_id: final.id },
+    payload: { original_payment_id: params.originalPaymentId, upfront_id: data.upfront_id, final_id: data.final_id },
     systemMessage: `💳 Payment split into an upfront of ${formatMoney(upfront.amount, upfront.currency)} and a final of ${formatMoney(final.amount, final.currency)}.`,
     notification: {
       recipientUserId,
@@ -100,19 +131,57 @@ export async function splitPayment(
     },
   })
 
-  return { upfront, final }
+  return { record: upfront as PaymentRecord, applied: true, upfront: upfront as PaymentRecord, final: final as PaymentRecord }
+}
+
+async function fetchPaymentOrThrow(supabase: SupabaseClient, paymentId: string): Promise<{ record: PaymentRecord }> {
+  const { data, error } = await supabase.from('creator_payments').select('*').eq('id', paymentId).single()
+  if (error) {throw error}
+  return { record: data as PaymentRecord }
+}
+
+// Brand adds a milestone payment tied to specific deliverables. Rejecting
+// an empty deliverable_ids list is enforced in the route (so the error
+// shows up as a clean 400 before anything is created); this just persists
+// and logs.
+export async function createMilestonePayment(
+  supabase: SupabaseClient,
+  params: RowContext & { contractId: string | null; amount: number; currency: string; deliverableIds: string[]; actorUserId: string }
+): Promise<PaymentRecord> {
+  const record = await paymentProvider.createPaymentRecord(supabase, {
+    campaignCreatorId: params.campaignCreatorId,
+    contractId: params.contractId,
+    amount: params.amount,
+    currency: params.currency,
+    type: 'milestone',
+    status: 'scheduled',
+    deliverableIds: params.deliverableIds,
+  })
+
+  await logCampaignCreatorEvent(supabase, {
+    campaignCreatorId: params.campaignCreatorId,
+    actorUserId: params.actorUserId,
+    actorType: 'brand',
+    eventType: 'payment_created',
+    payload: { payment_id: record.id, amount: record.amount, currency: record.currency, type: 'milestone', deliverable_ids: params.deliverableIds },
+  })
+
+  return record
 }
 
 // Lazy "becomes due" evaluation — no cron, same pattern as offer expiry.
-// Called at the top of every payments GET for a row. 'upfront' is due the
-// moment it exists (its trigger, contract signing, already happened);
-// 'full'/'final'/'milestone' become due once every deliverable on the row
-// is 'completed'. 'kill_fee' is created directly as 'due' and never passes
-// through here.
+// Called at the top of every payments GET for a row.
+//  - 'upfront': due the moment it exists (its trigger, contract signing,
+//    already happened).
+//  - 'final': due once every deliverable ON THE ROW is 'completed'.
+//  - 'milestone': due once every deliverable IN ITS OWN deliverable_ids is
+//    'completed' — a milestone tied to deliverables A and B doesn't care
+//    whether the row has a C that's still in progress.
+// 'kill_fee' is created directly as 'due' and never passes through here.
 export async function refreshDuePayments(supabase: SupabaseClient, campaignCreatorId: string): Promise<void> {
   const { data: scheduled } = await supabase
     .from('creator_payments')
-    .select('id, type, contract_id')
+    .select('id, type, contract_id, deliverable_ids')
     .eq('campaign_creator_id', campaignCreatorId)
     .eq('status', 'scheduled')
 
@@ -125,24 +194,21 @@ export async function refreshDuePayments(supabase: SupabaseClient, campaignCreat
   const termsByContract: Record<string, number> = {}
   for (const c of contracts || []) {termsByContract[c.id] = c.payment_terms_days}
 
-  const upfrontIds = scheduled.filter((p) => p.type === 'upfront').map((p) => p.id)
-  const otherIds = scheduled.filter((p) => p.type !== 'upfront').map((p) => p.id)
+  const upfront = scheduled.filter((p) => p.type === 'upfront')
+  const final = scheduled.filter((p) => p.type === 'final')
+  const milestones = scheduled.filter((p) => p.type === 'milestone')
 
-  const now = new Date()
-
-  if (upfrontIds.length > 0) {
-    for (const p of scheduled.filter((s) => upfrontIds.includes(s.id))) {
-      const termsDays = (p.contract_id && termsByContract[p.contract_id]) ?? 14
-      const dueDate = new Date(now.getTime() + termsDays * 24 * 60 * 60 * 1000)
-      await supabase
-        .from('creator_payments')
-        .update({ status: 'due', due_date: dueDate.toISOString().slice(0, 10) })
-        .eq('id', p.id)
-        .eq('status', 'scheduled') // guard against a concurrent change
-    }
+  for (const p of upfront) {
+    const termsDays = (p.contract_id && termsByContract[p.contract_id]) ?? 14
+    const dueDate = new Date(Date.now() + termsDays * 24 * 60 * 60 * 1000)
+    await supabase
+      .from('creator_payments')
+      .update({ status: 'due', due_date: dueDate.toISOString().slice(0, 10) })
+      .eq('id', p.id)
+      .eq('status', 'scheduled') // guard against a concurrent change
   }
 
-  if (otherIds.length > 0) {
+  if (final.length > 0) {
     const { data: deliverables } = await supabase
       .from('creator_deliverables')
       .select('status, updated_at')
@@ -154,7 +220,7 @@ export async function refreshDuePayments(supabase: SupabaseClient, campaignCreat
         (latest, d) => (new Date(d.updated_at) > latest ? new Date(d.updated_at) : latest),
         new Date(0)
       )
-      for (const p of scheduled.filter((s) => otherIds.includes(s.id))) {
+      for (const p of final) {
         const termsDays = (p.contract_id && termsByContract[p.contract_id]) ?? 14
         const dueDate = new Date(latestCompletion.getTime() + termsDays * 24 * 60 * 60 * 1000)
         await supabase
@@ -165,19 +231,50 @@ export async function refreshDuePayments(supabase: SupabaseClient, campaignCreat
       }
     }
   }
+
+  if (milestones.length > 0) {
+    const allDeliverableIds = [...new Set(milestones.flatMap((p) => p.deliverable_ids || []))]
+    const { data: linkedDeliverables } = allDeliverableIds.length > 0
+      ? await supabase.from('creator_deliverables').select('id, status, updated_at').in('id', allDeliverableIds)
+      : { data: [] }
+
+    const deliverableById = new Map((linkedDeliverables || []).map((d) => [d.id, d]))
+
+    for (const p of milestones) {
+      const ids = p.deliverable_ids || []
+      if (ids.length === 0) {continue} // can't happen (creation rejects it), but never auto-due an unlinked milestone
+      const linked = ids.map((id: string) => deliverableById.get(id)).filter(Boolean) as { status: string; updated_at: string }[]
+      const allLinkedCompleted = linked.length === ids.length && linked.every((d) => d.status === 'completed')
+      if (!allLinkedCompleted) {continue}
+
+      const latestCompletion = linked.reduce(
+        (latest, d) => (new Date(d.updated_at) > latest ? new Date(d.updated_at) : latest),
+        new Date(0)
+      )
+      const termsDays = (p.contract_id && termsByContract[p.contract_id]) ?? 14
+      const dueDate = new Date(latestCompletion.getTime() + termsDays * 24 * 60 * 60 * 1000)
+      await supabase
+        .from('creator_payments')
+        .update({ status: 'due', due_date: dueDate.toISOString().slice(0, 10) })
+        .eq('id', p.id)
+        .eq('status', 'scheduled')
+    }
+  }
 }
 
 // brand: due|disputed -> marked_paid
 export async function markPaymentPaid(
   supabase: SupabaseClient,
   params: RowContext & { paymentId: string; method: PayoutMethodType; reference: string; proofPath?: string | null; actorUserId: string }
-): Promise<PaymentRecord> {
-  const record = await paymentProvider.markPaid(supabase, {
+): Promise<EngineResult> {
+  const markPaidParams: MarkPaidParams = {
     paymentId: params.paymentId,
     method: params.method,
     reference: params.reference,
     proofPath: params.proofPath,
-  })
+  }
+  const { record, applied } = await paymentProvider.markPaid(supabase, markPaidParams)
+  if (!applied) {return { record, applied }}
 
   const recipientUserId = await getUserIdFromCreator(supabase, params.creatorId)
   await recordCampaignCreatorAction(supabase, {
@@ -197,15 +294,16 @@ export async function markPaymentPaid(
     },
   })
 
-  return record
+  return { record, applied }
 }
 
 // creator: marked_paid -> confirmed
 export async function confirmPaymentReceived(
   supabase: SupabaseClient,
   params: RowContext & { paymentId: string; actorUserId: string }
-): Promise<PaymentRecord> {
-  const record = await paymentProvider.confirmReceived(supabase, { paymentId: params.paymentId })
+): Promise<EngineResult> {
+  const { record, applied } = await paymentProvider.confirmReceived(supabase, { paymentId: params.paymentId })
+  if (!applied) {return { record, applied }}
 
   const recipientUserId = await getUserIdFromBrand(supabase, params.brandId)
   await recordCampaignCreatorAction(supabase, {
@@ -225,15 +323,16 @@ export async function confirmPaymentReceived(
     },
   })
 
-  return record
+  return { record, applied }
 }
 
 // creator: marked_paid -> disputed
 export async function disputePayment(
   supabase: SupabaseClient,
   params: RowContext & { paymentId: string; reason: string; actorUserId: string }
-): Promise<PaymentRecord> {
-  const record = await paymentProvider.dispute(supabase, { paymentId: params.paymentId, reason: params.reason })
+): Promise<EngineResult> {
+  const { record, applied } = await paymentProvider.dispute(supabase, { paymentId: params.paymentId, reason: params.reason })
+  if (!applied) {return { record, applied }}
 
   const recipientUserId = await getUserIdFromBrand(supabase, params.brandId)
   await recordCampaignCreatorAction(supabase, {
@@ -253,7 +352,7 @@ export async function disputePayment(
     },
   })
 
-  return record
+  return { record, applied }
 }
 
 // brand: scheduled|due -> cancelled. Only ever allowed once the row itself
@@ -261,8 +360,9 @@ export async function disputePayment(
 export async function cancelPayment(
   supabase: SupabaseClient,
   params: RowContext & { paymentId: string; reason: string; actorUserId: string }
-): Promise<PaymentRecord> {
-  const record = await paymentProvider.cancel(supabase, { paymentId: params.paymentId, reason: params.reason })
+): Promise<EngineResult> {
+  const { record, applied } = await paymentProvider.cancel(supabase, { paymentId: params.paymentId, reason: params.reason })
+  if (!applied) {return { record, applied }}
 
   const recipientUserId = await getUserIdFromCreator(supabase, params.creatorId)
   await recordCampaignCreatorAction(supabase, {
@@ -282,7 +382,7 @@ export async function cancelPayment(
     },
   })
 
-  return record
+  return { record, applied }
 }
 
 // Called from the campaign_creators PUT route the moment a brand sets a

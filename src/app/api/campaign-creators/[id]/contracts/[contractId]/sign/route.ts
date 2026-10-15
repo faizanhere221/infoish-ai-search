@@ -100,16 +100,29 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    // Conditional on the exact status just read — a DB-level guard against
+    // the same sign request firing twice (double-click, retry) or two
+    // different signers racing. If a concurrent request already moved the
+    // contract on, this UPDATE matches zero rows instead of applying twice.
     const { data: updated, error } = await supabase
       .from('campaign_contracts')
       .update(updates)
       .eq('id', contractId)
+      .eq('status', contract.status)
       .select()
-      .single()
+      .maybeSingle()
 
     if (error) {
       captureError(error, { route: 'POST .../contracts/[contractId]/sign' })
       return NextResponse.json({ error: 'Failed to sign contract' }, { status: 500 })
+    }
+
+    if (!updated) {
+      const { data: current } = await supabase.from('campaign_contracts').select('*').eq('id', contractId).single()
+      return NextResponse.json(
+        { error: `This contract is now "${current?.status}" — someone else already signed it` },
+        { status: 409 }
+      )
     }
 
     await recordCampaignCreatorAction(supabase, {
