@@ -46,7 +46,7 @@ async function requireOwner(
 
   const { data: row } = await supabase
     .from('campaign_creators')
-    .select('id, creator_id, payout_amount, currency')
+    .select('id, creator_id, status, payout_amount, currency')
     .eq('id', creatorRowId)
     .eq('campaign_id', campaignId)
     .single()
@@ -119,8 +119,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // Dropping a fully-signed engagement after a draft was submitted owes
     // a kill fee — created automatically, not something the brand has to
-    // remember to add.
-    if (callerUserId && existingRow && brandId && parsed.data.status === 'dropped') {
+    // remember to add. Gated on an actual transition INTO 'dropped'
+    // (existingRow.status read before this update) — otherwise re-saving
+    // an already-dropped row (a retry, or editing an unrelated field while
+    // status stays 'dropped') would bill a second kill fee for the same
+    // drop. createKillFeeIfEligible also has a DB-level unique-index
+    // backstop against this, same pattern as the 'full' payment.
+    if (
+      callerUserId && existingRow && brandId &&
+      parsed.data.status === 'dropped' && existingRow.status !== 'dropped'
+    ) {
       await createKillFeeIfEligible(supabase, {
         campaignCreatorId: creatorRowId,
         creatorId: existingRow.creator_id,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 import {
   CAMPAIGN_OBJECTIVES,
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
     const { data: campaigns, error, count } = await query
 
     if (error) {
-      console.error('Error fetching campaigns:', error)
+      captureError(error, { route: 'GET /api/campaigns' })
       return NextResponse.json({ error: 'Failed to fetch campaigns' }, { status: 500 })
     }
 
@@ -136,7 +137,7 @@ export async function GET(request: NextRequest) {
       offset,
     })
   } catch (error) {
-    console.error('Campaigns fetch error:', error)
+    captureError(error, { route: 'GET /api/campaigns' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -210,7 +211,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error creating campaign:', error)
+      captureError(error, { route: 'POST /api/campaigns' })
       return NextResponse.json({ error: 'Failed to create campaign' }, { status: 500 })
     }
 
@@ -234,7 +235,7 @@ export async function POST(request: NextRequest) {
         .select()
 
       if (deliverableError) {
-        console.error('Error adding campaign deliverables:', deliverableError.message)
+        captureError(deliverableError, { route: 'POST /api/campaigns', context: 'adding campaign deliverables' })
       } else {
         savedDeliverables = insertedDeliverables || []
       }
@@ -248,7 +249,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('Campaign creation error:', error)
+    captureError(error, { route: 'POST /api/campaigns' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
 import { createNotification, getUserIdFromBrand } from '@/lib/notifications'
 import { z } from 'zod'
 
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching applications:', error)
+      captureError(error, { route: 'GET /api/campaigns/[id]/applications' })
       return NextResponse.json({ error: 'Failed to fetch applications' }, { status: 500 })
     }
 
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ applications: applicationsWithRelations })
   } catch (error) {
-    console.error('Error fetching applications:', error)
+    captureError(error, { route: 'GET /api/campaigns/[id]/applications' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         // unique_violation on (campaign_id, creator_id)
         return NextResponse.json({ error: 'You have already applied to this campaign' }, { status: 409 })
       }
-      console.error('Error submitting application:', error)
+      captureError(error, { route: 'POST /api/campaigns/[id]/applications' })
       return NextResponse.json({ error: 'Failed to submit application' }, { status: 500 })
     }
 
@@ -172,7 +173,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('Error submitting application:', error)
+    captureError(error, { route: 'POST /api/campaigns/[id]/applications' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

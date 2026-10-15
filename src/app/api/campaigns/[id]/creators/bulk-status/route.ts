@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 import { CAMPAIGN_CREATOR_STATUSES } from '@/types/campaigns'
+import { createKillFeeIfEligible } from '@/lib/payments/engine'
 
 interface RouteParams {
   params: { id: string }
@@ -20,6 +21,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
     const callerProfileId = request.headers.get('x-profile-id')
+    const callerUserId = request.headers.get('x-user-id')
     const callerUserType = request.headers.get('x-user-type')
 
     const body = await request.json()
@@ -47,6 +49,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'You are not authorized to manage this campaign' }, { status: 403 })
     }
 
+    // Read the rows' current state first — same reason the single-row PUT
+    // does — so we know which ones are actually transitioning INTO
+    // 'dropped' (not already there) before billing a kill fee for any of
+    // them.
+    const { data: existingRows } = await supabase
+      .from('campaign_creators')
+      .select('id, creator_id, status, payout_amount, currency')
+      .eq('campaign_id', id)
+      .in('id', parsed.data.ids)
+
     const { data: rows, error } = await supabase
       .from('campaign_creators')
       // Manual override — stop the deliverable auto-sync trigger from
@@ -59,6 +71,22 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (error) {
       captureError(error, { route: 'PUT /api/campaigns/[id]/creators/bulk-status' })
       return NextResponse.json({ error: 'Failed to update statuses' }, { status: 500 })
+    }
+
+    if (callerUserId && parsed.data.status === 'dropped') {
+      const droppingNow = (existingRows || []).filter((r) => r.status !== 'dropped')
+      await Promise.all(
+        droppingNow.map((row) =>
+          createKillFeeIfEligible(supabase, {
+            campaignCreatorId: row.id,
+            creatorId: row.creator_id,
+            brandId: campaign.brand_id,
+            actorUserId: callerUserId,
+            payoutAmount: row.payout_amount,
+            currency: row.currency,
+          })
+        )
+      )
     }
 
     return NextResponse.json({ message: 'Statuses updated', updated: rows?.length ?? 0 })

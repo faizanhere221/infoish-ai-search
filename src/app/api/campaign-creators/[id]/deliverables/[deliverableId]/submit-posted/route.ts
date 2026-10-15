@@ -41,6 +41,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (actorType !== 'creator') {
       return NextResponse.json({ error: 'Only the creator can submit the posted link' }, { status: 403 })
     }
+    if (row.status === 'dropped') {
+      return NextResponse.json({ error: 'This engagement was dropped' }, { status: 400 })
+    }
     if (deliverable.status !== 'approved') {
       return NextResponse.json({ error: `Cannot submit a posted link from status "${deliverable.status}"` }, { status: 400 })
     }
@@ -50,6 +53,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .update({
         status: 'posted',
         posted_url: parsed.data.posted_url,
+        posted_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq('id', deliverableId)

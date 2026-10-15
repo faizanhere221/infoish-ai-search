@@ -45,6 +45,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (actorType !== 'creator') {
       return NextResponse.json({ error: 'Only the creator can submit a draft' }, { status: 403 })
     }
+    if (row.status === 'dropped') {
+      return NextResponse.json({ error: 'This engagement was dropped' }, { status: 400 })
+    }
     if (!ALLOWED_FROM.includes(deliverable.status)) {
       return NextResponse.json({ error: `Cannot submit a draft from status "${deliverable.status}"` }, { status: 400 })
     }

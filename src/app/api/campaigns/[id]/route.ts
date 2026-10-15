@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 import {
   CAMPAIGN_OBJECTIVES,
@@ -120,7 +121,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       },
     })
   } catch (error) {
-    console.error('Error fetching campaign:', error)
+    captureError(error, { route: 'GET /api/campaigns/[id]' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -183,7 +184,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       .single()
 
     if (error) {
-      console.error('Error updating campaign:', error)
+      captureError(error, { route: 'PUT /api/campaigns/[id]' })
       return NextResponse.json({ error: 'Failed to update campaign' }, { status: 500 })
     }
 
@@ -209,7 +210,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
           .select()
 
         if (deliverableError) {
-          console.error('Error replacing campaign deliverables:', deliverableError.message)
+          captureError(deliverableError, { route: 'PUT /api/campaigns/[id]', context: 'replacing campaign deliverables' })
         } else {
           savedDeliverables = insertedDeliverables || []
         }
@@ -223,7 +224,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       campaign: savedDeliverables !== undefined ? { ...campaign, deliverables: savedDeliverables } : campaign,
     })
   } catch (error) {
-    console.error('Error updating campaign:', error)
+    captureError(error, { route: 'PUT /api/campaigns/[id]' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -255,7 +256,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (campaign.status === 'draft') {
       const { error } = await supabase.from('campaigns').delete().eq('id', id)
       if (error) {
-        console.error('Error deleting campaign:', error)
+        captureError(error, { route: 'DELETE /api/campaigns/[id]' })
         return NextResponse.json({ error: 'Failed to delete campaign' }, { status: 500 })
       }
       return NextResponse.json({ message: 'Draft campaign deleted' })
@@ -269,13 +270,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .single()
 
     if (error) {
-      console.error('Error cancelling campaign:', error)
+      captureError(error, { route: 'DELETE /api/campaigns/[id]', context: 'cancelling campaign' })
       return NextResponse.json({ error: 'Failed to cancel campaign' }, { status: 500 })
     }
 
     return NextResponse.json({ message: 'Campaign cancelled', campaign: cancelled })
   } catch (error) {
-    console.error('Error deleting campaign:', error)
+    captureError(error, { route: 'DELETE /api/campaigns/[id]' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

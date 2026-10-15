@@ -419,15 +419,28 @@ export async function createKillFeeIfEligible(
 
   const dueDate = new Date(Date.now() + contract.payment_terms_days * 24 * 60 * 60 * 1000)
 
-  const record = await paymentProvider.createPaymentRecord(supabase, {
-    campaignCreatorId: params.campaignCreatorId,
-    contractId: contract.id,
-    amount: killFeeAmount,
-    currency: params.currency,
-    type: 'kill_fee',
-    status: 'due',
-    dueDate: dueDate.toISOString().slice(0, 10),
-  })
+  // DB-level backstop (idx_creator_payments_one_kill_fee) against billing
+  // the same drop twice — the route's own existingRow.status !== 'dropped'
+  // guard is the first line of defense, this is the second: if a kill fee
+  // already exists for this row (a retry, a race, or a future caller that
+  // forgets the status guard), the insert hits a unique violation and this
+  // is treated as "already created," not a hard failure or a duplicate.
+  let record: PaymentRecord
+  try {
+    record = await paymentProvider.createPaymentRecord(supabase, {
+      campaignCreatorId: params.campaignCreatorId,
+      contractId: contract.id,
+      amount: killFeeAmount,
+      currency: params.currency,
+      type: 'kill_fee',
+      status: 'due',
+      dueDate: dueDate.toISOString().slice(0, 10),
+    })
+  } catch (error) {
+    const pgError = error as { code?: string }
+    if (pgError.code === UNIQUE_VIOLATION) {return null}
+    throw error
+  }
 
   const recipientUserId = await getUserIdFromCreator(supabase, params.creatorId)
   await recordCampaignCreatorAction(supabase, {

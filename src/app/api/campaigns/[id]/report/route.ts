@@ -5,6 +5,7 @@ import {
   latestResultByDeliverable, sumEngagementTotals, engagementRate, cpm, costPerEngagement, onTimeRate, postedCount,
   type ResultRow, type DeliverableForReport,
 } from '@/lib/reporting'
+import { refreshDuePayments } from '@/lib/payments/engine'
 
 interface RouteParams {
   params: { id: string }
@@ -63,6 +64,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           .select('deliverable_id, captured_at, views, likes, comments, shares, clicks, saves')
           .in('deliverable_id', deliverableIds)
       : { data: [] as ResultRow[] }
+
+    // Lazy due-transition first (no cron) — same as every other
+    // payment-reading GET — so a payment that should already show 'due'
+    // isn't still bucketed as scheduled/"outstanding" here.
+    await Promise.all(rowIds.map((rowId) => refreshDuePayments(supabase, rowId)))
 
     // Paid vs outstanding, per currency — never summed across currencies.
     // 'paid' = money has moved (marked_paid or confirmed); 'outstanding' =

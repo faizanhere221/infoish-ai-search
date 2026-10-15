@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 import { CAMPAIGN_CREATOR_STATUSES } from '@/types/campaigns'
+import { refreshDuePayments } from '@/lib/payments/engine'
 
 interface RouteParams {
   params: { id: string }
@@ -162,7 +163,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       // Payment status per row, for the tracker's payment column and
       // "overdue payments" badge. "Worst" active status wins — a creator
       // waiting on an overdue payment matters more than a different, paid
-      // record on the same row.
+      // record on the same row. Lazy due-transition first (no cron), same
+      // as every other payment-reading GET — otherwise a payment that
+      // should already show 'due' keeps showing 'scheduled' here until
+      // someone happens to open that row's own Payments tab.
+      if (rowIds.length > 0) {
+        await Promise.all(rowIds.map((rowId) => refreshDuePayments(supabase, rowId)))
+      }
+
       type PaymentStatusRow = { campaign_creator_id: string; status: string; due_date: string | null }
       const { data: paymentRows } = rowIds.length > 0
         ? await supabase

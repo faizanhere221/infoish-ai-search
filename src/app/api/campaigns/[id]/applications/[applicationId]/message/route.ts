@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
 interface RouteParams {
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         .single()
 
       if (error) {
-        console.error('Error creating conversation:', error)
+        captureError(error, { route: 'POST /api/campaigns/[id]/applications/[applicationId]/message', context: 'creating conversation' })
         return NextResponse.json({ error: 'Failed to start conversation' }, { status: 500 })
       }
 
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         is_read: false,
       })
       if (messageError) {
-        console.error('Error sending opening message:', messageError.message)
+        captureError(messageError, { route: 'POST /api/campaigns/[id]/applications/[applicationId]/message', context: 'sending opening message' })
       }
     }
 
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       { status: created ? 201 : 200 }
     )
   } catch (error) {
-    console.error('Error starting conversation with applicant:', error)
+    captureError(error, { route: 'POST /api/campaigns/[id]/applications/[applicationId]/message' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

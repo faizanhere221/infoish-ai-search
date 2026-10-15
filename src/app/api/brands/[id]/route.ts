@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
 const UpdateBrandSchema = z.object({
@@ -12,6 +13,7 @@ const UpdateBrandSchema = z.object({
   country: z.string().min(1).max(100).optional(),
   contact_name: z.string().min(1).max(200).optional(),
   contact_role: z.string().max(100).optional().nullable(),
+  payment_instructions: z.string().max(4000).optional().nullable(),
 })
 
 // GET - Get brand by ID
@@ -25,7 +27,7 @@ export async function GET(
 
     const { data: brand, error } = await supabase
       .from('brands')
-      .select('id, company_name, logo_url, industry, country, contact_name, contact_role, description, company_website, company_size, verification_status, created_at, updated_at')
+      .select('id, company_name, logo_url, industry, country, contact_name, contact_role, description, company_website, company_size, payment_instructions, verification_status, created_at, updated_at')
       .eq('id', id)
       .single()
 
@@ -39,7 +41,7 @@ export async function GET(
     return NextResponse.json({ brand })
 
   } catch (error) {
-    console.error('Error fetching brand:', error)
+    captureError(error, { route: 'GET /api/brands/[id]' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -93,7 +95,7 @@ export async function PUT(
       .single()
 
     if (error) {
-      console.error('Error updating brand:', error)
+      captureError(error, { route: 'PUT /api/brands/[id]' })
       return NextResponse.json(
         { error: 'Failed to update brand' },
         { status: 500 }
@@ -106,7 +108,7 @@ export async function PUT(
     })
 
   } catch (error) {
-    console.error('Error updating brand:', error)
+    captureError(error, { route: 'PUT /api/brands/[id]' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

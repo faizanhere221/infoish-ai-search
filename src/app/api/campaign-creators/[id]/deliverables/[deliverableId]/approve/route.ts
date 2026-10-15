@@ -27,6 +27,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (actorType !== 'brand') {
       return NextResponse.json({ error: 'Only the brand can approve a draft' }, { status: 403 })
     }
+    if (row.status === 'dropped') {
+      return NextResponse.json({ error: 'This engagement was dropped' }, { status: 400 })
+    }
     if (deliverable.status !== 'draft_submitted') {
       return NextResponse.json({ error: `Cannot approve from status "${deliverable.status}"` }, { status: 400 })
     }

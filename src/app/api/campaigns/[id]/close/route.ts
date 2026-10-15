@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
 
 interface RouteParams {
   params: { id: string }
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .single()
 
     if (error) {
-      console.error('Error closing campaign:', error)
+      captureError(error, { route: 'POST /api/campaigns/[id]/close' })
       return NextResponse.json({ error: 'Failed to close campaign' }, { status: 500 })
     }
 
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       campaign: updatedCampaign,
     })
   } catch (error) {
-    console.error('Error closing campaign:', error)
+    captureError(error, { route: 'POST /api/campaigns/[id]/close' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
