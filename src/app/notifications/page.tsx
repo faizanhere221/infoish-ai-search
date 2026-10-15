@@ -15,6 +15,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
+import { getEventTab, campaignCreatorGoUrl } from '@/lib/campaign-creator-cta'
 
 interface Notification {
   id: string
@@ -30,8 +31,15 @@ interface Notification {
 
 // Resolves a notification's related_type/related_id into a destination link.
 // Mirrors the relatedType values set by createNotification() call sites
-// (src/lib/notifications.ts).
+// (src/lib/notifications.ts). campaign_creator-driven notifications
+// (offers/contracts/deliverables/payments) pass their eventType as
+// related_type, resolved via the same lookup table that drives the chat
+// card buttons — src/lib/campaign-creator-cta.ts — so both land on the
+// same tab regardless of which one the user clicked.
 function notificationLink(n: Notification): string | null {
+  const tab = getEventTab(n.related_type)
+  if (tab && n.related_id) {return campaignCreatorGoUrl(n.related_id, tab)}
+
   switch (n.related_type) {
     case 'deal':
       return n.related_id ? `/dashboard/deals/${n.related_id}` : null

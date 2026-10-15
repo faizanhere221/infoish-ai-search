@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { Check, Clock, RefreshCw, MessageSquare, FileText, Download, ImageOff } from 'lucide-react'
+import Link from 'next/link'
+import { Check, Clock, RefreshCw, MessageSquare, FileText, Download, ImageOff, ArrowRight } from 'lucide-react'
 import type { ThreadMessage } from '@/hooks/useConversationThread'
 import type { Attachment } from '@/types/marketplace'
 import { useSignedAttachmentUrl } from '@/hooks/useSignedAttachmentUrl'
+import { getEventCta, campaignCreatorGoUrl } from '@/lib/campaign-creator-cta'
 
 interface ChatThreadProps {
   messages: ThreadMessage[]
@@ -14,6 +16,7 @@ interface ChatThreadProps {
   token: string | null
   otherPartyName: string
   otherPartyAvatar?: string | null
+  viewerType: 'brand' | 'creator'
   isLoading?: boolean
   hasOlder?: boolean
   loadingOlder?: boolean
@@ -112,6 +115,7 @@ export function ChatThread({
   token,
   otherPartyName,
   otherPartyAvatar,
+  viewerType,
   isLoading = false,
   hasOlder = false,
   loadingOlder = false,
@@ -191,9 +195,27 @@ export function ChatThread({
 
             {message.is_system ? (
               <div className="flex justify-center my-2">
-                <div className="px-4 py-2 bg-brand-purple/10 rounded-full text-sm text-brand-purple-dark max-w-md text-center">
-                  {message.content}
-                </div>
+                {(() => {
+                  const cta = getEventCta(message.related_type, viewerType)
+                  if (!cta || !message.related_id) {
+                    return (
+                      <div className="px-4 py-2 bg-brand-purple/10 rounded-full text-sm text-brand-purple-dark max-w-md text-center">
+                        {message.content}
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className="max-w-md w-full bg-white border border-brand-pink/20 rounded-xl shadow-sm overflow-hidden">
+                      <p className="px-4 py-2.5 text-sm text-gray-700 text-center">{message.content}</p>
+                      <Link
+                        href={campaignCreatorGoUrl(message.related_id, cta.tab)}
+                        className="flex items-center justify-center gap-1.5 px-4 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white text-sm font-medium hover:shadow-md"
+                      >
+                        {cta.label} <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  )
+                })()}
               </div>
             ) : (
               <div className={`flex gap-3 ${own ? 'flex-row-reverse' : ''} ${grouped ? 'mt-0.5' : 'mt-3'}`}>

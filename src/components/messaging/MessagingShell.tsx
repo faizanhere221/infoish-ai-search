@@ -345,6 +345,7 @@ export function MessagingShell({ conversationId }: MessagingShellProps) {
                   token={token}
                   otherPartyName={otherPartyName || 'Unknown'}
                   otherPartyAvatar={otherPartyAvatar}
+                  viewerType={userType || 'brand'}
                   isLoading={messagesLoading}
                   hasOlder={hasOlder}
                   loadingOlder={loadingOlder}

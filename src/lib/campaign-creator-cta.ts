@@ -44,6 +44,14 @@ export const EVENT_CTA: Record<string, EventCta> = {
   kill_fee_created: { tab: 'payments', creator: 'View payment', brand: 'View payment' },
 }
 
+// Tab is the same regardless of who's viewing — only the button label
+// differs. Used where only the destination matters (e.g. building a
+// notification's href), not a label.
+export function getEventTab(eventType: string | null | undefined): DrawerTab | null {
+  if (!eventType) {return null}
+  return EVENT_CTA[eventType]?.tab ?? null
+}
+
 export function getEventCta(
   eventType: string | null | undefined,
   viewerType: 'brand' | 'creator'
