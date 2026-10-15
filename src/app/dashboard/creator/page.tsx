@@ -12,6 +12,7 @@ import OnboardingWizard from '@/components/dashboard/OnboardingWizard'
 import { PendingOffersWidget } from '@/components/campaigns/PendingOffersWidget'
 import { ResultsTodoWidget } from '@/components/campaigns/ResultsTodoWidget'
 import { MyStatsWidget } from '@/components/campaigns/MyStatsWidget'
+import { PaymentsTodoWidget } from '@/components/payments/PaymentsTodoWidget'
 import { calculateProfileCompletion } from '@/lib/profile-completion'
 
 interface Platform {
@@ -133,6 +134,7 @@ export default function CreatorDashboard() {
   return (
     <div className="space-y-6">
       <PendingOffersWidget />
+      <PaymentsTodoWidget />
       <ResultsTodoWidget />
       <MyStatsWidget />
 

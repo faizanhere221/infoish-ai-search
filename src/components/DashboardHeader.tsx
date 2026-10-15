@@ -93,6 +93,7 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
     { href: '/campaigns', label: 'Campaigns' },
     { href: '/dashboard/applications', label: 'My Applications', countBadge: campaignBadgeCount },
     { href: '/dashboard/my-campaigns', label: 'My Campaigns' },
+    { href: '/dashboard/earnings', label: 'Earnings' },
     { href: '/dashboard/calendar', label: 'Calendar' },
     { href: '/messages', label: 'Messages', badge: unreadMessages },
     { href: '/settings', label: 'Settings' },

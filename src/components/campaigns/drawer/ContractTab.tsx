@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ExternalLink, FileText, Loader2 } from 'lucide-react'
+import { ExternalLink, FileText, Loader2, Wallet } from 'lucide-react'
 import { formatDate } from '@/components/campaigns/utils'
 
 interface ContractTabProps {
@@ -50,6 +50,7 @@ export function ContractTab({ campaignCreatorId, actorType, token }: ContractTab
   const [agree, setAgree] = useState(false)
   const [declineReason, setDeclineReason] = useState('')
   const [showDecline, setShowDecline] = useState(false)
+  const [needsPayoutMethod, setNeedsPayoutMethod] = useState(false)
 
   const authHeader = useCallback((): Record<string, string> => (token ? { Authorization: `Bearer ${token}` } : {}), [token])
 
@@ -65,11 +66,18 @@ export function ContractTab({ campaignCreatorId, actorType, token }: ContractTab
           setPaymentDays(String(data.contract.payment_terms_days))
           setKillFee(String(data.contract.kill_fee_percent))
         }
+        if (actorType === 'creator' && data.contract?.status === 'fully_signed') {
+          const methodsRes = await fetch('/api/payout-methods', { headers: authHeader() })
+          if (methodsRes.ok) {
+            const methodsData = await methodsRes.json()
+            setNeedsPayoutMethod((methodsData.payout_methods || []).length === 0)
+          }
+        }
       }
     } finally {
       setLoading(false)
     }
-  }, [campaignCreatorId, authHeader])
+  }, [campaignCreatorId, actorType, authHeader])
 
   useEffect(() => { load() }, [load])
 
@@ -348,6 +356,16 @@ export function ContractTab({ campaignCreatorId, actorType, token }: ContractTab
         <div className="space-y-1 text-sm text-gray-600">
           <p>Creator: {contract.creator_signer_name} &middot; {formatDate(contract.creator_signed_at)}</p>
           <p>Brand: {contract.brand_signer_name} &middot; {formatDate(contract.brand_signed_at)}</p>
+        </div>
+      )}
+
+      {contract.status === 'fully_signed' && actorType === 'creator' && needsPayoutMethod && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 flex items-center gap-2">
+          <Wallet className="w-4 h-4 flex-shrink-0" />
+          <span>
+            Add a payout method so the brand knows where to pay you —{' '}
+            <Link href="/settings?tab=payouts" className="font-medium hover:underline">add one now</Link>.
+          </span>
         </div>
       )}
 
