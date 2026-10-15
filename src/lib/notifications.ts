@@ -28,6 +28,12 @@ export type NotificationType =
   | 'contract_signed'
   | 'contract_fully_signed'
   | 'contract_voided'
+  | 'payment_due'
+  | 'payment_marked_paid'
+  | 'payment_confirmed'
+  | 'payment_disputed'
+  | 'payment_cancelled'
+  | 'payout_method_missing'
 
 // related_type values used by the `related_type`/`related_id` columns below,
 // resolved back into a link by the notifications page (src/app/notifications/page.tsx)
