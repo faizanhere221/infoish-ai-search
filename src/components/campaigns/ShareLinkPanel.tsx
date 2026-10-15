@@ -17,6 +17,7 @@ function formatViewedAt(dateStr: string | null): string {
 export function ShareLinkPanel({ campaignId, token }: ShareLinkPanelProps) {
   const [links, setLinks] = useState<CampaignShareLink[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [creating, setCreating] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
@@ -26,12 +27,17 @@ export function ShareLinkPanel({ campaignId, token }: ShareLinkPanelProps) {
   )
 
   const load = useCallback(async () => {
+    setLoadError(false)
     try {
       const res = await fetch(`/api/campaigns/${campaignId}/share-links`, { headers: authHeader() })
       if (res.ok) {
         const data = await res.json()
         setLinks(data.share_links || [])
+      } else {
+        setLoadError(true)
       }
+    } catch {
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
@@ -104,6 +110,8 @@ export function ShareLinkPanel({ campaignId, token }: ShareLinkPanelProps) {
 
       {loading ? (
         <p className="text-sm text-gray-400">Loading…</p>
+      ) : loadError ? (
+        <p className="text-sm text-red-600">Could not load share links. <button onClick={load} className="underline">Retry</button></p>
       ) : activeLinks.length === 0 ? (
         <p className="text-sm text-gray-500">No active link yet. Create one to share read-only progress with your client.</p>
       ) : (

@@ -90,6 +90,8 @@ export default function CampaignReportPage() {
       setTotals(data.totals)
       setCreators(data.creators || [])
       setPaymentsByCurrency(data.payments_by_currency || [])
+    } catch {
+      router.push(`/dashboard/campaigns/${campaignId}/tracker`)
     } finally {
       setLoading(false)
     }

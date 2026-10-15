@@ -56,6 +56,7 @@ export function ContractTab({ campaignCreatorId, actorType, token }: ContractTab
 
   const load = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/contracts`, { headers: authHeader() })
       if (res.ok) {
@@ -73,7 +74,11 @@ export function ContractTab({ campaignCreatorId, actorType, token }: ContractTab
             setNeedsPayoutMethod((methodsData.payout_methods || []).length === 0)
           }
         }
+      } else {
+        setError('Could not load the contract')
       }
+    } catch {
+      setError('Could not load the contract — check your connection and try again')
     } finally {
       setLoading(false)
     }

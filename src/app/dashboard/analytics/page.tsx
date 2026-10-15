@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+import { AlertCircle, Loader2, RotateCcw } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import { formatMoney } from '@/components/campaigns/utils'
 
@@ -43,6 +43,7 @@ export default function AnalyticsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [data, setData] = useState<AnalyticsPayload | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [start, setStart] = useState('')
   const [end, setEnd] = useState('')
   const [client, setClient] = useState('')
@@ -62,6 +63,7 @@ export default function AnalyticsPage() {
     }
     setProfile(profileStr ? JSON.parse(profileStr) : null)
     setLoading(true)
+    setLoadError(false)
 
     const qs = new URLSearchParams()
     if (start) {qs.set('start', start)}
@@ -70,7 +72,13 @@ export default function AnalyticsPage() {
 
     try {
       const res = await fetch(`/api/analytics?${qs.toString()}`, { headers: { Authorization: `Bearer ${authToken}` } })
-      if (res.ok) {setData(await res.json())}
+      if (res.ok) {
+        setData(await res.json())
+      } else {
+        setLoadError(true)
+      }
+    } catch {
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
@@ -116,7 +124,15 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {!data || data.by_month.length === 0 ? (
+        {loadError ? (
+          <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
+            <AlertCircle className="w-12 h-12 text-red-300 mx-auto" />
+            <h3 className="mt-4 font-semibold text-gray-900">Could not load analytics</h3>
+            <button onClick={load} className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-brand-purple text-white rounded-lg font-medium hover:shadow-lg">
+              <RotateCcw className="w-4 h-4" /> Retry
+            </button>
+          </div>
+        ) : !data || data.by_month.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
             <p className="text-gray-500">No data for this range yet.</p>
           </div>

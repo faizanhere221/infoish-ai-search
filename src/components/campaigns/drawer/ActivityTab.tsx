@@ -29,9 +29,11 @@ function formatTimestamp(dateStr: string): string {
 export function ActivityTab({ campaignCreatorId, token }: ActivityTabProps) {
   const [events, setEvents] = useState<CampaignCreatorEvent[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/events`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -39,7 +41,11 @@ export function ActivityTab({ campaignCreatorId, token }: ActivityTabProps) {
       if (res.ok) {
         const data = await res.json()
         setEvents(data.events || [])
+      } else {
+        setError('Could not load activity')
       }
+    } catch {
+      setError('Could not load activity — check your connection and try again')
     } finally {
       setLoading(false)
     }
@@ -49,6 +55,10 @@ export function ActivityTab({ campaignCreatorId, token }: ActivityTabProps) {
 
   if (loading) {
     return <div className="flex items-center justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>
+  }
+
+  if (error) {
+    return <p className="text-sm text-red-600 text-center py-4">{error}</p>
   }
 
   if (events.length === 0) {

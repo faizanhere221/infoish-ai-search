@@ -44,7 +44,11 @@ export function ResultsPanel({ campaignCreatorId, deliverableId, actorType, toke
       if (res.ok) {
         const data = await res.json()
         setResults(data.results || [])
+      } else {
+        setError('Could not load results')
       }
+    } catch {
+      setError('Could not load results — check your connection and try again')
     } finally {
       setLoading(false)
     }

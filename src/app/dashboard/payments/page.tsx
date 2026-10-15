@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Download, Loader2 } from 'lucide-react'
+import { AlertCircle, Download, Loader2, RotateCcw } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import { formatMoney, formatDate } from '@/components/campaigns/utils'
 
@@ -49,6 +49,7 @@ export default function PaymentsDashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [payments, setPayments] = useState<PaymentRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [tab, setTab] = useState<TabId>('due')
   const [campaignFilter, setCampaignFilter] = useState('')
   const [clientFilter, setClientFilter] = useState('')
@@ -68,13 +69,18 @@ export default function PaymentsDashboardPage() {
     }
     setProfile(profileStr ? JSON.parse(profileStr) : null)
     setLoading(true)
+    setLoadError(false)
 
     try {
       const res = await fetch('/api/payments', { headers: { Authorization: `Bearer ${authToken}` } })
       if (res.ok) {
         const data = await res.json()
         setPayments(data.payments || [])
+      } else {
+        setLoadError(true)
       }
+    } catch {
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
@@ -175,7 +181,15 @@ export default function PaymentsDashboardPage() {
           </div>
         )}
 
-        {filtered.length === 0 ? (
+        {loadError ? (
+          <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
+            <AlertCircle className="w-12 h-12 text-red-300 mx-auto" />
+            <h3 className="mt-4 font-semibold text-gray-900">Could not load payments</h3>
+            <button onClick={load} className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-brand-purple text-white rounded-lg font-medium hover:shadow-lg">
+              <RotateCcw className="w-4 h-4" /> Retry
+            </button>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
             <p className="text-gray-500">No payments here.</p>
           </div>

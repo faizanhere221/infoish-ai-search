@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { AlertTriangle, Eye, FileText, Loader2, Scissors, Upload, Wallet } from 'lucide-react'
+import { AlertTriangle, Eye, FileText, Loader2, Plus, Scissors, Upload, Wallet } from 'lucide-react'
 import { formatMoney, formatDate } from '@/components/campaigns/utils'
 
 interface PaymentsTabProps {
@@ -23,6 +23,11 @@ interface Payment {
   proof_path: string | null
   dispute_reason: string | null
   cancelled_reason: string | null
+}
+
+interface DeliverableOption {
+  id: string
+  title: string
 }
 
 const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
@@ -67,23 +72,48 @@ export function PaymentsTab({ campaignCreatorId, actorType, rowStatus, token }: 
   const [payoutLoading, setPayoutLoading] = useState(false)
   const [payoutError, setPayoutError] = useState<string | null>(null)
 
+  const [deliverables, setDeliverables] = useState<DeliverableOption[]>([])
+  const [showMilestoneForm, setShowMilestoneForm] = useState(false)
+  const [milestoneAmount, setMilestoneAmount] = useState('')
+  const [milestoneDeliverableIds, setMilestoneDeliverableIds] = useState<string[]>([])
+  const [milestoneBusy, setMilestoneBusy] = useState(false)
+
   const authHeader = useCallback((): Record<string, string> => (token ? { Authorization: `Bearer ${token}` } : {}), [token])
   const base = `/api/campaign-creators/${campaignCreatorId}/payments`
 
   const load = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const res = await fetch(base, { headers: authHeader() })
       if (res.ok) {
         const data = await res.json()
         setPayments(data.payments || [])
+      } else {
+        setError('Could not load payments')
       }
+    } catch {
+      setError('Could not load payments — check your connection and try again')
     } finally {
       setLoading(false)
     }
   }, [base, authHeader])
 
+  const loadDeliverables = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables`, { headers: authHeader() })
+      if (res.ok) {
+        const data = await res.json()
+        setDeliverables((data.deliverables || []).map((d: { id: string; title: string }) => ({ id: d.id, title: d.title })))
+      }
+    } catch {
+      // Non-critical — only needed for the milestone-creation form below;
+      // the rest of the tab still works without it.
+    }
+  }, [campaignCreatorId, authHeader])
+
   useEffect(() => { load() }, [load])
+  useEffect(() => { if (actorType === 'brand') {loadDeliverables()} }, [actorType, loadDeliverables])
 
   async function submitSplit(paymentId: string) {
     setBusyId(paymentId)
@@ -232,8 +262,37 @@ export function PaymentsTab({ campaignCreatorId, actorType, rowStatus, token }: 
         return
       }
       setPayoutDetails(data)
+    } catch {
+      setPayoutError('Could not load payout details — check your connection and try again')
     } finally {
       setPayoutLoading(false)
+    }
+  }
+
+  function toggleMilestoneDeliverable(id: string) {
+    setMilestoneDeliverableIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  async function submitMilestone() {
+    setMilestoneBusy(true)
+    setError(null)
+    try {
+      const res = await fetch(base, {
+        method: 'POST',
+        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: Number(milestoneAmount), deliverable_ids: milestoneDeliverableIds }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Failed to add milestone payment')
+        return
+      }
+      setShowMilestoneForm(false)
+      setMilestoneAmount('')
+      setMilestoneDeliverableIds([])
+      await load()
+    } finally {
+      setMilestoneBusy(false)
     }
   }
 
@@ -278,6 +337,56 @@ export function PaymentsTab({ campaignCreatorId, actorType, rowStatus, token }: 
             </div>
           )}
         </div>
+      )}
+
+      {actorType === 'brand' && (
+        showMilestoneForm ? (
+          <div className="border border-gray-200 rounded-lg p-3 space-y-2">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">New milestone payment</h5>
+            <input
+              type="number"
+              min="0"
+              value={milestoneAmount}
+              onChange={(e) => setMilestoneAmount(e.target.value)}
+              placeholder="Amount"
+              className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm"
+            />
+            {deliverables.length === 0 ? (
+              <p className="text-xs text-gray-400">No deliverables on this row yet — add one first.</p>
+            ) : (
+              <div className="space-y-1 max-h-32 overflow-y-auto">
+                {deliverables.map((d) => (
+                  <label key={d.id} className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={milestoneDeliverableIds.includes(d.id)}
+                      onChange={() => toggleMilestoneDeliverable(d.id)}
+                      className="rounded border-gray-300 text-brand-purple focus:ring-brand-pink"
+                    />
+                    {d.title}
+                  </label>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <button onClick={() => { setShowMilestoneForm(false); setMilestoneDeliverableIds([]) }} className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600">Cancel</button>
+              <button
+                onClick={submitMilestone}
+                disabled={milestoneBusy || !milestoneAmount || milestoneDeliverableIds.length === 0}
+                className="flex-1 px-3 py-1.5 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg text-sm font-medium disabled:opacity-50"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowMilestoneForm(true)}
+            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
+          >
+            <Plus className="w-3.5 h-3.5" /> Add milestone payment
+          </button>
+        )
       )}
 
       {payments.length === 0 && <p className="text-sm text-gray-500 text-center py-4">No payment records yet.</p>}
