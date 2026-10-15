@@ -57,6 +57,50 @@ export async function GET(request: NextRequest) {
       ? await supabase.from('brands').select('id, company_name, logo_url, contact_name').in('id', brandIds)
       : { data: [] }
 
+    // Contract/payment/offer status per row — same computation as the
+    // brand tracker list (GET /api/campaigns/[id]/creators), so the
+    // "next step" guidance helper has the same signals on both sides.
+    const rowIds = rows.map((r) => r.id)
+
+    const { data: contractRows } = rowIds.length > 0
+      ? await supabase.from('campaign_contracts').select('campaign_creator_id, status').in('campaign_creator_id', rowIds).neq('status', 'void')
+      : { data: [] }
+    const contractStatusByRow: Record<string, string> = {}
+    for (const c of contractRows || []) {contractStatusByRow[c.campaign_creator_id] = c.status}
+
+    const { data: paymentRows } = rowIds.length > 0
+      ? await supabase.from('creator_payments').select('campaign_creator_id, status, due_date').in('campaign_creator_id', rowIds).neq('status', 'cancelled')
+      : { data: [] }
+    const now = new Date()
+    const PAYMENT_STATUS_RANK: Record<string, number> = { disputed: 5, due: 4, marked_paid: 3, scheduled: 2, confirmed: 1 }
+    const paymentSummaryByRow: Record<string, { status: string; overdue: boolean }> = {}
+    for (const p of paymentRows || []) {
+      const overdue = p.status === 'due' && !!p.due_date && new Date(p.due_date) < now
+      const current = paymentSummaryByRow[p.campaign_creator_id]
+      const rank = PAYMENT_STATUS_RANK[p.status] ?? 0
+      if (!current || rank > (PAYMENT_STATUS_RANK[current.status] ?? 0)) {
+        paymentSummaryByRow[p.campaign_creator_id] = { status: p.status, overdue }
+      } else if (overdue) {
+        current.overdue = true
+      }
+    }
+
+    const { data: offerRows } = rowIds.length > 0
+      ? await supabase.from('campaign_offers').select('campaign_creator_id, from_party').in('campaign_creator_id', rowIds).eq('status', 'pending')
+      : { data: [] }
+    const pendingOfferByRow: Record<string, 'brand' | 'creator'> = {}
+    for (const o of offerRows || []) {pendingOfferByRow[o.campaign_creator_id] = o.from_party}
+
+    const { data: deliverableRows } = rowIds.length > 0
+      ? await supabase.from('creator_deliverables').select('campaign_creator_id, status').in('campaign_creator_id', rowIds)
+      : { data: [] }
+    const deliverableStatusesByRow: Record<string, string[]> = {}
+    for (const d of deliverableRows || []) {
+      const list = deliverableStatusesByRow[d.campaign_creator_id] || []
+      list.push(d.status)
+      deliverableStatusesByRow[d.campaign_creator_id] = list
+    }
+
     const withRelations = rows.map((row) => {
       const campaign = campaigns?.find((c) => c.id === row.campaign_id)
       const brand = campaign ? brands?.find((b) => b.id === campaign.brand_id) : null
@@ -71,6 +115,11 @@ export async function GET(request: NextRequest) {
         currency: row.currency,
         campaign: campaign ? { id: campaign.id, title: campaign.title } : null,
         brand: brand || null,
+        contract_status: contractStatusByRow[row.id] ?? null,
+        payment_status: paymentSummaryByRow[row.id]?.status ?? null,
+        payment_overdue: paymentSummaryByRow[row.id]?.overdue ?? false,
+        pending_offer_from: pendingOfferByRow[row.id] ?? null,
+        deliverable_statuses: deliverableStatusesByRow[row.id] ?? [],
       }
     })
 

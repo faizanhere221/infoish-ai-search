@@ -8,6 +8,7 @@ import DashboardHeader from '@/components/DashboardHeader'
 import { PendingOffersWidget } from '@/components/campaigns/PendingOffersWidget'
 import { ResultsTodoWidget } from '@/components/campaigns/ResultsTodoWidget'
 import { formatMoney, formatDate, CAMPAIGN_CREATOR_STATUS_BADGE } from '@/components/campaigns/utils'
+import { getNextStep } from '@/lib/campaign-creator-next-step'
 import type { CampaignCreatorForCreator } from '@/types/campaigns'
 
 interface Profile { id: string; [key: string]: unknown }
@@ -116,6 +117,7 @@ export default function MyCampaignsPage() {
           <div className="space-y-3">
             {rows.map((row) => {
               const badge = CAMPAIGN_CREATOR_STATUS_BADGE[row.status]
+              const step = getNextStep(row, 'creator')
               return (
                 <div key={row.id} className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
                   <div className="flex-1 min-w-0">
@@ -133,6 +135,14 @@ export default function MyCampaignsPage() {
                         </a>
                       )}
                     </div>
+                    {step && (
+                      <Link
+                        href={`/dashboard/my-campaigns/${row.id}?tab=${step.tab}`}
+                        className={`mt-2 inline-block text-sm font-medium ${step.mine ? 'text-brand-purple-dark hover:underline' : 'text-gray-500'}`}
+                      >
+                        {step.label}
+                      </Link>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Link

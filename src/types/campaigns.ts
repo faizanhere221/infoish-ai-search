@@ -227,6 +227,10 @@ export interface CampaignCreator {
   // (brand-owner view only); null if no payment record exists yet.
   payment_status?: string | null
   payment_overdue?: boolean
+  // Server-computed — feeds the shared "next step" guidance helper
+  // (src/lib/campaign-creator-next-step.ts).
+  pending_offer_from?: 'brand' | 'creator' | null
+  deliverable_statuses?: string[]
   // Joined data
   creator?: TrackerCreatorSummary
   campaign?: Pick<Campaign, 'id' | 'title' | 'client_name'>
@@ -246,6 +250,11 @@ export interface CampaignCreatorForCreator {
   currency: string
   campaign?: Pick<Campaign, 'id' | 'title'>
   brand?: CampaignBrandSummary
+  contract_status?: string | null
+  payment_status?: string | null
+  payment_overdue?: boolean
+  pending_offer_from?: 'brand' | 'creator' | null
+  deliverable_statuses?: string[]
 }
 
 // What the public share link is allowed to show — no payout_amount, no

@@ -14,6 +14,7 @@ import { AddCreatorToTrackerModal } from '@/components/campaigns/AddCreatorToTra
 import { EditCampaignCreatorModal } from '@/components/campaigns/EditCampaignCreatorModal'
 import { ShareLinkPanel } from '@/components/campaigns/ShareLinkPanel'
 import { CampaignCreatorDrawer, type DrawerTab } from '@/components/campaigns/CampaignCreatorDrawer'
+import { getNextStep } from '@/lib/campaign-creator-next-step'
 import { formatMoney, formatDate, CAMPAIGN_CREATOR_STATUS_BADGE } from '@/components/campaigns/utils'
 import {
   CAMPAIGN_CREATOR_STATUSES,
@@ -525,6 +526,7 @@ export default function CampaignTrackerPage() {
                         <th className="p-3 text-right">Charge</th>
                         <th className="p-3 text-right">Profit</th>
                         <th className="p-3">Payment</th>
+                        <th className="p-3">Next step</th>
                         <th className="p-3 w-28">Actions</th>
                       </tr>
                     </thead>
@@ -636,6 +638,20 @@ export default function CampaignTrackerPage() {
                               ) : (
                                 <span className="text-gray-300">—</span>
                               )}
+                            </td>
+                            <td className="p-3 align-top" onClick={(e) => e.stopPropagation()}>
+                              {(() => {
+                                const step = getNextStep(row, 'brand')
+                                if (!step) {return <span className="text-gray-300">—</span>}
+                                return (
+                                  <button
+                                    onClick={() => { setDrawerRow(row); setDrawerTab(step.tab) }}
+                                    className={`text-left text-xs hover:underline ${step.mine ? 'text-brand-purple-dark font-medium' : 'text-gray-500'}`}
+                                  >
+                                    {step.label}
+                                  </button>
+                                )
+                              })()}
                             </td>
                             <td className="p-3 align-top" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center gap-1">

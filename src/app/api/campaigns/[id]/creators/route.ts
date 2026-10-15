@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 import { CAMPAIGN_CREATOR_STATUSES } from '@/types/campaigns'
 import { refreshDuePayments } from '@/lib/payments/engine'
+import { expireStaleOffers } from '@/lib/campaign-creator-auth'
 
 interface RouteParams {
   params: { id: string }
@@ -202,6 +203,23 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         }
       }
 
+      // Pending offer per row (who sent it), for the "next step" guidance
+      // helper — same lazy-expiry-then-read pattern used everywhere else
+      // offers are read.
+      await Promise.all(rowIds.map((rowId) => expireStaleOffers(supabase, rowId)))
+      const { data: offerRows } = rowIds.length > 0
+        ? await supabase.from('campaign_offers').select('campaign_creator_id, from_party').in('campaign_creator_id', rowIds).eq('status', 'pending')
+        : { data: [] }
+      const pendingOfferByRow: Record<string, 'brand' | 'creator'> = {}
+      for (const o of offerRows || []) {pendingOfferByRow[o.campaign_creator_id] = o.from_party}
+
+      const deliverableStatusesByRow: Record<string, string[]> = {}
+      for (const d of (deliverableRows || []) as DeliverableCountRow[]) {
+        const list = deliverableStatusesByRow[d.campaign_creator_id] || []
+        list.push(d.status)
+        deliverableStatusesByRow[d.campaign_creator_id] = list
+      }
+
       const withRelations = (rows || []).map((row) => {
         const creator = creators.find((c) => c.id === row.creator_id) || null
         const counts = countsByRow[row.id] || { pendingReview: 0, overdue: 0 }
@@ -214,6 +232,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           contract_status: contractStatusByRow[row.id] ?? null,
           payment_status: paymentSummaryByRow[row.id]?.status ?? null,
           payment_overdue: paymentSummaryByRow[row.id]?.overdue ?? false,
+          pending_offer_from: pendingOfferByRow[row.id] ?? null,
+          deliverable_statuses: deliverableStatusesByRow[row.id] ?? [],
         }
       })
 
