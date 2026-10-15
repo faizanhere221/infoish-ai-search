@@ -1,55 +1,51 @@
-'use client'
+import { cookies, headers } from 'next/headers'
+import { redirect, notFound } from 'next/navigation'
+import { jwtVerify } from 'jose'
+import { createServerSupabase } from '@/lib/db'
+import { loadAuthorizedCampaignCreatorRow } from '@/lib/campaign-creator-auth'
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+interface PageProps {
+  params: { campaignCreatorId: string }
+  searchParams: { tab?: string }
+}
 
 // Universal deep-link target for chat message cards and notifications,
 // neither of which knows the campaign id or the viewer's own role at write
-// time (they only ever store the campaign_creators row id). Looks both up,
-// then forwards to the real destination:
+// time (they only ever store the campaign_creators row id). A server
+// component (not client-rendered) so a stranger probing a row id they are
+// not party to gets a real 404 — not a 200 shell that only reveals the
+// answer after a client-side fetch. Verifies the JWT itself, the same way
+// the /admin/* middleware check does, since ordinary page routes don't get
+// trusted headers injected (only /api and /admin do — see src/middleware.ts).
+// Forwards to:
 //   brand:   /dashboard/campaigns/<campaignId>/tracker?row=<id>&tab=<tab>
 //   creator: /dashboard/my-campaigns/<id>?tab=<tab>
-export default function CampaignCreatorGoPage() {
-  const params = useParams<{ campaignCreatorId: string }>()
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const [error, setError] = useState(false)
+export default async function CampaignCreatorGoPage({ params, searchParams }: PageProps) {
+  const tab = searchParams.tab || 'offer'
+  const secret = process.env.JWT_SECRET
 
-  useEffect(() => {
-    const tab = searchParams.get('tab') || 'offer'
-    const userStr = localStorage.getItem('auth_user')
-    const token = localStorage.getItem('auth_token')
-    if (!userStr || !token) {
-      router.replace('/login')
-      return
-    }
-    const user = JSON.parse(userStr)
+  const authHeader = headers().get('authorization')
+  const cookieToken = cookies().get('auth_token')?.value
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : cookieToken
 
-    fetch(`/api/campaign-creators/${params.campaignCreatorId}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(async (res) => {
-        if (!res.ok) {throw new Error('not found')}
-        const data = await res.json()
-        if (user.user_type === 'brand') {
-          router.replace(`/dashboard/campaigns/${data.campaign_creator.campaign_id}/tracker?row=${params.campaignCreatorId}&tab=${tab}`)
-        } else {
-          router.replace(`/dashboard/my-campaigns/${params.campaignCreatorId}?tab=${tab}`)
-        }
-      })
-      .catch(() => setError(true))
-  }, [params.campaignCreatorId, searchParams, router])
+  if (!token || !secret) {notFound()}
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">This isn&apos;t available anymore.</p>
-      </div>
-    )
+  let userType = ''
+  let profileId = ''
+  try {
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret))
+    userType = String(payload.userType ?? '')
+    profileId = String(payload.profileId ?? '')
+  } catch {
+    notFound()
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />
-    </div>
-  )
+  const supabase = createServerSupabase()
+  const authorized = await loadAuthorizedCampaignCreatorRow(supabase, params.campaignCreatorId, profileId, userType)
+  if (!authorized) {notFound()}
+
+  if (authorized.actorType === 'brand') {
+    redirect(`/dashboard/campaigns/${authorized.row.campaign_id}/tracker?row=${params.campaignCreatorId}&tab=${tab}`)
+  }
+  redirect(`/dashboard/my-campaigns/${params.campaignCreatorId}?tab=${tab}`)
 }

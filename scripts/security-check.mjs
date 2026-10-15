@@ -191,6 +191,55 @@ async function main() {
   // ── Phase 4 — contracts/reporting ──────────────────────────────────────────
 
   if (CAMPAIGN_CREATOR_ID) {
+    // /dashboard/go/:id is a server-rendered redirect resolver (not a
+    // client-rendered page like /contracts/:id below) — it verifies the JWT
+    // itself and does the ownership check server-side, so a raw fetch here
+    // really does observe the 404/redirect difference, unlike the client
+    // pages elsewhere in this file.
+    await check('Creator B gets 404 (no Location) on /dashboard/go/:id for a row they are not party to', async () => {
+      const res = await request(`/dashboard/go/${CAMPAIGN_CREATOR_ID}`, {
+        redirect: 'manual',
+        headers: authHeaders(CREATOR_B_TOKEN),
+      })
+      return {
+        pass: res.status === 404 && !res.headers.get('location'),
+        detail: `status ${res.status}, location: ${res.headers.get('location') ?? 'none'}`,
+      }
+    })
+
+    await check('[control] Creator A is redirected to their own my-campaigns page by /dashboard/go/:id', async () => {
+      const res = await request(`/dashboard/go/${CAMPAIGN_CREATOR_ID}?tab=offer`, {
+        redirect: 'manual',
+        headers: authHeaders(CREATOR_A_TOKEN),
+      })
+      const location = res.headers.get('location') ?? ''
+      return {
+        pass: res.status >= 300 && res.status < 400 && location.includes(`/dashboard/my-campaigns/${CAMPAIGN_CREATOR_ID}`),
+        detail: `status ${res.status}, location: ${location || 'none'}`,
+      }
+    })
+
+    await check('[control] Brand A is redirected to their own tracker page by /dashboard/go/:id', async () => {
+      const res = await request(`/dashboard/go/${CAMPAIGN_CREATOR_ID}?tab=offer`, {
+        redirect: 'manual',
+        headers: authHeaders(BRAND_A_TOKEN),
+      })
+      const location = res.headers.get('location') ?? ''
+      return {
+        pass: res.status >= 300 && res.status < 400 && /\/dashboard\/campaigns\/.+\/tracker/.test(location),
+        detail: `status ${res.status}, location: ${location || 'none'}`,
+      }
+    })
+
+    await check("Creator B's GET /api/dashboard/action-needed contains no row for a campaign_creator they are not party to", async () => {
+      const res = await request('/api/dashboard/action-needed', { headers: authHeaders(CREATOR_B_TOKEN) })
+      const text = await res.text()
+      return {
+        pass: res.status === 200 && !text.includes(CAMPAIGN_CREATOR_ID),
+        detail: `status ${res.status}, leaked id: ${text.includes(CAMPAIGN_CREATOR_ID)}`,
+      }
+    })
+
     const subResources = ['offers', 'deliverables', 'events', 'contracts']
     for (const resource of subResources) {
       await check(`Creator B gets 404 on /api/campaign-creators/:id/${resource}`, async () => {
