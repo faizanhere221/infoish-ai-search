@@ -7,7 +7,7 @@ import Image from 'next/image'
 import {
   AlertCircle, ArrowLeft, Loader2, Plus, Trash2, Pencil, MessageSquare,
   ExternalLink, Download, RotateCcw, DollarSign, TrendingUp, Users, BarChart3,
-  FileClock, AlertTriangle, Info,
+  FileClock, AlertTriangle, Info, Receipt,
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import { AddCreatorToTrackerModal } from '@/components/campaigns/AddCreatorToTrackerModal'
@@ -409,6 +409,17 @@ export default function CampaignTrackerPage() {
               >
                 <BarChart3 className="w-4 h-4" /> Report
               </Link>
+
+              {campaign.client_name && (
+                <Link
+                  href={`/invoices/${campaignId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50"
+                >
+                  <Receipt className="w-4 h-4" /> Invoice
+                </Link>
+              )}
 
               <button
                 onClick={exportCsv}
