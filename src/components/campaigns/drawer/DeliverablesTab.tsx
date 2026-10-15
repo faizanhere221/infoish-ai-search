@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ExternalLink, FileText, Loader2, Paperclip, Pencil, Plus, Scissors, Trash2, Upload } from 'lucide-react'
 import { formatDate, DELIVERABLE_STATUS_BADGE } from '@/components/campaigns/utils'
 import { DELIVERABLE_FORMATS, type CreatorDeliverable } from '@/types/campaigns'
+import { ResultsPanel } from './ResultsPanel'
 
 interface DeliverablesTabProps {
   campaignCreatorId: string
@@ -487,6 +488,10 @@ export function DeliverablesTab({ campaignCreatorId, actorType, token }: Deliver
                   Submit
                 </button>
               </div>
+            )}
+
+            {(d.status === 'posted' || d.status === 'completed') && (
+              <ResultsPanel campaignCreatorId={campaignCreatorId} deliverableId={d.id} actorType={actorType} token={token} />
             )}
           </div>
         )

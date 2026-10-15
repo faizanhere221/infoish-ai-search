@@ -10,6 +10,7 @@ import CreatorPlatforms from '@/components/dashboard/CreatorPlatforms'
 import CreatorServices from '@/components/dashboard/CreatorServices'
 import OnboardingWizard from '@/components/dashboard/OnboardingWizard'
 import { PendingOffersWidget } from '@/components/campaigns/PendingOffersWidget'
+import { ResultsTodoWidget } from '@/components/campaigns/ResultsTodoWidget'
 import { calculateProfileCompletion } from '@/lib/profile-completion'
 
 interface Platform {
@@ -131,6 +132,7 @@ export default function CreatorDashboard() {
   return (
     <div className="space-y-6">
       <PendingOffersWidget />
+      <ResultsTodoWidget />
 
       {/* Profile card — first thing creators see */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">

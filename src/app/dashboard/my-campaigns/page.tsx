@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { AlertCircle, ExternalLink, Loader2, MessageSquare, Megaphone, RotateCcw } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import { PendingOffersWidget } from '@/components/campaigns/PendingOffersWidget'
+import { ResultsTodoWidget } from '@/components/campaigns/ResultsTodoWidget'
 import { formatMoney, formatDate, CAMPAIGN_CREATOR_STATUS_BADGE } from '@/components/campaigns/utils'
 import type { CampaignCreatorForCreator } from '@/types/campaigns'
 
@@ -93,6 +94,7 @@ export default function MyCampaignsPage() {
         </div>
 
         <PendingOffersWidget />
+        <ResultsTodoWidget />
 
         {loadError ? (
           <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
