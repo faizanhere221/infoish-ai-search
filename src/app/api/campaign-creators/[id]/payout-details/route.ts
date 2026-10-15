@@ -39,7 +39,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .maybeSingle()
 
     if (!contract) {
-      return NextResponse.json({ error: 'A fully signed contract is required to view payout details' }, { status: 403 })
+      // 404, not 403 — the brand is a real party on this row (they already
+      // know it exists), but there's nothing to return until a contract is
+      // fully signed, same framing as the other "not available yet" cases
+      // below.
+      return NextResponse.json({ error: 'A fully signed contract is required to view payout details' }, { status: 404 })
     }
 
     const { data: openPayment } = await supabase
@@ -51,7 +55,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .maybeSingle()
 
     if (!openPayment) {
-      return NextResponse.json({ error: 'No open payment on this row' }, { status: 403 })
+      return NextResponse.json({ error: 'No open payment on this row' }, { status: 404 })
     }
 
     const { data: method } = await supabase

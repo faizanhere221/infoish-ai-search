@@ -51,6 +51,10 @@ const CAMPAIGN_CREATOR_ID = getEnv('CAMPAIGN_CREATOR_ID')
 const CONTRACT_ID = getEnv('CONTRACT_ID')
 const SHARE_TOKEN = getEnv('SHARE_TOKEN')
 
+// Optional — Phase 5 (payments) checks, skipped if blank.
+const PAYMENT_ID = getEnv('PAYMENT_ID')
+const PAYOUT_METHOD_ID = getEnv('PAYOUT_METHOD_ID')
+
 const required = { BRAND_A_TOKEN, CREATOR_A_TOKEN, CREATOR_B_TOKEN, CONVERSATION_ID, PRIVATE_CAMPAIGN_ID }
 const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k)
 if (missing.length > 0) {
@@ -262,6 +266,85 @@ async function main() {
   } else {
     skip('Phase 4: share link checks', 'SHARE_TOKEN not set')
   }
+
+  // ── Phase 5 — payments ──────────────────────────────────────────────────────
+
+  if (PAYOUT_METHOD_ID) {
+    await check("Creator B gets 404 updating Creator A's payout method", async () => {
+      const res = await request(`/api/payout-methods/${PAYOUT_METHOD_ID}`, {
+        method: 'PUT',
+        headers: { ...authHeaders(CREATOR_B_TOKEN), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currency: 'USD' }),
+      })
+      return { pass: res.status === 404, detail: `status ${res.status}` }
+    })
+  } else {
+    skip("Creator B gets 404 updating Creator A's payout method", 'PAYOUT_METHOD_ID not set')
+  }
+
+  if (CAMPAIGN_CREATOR_ID) {
+    // Adaptive: only meaningful when the row's contract (if CONTRACT_ID is
+    // set) is NOT fully_signed yet — payout-details 404s until it is. If the
+    // contract happens to already be fully_signed in your test data, this
+    // check doesn't apply and is skipped rather than asserting the wrong
+    // thing.
+    let contractIsFullySigned = false
+    if (CONTRACT_ID) {
+      const contractRes = await request(`/api/contracts/${CONTRACT_ID}`, { headers: authHeaders(BRAND_A_TOKEN) })
+      if (contractRes.ok) {
+        const data = await contractRes.json().catch(() => ({}))
+        contractIsFullySigned = data?.contract?.status === 'fully_signed'
+      }
+    }
+
+    if (!contractIsFullySigned) {
+      await check('Brand A gets 404 on payout-details without a fully signed contract', async () => {
+        const res = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/payout-details`, { headers: authHeaders(BRAND_A_TOKEN) })
+        return { pass: res.status === 404, detail: `status ${res.status}` }
+      })
+    } else {
+      skip('Brand A gets 404 on payout-details without a fully signed contract', 'the contract on CAMPAIGN_CREATOR_ID is already fully_signed in this test data')
+    }
+
+    const FORBIDDEN_PAYMENT_KEYS = ['charge_amount', 'profit', 'total_charge', 'total_profit', 'brand_notes']
+
+    await check("Creator A's own .../payments has no charge/profit", async () => {
+      const res = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/payments`, { headers: authHeaders(CREATOR_A_TOKEN) })
+      const text = await res.text()
+      const leaked = leaksAnyKey(text, FORBIDDEN_PAYMENT_KEYS)
+      return { pass: res.status === 200 && leaked.length === 0, detail: `status ${res.status}, leaked: ${leaked.join(',') || 'none'}` }
+    })
+
+    if (PAYMENT_ID) {
+      await check('Creator A cannot mark their own payment as paid', async () => {
+        const res = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/payments/${PAYMENT_ID}/mark-paid`, {
+          method: 'POST',
+          headers: { ...authHeaders(CREATOR_A_TOKEN), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ method: 'wise', reference: 'security-check probe — should never be accepted' }),
+        })
+        return { pass: res.status === 403, detail: `status ${res.status}` }
+      })
+
+      await check('Creator B gets 404 on a payment proof signed URL for a row they are not party to', async () => {
+        const res = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/payments/${PAYMENT_ID}/proof/sign`, {
+          headers: authHeaders(CREATOR_B_TOKEN),
+        })
+        return { pass: res.status === 404, detail: `status ${res.status}` }
+      })
+    } else {
+      skip('Creator A cannot mark their own payment as paid', 'PAYMENT_ID not set')
+      skip('Creator B gets 404 on a payment proof signed URL', 'PAYMENT_ID not set')
+    }
+  } else {
+    skip('Phase 5: payment checks', 'CAMPAIGN_CREATOR_ID not set')
+  }
+
+  await check("Creator A's own /api/campaign-creators/my-payments has no charge/profit", async () => {
+    const res = await request('/api/campaign-creators/my-payments', { headers: authHeaders(CREATOR_A_TOKEN) })
+    const text = await res.text()
+    const leaked = leaksAnyKey(text, ['charge_amount', 'profit', 'total_charge', 'total_profit', 'brand_notes'])
+    return { pass: res.status === 200 && leaked.length === 0, detail: `status ${res.status}, leaked: ${leaked.join(',') || 'none'}` }
+  })
 
   // Positive controls — if these fail, every 404 above might just mean the
   // route is broken for everyone, not that access control actually works.
