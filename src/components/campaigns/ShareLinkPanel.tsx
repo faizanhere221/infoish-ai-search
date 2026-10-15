@@ -56,7 +56,7 @@ export function ShareLinkPanel({ campaignId, token }: ShareLinkPanelProps) {
     }
   }
 
-  async function updateLink(id: string, updates: { show_charge?: boolean; revoked?: boolean }) {
+  async function updateLink(id: string, updates: { show_charge?: boolean; show_results?: boolean; revoked?: boolean }) {
     const res = await fetch(`/api/campaigns/${campaignId}/share-links/${id}`, {
       method: 'PATCH',
       headers: { ...authHeader(), 'Content-Type': 'application/json' },
@@ -133,16 +133,27 @@ export function ShareLinkPanel({ campaignId, token }: ShareLinkPanelProps) {
                   <Ban className="w-4 h-4" />
                 </button>
               </div>
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 text-xs text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={link.show_charge}
-                    onChange={(e) => updateLink(link.id, { show_charge: e.target.checked })}
-                    className="rounded border-gray-300 text-brand-purple focus:ring-brand-pink"
-                  />
-                  Show client charge amounts
-                </label>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex flex-col gap-1">
+                  <label className="flex items-center gap-2 text-xs text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={link.show_charge}
+                      onChange={(e) => updateLink(link.id, { show_charge: e.target.checked })}
+                      className="rounded border-gray-300 text-brand-purple focus:ring-brand-pink"
+                    />
+                    Show client charge amounts
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={link.show_results}
+                      onChange={(e) => updateLink(link.id, { show_results: e.target.checked })}
+                      className="rounded border-gray-300 text-brand-purple focus:ring-brand-pink"
+                    />
+                    Show results (views &amp; CPM on charge)
+                  </label>
+                </div>
                 <span className="text-xs text-gray-400">{formatViewedAt(link.last_viewed_at)}</span>
               </div>
             </div>

@@ -33,6 +33,9 @@ interface ShareCreatorRow {
   posted_url: string | null
   currency: string
   charge_amount?: number | null
+  views?: number
+  engagements?: number
+  cpm_on_charge?: number | null
   creator: {
     id: string
     username: string
@@ -46,8 +49,9 @@ interface ShareCreatorRow {
 interface SharePayload {
   campaign: { title: string; status: string }
   creators: ShareCreatorRow[]
-  totals: { total_creators: number; posted_count: number; completed_count: number; total_charge?: number }
+  totals: { total_creators: number; posted_count: number; completed_count: number; total_charge?: number; total_views?: number }
   show_charge: boolean
+  show_results: boolean
 }
 
 export default function SharePage() {
@@ -106,7 +110,7 @@ export default function SharePage() {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{data.campaign.title}</h1>
         <p className="text-gray-500 mt-1">Campaign progress</p>
 
-        <div className={`grid grid-cols-2 ${data.show_charge ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-4 mt-6 mb-8`}>
+        <div className={`grid grid-cols-2 ${data.show_charge && data.show_results ? 'sm:grid-cols-5' : data.show_charge || data.show_results ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-4 mt-6 mb-8`}>
           <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
             <p className="text-2xl font-bold text-gray-900">{data.totals.total_creators}</p>
             <p className="text-xs text-gray-500 mt-1">Creators</p>
@@ -125,6 +129,12 @@ export default function SharePage() {
               <p className="text-xs text-gray-500 mt-1">Total</p>
             </div>
           )}
+          {data.show_results && data.totals.total_views !== undefined && (
+            <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
+              <p className="text-2xl font-bold text-gray-900">{data.totals.total_views.toLocaleString()}</p>
+              <p className="text-xs text-gray-500 mt-1">Views</p>
+            </div>
+          )}
         </div>
 
         {data.creators.length === 0 ? (
@@ -141,6 +151,8 @@ export default function SharePage() {
                   <th className="p-4">Planned date</th>
                   <th className="p-4">Posted</th>
                   {data.show_charge && <th className="p-4 text-right">Charge</th>}
+                  {data.show_results && <th className="p-4 text-right">Views</th>}
+                  {data.show_results && <th className="p-4 text-right">CPM</th>}
                 </tr>
               </thead>
               <tbody>
@@ -183,6 +195,14 @@ export default function SharePage() {
                       {data.show_charge && (
                         <td className="p-4 text-right text-gray-900">
                           {formatMoney(row.charge_amount, row.currency)}
+                        </td>
+                      )}
+                      {data.show_results && (
+                        <td className="p-4 text-right text-gray-900">{(row.views ?? 0).toLocaleString()}</td>
+                      )}
+                      {data.show_results && (
+                        <td className="p-4 text-right text-gray-900">
+                          {row.cpm_on_charge ? formatMoney(row.cpm_on_charge, row.currency) : '—'}
                         </td>
                       )}
                     </tr>

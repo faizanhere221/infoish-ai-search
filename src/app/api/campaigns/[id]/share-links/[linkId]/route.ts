@@ -9,6 +9,7 @@ interface RouteParams {
 
 const UpdateShareLinkSchema = z.object({
   show_charge: z.boolean().optional(),
+  show_results: z.boolean().optional(),
   revoked: z.boolean().optional(),
 })
 
@@ -51,6 +52,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const updates: Record<string, unknown> = {}
     if (parsed.data.show_charge !== undefined) {updates.show_charge = parsed.data.show_charge}
+    if (parsed.data.show_results !== undefined) {updates.show_results = parsed.data.show_results}
     if (parsed.data.revoked !== undefined) {updates.revoked_at = parsed.data.revoked ? new Date().toISOString() : null}
 
     const { data: updated, error } = await supabase

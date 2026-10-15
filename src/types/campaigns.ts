@@ -263,6 +263,7 @@ export interface CampaignShareLink {
   campaign_id: string
   token: string
   show_charge: boolean
+  show_results: boolean
   revoked_at: string | null
   last_viewed_at: string | null
   created_at: string

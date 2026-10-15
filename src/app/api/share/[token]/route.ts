@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { rateLimit } from '@/lib/rate-limit'
+import { latestResultByDeliverable, sumEngagementTotals, cpm, type ResultRow } from '@/lib/reporting'
 
 interface RouteParams {
   params: { token: string }
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const { data: link } = await supabase
       .from('campaign_share_links')
-      .select('id, campaign_id, show_charge, revoked_at')
+      .select('id, campaign_id, show_charge, show_results, revoked_at')
       .eq('token', token)
       .single()
 
@@ -71,6 +72,45 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (error) {
       captureError(error, { route: 'GET /api/share/[token]' })
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+
+    // Results + CPM on charge only — never payout or profit, regardless of
+    // show_charge, and only computed at all when show_results is on.
+    const resultsByRow: Record<string, { views: number; engagements: number; cpm_on_charge: number | null }> = {}
+    if (link.show_results && (rows || []).length > 0) {
+      const rowIds = (rows || []).map((r) => r.id)
+      const { data: deliverables } = await supabase
+        .from('creator_deliverables')
+        .select('id, campaign_creator_id')
+        .in('campaign_creator_id', rowIds)
+
+      const deliverableIds = (deliverables || []).map((d) => d.id)
+      const { data: results } = deliverableIds.length > 0
+        ? await supabase
+            .from('deliverable_results')
+            .select('deliverable_id, captured_at, views, likes, comments, shares, clicks, saves')
+            .in('deliverable_id', deliverableIds)
+        : { data: [] as ResultRow[] }
+
+      const latestByDeliverable = latestResultByDeliverable((results || []) as ResultRow[])
+      const deliverablesByRow = new Map<string, string[]>()
+      for (const d of deliverables || []) {
+        const list = deliverablesByRow.get(d.campaign_creator_id) || []
+        list.push(d.id)
+        deliverablesByRow.set(d.campaign_creator_id, list)
+      }
+
+      for (const row of rows || []) {
+        const rowResultRows = (deliverablesByRow.get(row.id) || [])
+          .map((dId) => latestByDeliverable.get(dId))
+          .filter((r): r is ResultRow => !!r)
+        const totals = sumEngagementTotals(rowResultRows)
+        resultsByRow[row.id] = {
+          views: totals.views,
+          engagements: totals.engagements,
+          cpm_on_charge: cpm(row.charge_amount, totals.views),
+        }
+      }
     }
 
     const creatorIds = [...new Set((rows || []).map((r) => r.creator_id))]
@@ -115,6 +155,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         posted_url: row.posted_url,
         currency: row.currency,
         ...(link.show_charge ? { charge_amount: row.charge_amount } : {}),
+        ...(link.show_results ? {
+          views: resultsByRow[row.id]?.views ?? 0,
+          engagements: resultsByRow[row.id]?.engagements ?? 0,
+          cpm_on_charge: resultsByRow[row.id]?.cpm_on_charge ?? null,
+        } : {}),
         creator: creator ? {
           id: creator.id,
           username: creator.username,
@@ -133,6 +178,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       ...(link.show_charge
         ? { total_charge: creatorRows.reduce((sum, r) => sum + (('charge_amount' in r ? r.charge_amount : 0) || 0), 0) }
         : {}),
+      ...(link.show_results
+        ? { total_views: creatorRows.reduce((sum, r) => sum + (('views' in r ? r.views : 0) || 0), 0) }
+        : {}),
     }
 
     return NextResponse.json({
@@ -140,6 +188,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       creators: creatorRows,
       totals,
       show_charge: link.show_charge,
+      show_results: link.show_results,
     })
   } catch (error) {
     captureError(error, { route: 'GET /api/share/[token]' })

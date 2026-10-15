@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   AlertCircle, ArrowLeft, Loader2, Plus, Trash2, Pencil, MessageSquare,
-  ExternalLink, Download, RotateCcw, DollarSign, TrendingUp, Users,
+  ExternalLink, Download, RotateCcw, DollarSign, TrendingUp, Users, BarChart3,
   FileClock, AlertTriangle, Info,
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
@@ -383,9 +383,16 @@ export default function CampaignTrackerPage() {
                 <option value="profit">Sort: Profit</option>
               </select>
 
+              <Link
+                href={`/dashboard/campaigns/${campaignId}/report`}
+                className="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 ml-auto"
+              >
+                <BarChart3 className="w-4 h-4" /> Report
+              </Link>
+
               <button
                 onClick={exportCsv}
-                className="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 ml-auto"
+                className="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50"
               >
                 <Download className="w-4 h-4" /> Export CSV
               </button>
