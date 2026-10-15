@@ -67,6 +67,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    const changingRevisions = parsed.data.revisions_allowed !== undefined
+      && parsed.data.revisions_allowed !== authorized.deliverable.revisions_allowed
+    if (changingRevisions && (parsed.data.revisions_allowed as number) < authorized.deliverable.revisions_used) {
+      return NextResponse.json(
+        { error: `Revisions allowed can't be set below the ${authorized.deliverable.revisions_used} already used` },
+        { status: 400 }
+      )
+    }
+
     const { data: updated, error } = await supabase
       .from('creator_deliverables')
       .update({ ...parsed.data, updated_at: new Date().toISOString() })
@@ -87,14 +96,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       payload: { deliverable_id: deliverableId, fields: Object.keys(parsed.data) },
     })
 
-    if (attemptingLockedField) {
+    if (attemptingLockedField || changingRevisions) {
       const recipientUserId = await getUserIdFromCreator(supabase, authorized.row.creator_id)
       await voidContractOnTermsChange(supabase, {
         campaignCreatorId: id,
         creatorId: authorized.row.creator_id,
         brandId: authorized.row.brand_id,
         actorUserId: callerUserId,
-        reason: 'a deliverable changed',
+        reason: changingRevisions && !attemptingLockedField ? 'the revisions allowed changed' : 'a deliverable changed',
         recipientUserId,
       })
     }

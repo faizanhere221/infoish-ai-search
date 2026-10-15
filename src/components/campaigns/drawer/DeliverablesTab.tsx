@@ -181,13 +181,19 @@ export function DeliverablesTab({ campaignCreatorId, actorType, token }: Deliver
 
   async function updateRevisions(deliverableId: string, revisions_allowed: number) {
     setBusyId(deliverableId)
+    setError(null)
     try {
       const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables/${deliverableId}`, {
         method: 'PUT',
         headers: { ...authHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ revisions_allowed }),
       })
-      if (res.ok) {await load()}
+      if (res.ok) {
+        await load()
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || 'Failed to update revisions allowed')
+      }
     } finally {
       setBusyId(null)
     }
