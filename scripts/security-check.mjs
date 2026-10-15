@@ -302,9 +302,28 @@ async function main() {
         const res = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/payout-details`, { headers: authHeaders(BRAND_A_TOKEN) })
         return { pass: res.status === 404, detail: `status ${res.status}` }
       })
+      skip('Payout-details (no ?reveal) never contains raw account details', 'needs a fully_signed contract to get a 200 to inspect — see the 404 check above')
     } else {
       skip('Brand A gets 404 on payout-details without a fully signed contract', 'the contract on CAMPAIGN_CREATOR_ID is already fully_signed in this test data')
+
+      await check('Payout-details (no ?reveal) never contains raw account details', async () => {
+        const res = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/payout-details`, { headers: authHeaders(BRAND_A_TOKEN) })
+        const text = await res.text()
+        // The masked response only ever carries masked_preview — "details"
+        // only appears in the ?reveal=true branch, which this call doesn't use.
+        const leaksRawDetails = text.includes('"details":')
+        return { pass: res.status === 200 && !leaksRawDetails, detail: `status ${res.status}, leaked raw details: ${leaksRawDetails}` }
+      })
     }
+
+    await check('Creating a milestone payment without deliverable_ids returns 400', async () => {
+      const res = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/payments`, {
+        method: 'POST',
+        headers: { ...authHeaders(BRAND_A_TOKEN), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 10 }), // no deliverable_ids
+      })
+      return { pass: res.status === 400, detail: `status ${res.status}` }
+    })
 
     const FORBIDDEN_PAYMENT_KEYS = ['charge_amount', 'profit', 'total_charge', 'total_profit', 'brand_notes']
 
