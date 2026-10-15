@@ -46,6 +46,11 @@ const CONVERSATION_ID = getEnv('CONVERSATION_ID')
 const ATTACHMENT_PATH = getEnv('ATTACHMENT_PATH') // optional
 const PRIVATE_CAMPAIGN_ID = getEnv('PRIVATE_CAMPAIGN_ID')
 
+// Optional — Phase 4 (contracts/reporting) checks, skipped if blank.
+const CAMPAIGN_CREATOR_ID = getEnv('CAMPAIGN_CREATOR_ID')
+const CONTRACT_ID = getEnv('CONTRACT_ID')
+const SHARE_TOKEN = getEnv('SHARE_TOKEN')
+
 const required = { BRAND_A_TOKEN, CREATOR_A_TOKEN, CREATOR_B_TOKEN, CONVERSATION_ID, PRIVATE_CAMPAIGN_ID }
 const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k)
 if (missing.length > 0) {
@@ -83,6 +88,13 @@ async function check(name, fn) {
 function skip(name, reason) {
   skipCount += 1
   console.log(`SKIP  ${name} (${reason})`)
+}
+
+// Checks raw response text for any of the given JSON key names, as they'd
+// appear serialized (`"key":`) — catches a leak regardless of where in the
+// response shape it ended up, without needing to know the exact schema.
+function leaksAnyKey(text, keys) {
+  return keys.filter((k) => text.includes(`"${k}":`))
 }
 
 async function main() {
@@ -172,6 +184,85 @@ async function main() {
     return { pass: res.status === 401, detail: `status ${res.status}` }
   })
 
+  // ── Phase 4 — contracts/reporting ──────────────────────────────────────────
+
+  if (CAMPAIGN_CREATOR_ID) {
+    const subResources = ['offers', 'deliverables', 'events', 'contracts']
+    for (const resource of subResources) {
+      await check(`Creator B gets 404 on /api/campaign-creators/:id/${resource}`, async () => {
+        const res = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/${resource}`, {
+          headers: authHeaders(CREATOR_B_TOKEN),
+        })
+        return { pass: res.status === 404, detail: `status ${res.status}` }
+      })
+    }
+
+    const FORBIDDEN_CREATOR_KEYS = ['charge_amount', 'brand_notes', 'client_name']
+
+    for (const resource of ['offers', 'deliverables', 'events']) {
+      await check(`Creator A's own /api/campaign-creators/:id/${resource} has no charge_amount/brand_notes/client_name`, async () => {
+        const res = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/${resource}`, {
+          headers: authHeaders(CREATOR_A_TOKEN),
+        })
+        const text = await res.text()
+        const leaked = leaksAnyKey(text, FORBIDDEN_CREATOR_KEYS)
+        return { pass: res.status === 200 && leaked.length === 0, detail: `status ${res.status}, leaked: ${leaked.join(',') || 'none'}` }
+      })
+    }
+
+    await check('Creator A\'s own /api/calendar has no charge_amount/payout_amount/brand_notes/client_name', async () => {
+      const res = await request('/api/calendar', { headers: authHeaders(CREATOR_A_TOKEN) })
+      const text = await res.text()
+      const leaked = leaksAnyKey(text, [...FORBIDDEN_CREATOR_KEYS, 'payout_amount'])
+      return { pass: res.status === 200 && leaked.length === 0, detail: `status ${res.status}, leaked: ${leaked.join(',') || 'none'}` }
+    })
+  } else {
+    skip('Phase 4: campaign_creators sub-resource checks', 'CAMPAIGN_CREATOR_ID not set')
+  }
+
+  if (CONTRACT_ID) {
+    await check('Creator B gets 404 on GET /api/contracts/:id', async () => {
+      const res = await request(`/api/contracts/${CONTRACT_ID}`, { headers: authHeaders(CREATOR_B_TOKEN) })
+      return { pass: res.status === 404, detail: `status ${res.status}` }
+    })
+
+    // /contracts/:id is a client-rendered page (no SSR auth check, same
+    // pattern as /share/:token) — the HTTP response is always 200 regardless
+    // of who's asking, because the page only fetches /api/contracts/:id (the
+    // real boundary, checked above) after it loads in the browser. A raw
+    // fetch here can't carry the browser's localStorage token either, so
+    // "the page 404s for Creator B" isn't something this script can observe
+    // directly. What it CAN verify: the server-rendered HTML never embeds
+    // the contract body for anyone, authorized or not — there is no
+    // SSR-time leak to catch regardless of auth.
+    await check('/contracts/:id server HTML never embeds the contract body (client-fetched only, no SSR leak)', async () => {
+      const res = await request(`/contracts/${CONTRACT_ID}`)
+      const text = await res.text()
+      const leaked = leaksAnyKey(text, ['body_snapshot', 'body_hash', ...FORBIDDEN_CREATOR_KEYS])
+      return { pass: res.status === 200 && leaked.length === 0, detail: `status ${res.status}, leaked: ${leaked.join(',') || 'none'}` }
+    })
+
+    await check('Contract body contains no client_name/charge_amount/brand_notes', async () => {
+      const res = await request(`/api/contracts/${CONTRACT_ID}`, { headers: authHeaders(BRAND_A_TOKEN) })
+      const text = await res.text()
+      const leaked = leaksAnyKey(text, FORBIDDEN_CREATOR_KEYS)
+      return { pass: res.status === 200 && leaked.length === 0, detail: `status ${res.status}, leaked: ${leaked.join(',') || 'none'}` }
+    })
+  } else {
+    skip('Phase 4: contract checks', 'CONTRACT_ID not set')
+  }
+
+  if (SHARE_TOKEN) {
+    await check('GET /api/share/:token has no payout_amount/profit/brand_notes anywhere', async () => {
+      const res = await request(`/api/share/${SHARE_TOKEN}`)
+      const text = await res.text()
+      const leaked = leaksAnyKey(text, ['payout_amount', 'total_payout', 'profit', 'total_profit', 'brand_notes'])
+      return { pass: res.status === 200 && leaked.length === 0, detail: `status ${res.status}, leaked: ${leaked.join(',') || 'none'}` }
+    })
+  } else {
+    skip('Phase 4: share link checks', 'SHARE_TOKEN not set')
+  }
+
   // Positive controls — if these fail, every 404 above might just mean the
   // route is broken for everyone, not that access control actually works.
   await check('[control] Brand A CAN read the conversation', async () => {
@@ -183,6 +274,20 @@ async function main() {
     const res = await request(`/api/conversations/${CONVERSATION_ID}`, { headers: authHeaders(CREATOR_A_TOKEN) })
     return { pass: res.status === 200, detail: `status ${res.status}` }
   })
+
+  if (CONTRACT_ID) {
+    await check('[control] Brand A CAN read the contract', async () => {
+      const res = await request(`/api/contracts/${CONTRACT_ID}`, { headers: authHeaders(BRAND_A_TOKEN) })
+      return { pass: res.status === 200, detail: `status ${res.status}` }
+    })
+
+    await check('[control] Creator A CAN read the contract', async () => {
+      const res = await request(`/api/contracts/${CONTRACT_ID}`, { headers: authHeaders(CREATOR_A_TOKEN) })
+      return { pass: res.status === 200, detail: `status ${res.status}` }
+    })
+  } else {
+    skip('[control] Brand A / Creator A CAN read the contract', 'CONTRACT_ID not set')
+  }
 
   console.log(`\n${passCount} passed, ${failCount} failed, ${skipCount} skipped`)
   process.exit(failCount > 0 ? 1 : 0)
