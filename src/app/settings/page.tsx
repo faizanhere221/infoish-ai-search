@@ -14,12 +14,14 @@ import {
   Loader2,
   AlertCircle,
   DollarSign,
+  Wallet,
 } from 'lucide-react'
 import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES, SERVICE_TYPES } from '@/utils/constants'
 import AvatarUpload from '@/components/AvatarUpload'
 import DashboardHeader from '@/components/DashboardHeader'
+import { PayoutMethodsSettings } from '@/components/payments/PayoutMethodsSettings'
 
-type SettingsTab = 'profile' | 'services' | 'platforms' | 'security'
+type SettingsTab = 'profile' | 'services' | 'platforms' | 'payouts' | 'security'
 
 interface CreatorProfile {
   id: string
@@ -74,7 +76,7 @@ function SettingsPageInner() {
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab') as SettingsTab | null
   const [activeTab, setActiveTab] = useState<SettingsTab>(
-    initialTab && ['profile', 'services', 'platforms', 'security'].includes(initialTab)
+    initialTab && ['profile', 'services', 'platforms', 'payouts', 'security'].includes(initialTab)
       ? initialTab
       : 'profile'
   )
@@ -92,6 +94,7 @@ function SettingsPageInner() {
     { id: 'profile' as SettingsTab, label: 'Profile', icon: User },
     { id: 'platforms' as SettingsTab, label: 'Platforms', icon: Briefcase },
     { id: 'services' as SettingsTab, label: 'Services & Rates', icon: DollarSign },
+    { id: 'payouts' as SettingsTab, label: 'Payouts', icon: Wallet },
     { id: 'security' as SettingsTab, label: 'Security', icon: Shield },
   ]
 
@@ -387,6 +390,7 @@ function SettingsPageInner() {
                   setPlatforms={setPlatforms}
                 />
               )}
+              {activeTab === 'payouts' && <PayoutMethodsSettings />}
               {activeTab === 'security' && <SecuritySettings />}
             </div>
           </main>
