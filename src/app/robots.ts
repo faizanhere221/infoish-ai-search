@@ -14,6 +14,7 @@ export default function robots(): MetadataRoute.Robots {
           '/settings/',
           '/notifications/',
           '/share/',
+          '/contracts/',
           '/auth/callback',
           '/campaigns/create',
           '/creators?*',

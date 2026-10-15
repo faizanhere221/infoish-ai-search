@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedDeliverable } from '@/lib/campaign-creator-auth'
 import { logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
+import { voidContractOnTermsChange } from '@/lib/contracts/lifecycle'
+import { getUserIdFromCreator } from '@/lib/notifications'
 import { z } from 'zod'
 
 interface RouteParams {
@@ -73,6 +75,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       actorType: 'brand',
       eventType: 'deliverable_split',
       payload: { source_deliverable_id: deliverableId, new_deliverable_id: created.id },
+    })
+
+    const recipientUserId = await getUserIdFromCreator(supabase, authorized.row.creator_id)
+    await voidContractOnTermsChange(supabase, {
+      campaignCreatorId: id,
+      creatorId: authorized.row.creator_id,
+      brandId: authorized.row.brand_id,
+      actorUserId: callerUserId,
+      reason: 'a deliverable was split',
+      recipientUserId,
     })
 
     return NextResponse.json({ message: 'Deliverable split', deliverable: created }, { status: 201 })

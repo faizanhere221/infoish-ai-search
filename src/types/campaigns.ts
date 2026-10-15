@@ -220,6 +220,9 @@ export interface CampaignCreator {
   // Server-computed from creator_deliverables (brand-owner view only)
   deliverables_pending_review?: number
   deliverables_overdue?: number
+  // Server-computed from the active (non-void) campaign_contracts row
+  // (brand-owner view only); null if no contract has been drafted yet.
+  contract_status?: string | null
   // Joined data
   creator?: TrackerCreatorSummary
   campaign?: Pick<Campaign, 'id' | 'title' | 'client_name'>

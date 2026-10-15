@@ -28,6 +28,14 @@ interface Profile { id: string; [key: string]: unknown }
 
 type SortBy = 'created' | 'planned_date' | 'profit'
 
+const CONTRACT_STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
+  draft: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Contract: draft' },
+  sent: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Contract: sent' },
+  signed_by_creator: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Contract: 1/2 signed' },
+  signed_by_brand: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Contract: 1/2 signed' },
+  fully_signed: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Contract: signed' },
+}
+
 export default function CampaignTrackerPage() {
   const params = useParams<{ id: string }>()
   const campaignId = params.id
@@ -517,6 +525,11 @@ export default function CampaignTrackerPage() {
                                     Resume auto-sync
                                   </button>
                                 </div>
+                              )}
+                              {row.contract_status && CONTRACT_STATUS_BADGE[row.contract_status] && (
+                                <span className={`mt-1 inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${CONTRACT_STATUS_BADGE[row.contract_status].bg} ${CONTRACT_STATUS_BADGE[row.contract_status].text}`}>
+                                  {CONTRACT_STATUS_BADGE[row.contract_status].label}
+                                </span>
                               )}
                             </td>
                             <td className="p-3 align-top">

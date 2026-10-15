@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 import { CAMPAIGN_CREATOR_STATUSES } from '@/types/campaigns'
+import { voidContractOnTermsChange } from '@/lib/contracts/lifecycle'
+import { getUserIdFromCreator } from '@/lib/notifications'
 
 interface RouteParams {
   params: { id: string; creatorRowId: string }
@@ -43,14 +45,14 @@ async function requireOwner(
 
   const { data: row } = await supabase
     .from('campaign_creators')
-    .select('id')
+    .select('id, creator_id, payout_amount')
     .eq('id', creatorRowId)
     .eq('campaign_id', campaignId)
     .single()
 
   if (!row) {return { error: NextResponse.json({ error: 'Not found' }, { status: 404 }) }}
 
-  return { error: null }
+  return { error: null, row, brandId: campaign.brand_id }
 }
 
 // PUT /api/campaigns/[id]/creators/[creatorRowId] — brand owner only
@@ -58,6 +60,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id, creatorRowId } = params
     const callerProfileId = request.headers.get('x-profile-id')
+    const callerUserId = request.headers.get('x-user-id')
     const callerUserType = request.headers.get('x-user-type')
 
     const body = await request.json()
@@ -70,8 +73,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const supabase = createServerSupabase()
-    const { error: authError } = await requireOwner(supabase, id, creatorRowId, callerProfileId, callerUserType)
-    if (authError) {return authError}
+    const authResult = await requireOwner(supabase, id, creatorRowId, callerProfileId, callerUserType)
+    if (authResult.error) {return authResult.error}
+    const { row: existingRow, brandId } = authResult
 
     const updates: Record<string, unknown> = { ...parsed.data, updated_at: new Date().toISOString() }
     if (updates.posted_url === '') {updates.posted_url = null}
@@ -94,6 +98,24 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Failed to update' }, { status: 500 })
     }
 
+    // Fee changed after a contract was fully signed — the signed document no
+    // longer matches reality.
+    if (
+      callerUserId && existingRow && brandId &&
+      parsed.data.payout_amount !== undefined &&
+      parsed.data.payout_amount !== existingRow.payout_amount
+    ) {
+      const recipientUserId = await getUserIdFromCreator(supabase, existingRow.creator_id)
+      await voidContractOnTermsChange(supabase, {
+        campaignCreatorId: creatorRowId,
+        creatorId: existingRow.creator_id,
+        brandId,
+        actorUserId: callerUserId,
+        reason: 'the fee changed',
+        recipientUserId,
+      })
+    }
+
     return NextResponse.json({ message: 'Updated', campaign_creator: row })
   } catch (error) {
     captureError(error, { route: 'PUT /api/campaigns/[id]/creators/[creatorRowId]' })
@@ -109,8 +131,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const callerUserType = request.headers.get('x-user-type')
 
     const supabase = createServerSupabase()
-    const { error: authError } = await requireOwner(supabase, id, creatorRowId, callerProfileId, callerUserType)
-    if (authError) {return authError}
+    const authResult = await requireOwner(supabase, id, creatorRowId, callerProfileId, callerUserType)
+    if (authResult.error) {return authResult.error}
 
     const { error } = await supabase.from('campaign_creators').delete().eq('id', creatorRowId)
 

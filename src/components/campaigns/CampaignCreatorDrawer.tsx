@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import { OfferTab } from './drawer/OfferTab'
 import { DeliverablesTab } from './drawer/DeliverablesTab'
+import { ContractTab } from './drawer/ContractTab'
 import { ActivityTab } from './drawer/ActivityTab'
 
 interface CampaignCreatorDrawerProps {
@@ -16,11 +17,12 @@ interface CampaignCreatorDrawerProps {
   onChanged: () => void
 }
 
-type DrawerTab = 'offer' | 'deliverables' | 'activity'
+type DrawerTab = 'offer' | 'deliverables' | 'contract' | 'activity'
 
 const TABS: { id: DrawerTab; label: string }[] = [
   { id: 'offer', label: 'Offer' },
   { id: 'deliverables', label: 'Deliverables' },
+  { id: 'contract', label: 'Contract' },
   { id: 'activity', label: 'Activity' },
 ]
 
@@ -68,6 +70,7 @@ export function CampaignCreatorDrawer({
             />
           )}
           {tab === 'deliverables' && <DeliverablesTab campaignCreatorId={campaignCreatorId} actorType="brand" token={token} />}
+          {tab === 'contract' && <ContractTab campaignCreatorId={campaignCreatorId} actorType="brand" token={token} />}
           {tab === 'activity' && <ActivityTab campaignCreatorId={campaignCreatorId} token={token} />}
         </div>
       </div>

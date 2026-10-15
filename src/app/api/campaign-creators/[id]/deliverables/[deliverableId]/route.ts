@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedDeliverable } from '@/lib/campaign-creator-auth'
 import { logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
+import { voidContractOnTermsChange } from '@/lib/contracts/lifecycle'
+import { getUserIdFromCreator } from '@/lib/notifications'
 import { DELIVERABLE_FORMATS } from '@/types/campaigns'
 import { z } from 'zod'
 
@@ -85,6 +87,18 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       payload: { deliverable_id: deliverableId, fields: Object.keys(parsed.data) },
     })
 
+    if (attemptingLockedField) {
+      const recipientUserId = await getUserIdFromCreator(supabase, authorized.row.creator_id)
+      await voidContractOnTermsChange(supabase, {
+        campaignCreatorId: id,
+        creatorId: authorized.row.creator_id,
+        brandId: authorized.row.brand_id,
+        actorUserId: callerUserId,
+        reason: 'a deliverable changed',
+        recipientUserId,
+      })
+    }
+
     return NextResponse.json({ message: 'Updated', deliverable: updated })
   } catch (error) {
     captureError(error, { route: 'PUT /api/campaign-creators/[id]/deliverables/[deliverableId]' })
@@ -128,6 +142,16 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       actorType: 'brand',
       eventType: 'deliverable_removed',
       payload: { deliverable_id: deliverableId, title: authorized.deliverable.title },
+    })
+
+    const recipientUserId = await getUserIdFromCreator(supabase, authorized.row.creator_id)
+    await voidContractOnTermsChange(supabase, {
+      campaignCreatorId: id,
+      creatorId: authorized.row.creator_id,
+      brandId: authorized.row.brand_id,
+      actorUserId: callerUserId,
+      reason: 'a deliverable was removed',
+      recipientUserId,
     })
 
     return NextResponse.json({ message: 'Removed' })

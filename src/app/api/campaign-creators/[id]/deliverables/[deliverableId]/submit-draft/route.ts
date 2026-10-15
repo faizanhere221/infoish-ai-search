@@ -49,6 +49,28 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: `Cannot submit a draft from status "${deliverable.status}"` }, { status: 400 })
     }
 
+    const { data: campaign } = await supabase
+      .from('campaigns')
+      .select('require_contract')
+      .eq('id', row.campaign_id)
+      .single()
+
+    if (campaign?.require_contract) {
+      const { data: contract } = await supabase
+        .from('campaign_contracts')
+        .select('status')
+        .eq('campaign_creator_id', id)
+        .neq('status', 'void')
+        .maybeSingle()
+
+      if (contract?.status !== 'fully_signed') {
+        return NextResponse.json(
+          { error: 'The contract must be fully signed by both parties before you can submit a draft' },
+          { status: 400 }
+        )
+      }
+    }
+
     const draftUrl = parsed.data.draft_url || deliverable.draft_url
     if (!draftUrl && !deliverable.draft_attachment_path) {
       return NextResponse.json({ error: 'Provide a link or upload a file before submitting' }, { status: 400 })

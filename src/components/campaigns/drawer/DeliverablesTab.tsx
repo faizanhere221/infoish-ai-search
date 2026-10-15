@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ExternalLink, FileText, Loader2, Paperclip, Plus, Upload } from 'lucide-react'
+import { ExternalLink, FileText, Loader2, Paperclip, Pencil, Plus, Scissors, Trash2, Upload } from 'lucide-react'
 import { formatDate, DELIVERABLE_STATUS_BADGE } from '@/components/campaigns/utils'
 import { DELIVERABLE_FORMATS, type CreatorDeliverable } from '@/types/campaigns'
 
@@ -12,6 +12,7 @@ interface DeliverablesTabProps {
 }
 
 const EMPTY_NEW = { title: '', platform: '', format: '', draft_due: '', publish_due: '', revisions_allowed: '2' }
+const EMPTY_EDIT = { title: '', platform: '', format: '', draft_due: '', publish_due: '' }
 
 export function DeliverablesTab({ campaignCreatorId, actorType, token }: DeliverablesTabProps) {
   const [deliverables, setDeliverables] = useState<CreatorDeliverable[]>([])
@@ -24,6 +25,8 @@ export function DeliverablesTab({ campaignCreatorId, actorType, token }: Deliver
   const [uploadingId, setUploadingId] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editDraft, setEditDraft] = useState(EMPTY_EDIT)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [fileTargetId, setFileTargetId] = useState<string | null>(null)
 
@@ -137,6 +140,98 @@ export function DeliverablesTab({ campaignCreatorId, actorType, token }: Deliver
     }
   }
 
+  function startEdit(d: CreatorDeliverable) {
+    setEditingId(d.id)
+    setEditDraft({
+      title: d.title,
+      platform: d.platform || '',
+      format: d.format || '',
+      draft_due: d.draft_due || '',
+      publish_due: d.publish_due || '',
+    })
+  }
+
+  async function saveEdit(deliverableId: string) {
+    setBusyId(deliverableId)
+    setError(null)
+    try {
+      const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables/${deliverableId}`, {
+        method: 'PUT',
+        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editDraft.title,
+          platform: editDraft.platform || null,
+          format: editDraft.format || null,
+          draft_due: editDraft.draft_due || null,
+          publish_due: editDraft.publish_due || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Failed to update deliverable')
+        return
+      }
+      setEditingId(null)
+      await load()
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function updateRevisions(deliverableId: string, revisions_allowed: number) {
+    setBusyId(deliverableId)
+    try {
+      const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables/${deliverableId}`, {
+        method: 'PUT',
+        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ revisions_allowed }),
+      })
+      if (res.ok) {await load()}
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function splitDeliverable(deliverableId: string) {
+    setBusyId(deliverableId)
+    setError(null)
+    try {
+      const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables/${deliverableId}/split`, {
+        method: 'POST',
+        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Failed to split deliverable')
+        return
+      }
+      await load()
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function removeDeliverable(deliverableId: string) {
+    if (!confirm('Remove this deliverable?')) {return}
+    setBusyId(deliverableId)
+    setError(null)
+    try {
+      const res = await fetch(`/api/campaign-creators/${campaignCreatorId}/deliverables/${deliverableId}`, {
+        method: 'DELETE',
+        headers: authHeader(),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || 'Failed to remove deliverable')
+        return
+      }
+      await load()
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   function triggerFileSelect(deliverableId: string) {
     setFileTargetId(deliverableId)
     fileInputRef.current?.click()
@@ -202,13 +297,85 @@ export function DeliverablesTab({ campaignCreatorId, actorType, token }: Deliver
           <div key={d.id} className="border border-gray-200 rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-medium text-gray-900">{d.title}</h4>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}>{badge.label}</span>
+              <div className="flex items-center gap-1.5">
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}>{badge.label}</span>
+                {actorType === 'brand' && d.status === 'pending' && (
+                  <>
+                    <button onClick={() => startEdit(d)} className="p-1 text-gray-400 hover:text-gray-600" aria-label="Edit deliverable" title="Edit">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => splitDeliverable(d.id)} disabled={busyId === d.id} className="p-1 text-gray-400 hover:text-gray-600" aria-label="Split deliverable" title="Split into two">
+                      <Scissors className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => removeDeliverable(d.id)} disabled={busyId === d.id} className="p-1 text-gray-400 hover:text-red-500" aria-label="Remove deliverable" title="Remove">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-2">
+
+            {editingId === d.id ? (
+              <div className="space-y-2 mb-3 p-3 bg-gray-50 rounded-lg">
+                <input
+                  value={editDraft.title}
+                  onChange={(e) => setEditDraft((f) => ({ ...f, title: e.target.value }))}
+                  placeholder="Title"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={editDraft.format}
+                    onChange={(e) => setEditDraft((f) => ({ ...f, format: e.target.value }))}
+                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                  >
+                    <option value="">Format…</option>
+                    {DELIVERABLE_FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+                  </select>
+                  <input
+                    value={editDraft.platform}
+                    onChange={(e) => setEditDraft((f) => ({ ...f, platform: e.target.value }))}
+                    placeholder="Platform"
+                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <input type="date" value={editDraft.draft_due} onChange={(e) => setEditDraft((f) => ({ ...f, draft_due: e.target.value }))} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+                  <input type="date" value={editDraft.publish_due} onChange={(e) => setEditDraft((f) => ({ ...f, publish_due: e.target.value }))} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setEditingId(null)} className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600">Cancel</button>
+                  <button
+                    onClick={() => saveEdit(d.id)}
+                    disabled={busyId === d.id || !editDraft.title.trim()}
+                    className="flex-1 px-3 py-1.5 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-2">
               {d.format && <span className="capitalize">{d.format}</span>}
               {d.draft_due && <span>Draft due {formatDate(d.draft_due)}</span>}
               {d.publish_due && <span>Publish due {formatDate(d.publish_due)}</span>}
-              <span>{d.revisions_used}/{d.revisions_allowed} revisions used</span>
+              {actorType === 'brand' ? (
+                <span className="inline-flex items-center gap-1">
+                  {d.revisions_used} /
+                  <input
+                    type="number"
+                    min={0}
+                    max={20}
+                    value={d.revisions_allowed}
+                    onChange={(e) => updateRevisions(d.id, Math.max(0, Number(e.target.value) || 0))}
+                    className="w-12 px-1 py-0.5 border border-gray-200 rounded text-xs"
+                    aria-label="Revisions allowed"
+                  /> revisions
+                </span>
+              ) : (
+                <span>{d.revisions_used}/{d.revisions_allowed} revisions used</span>
+              )}
             </div>
 
             {(d.draft_url || d.draft_attachment_path) && (

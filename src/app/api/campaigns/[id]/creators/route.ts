@@ -142,6 +142,23 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         countsByRow[d.campaign_creator_id] = counts
       }
 
+      // Contract status per row, for the tracker's "Contract" badge — one
+      // extra query, not N+1. Only the active (non-void) contract matters
+      // here, so the most recent version wins.
+      type ContractStatusRow = { campaign_creator_id: string; status: string; version: number }
+      const { data: contractRows } = rowIds.length > 0
+        ? await supabase
+            .from('campaign_contracts')
+            .select('campaign_creator_id, status, version')
+            .in('campaign_creator_id', rowIds)
+            .neq('status', 'void')
+        : { data: [] as ContractStatusRow[] }
+
+      const contractStatusByRow: Record<string, string> = {}
+      for (const c of (contractRows || []) as ContractStatusRow[]) {
+        contractStatusByRow[c.campaign_creator_id] = c.status
+      }
+
       const withRelations = (rows || []).map((row) => {
         const creator = creators.find((c) => c.id === row.creator_id) || null
         const counts = countsByRow[row.id] || { pendingReview: 0, overdue: 0 }
@@ -151,6 +168,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           campaign: campaignSummary,
           deliverables_pending_review: counts.pendingReview,
           deliverables_overdue: counts.overdue,
+          contract_status: contractStatusByRow[row.id] ?? null,
         }
       })
 

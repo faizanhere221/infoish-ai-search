@@ -24,6 +24,10 @@ export type NotificationType =
   | 'deliverable_approved'
   | 'deliverable_posted'
   | 'deliverable_completed'
+  | 'contract_sent'
+  | 'contract_signed'
+  | 'contract_fully_signed'
+  | 'contract_voided'
 
 // related_type values used by the `related_type`/`related_id` columns below,
 // resolved back into a link by the notifications page (src/app/notifications/page.tsx)

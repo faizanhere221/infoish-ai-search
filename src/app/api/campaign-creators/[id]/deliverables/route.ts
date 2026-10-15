@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedCampaignCreatorRow } from '@/lib/campaign-creator-auth'
 import { logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
+import { voidContractOnTermsChange } from '@/lib/contracts/lifecycle'
+import { getUserIdFromCreator } from '@/lib/notifications'
 import { DELIVERABLE_FORMATS } from '@/types/campaigns'
 import { z } from 'zod'
 
@@ -105,6 +107,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       actorType: 'brand',
       eventType: 'deliverable_added',
       payload: { deliverable_id: deliverable.id, title: deliverable.title },
+    })
+
+    const recipientUserId = await getUserIdFromCreator(supabase, authorized.row.creator_id)
+    await voidContractOnTermsChange(supabase, {
+      campaignCreatorId: id,
+      creatorId: authorized.row.creator_id,
+      brandId: authorized.row.brand_id,
+      actorUserId: callerUserId,
+      reason: 'a deliverable was added',
+      recipientUserId,
     })
 
     return NextResponse.json({ message: 'Deliverable added', deliverable }, { status: 201 })
