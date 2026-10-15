@@ -158,6 +158,7 @@ export default function RosterPage() {
                   <th className="p-3">Platform</th>
                   <th className="p-3 text-right">Followers</th>
                   <th className="p-3 text-right">Avg views</th>
+                  <th className="p-3">Performance with you</th>
                   <th className="p-3 text-right">Typical payout</th>
                   <th className="p-3 text-right">Typical charge</th>
                   <th className="p-3">Tags</th>
@@ -221,6 +222,20 @@ function RosterRow({
       <td className="p-3 text-gray-600">{entry.creator?.primary_platform || '—'}</td>
       <td className="p-3 text-right text-gray-900">{entry.creator?.total_followers?.toLocaleString() ?? '—'}</td>
       <td className="p-3 text-right text-gray-900">{entry.creator?.avg_views?.toLocaleString() ?? '—'}</td>
+      <td className="p-3 text-xs text-gray-600">
+        {entry.performance && entry.performance.campaigns_done > 0 ? (
+          <div className="space-y-0.5">
+            <p>{entry.performance.campaigns_done} campaign{entry.performance.campaigns_done === 1 ? '' : 's'} done</p>
+            <p>
+              {entry.performance.avg_views !== null ? `${entry.performance.avg_views.toLocaleString()} avg views` : ''}
+              {entry.performance.avg_cpm !== null ? ` · ${formatMoney(entry.performance.avg_cpm, entry.currency)} avg CPM` : ''}
+            </p>
+            {entry.performance.on_time_pct !== null && <p>{entry.performance.on_time_pct.toFixed(0)}% on-time</p>}
+          </div>
+        ) : (
+          <span className="text-gray-300">No history yet</span>
+        )}
+      </td>
       <td className="p-3 text-right">
         {isEditing ? (
           <input type="number" min="0" value={payout} onChange={(e) => setPayout(e.target.value)} className="w-24 px-2 py-1 border border-gray-200 rounded text-sm text-right" />

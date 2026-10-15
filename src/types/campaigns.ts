@@ -285,6 +285,14 @@ export interface RosterEntry {
     avg_engagement_rate: number | null
     avg_views: number | null
   }
+  // Server-computed from this brand's own campaign_creators/results history
+  // with this creator — never across other brands.
+  performance?: {
+    campaigns_done: number
+    avg_views: number | null
+    avg_cpm: number | null
+    on_time_pct: number | null
+  }
 }
 
 export interface CampaignDeliverable {

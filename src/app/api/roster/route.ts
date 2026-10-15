@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
+import { latestResultByDeliverable, onTimeRate, cpm, type ResultRow, type DeliverableForReport } from '@/lib/reporting'
 
 const AddToRosterSchema = z.object({
   creator_id: z.string().min(1),
@@ -99,6 +100,65 @@ export async function GET(request: NextRequest) {
       filteredEntries = filteredEntries.filter((e) => primaryByCreator[e.creator_id]?.platform === platform)
     }
 
+    // Performance history — this brand's own history with each creator
+    // (campaigns done, avg views delivered, avg CPM, on-time %), pulled from
+    // results. One batch of queries for the whole page, not N+1.
+    const { data: brandCampaigns } = await supabase.from('campaigns').select('id').eq('brand_id', callerProfileId)
+    const brandCampaignIds = (brandCampaigns || []).map((c) => c.id)
+
+    const { data: historyRows } = brandCampaignIds.length > 0 && creatorIds.length > 0
+      ? await supabase
+          .from('campaign_creators')
+          .select('id, creator_id, status, charge_amount')
+          .in('campaign_id', brandCampaignIds)
+          .in('creator_id', creatorIds)
+      : { data: [] }
+
+    const historyRowIds = (historyRows || []).map((r) => r.id)
+    const { data: historyDeliverables } = historyRowIds.length > 0
+      ? await supabase
+          .from('creator_deliverables')
+          .select('id, campaign_creator_id, status, posted_at, publish_due')
+          .in('campaign_creator_id', historyRowIds)
+      : { data: [] as (DeliverableForReport & { campaign_creator_id: string })[] }
+
+    const { data: historyResults } = (historyDeliverables || []).length > 0
+      ? await supabase
+          .from('deliverable_results')
+          .select('deliverable_id, captured_at, views, likes, comments, shares, clicks, saves')
+          .in('deliverable_id', (historyDeliverables || []).map((d) => d.id))
+      : { data: [] as ResultRow[] }
+
+    const latestResultByDel = latestResultByDeliverable((historyResults || []) as ResultRow[])
+    const viewsByRow: Record<string, number> = {}
+    const deliverablesByRow = new Map<string, DeliverableForReport[]>()
+    for (const d of historyDeliverables || []) {
+      const r = latestResultByDel.get(d.id)
+      if (r) {viewsByRow[d.campaign_creator_id] = (viewsByRow[d.campaign_creator_id] || 0) + r.views}
+      const list = deliverablesByRow.get(d.campaign_creator_id) || []
+      list.push(d)
+      deliverablesByRow.set(d.campaign_creator_id, list)
+    }
+
+    const performanceByCreator: Record<string, { campaigns_done: number; avg_views: number | null; avg_cpm: number | null; on_time_pct: number | null }> = {}
+    for (const creatorId of creatorIds) {
+      const rowsForCreator = (historyRows || []).filter((r) => r.creator_id === creatorId)
+      if (rowsForCreator.length === 0) {
+        performanceByCreator[creatorId] = { campaigns_done: 0, avg_views: null, avg_cpm: null, on_time_pct: null }
+        continue
+      }
+      const campaignsDone = rowsForCreator.filter((r) => r.status === 'completed').length
+      const totalViews = rowsForCreator.reduce((sum, r) => sum + (viewsByRow[r.id] || 0), 0)
+      const totalCharge = rowsForCreator.reduce((sum, r) => sum + (r.charge_amount || 0), 0)
+      const allDeliverables = rowsForCreator.flatMap((r) => deliverablesByRow.get(r.id) || [])
+      performanceByCreator[creatorId] = {
+        campaigns_done: campaignsDone,
+        avg_views: rowsForCreator.length > 0 ? Math.round(totalViews / rowsForCreator.length) : null,
+        avg_cpm: cpm(totalCharge, totalViews),
+        on_time_pct: onTimeRate(allDeliverables),
+      }
+    }
+
     const roster = filteredEntries.map((entry) => {
       const creator = creators.find((c) => c.id === entry.creator_id) || null
       const primaryPlatform = primaryByCreator[entry.creator_id]
@@ -109,6 +169,7 @@ export async function GET(request: NextRequest) {
           primary_platform: primaryPlatform?.platform ?? null,
           avg_views: primaryPlatform?.avg_views ?? null,
         } : null,
+        performance: performanceByCreator[entry.creator_id] || { campaigns_done: 0, avg_views: null, avg_cpm: null, on_time_pct: null },
       }
     })
 
