@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
-import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
+import { getUserIdFromCreator } from '@/lib/notifications'
 import { postDealSystemMessage } from '@/lib/deal-messages'
+import { emitEvent } from '@/lib/events/emit'
 import { captureError } from '@/lib/error-tracking'
 
 interface RouteParams {
@@ -104,16 +105,14 @@ export async function POST(
     })
 
     const creatorUserId = await getUserIdFromCreator(supabase, deal.creator_id)
-    if (creatorUserId) {
-      await createNotification(supabase, {
-        userId: creatorUserId,
-        type: 'deal_revision',
-        title: 'Revision requested',
-        content: `"${deal.title}" requires a revision. Please check the feedback.`,
-        relatedType: 'deal',
-        relatedId: id,
-      })
-    }
+    await emitEvent(supabase, {
+      type: 'deal_revision',
+      actorUserId: request.headers.get('x-user-id') ?? deal.brand_id,
+      recipientUserIds: [creatorUserId],
+      relatedType: 'deal',
+      relatedId: id,
+      data: { dealTitle: deal.title },
+    })
 
     return NextResponse.json({ message: 'Revision requested', deal: updatedDeal })
 

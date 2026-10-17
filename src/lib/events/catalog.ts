@@ -274,8 +274,8 @@ export const EVENT_CATALOG: Record<string, EventCatalogEntry> = {
   deal_created: {
     category: 'account',
     priority: 'action',
-    title: () => 'New deal proposal',
-    content: (d) => `You received a new deal proposal: "${str(d, 'dealTitle')}"`,
+    title: () => 'New deal offer',
+    content: (d) => `You received a new deal offer: "${str(d, 'dealTitle')}"`,
   },
   deal_accepted: {
     category: 'account',
@@ -287,19 +287,19 @@ export const EVENT_CATALOG: Record<string, EventCatalogEntry> = {
     category: 'account',
     priority: 'info',
     title: () => 'Deal declined',
-    content: (d) => `Your deal "${str(d, 'dealTitle')}" was declined.`,
+    content: (d) => `Your deal "${str(d, 'dealTitle')}" was declined by the creator.`,
   },
   deal_delivered: {
     category: 'account',
     priority: 'action',
-    title: () => 'Deal delivered',
-    content: (d) => `"${str(d, 'dealTitle')}" has been delivered. Please review.`,
+    title: () => 'Delivery ready for review',
+    content: (d) => `"${str(d, 'dealTitle')}" has been delivered. Please review and approve.`,
   },
   deal_approved: {
     category: 'account',
     priority: 'info',
-    title: () => 'Deal approved',
-    content: (d) => `Your delivery for "${str(d, 'dealTitle')}" was approved.`,
+    title: () => 'Deal completed!',
+    content: (d) => `"${str(d, 'dealTitle')}" has been approved by the brand. Great work!`,
   },
   deal_completed: {
     category: 'account',
@@ -311,6 +311,6 @@ export const EVENT_CATALOG: Record<string, EventCatalogEntry> = {
     category: 'account',
     priority: 'action',
     title: () => 'Revision requested',
-    content: (d) => `Changes were requested on "${str(d, 'dealTitle')}".`,
+    content: (d) => `"${str(d, 'dealTitle')}" requires a revision. Please check the feedback.`,
   },
 }

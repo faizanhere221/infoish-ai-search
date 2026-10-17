@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
-import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
+import { getUserIdFromCreator } from '@/lib/notifications'
+import { emitEvent } from '@/lib/events/emit'
 import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 import { APPLICATION_STATUSES } from '@/types/campaigns'
@@ -13,23 +14,12 @@ const UpdateApplicationStatusSchema = z.object({
   status: z.enum(APPLICATION_STATUSES as unknown as [string, ...string[]]),
 })
 
-const STATUS_NOTIFICATION: Record<string, { title: string; message: (campaignTitle: string) => string }> = {
-  viewed: {
-    title: 'Application viewed',
-    message: (t) => `Your application for "${t}" was viewed`,
-  },
-  shortlisted: {
-    title: "You've been shortlisted!",
-    message: (t) => `You've been shortlisted for "${t}"`,
-  },
-  rejected: {
-    title: 'Application update',
-    message: (t) => `Your application for "${t}" was declined`,
-  },
-  hired: {
-    title: "You've been hired!",
-    message: (t) => `You've been hired for "${t}"`,
-  },
+// Maps an application status to its EVENT_CATALOG type (src/lib/events/catalog.ts).
+const STATUS_EVENT_TYPE: Record<string, string> = {
+  viewed: 'application_viewed',
+  shortlisted: 'application_shortlisted',
+  rejected: 'application_rejected',
+  hired: 'application_hired',
 }
 
 // PUT /api/campaigns/[id]/applications/[applicationId] - Update application status (campaign owner only)
@@ -85,7 +75,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       .single()
 
     if (error) {
-      console.error('Error updating application status:', error)
+      captureError(error, { route: 'PUT /api/campaigns/[id]/applications/[applicationId]' })
       return NextResponse.json({ error: 'Failed to update application status' }, { status: 500 })
     }
 
@@ -120,15 +110,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const creatorUserId = await getUserIdFromCreator(supabase, application.creator_id)
-    if (creatorUserId) {
-      const notification = STATUS_NOTIFICATION[status]
-      await createNotification(supabase, {
-        userId: creatorUserId,
-        type: 'campaign_application_update',
-        title: notification?.title ?? 'Application status updated',
-        content: notification?.message(campaign.title) ?? `Your application for "${campaign.title}" is now ${status}.`,
+    const eventType = STATUS_EVENT_TYPE[status]
+    if (creatorUserId && eventType) {
+      await emitEvent(supabase, {
+        type: eventType,
+        actorUserId: request.headers.get('x-user-id') ?? callerProfileId ?? '',
+        recipientUserIds: [creatorUserId],
         relatedType: 'campaign_application',
         relatedId: applicationId,
+        data: { campaignTitle: campaign.title },
       })
     }
 

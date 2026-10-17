@@ -30,7 +30,7 @@ interface RecordActionParams {
 // notify the other party. Centralized here so no route forgets one of them.
 //
 // Fire-and-forget, guaranteed: the whole body is wrapped in try/catch, not
-// just each individual Supabase call. createNotification()/
+// just each individual Supabase call. emitEvent()/
 // postDealSystemMessage() already swallow their own query errors, but a
 // genuinely unexpected throw (a network blip, a malformed argument) must
 // still never fail the offer/deliverable action that triggered this —

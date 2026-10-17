@@ -8,7 +8,8 @@
 // must never block a deal from completing.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createNotification } from '@/lib/notifications'
+import { getUserIdFromCreator } from '@/lib/notifications'
+import { emitEvent } from '@/lib/events/emit'
 import { formatCents } from '@/lib/referral'
 
 interface CalculateCommissionParams {
@@ -154,12 +155,13 @@ export async function calculateReferralCommission(
       const { data: creator } = await supabase.from('creators').select('display_name').eq('id', creatorId).single()
       if (creator?.display_name) {creatorName = creator.display_name}
 
-      await createNotification(supabase, {
-        userId: partner.user_id,
+      const creatorUserId = await getUserIdFromCreator(supabase, creatorId)
+      await emitEvent(supabase, {
         type: 'referral_commission_earned',
-        title: 'You earned a commission!',
-        content: `You earned ${formatCents(commissionAmountCents)} commission from ${creatorName}'s deal.`,
+        actorUserId: creatorUserId ?? partner.user_id,
+        recipientUserIds: [partner.user_id],
         relatedType: 'partner',
+        data: { amountFormatted: formatCents(commissionAmountCents), creatorName },
       })
     }
 

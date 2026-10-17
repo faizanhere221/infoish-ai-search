@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
-import { createNotification, getUserIdFromBrand } from '@/lib/notifications'
+import { getUserIdFromBrand } from '@/lib/notifications'
+import { emitEvent } from '@/lib/events/emit'
 import { z } from 'zod'
 
 interface RouteParams {
@@ -157,16 +158,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // increment it here.
 
     const brandUserId = await getUserIdFromBrand(supabase, campaign.brand_id)
-    if (brandUserId) {
-      await createNotification(supabase, {
-        userId: brandUserId,
-        type: 'campaign_application',
-        title: 'New campaign application',
-        content: `You received a new application for "${campaign.title}"`,
-        relatedType: 'campaign',
-        relatedId: id,
-      })
-    }
+    await emitEvent(supabase, {
+      type: 'application_received',
+      actorUserId: request.headers.get('x-user-id') ?? callerProfileId,
+      recipientUserIds: [brandUserId],
+      relatedType: 'campaign',
+      relatedId: id,
+      data: { campaignTitle: campaign.title },
+    })
 
     return NextResponse.json(
       { message: 'Application submitted successfully', application },

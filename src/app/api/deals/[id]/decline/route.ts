@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
-import { createNotification, getUserIdFromBrand } from '@/lib/notifications'
+import { getUserIdFromBrand } from '@/lib/notifications'
 import { postDealSystemMessage } from '@/lib/deal-messages'
+import { emitEvent } from '@/lib/events/emit'
 import { captureError } from '@/lib/error-tracking'
 
 interface RouteParams {
@@ -76,16 +77,14 @@ export async function POST(
     })
 
     const brandUserId = await getUserIdFromBrand(supabase, deal.brand_id)
-    if (brandUserId) {
-      await createNotification(supabase, {
-        userId: brandUserId,
-        type: 'deal_declined',
-        title: 'Deal declined',
-        content: `Your deal "${deal.title}" was declined by the creator.`,
-        relatedType: 'deal',
-        relatedId: id,
-      })
-    }
+    await emitEvent(supabase, {
+      type: 'deal_declined',
+      actorUserId: request.headers.get('x-user-id') ?? deal.creator_id,
+      recipientUserIds: [brandUserId],
+      relatedType: 'deal',
+      relatedId: id,
+      data: { dealTitle: deal.title },
+    })
 
     return NextResponse.json({ message: 'Deal declined', deal: updatedDeal })
 

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
-import { createNotification, getUserIdFromBrand } from '@/lib/notifications'
+import { getUserIdFromBrand } from '@/lib/notifications'
 import { postDealSystemMessage } from '@/lib/deal-messages'
+import { emitEvent } from '@/lib/events/emit'
 import { captureError } from '@/lib/error-tracking'
 
 interface RouteParams {
@@ -114,16 +115,14 @@ export async function POST(
 
     // Notify the brand that the delivery is ready for review
     const brandUserId = await getUserIdFromBrand(supabase, deal.brand_id)
-    if (brandUserId) {
-      await createNotification(supabase, {
-        userId: brandUserId,
-        type: 'deal_delivered',
-        title: 'Delivery ready for review',
-        content: `"${deal.title}" has been delivered. Please review and approve.`,
-        relatedType: 'deal',
-        relatedId: id,
-      })
-    }
+    await emitEvent(supabase, {
+      type: 'deal_delivered',
+      actorUserId: request.headers.get('x-user-id') ?? deal.creator_id,
+      recipientUserIds: [brandUserId],
+      relatedType: 'deal',
+      relatedId: id,
+      data: { dealTitle: deal.title },
+    })
 
     return NextResponse.json({
       message: 'Delivery submitted successfully',

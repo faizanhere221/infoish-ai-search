@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
-import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
+import { getUserIdFromCreator } from '@/lib/notifications'
 import { calculateReferralCommission } from '@/lib/referral-commissions'
 import { postDealSystemMessage } from '@/lib/deal-messages'
+import { emitEvent } from '@/lib/events/emit'
 import { captureError, captureMessage } from '@/lib/error-tracking'
 
 interface RouteParams {
@@ -142,16 +143,14 @@ export async function POST(
 
     // Notify the creator that the deal is approved and completed
     const creatorUserId = await getUserIdFromCreator(supabase, deal.creator_id)
-    if (creatorUserId) {
-      await createNotification(supabase, {
-        userId: creatorUserId,
-        type: 'deal_approved',
-        title: 'Deal completed!',
-        content: `"${deal.title}" has been approved by the brand. Great work!`,
-        relatedType: 'deal',
-        relatedId: id,
-      })
-    }
+    await emitEvent(supabase, {
+      type: 'deal_approved',
+      actorUserId: request.headers.get('x-user-id') ?? deal.brand_id,
+      recipientUserIds: [creatorUserId],
+      relatedType: 'deal',
+      relatedId: id,
+      data: { dealTitle: deal.title },
+    })
 
     return NextResponse.json({
       message: 'Deal approved and completed',

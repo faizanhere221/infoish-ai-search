@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
-import { createNotification, getUserIdFromCreator } from '@/lib/notifications'
+import { getUserIdFromCreator, getUserIdFromBrand } from '@/lib/notifications'
+import { emitEvent } from '@/lib/events/emit'
 import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
@@ -205,14 +206,15 @@ export async function POST(request: NextRequest) {
     // blip, unexpected throw) must never turn into a failed deal creation.
     try {
       const creatorUserId = await getUserIdFromCreator(supabase, creator_id)
-      if (creatorUserId) {
-        await createNotification(supabase, {
-          userId: creatorUserId,
+      const actorUserId = request.headers.get('x-user-id') ?? await getUserIdFromBrand(supabase, brand_id)
+      if (creatorUserId && actorUserId) {
+        await emitEvent(supabase, {
           type: 'deal_created',
-          title: 'New deal offer',
-          content: `You received a new deal offer: "${title}"`,
+          actorUserId,
+          recipientUserIds: [creatorUserId],
           relatedType: 'deal',
           relatedId: deal.id,
+          data: { dealTitle: title },
         })
       }
     } catch (notifyError) {

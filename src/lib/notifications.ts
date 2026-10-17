@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { captureError } from '@/lib/error-tracking'
 
+// Still used by the vestigial optional `notification.type` field in
+// RecordActionParams (src/lib/campaign-creator-events.ts) — EVENT_CATALOG
+// (src/lib/events/catalog.ts) is the real source of notification copy now.
 export type NotificationType =
   | 'deal_created'
   | 'deal_accepted'
@@ -34,45 +36,6 @@ export type NotificationType =
   | 'payment_disputed'
   | 'payment_cancelled'
   | 'payout_method_missing'
-
-// related_type values used by the `related_type`/`related_id` columns below,
-// resolved back into a link by the notifications page (src/app/notifications/page.tsx).
-// recordCampaignCreatorAction() also passes its own eventType string
-// straight through here (e.g. 'offer_sent', 'contract_signed_by_creator') —
-// those aren't enumerated in this union since the full list lives in
-// src/lib/campaign-creator-cta.ts's lookup table, the single source of
-// truth for both the chat-card button and the notifications link.
-export type NotificationRelatedType = 'deal' | 'campaign' | 'campaign_application' | 'partner' | 'campaign_creator'
-
-interface NotificationPayload {
-  userId: string
-  type: NotificationType
-  title: string
-  content: string
-  relatedType?: NotificationRelatedType | string
-  relatedId?: string
-}
-
-// Fire-and-forget: logs on error, never throws (never blocks the calling route).
-// Columns match the real `notifications` table (schema.sql:465-485): content,
-// related_type, related_id — NOT message/link, which don't exist on the table.
-export async function createNotification(
-  supabase: SupabaseClient,
-  payload: NotificationPayload
-): Promise<void> {
-  const { error } = await supabase.from('notifications').insert({
-    user_id: payload.userId,
-    type: payload.type,
-    title: payload.title,
-    content: payload.content,
-    related_type: payload.relatedType ?? null,
-    related_id: payload.relatedId ?? null,
-    is_read: false,
-  })
-  if (error) {
-    captureError(error, { context: 'createNotification', type: payload.type })
-  }
-}
 
 // Look up user_id from a creator profile id
 export async function getUserIdFromCreator(
