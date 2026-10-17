@@ -1,6 +1,32 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { captureError } from '@/lib/error-tracking'
-import { EVENT_CATALOG } from '@/lib/events/catalog'
+import { EVENT_CATALOG, type NotificationCategory } from '@/lib/events/catalog'
+import { sendEmail, type EmailCategory } from '@/lib/email/send'
+import { actionNotificationTemplate } from '@/lib/email/templates/actionNotification'
+import { getEventCta, getEventTab } from '@/lib/campaign-creator-cta'
+import { getUserIdFromCreator } from '@/lib/notifications'
+import { signUnsubscribeToken } from '@/lib/email/unsubscribeToken'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
+
+// Immediate email, per Phase 6B's spec — a specific curated subset of
+// 'action' events, not every one (e.g. deliverable_approved/posted are
+// 'action' too but deliberately not here: the brand/creator already sees
+// them the moment they open the app, and "a draft was approved" isn't as
+// time-sensitive as "a contract is waiting on your signature"). Everything
+// else ('info' events, and 'action' events not in this set) only ever
+// reaches email through the daily summary.
+const IMMEDIATE_EMAIL_EVENTS = new Set([
+  'offer_sent',
+  'offer_countered',
+  'contract_sent',
+  'contract_signed_by_creator',
+  'deliverable_draft_submitted',
+  'deliverable_changes_requested',
+  'payment_marked_paid',
+  'payment_disputed',
+  'added_to_campaign',
+])
 
 export interface EmitEventParams {
   // Must be a key in EVENT_CATALOG (src/lib/events/catalog.ts) — also the
@@ -69,24 +95,115 @@ export async function emitEvent(supabase: SupabaseClient, params: EmitEventParam
     )]
 
     for (const recipientUserId of recipients) {
-      const { error } = await supabase.from('notifications').insert({
-        user_id: recipientUserId,
-        type: params.type,
-        category: entry.category,
-        priority: entry.priority,
-        title,
-        content,
-        related_type: relatedType,
-        related_id: relatedId,
-        data,
-        is_read: false,
-      })
-      if (error) {
-        captureError(error, { context: 'emitEvent: notification', type: params.type, recipientUserId })
+      const { data: inserted, error } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: recipientUserId,
+          type: params.type,
+          category: entry.category,
+          priority: entry.priority,
+          title,
+          content,
+          related_type: relatedType,
+          related_id: relatedId,
+          data,
+          is_read: false,
+        })
+        .select('id')
+        .single()
+      if (error || !inserted) {
+        captureError(error ?? new Error('notification insert returned no row'), { context: 'emitEvent: notification', type: params.type, recipientUserId })
+        continue
+      }
+
+      if (IMMEDIATE_EMAIL_EVENTS.has(params.type)) {
+        await maybeSendImmediateEmail(supabase, {
+          notificationId: inserted.id,
+          type: params.type,
+          title,
+          content,
+          category: entry.category,
+          campaignCreatorId: params.campaignCreatorId,
+          recipientUserId,
+        })
       }
     }
   } catch (error) {
     captureError(error, { context: 'emitEvent', type: params.type })
+  }
+}
+
+// Only called for the curated IMMEDIATE_EMAIL_EVENTS set — never fails the
+// caller (emitEvent already wraps this in its own try/catch at the call
+// site's level, but this adds its own too, since a thrown lookup here must
+// not skip whatever comes after it in the recipients loop).
+async function maybeSendImmediateEmail(
+  supabase: SupabaseClient,
+  params: {
+    notificationId: string
+    type: string
+    title: string
+    content: string
+    category: NotificationCategory
+    campaignCreatorId?: string
+    recipientUserId: string
+  }
+): Promise<void> {
+  try {
+    const { data: user } = await supabase
+      .from('users')
+      .select('email, email_preferences')
+      .eq('id', params.recipientUserId)
+      .single()
+    if (!user?.email) {return}
+
+    const prefs = (user.email_preferences ?? {}) as Record<string, boolean>
+    if (prefs[params.category] === false) {return}
+
+    let buttonUrl = `${APP_URL}/notifications`
+    let buttonLabel = 'View details'
+
+    if (params.campaignCreatorId) {
+      const { data: row } = await supabase
+        .from('campaign_creators')
+        .select('creator_id')
+        .eq('id', params.campaignCreatorId)
+        .single()
+      if (row) {
+        const creatorUserId = await getUserIdFromCreator(supabase, row.creator_id)
+        const viewerType = creatorUserId === params.recipientUserId ? 'creator' : 'brand'
+        const cta = getEventCta(params.type, viewerType)
+        const tab = cta?.tab ?? getEventTab(params.type) ?? 'offer'
+        buttonUrl = `${APP_URL}/dashboard/go/${params.campaignCreatorId}?tab=${tab}`
+        buttonLabel = cta?.label ?? 'View details'
+      }
+    }
+
+    const unsubscribeUrl = `${APP_URL}/api/email/unsubscribe?token=${signUnsubscribeToken(params.recipientUserId, params.category)}`
+    const manageSettingsUrl = `${APP_URL}/settings`
+    const template = actionNotificationTemplate({
+      title: params.title,
+      content: params.content,
+      buttonLabel,
+      buttonUrl,
+      manageSettingsUrl,
+      unsubscribeUrl,
+    })
+
+    await sendEmail({
+      to: user.email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+      category: params.category as EmailCategory,
+      template: `action_${params.type}`,
+      idempotencyKey: `notification:${params.notificationId}`,
+      userId: params.recipientUserId,
+      deferrable: true,
+      unsubscribeUrl,
+    })
+  } catch (error) {
+    captureError(error, { context: 'maybeSendImmediateEmail', type: params.type })
   }
 }
 

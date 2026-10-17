@@ -42,6 +42,13 @@ function actorLabel(data: Record<string, unknown>): string {
 }
 
 export const EVENT_CATALOG: Record<string, EventCatalogEntry> = {
+  added_to_campaign: {
+    category: 'work',
+    priority: 'action',
+    title: () => "You've been added to a campaign",
+    content: (d) => `You've been added to "${str(d, 'campaignTitle')}".`,
+  },
+
   // ── Offers ──────────────────────────────────────────────────────────────
   offer_sent: {
     category: 'offers',

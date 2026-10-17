@@ -4,6 +4,12 @@ import { captureError, captureMessage } from '@/lib/error-tracking'
 
 export type EmailCategory = 'messages' | 'offers' | 'contracts' | 'work' | 'payments' | 'daily_summary' | 'security'
 
+// The categories a user can actually toggle (users.email_preferences) —
+// 'security' is excluded on purpose: welcome/verification/password-reset
+// emails are never gated by preferences.
+export const PREFERENCE_CATEGORIES = ['messages', 'offers', 'contracts', 'work', 'payments', 'daily_summary'] as const
+export type PreferenceCategory = (typeof PREFERENCE_CATEGORIES)[number]
+
 export interface SendEmailParams {
   to: string
   subject: string

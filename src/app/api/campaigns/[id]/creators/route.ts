@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { CAMPAIGN_CREATOR_STATUSES } from '@/types/campaigns'
 import { refreshDuePayments } from '@/lib/payments/engine'
 import { expireStaleOffers } from '@/lib/campaign-creator-auth'
+import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
+import { getUserIdFromCreator } from '@/lib/notifications'
 
 interface RouteParams {
   params: { id: string }
@@ -311,7 +313,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const { data: campaign } = await supabase
       .from('campaigns')
-      .select('id, brand_id')
+      .select('id, brand_id, title')
       .eq('id', id)
       .single()
 
@@ -355,6 +357,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       captureError(error, { route: 'POST /api/campaigns/[id]/creators' })
       return NextResponse.json({ error: 'Failed to add creator' }, { status: 500 })
     }
+
+    const creatorUserId = await getUserIdFromCreator(supabase, parsed.data.creator_id)
+    await recordCampaignCreatorAction(supabase, {
+      campaignCreatorId: row.id,
+      creatorId: parsed.data.creator_id,
+      brandId: campaign.brand_id,
+      actorUserId: request.headers.get('x-user-id') ?? callerProfileId ?? '',
+      actorType: 'brand',
+      eventType: 'added_to_campaign',
+      payload: { campaignTitle: campaign.title },
+      systemMessage: `📣 Added to the campaign "${campaign.title}".`,
+      notification: { recipientUserId: creatorUserId },
+    })
 
     return NextResponse.json({ message: 'Creator added', campaign_creator: row }, { status: 201 })
   } catch (error) {

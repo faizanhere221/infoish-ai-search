@@ -18,6 +18,8 @@ interface EventCta {
 }
 
 export const EVENT_CTA: Record<string, EventCta> = {
+  added_to_campaign: { tab: 'offer', creator: 'View campaign' },
+
   offer_sent: { tab: 'offer', creator: 'Review offer', brand: 'View offer' },
   offer_countered: { tab: 'offer', creator: 'Review counter-offer', brand: 'Review counter-offer' },
   offer_accepted: { tab: 'offer', creator: 'View offer', brand: 'View offer' },
