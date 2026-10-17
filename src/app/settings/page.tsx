@@ -15,13 +15,15 @@ import {
   AlertCircle,
   DollarSign,
   Wallet,
+  Mail,
 } from 'lucide-react'
 import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES, SERVICE_TYPES } from '@/utils/constants'
 import AvatarUpload from '@/components/AvatarUpload'
 import DashboardHeader from '@/components/DashboardHeader'
 import { PayoutMethodsSettings } from '@/components/payments/PayoutMethodsSettings'
+import { EmailPreferencesSettings } from '@/components/settings/EmailPreferencesSettings'
 
-type SettingsTab = 'profile' | 'services' | 'platforms' | 'payouts' | 'security'
+type SettingsTab = 'profile' | 'services' | 'platforms' | 'payouts' | 'notifications' | 'security'
 
 interface CreatorProfile {
   id: string
@@ -95,6 +97,7 @@ function SettingsPageInner() {
     { id: 'platforms' as SettingsTab, label: 'Platforms', icon: Briefcase },
     { id: 'services' as SettingsTab, label: 'Services & Rates', icon: DollarSign },
     { id: 'payouts' as SettingsTab, label: 'Payouts', icon: Wallet },
+    { id: 'notifications' as SettingsTab, label: 'Notifications', icon: Mail },
     { id: 'security' as SettingsTab, label: 'Security', icon: Shield },
   ]
 
@@ -391,6 +394,7 @@ function SettingsPageInner() {
                 />
               )}
               {activeTab === 'payouts' && <PayoutMethodsSettings />}
+              {activeTab === 'notifications' && <EmailPreferencesSettings />}
               {activeTab === 'security' && <SecuritySettings />}
             </div>
           </main>

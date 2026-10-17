@@ -18,6 +18,7 @@ import {
   Mail
 } from 'lucide-react'
 import { COUNTRIES, INDUSTRIES, COMPANY_SIZES } from '@/utils/constants'
+import { EmailPreferencesSettings } from '@/components/settings/EmailPreferencesSettings'
 
 type SettingsTab = 'company' | 'notifications' | 'payments' | 'security'
 
@@ -415,78 +416,7 @@ function CompanySettings({
 // NOTIFICATION SETTINGS
 // ============================================================================
 function NotificationSettings() {
-  const [notifications, setNotifications] = useState({
-    emailNewMessages: true,
-    emailDealUpdates: true,
-    emailCreatorResponses: true,
-    emailMarketing: false,
-  })
-
-  const toggle = (key: keyof typeof notifications) => {
-    setNotifications({ ...notifications, [key]: !notifications[key] })
-  }
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900">Notification Settings</h2>
-        <p className="text-sm text-gray-500 mt-1">Choose how you want to be notified.</p>
-      </div>
-
-      <div className="space-y-4">
-        <ToggleItem
-          title="New Messages"
-          description="Get notified when creators send you messages"
-          enabled={notifications.emailNewMessages}
-          onToggle={() => toggle('emailNewMessages')}
-        />
-        <ToggleItem
-          title="Deal Updates"
-          description="Get notified when deal status changes"
-          enabled={notifications.emailDealUpdates}
-          onToggle={() => toggle('emailDealUpdates')}
-        />
-        <ToggleItem
-          title="Creator Responses"
-          description="Get notified when creators respond to your proposals"
-          enabled={notifications.emailCreatorResponses}
-          onToggle={() => toggle('emailCreatorResponses')}
-        />
-        <ToggleItem
-          title="Marketing & Updates"
-          description="Receive tips, product updates, and promotional content"
-          enabled={notifications.emailMarketing}
-          onToggle={() => toggle('emailMarketing')}
-        />
-      </div>
-    </div>
-  )
-}
-
-function ToggleItem({ title, description, enabled, onToggle }: { 
-  title: string
-  description: string
-  enabled: boolean
-  onToggle: () => void 
-}) {
-  return (
-    <div className="flex items-center justify-between py-3">
-      <div>
-        <p className="font-medium text-gray-900">{title}</p>
-        <p className="text-sm text-gray-500">{description}</p>
-      </div>
-      <button
-        onClick={onToggle}
-        className={`relative w-12 h-6 rounded-full transition-colors ${
-          enabled ? 'bg-blue-600' : 'bg-gray-300'
-        }`}
-      >
-        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-          enabled ? 'left-7' : 'left-1'
-        }`} />
-      </button>
-    </div>
-  )
+  return <EmailPreferencesSettings />
 }
 
 // ============================================================================
