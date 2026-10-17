@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { captureError } from '@/lib/error-tracking'
-import { createNotification, type NotificationType } from '@/lib/notifications'
+import type { NotificationType } from '@/lib/notifications'
 import { postDealSystemMessage } from '@/lib/deal-messages'
+import { emitEvent } from '@/lib/events/emit'
 
 interface RecordActionParams {
   campaignCreatorId: string
@@ -14,9 +15,13 @@ interface RecordActionParams {
   systemMessage: string
   notification?: {
     recipientUserId: string | null
-    type: NotificationType
-    title: string
-    content: string
+    // Vestigial — title/content/type are now generated from EVENT_CATALOG
+    // (src/lib/events/catalog.ts), keyed by `eventType` above, so existing
+    // call sites that still pass these keep compiling but the values are
+    // ignored. New call sites only need `recipientUserId`.
+    type?: NotificationType
+    title?: string
+    content?: string
   }
 }
 
@@ -61,17 +66,6 @@ export async function recordCampaignCreatorAction(
   params: RecordActionParams
 ): Promise<void> {
   try {
-    const { error: eventError } = await supabase.from('campaign_creator_events').insert({
-      campaign_creator_id: params.campaignCreatorId,
-      actor_user_id: params.actorUserId,
-      actor_type: params.actorType,
-      event_type: params.eventType,
-      payload: params.payload ?? {},
-    })
-    if (eventError) {
-      captureError(eventError, { context: 'recordCampaignCreatorAction: event log', eventType: params.eventType })
-    }
-
     await postDealSystemMessage(supabase, {
       creatorId: params.creatorId,
       brandId: params.brandId,
@@ -85,16 +79,18 @@ export async function recordCampaignCreatorAction(
       relatedId: params.campaignCreatorId,
     })
 
-    if (params.notification?.recipientUserId) {
-      await createNotification(supabase, {
-        userId: params.notification.recipientUserId,
-        type: params.notification.type,
-        title: params.notification.title,
-        content: params.notification.content,
-        relatedType: params.eventType,
-        relatedId: params.campaignCreatorId,
-      })
-    }
+    // emitEvent writes the campaign_creator_events row AND the notification
+    // (if any) in one call — see src/lib/events/emit.ts. actorType is
+    // folded into `data` so EVENT_CATALOG's templates (e.g. offer_countered's
+    // "The brand"/"The creator") can read it.
+    await emitEvent(supabase, {
+      type: params.eventType,
+      actorUserId: params.actorUserId,
+      actorType: params.actorType,
+      campaignCreatorId: params.campaignCreatorId,
+      recipientUserIds: [params.notification?.recipientUserId],
+      data: { ...(params.payload ?? {}), actorType: params.actorType },
+    })
   } catch (error) {
     captureError(error, { context: 'recordCampaignCreatorAction', eventType: params.eventType })
   }

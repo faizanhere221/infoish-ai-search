@@ -1,4 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
+import { getUserIdFromBrand, getUserIdFromCreator } from '@/lib/notifications'
+import { formatMoney } from '@/components/campaigns/utils'
 
 export interface AuthorizedCampaignCreatorRow {
   id: string
@@ -124,13 +127,55 @@ export async function loadAuthorizedPayment(
 
 // Expires any pending offer on a row whose expires_at has passed. Lazy
 // expiry — there's no cron infrastructure in this app, so every route that
-// reads or acts on a row's offers calls this first instead.
+// reads or acts on a row's offers calls this first instead. Notifies the
+// original sender (same "who hears about it" rule as decline/withdraw) once
+// per offer that actually transitions — never on a call that finds nothing
+// to expire.
 export async function expireStaleOffers(supabase: SupabaseClient, campaignCreatorId: string): Promise<void> {
-  await supabase
+  const { data: expired } = await supabase
     .from('campaign_offers')
     .update({ status: 'expired', responded_at: new Date().toISOString() })
     .eq('campaign_creator_id', campaignCreatorId)
     .eq('status', 'pending')
     .lt('expires_at', new Date().toISOString())
     .not('expires_at', 'is', null)
+    .select('id, from_party, amount, currency')
+
+  if (!expired || expired.length === 0) {return}
+
+  const { data: row } = await supabase
+    .from('campaign_creators')
+    .select('creator_id, campaign_id')
+    .eq('id', campaignCreatorId)
+    .single()
+  if (!row) {return}
+
+  const { data: campaign } = await supabase.from('campaigns').select('brand_id').eq('id', row.campaign_id).single()
+  if (!campaign) {return}
+
+  const creatorUserId = await getUserIdFromCreator(supabase, row.creator_id)
+  const brandUserId = await getUserIdFromBrand(supabase, campaign.brand_id)
+
+  for (const offer of expired) {
+    // The event log needs a real actor_user_id (FK to users) and emitEvent
+    // never notifies its own actor — so the "actor" here is whoever did NOT
+    // send the offer (their non-response is what let it lapse), and the
+    // recipient is the original sender, same direction as decline/withdraw.
+    const senderIsBrand = offer.from_party === 'brand'
+    const actorUserId = senderIsBrand ? creatorUserId : brandUserId
+    const recipientUserId = senderIsBrand ? brandUserId : creatorUserId
+    if (!actorUserId) {continue}
+
+    await recordCampaignCreatorAction(supabase, {
+      campaignCreatorId,
+      creatorId: row.creator_id,
+      brandId: campaign.brand_id,
+      actorUserId,
+      actorType: senderIsBrand ? 'creator' : 'brand',
+      eventType: 'offer_expired',
+      payload: { offer_id: offer.id, amount: offer.amount, currency: offer.currency },
+      systemMessage: `⌛ An offer of ${formatMoney(offer.amount, offer.currency)} expired without a response.`,
+      notification: { recipientUserId },
+    })
+  }
 }

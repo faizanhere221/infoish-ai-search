@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedCampaignCreatorRow } from '@/lib/campaign-creator-auth'
-import { logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
+import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
 import { voidContractOnTermsChange } from '@/lib/contracts/lifecycle'
 import { getUserIdFromCreator } from '@/lib/notifications'
 import { DELIVERABLE_FORMATS } from '@/types/campaigns'
@@ -101,15 +101,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Failed to create deliverable' }, { status: 500 })
     }
 
-    await logCampaignCreatorEvent(supabase, {
+    const recipientUserId = await getUserIdFromCreator(supabase, authorized.row.creator_id)
+    await recordCampaignCreatorAction(supabase, {
       campaignCreatorId: id,
+      creatorId: authorized.row.creator_id,
+      brandId: authorized.row.brand_id,
       actorUserId: callerUserId,
       actorType: 'brand',
       eventType: 'deliverable_added',
       payload: { deliverable_id: deliverable.id, title: deliverable.title },
+      systemMessage: `📋 New deliverable added: "${deliverable.title}"`,
+      notification: { recipientUserId },
     })
 
-    const recipientUserId = await getUserIdFromCreator(supabase, authorized.row.creator_id)
     await voidContractOnTermsChange(supabase, {
       campaignCreatorId: id,
       creatorId: authorized.row.creator_id,

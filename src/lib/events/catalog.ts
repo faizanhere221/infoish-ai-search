@@ -246,6 +246,19 @@ export const EVENT_CATALOG: Record<string, EventCatalogEntry> = {
     content: (d) => str(d, 'preview') || 'You have a new message',
   },
 
+  referral_commission_earned: {
+    category: 'account',
+    priority: 'info',
+    title: () => 'You earned a commission!',
+    content: (d) => `You earned ${str(d, 'amountFormatted')} commission from ${str(d, 'creatorName')}'s deal.`,
+  },
+  referral_commission_approved: {
+    category: 'account',
+    priority: 'info',
+    title: () => 'Commission approved',
+    content: (d) => `Your ${str(d, 'amountFormatted')} commission has been approved and added to your balance.`,
+  },
+
   // ── Account ─────────────────────────────────────────────────────────────
   account_created: {
     category: 'account',

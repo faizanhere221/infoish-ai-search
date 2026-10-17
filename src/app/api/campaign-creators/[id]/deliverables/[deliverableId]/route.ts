@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedDeliverable } from '@/lib/campaign-creator-auth'
-import { logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
+import { logCampaignCreatorEvent, recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
 import { voidContractOnTermsChange } from '@/lib/contracts/lifecycle'
 import { getUserIdFromCreator } from '@/lib/notifications'
 import { DELIVERABLE_FORMATS } from '@/types/campaigns'
@@ -88,16 +88,21 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Failed to update deliverable' }, { status: 500 })
     }
 
-    await logCampaignCreatorEvent(supabase, {
+    const editRecipientUserId = await getUserIdFromCreator(supabase, authorized.row.creator_id)
+    await recordCampaignCreatorAction(supabase, {
       campaignCreatorId: id,
+      creatorId: authorized.row.creator_id,
+      brandId: authorized.row.brand_id,
       actorUserId: callerUserId,
       actorType: 'brand',
       eventType: 'deliverable_edited',
-      payload: { deliverable_id: deliverableId, fields: Object.keys(parsed.data) },
+      payload: { deliverable_id: deliverableId, title: updated.title, fields: Object.keys(parsed.data) },
+      systemMessage: `✏️ Deliverable "${updated.title}" was updated`,
+      notification: { recipientUserId: editRecipientUserId },
     })
 
     if (attemptingLockedField || changingRevisions) {
-      const recipientUserId = await getUserIdFromCreator(supabase, authorized.row.creator_id)
+      const recipientUserId = editRecipientUserId
       await voidContractOnTermsChange(supabase, {
         campaignCreatorId: id,
         creatorId: authorized.row.creator_id,

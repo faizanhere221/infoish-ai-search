@@ -181,7 +181,7 @@ export async function createMilestonePayment(
 export async function refreshDuePayments(supabase: SupabaseClient, campaignCreatorId: string): Promise<void> {
   const { data: scheduled } = await supabase
     .from('creator_payments')
-    .select('id, type, contract_id, deliverable_ids')
+    .select('id, type, contract_id, deliverable_ids, amount, currency')
     .eq('campaign_creator_id', campaignCreatorId)
     .eq('status', 'scheduled')
 
@@ -198,14 +198,21 @@ export async function refreshDuePayments(supabase: SupabaseClient, campaignCreat
   const final = scheduled.filter((p) => p.type === 'final')
   const milestones = scheduled.filter((p) => p.type === 'milestone')
 
+  // Payments that actually transitioned on THIS call — a payment already
+  // 'due' from a previous call never re-notifies. One notification covers
+  // every payment that became due in this pass, not one per payment.
+  const newlyDue: { id: string; amount: number; currency: string }[] = []
+
   for (const p of upfront) {
     const termsDays = (p.contract_id && termsByContract[p.contract_id]) ?? 14
     const dueDate = new Date(Date.now() + termsDays * 24 * 60 * 60 * 1000)
-    await supabase
+    const { data: updated } = await supabase
       .from('creator_payments')
       .update({ status: 'due', due_date: dueDate.toISOString().slice(0, 10) })
       .eq('id', p.id)
       .eq('status', 'scheduled') // guard against a concurrent change
+      .select('id')
+    if (updated && updated.length > 0) {newlyDue.push({ id: p.id, amount: p.amount, currency: p.currency })}
   }
 
   if (final.length > 0) {
@@ -223,11 +230,13 @@ export async function refreshDuePayments(supabase: SupabaseClient, campaignCreat
       for (const p of final) {
         const termsDays = (p.contract_id && termsByContract[p.contract_id]) ?? 14
         const dueDate = new Date(latestCompletion.getTime() + termsDays * 24 * 60 * 60 * 1000)
-        await supabase
+        const { data: updated } = await supabase
           .from('creator_payments')
           .update({ status: 'due', due_date: dueDate.toISOString().slice(0, 10) })
           .eq('id', p.id)
           .eq('status', 'scheduled')
+          .select('id')
+        if (updated && updated.length > 0) {newlyDue.push({ id: p.id, amount: p.amount, currency: p.currency })}
       }
     }
   }
@@ -253,13 +262,46 @@ export async function refreshDuePayments(supabase: SupabaseClient, campaignCreat
       )
       const termsDays = (p.contract_id && termsByContract[p.contract_id]) ?? 14
       const dueDate = new Date(latestCompletion.getTime() + termsDays * 24 * 60 * 60 * 1000)
-      await supabase
+      const { data: updated } = await supabase
         .from('creator_payments')
         .update({ status: 'due', due_date: dueDate.toISOString().slice(0, 10) })
         .eq('id', p.id)
         .eq('status', 'scheduled')
+        .select('id')
+      if (updated && updated.length > 0) {newlyDue.push({ id: p.id, amount: p.amount, currency: p.currency })}
     }
   }
+
+  if (newlyDue.length === 0) {return}
+
+  const { data: row } = await supabase
+    .from('campaign_creators')
+    .select('creator_id, campaign_id')
+    .eq('id', campaignCreatorId)
+    .single()
+  if (!row) {return}
+  const { data: campaign } = await supabase.from('campaigns').select('brand_id').eq('id', row.campaign_id).single()
+  if (!campaign) {return}
+
+  const brandUserId = await getUserIdFromBrand(supabase, campaign.brand_id)
+  const creatorUserId = await getUserIdFromCreator(supabase, row.creator_id)
+
+  // The brand owes the money — they're the one with something to do.
+  // Billed under whichever single payment is largest so the system
+  // message/notification reads naturally even when several became due in
+  // the same pass (rare, but milestones can land together).
+  const biggest = newlyDue.reduce((a, b) => (b.amount > a.amount ? b : a))
+  await recordCampaignCreatorAction(supabase, {
+    campaignCreatorId,
+    creatorId: row.creator_id,
+    brandId: campaign.brand_id,
+    actorUserId: creatorUserId ?? brandUserId ?? '',
+    actorType: 'creator',
+    eventType: 'payment_due',
+    payload: { payment_ids: newlyDue.map((p) => p.id), amount: biggest.amount, currency: biggest.currency },
+    systemMessage: `💰 A payment of ${formatMoney(biggest.amount, biggest.currency)} is now due.`,
+    notification: { recipientUserId: brandUserId },
+  })
 }
 
 // brand: due|disputed -> marked_paid
