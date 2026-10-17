@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Infoishai** (infoishai.com) is a free B2B marketplace connecting tech brands with verified tech content creators (YouTube, Twitter/X, LinkedIn, GitHub, newsletters, podcasts) across 9 countries (USA, UK, Canada, India, Pakistan, Australia, Germany, Netherlands, Singapore). Brands discover and message creators directly, send deal proposals, or post campaigns that creators apply to. There is also a referral/affiliate ("partner") system and an admin back office.
+**Infoishai** (infoishai.com) is a free B2B marketplace connecting tech brands with verified tech content creators (YouTube, Twitter/X, LinkedIn, GitHub, newsletters, podcasts) across 9 countries (USA, UK, Canada, India, Pakistan, Australia, Germany, Netherlands, Singapore). Brands discover and message creators directly, send deal proposals, or post campaigns that creators apply to. Once a creator is attached to a campaign, a per-pairing tracker takes the collaboration through offer → contract → deliverables → payment tracking (see **Campaign Workflow** below). There is also a referral/affiliate ("partner") system and an admin back office.
 
 ## Brand Identity
 
@@ -24,6 +24,12 @@ npm run lint     # next lint (ESLint)
 ```
 
 There is no test suite (no Jest/Vitest/Playwright config, no `test` script). Verify changes with `npm run build` and `npm run lint`. For UI changes, also run the app and click through the flow.
+
+Two standalone black-box scripts cover authorization and concurrency regressions (not a substitute for the above, just the two areas unit/type checks can't see):
+- `npm run test:security` (`scripts/security-check.mjs`) — asserts ownership checks actually hold over real HTTP: Creator B can't reach Creator A's or Brand A's data, 404s land where expected, no forbidden fields leak. Read-only. Reads tokens/ids from `.env.test.local` (gitignored; copy `.env.test.example` and fill in real dev-data ids).
+- `node scripts/race-check.mjs` — fires two concurrent requests at mark-paid/split to prove the DB-level locking actually prevents double-processing. **It writes data** — only ever point `RACE_PAYMENT_ID`/`RACE_SPLIT_PAYMENT_ID` at disposable test rows.
+
+Both just make HTTP calls against `BASE_URL` (default `http://localhost:3000`) — run them against an already-running dev server, don't start a new one for them.
 
 ### Debugging Tip
 
@@ -66,17 +72,33 @@ No ORM or query builder. Routes call the Supabase JS client directly. Relations 
 
 **Dead/unused data layers (removed in audit, do not recreate):** Prisma, raw `pg` Pool, `src/lib/auth/config.ts`, `components.json` (shadcn/ui was never set up). The `useCreator`, `useBrand`, `useDeals`, `useMessages` hooks in `src/hooks/` are also unused (only `usePartner` is active).
 
-### Database Schema (25 tables)
+### Campaign Workflow — the campaign_creators tracker
 
-`supabase/schema.sql` is the base schema. Everything added since lives in standalone `supabase/*_migration.sql` files. There is no migration runner. The current schema is `schema.sql` plus every migration file. New schema changes should follow the same pattern: write a new `supabase/<feature>_migration.sql` and tell the user to run it in the Supabase SQL Editor. Permission classifiers may block direct DDL from the agent. When that happens, write the migration file and tell the user to run it.
+Once a creator is attached to a campaign (shortlisted by the brand or hired from an application), one row in **`campaign_creators`** becomes the hub for that specific pairing. Everything below hangs off that row's id.
+
+- **Status lifecycle:** `shortlisted → contacted → negotiating → confirmed → drafting → draft_review → scheduled → posted → completed` (or `dropped` at any point). A `creator_deliverables` trigger (`sync_campaign_creator_status()`) auto-advances status from deliverable progress, UNLESS the brand manually overrides it (`status_locked = true`, shown as a "Manual" badge). Offer acceptance is a real workflow event and always wins over a manual lock: `accept_campaign_offer()` sets `status = 'confirmed'`, `status_locked = false` as its *last* write, specifically ordered to run after its own `creator_deliverables` insert so the auto-sync trigger that insert fires doesn't clobber it back to `'drafting'` (see `supabase/workflow_ux_fixes_migration.sql` for the bug this fixed — don't reorder those statements back).
+- **Offers** (`campaign_offers`): either party proposes amount/deliverables/dates; the other accepts, counters, or declines (`src/app/api/campaign-creators/[id]/offers/`). Accepting calls the `accept_campaign_offer()` Postgres RPC, which creates the first `creator_deliverables` row, and then `createDraftContract()` (`src/lib/contracts/lifecycle.ts`) auto-creates a draft contract — the brand never has to remember to start one.
+- **Contracts** (`campaign_contracts`): one row per version (`version` column), only one non-void version active at a time. `draft → sent → signed_by_creator → fully_signed`. The creator signs first; the brand countersigns. `src/lib/contracts/{lifecycle,render,template}.ts`; routes under `src/app/api/campaign-creators/[id]/contracts/`.
+- **Deliverables** (`creator_deliverables`): per-row content tracking — `pending → draft_submitted → changes_requested|approved → posted → completed`. **Not the same table as `campaign_deliverables`**, which is the campaign's required-deliverables brief set at creation time (e.g. "2 tweets, 1 video"); don't confuse the two. Results/screenshots for posted content live in `deliverable_results`.
+- **Payments** (`creator_payments`, `payout_methods`): see **Payments** below — this is tracking only, no money actually moves.
+- **Events** (`campaign_creator_events`): append-only activity log. Every transition goes through `recordCampaignCreatorAction()` (`src/lib/campaign-creator-events.ts`), which writes the event AND posts the matching chat system message AND creates the notification in one call — `related_type` on both `messages` and `notifications` reuses the exact `eventType` string passed in (e.g. `'offer_accepted'`, `'contract_signed_by_creator'`), so `EVENT_CTA` in `src/lib/campaign-creator-cta.ts` is the single lookup table driving both the chat card's button label and the deep link.
+- **Deep links:** a chat message or notification only ever knows the `campaign_creators` row id, never the campaign id or the viewer's role. `/dashboard/go/[campaignCreatorId]` resolves it — it's a **server component**, not client-rendered like most dashboard pages, because it does its own JWT check (`jose`, same pattern as the `/admin/*` middleware check) and must return a real 404 or a real redirect over raw HTTP, not just a 200 shell that only differs after a client fetch.
+- **"Whose turn is it":** `getNextStep(row, viewerType)` in `src/lib/campaign-creator-next-step.ts` is the ONE decision tree for this — used by the brand tracker table, the creator's campaign cards, and both dashboards' "Action needed" widgets (`ActionNeededWidget`, fed by `GET /api/dashboard/action-needed`). Don't reimplement this logic somewhere else; add a branch here instead.
+- **UI:** brand tracker at `/dashboard/campaigns/[id]/tracker` (table + `CampaignCreatorDrawer`, tabs: Offer/Contract/Deliverables/Payments/Activity — `src/components/campaigns/drawer/`). Creator's view at `/dashboard/my-campaigns/[id]`. Both read `?row=`/`?tab=` query params on load so deep links can open the right tab directly.
+
+### Database Schema
+
+`supabase/schema.sql` is the base schema. Everything added since lives in standalone `supabase/*_migration.sql` files. There is no migration runner. The current schema is `schema.sql` plus every migration file — but a migration file existing doesn't guarantee it was actually run; when in doubt, check the live table with a read-only query rather than trusting the file list. New schema changes should follow the same pattern: write a new `supabase/<feature>_migration.sql` and tell the user to run it in the Supabase SQL Editor. Permission classifiers may block direct DDL from the agent. When that happens, write the migration file and tell the user to run it.
 
 **Core:** users, creators, creator_platforms, creator_services, creator_portfolio, brands, deals, deal_messages, conversations, messages, reviews, notifications, saved_creators, payments
 
-**Campaigns:** campaigns, campaign_deliverables, campaign_applications
+**Campaigns (the brief/application layer):** campaigns, campaign_deliverables (the campaign's required-deliverables list, set at creation — not the same table as `creator_deliverables` below), campaign_applications
+
+**Campaign workflow (one creator's engagement on one campaign — see Campaign Workflow above):** campaign_creators, campaign_offers, campaign_contracts, creator_deliverables, deliverable_results, creator_payments, payout_methods, campaign_creator_events, campaign_share_links
 
 **Referral:** referral_partners, referral_signups, referral_commissions, referral_payouts
 
-**Admin/Ops:** activity_logs, platform_settings, contact_messages, newsletter_subscribers
+**Admin/Ops:** contact_messages, newsletter_subscribers
 
 **Infrastructure:** rate_limits
 
@@ -84,8 +106,8 @@ No ORM or query builder. Routes call the Supabase JS client directly. Relations 
 - `users.role`: `'user' | 'admin' | 'super_admin'`
 - `deals.deliverables`: JSONB array of `{id, description, is_completed}`
 - `creators.profile_views`: INTEGER counter, incremented by public API
-- Platform fee: 10% on deals (defined in `src/lib/referral-commissions.ts`)
-- Referral commission: percentage of the platform fee, not the deal amount
+- Platform fee: 10% on deals and on campaign-workflow payments (defined in `src/lib/referral-commissions.ts`)
+- Referral commission: percentage of the platform fee, not the deal/payment amount
 
 ### API Route Conventions
 
@@ -145,7 +167,11 @@ Database-backed (Postgres, `rate_limits` table). Import from `src/lib/rate-limit
 
 ### Payments
 
-`stripe`/`@stripe/stripe-js` were removed in the audit. **No payment integration exists.** Deals only track `platform_fee`/`creator_payout` as computed numbers (10% platform fee). No money moves through the app. Do not describe escrow/Stripe as a working feature in UI copy.
+`stripe`/`@stripe/stripe-js` were removed in the audit and are not coming back without explicit instruction. **This is payment TRACKING, not payment processing — no money ever moves through the app, on either the old `deals` flow or the campaign workflow's `creator_payments`.** The brand pays the creator externally (bank transfer, Wise, PayPal, etc.) and marks the record as paid; the creator confirms they received it. Do not describe escrow/Stripe/automatic payouts as a working feature in UI copy.
+
+- `creator_payments`: one row per payment (`type`: full/upfront/final/milestone; `status`: scheduled → due → marked_paid → confirmed, or disputed/cancelled). `src/lib/payments/{engine,provider}.ts`. Milestone payments carry `deliverable_ids` (TEXT[], not uuid[] — ids here are app-generated VARCHAR(255), not real Postgres UUIDs) scoping which deliverables they're due against.
+- `payout_methods`: a creator's payout details, encrypted at rest (`src/lib/payments/crypto.ts`, `key_version` column so a future key rotation doesn't break old records). `GET /api/campaign-creators/[id]/payout-details` is the ONLY endpoint that returns the decrypted value, and only once the contract is `fully_signed` — everywhere else shows a masked preview. Don't add another endpoint that reveals raw details without matching that gate.
+- **Race safety:** mark-paid/confirm/dispute/cancel are single conditional `UPDATE ... WHERE status IN (...)` statements — Postgres makes a second concurrent call match zero rows instead of double-applying, and the route treats that as an idempotent no-op (not an error) if the end state already matches. Splitting a payment uses the `split_payment()` Postgres function with `SELECT ... FOR UPDATE` row locking, same pattern as `accept_campaign_offer()`. See `scripts/race-check.mjs`. Don't "simplify" these into plain SELECT-then-UPDATE application code — that reintroduces the race.
 
 ### Cookie Consent
 
@@ -190,26 +216,34 @@ Two footers:
 ```
 src/
   app/                  # Next.js App Router pages and API routes
-    api/                # API routes (route.ts files)
+    api/                # API routes (route.ts files), incl.
+                        #   api/campaign-creators/[id]/{offers,contracts,deliverables,
+                        #   payments,events}/, api/contracts/[id], api/payout-methods/,
+                        #   api/dashboard/action-needed
     (auth)/             # Auth pages (login, signup, forgot-password)
-    admin/              # Admin dashboard (15 pages)
-    dashboard/          # User dashboard (12 pages)
-    blog/               # Blog (19 pages)
-    influencers/        # Country landing pages (9 pages)
+    admin/              # Admin dashboard
+    dashboard/          # User dashboard, incl. campaigns/[id]/tracker (brand),
+                        #   my-campaigns/[id] (creator), go/[campaignCreatorId]
+                        #   (server-rendered deep-link resolver, not client-rendered)
+    blog/               # Blog
+    influencers/        # Country landing pages
     tools/              # Tool pages
     campaigns/          # Campaign pages
     creators/           # Creator marketplace + profiles
-  components/           # React components (66 files)
+  components/           # React components
     admin/              # Admin components
     applications/       # Campaign application components
-    campaigns/          # Campaign components
+    campaigns/          # Campaign components, incl. drawer/ (CampaignCreatorDrawer tabs:
+                         #   Offer/Contract/Deliverables/Payments/Activity) and
+                         #   ActionNeededWidget, PendingOffersWidget, ResultsTodoWidget, etc.
     creator/            # Creator profile components
     dashboard/          # Dashboard components
-    deals/              # Deal components
+    deals/              # Deal components (old 1:1 flow, separate from the campaign workflow)
     influencers/        # Country FAQ components
     landing/index.tsx   # ALL homepage sections (18 exports)
     marketplace/        # Creator search/filter components
-    messaging/          # Chat/message components
+    messaging/          # Chat/message components (ChatThread renders actionable
+                         #   system-message cards via campaign-creator-cta.ts)
     partner/            # Referral partner components
     referral/           # Referral banner
     seo/                # JSON-LD and SEO components
@@ -226,16 +260,25 @@ src/
     referral.ts         # Referral tracking
     referral-commissions.ts  # Commission calculations
     notifications.ts    # Notification helpers
+    campaign-creator-auth.ts       # loadAuthorizedCampaignCreatorRow() + friends —
+                                    #   the ownership check behind every campaign-creator route
+    campaign-creator-events.ts     # recordCampaignCreatorAction() — event log + chat
+                                    #   message + notification, all in one call
+    campaign-creator-next-step.ts  # getNextStep() — the one "whose turn is it" helper
+    campaign-creator-cta.ts        # EVENT_CTA lookup — chat card button + deep link per eventType
+    contracts/                     # lifecycle.ts, render.ts, template.ts
+    payments/                      # engine.ts, provider.ts, crypto.ts
   middleware.ts         # JWT verification + security headers + admin redirects
   types/                # TypeScript type definitions
   utils/                # Utility functions (admin, auth, constants, validation)
 supabase/               # SQL schema and migration files
+scripts/                # security-check.mjs, race-check.mjs (see Commands above)
 ```
 
 ## Feature Areas
 
 - **Referral/partner system** (`docs/REFERRAL_SYSTEM.md`): partners get a referral link, signups tracked via cookie through profile completion, commissions calculated when a referred creator's deal is approved. Dashboard at `/dashboard/partner`, admin at `/admin/partners`.
-- **Campaigns**: brands post campaigns, creators browse/apply (`/campaigns`, `/dashboard/campaigns`, `/api/campaigns`, `/api/applications`).
+- **Campaigns**: brands post campaigns, creators browse/apply (`/campaigns`, `/api/campaigns`, `/api/applications`). Once a creator is attached (shortlisted directly or hired from an application), the **Campaign Workflow** (see Architecture above) takes over for that pairing: offer → contract → deliverables → payment tracking, at `/dashboard/campaigns/[id]/tracker` (brand) and `/dashboard/my-campaigns/[id]` (creator).
 - **Admin back office**: `/admin/*` pages + `/api/admin/*` routes for users, creators, brands, deals, partners, newsletter/contact, activity log, analytics.
 - **Programmatic SEO**: 9 country landing pages under `src/app/influencers/` and 18+ blog posts under `src/app/blog/`.
 
@@ -276,7 +319,7 @@ supabase/               # SQL schema and migration files
 3. If you modified a page, describe what changed visually
 4. If you added an env var, update `.env.example`
 5. If you added a new external domain, update CSP in middleware
-6. Commit with conventional commits: `feat:`, `fix:`, `chore:`, `perf:`, `a11y:`, `security:`
+6. Commit with conventional commits: `feat:`, `fix:`, `chore:`, `perf:`, `a11y:`, `security:`, `docs:`, `test:`
 
 ## Content Writing Rules (for any user-facing text)
 
