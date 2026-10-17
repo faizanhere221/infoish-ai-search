@@ -60,6 +60,9 @@ const PAYOUT_METHOD_ID = getEnv('PAYOUT_METHOD_ID')
 // itself happens to already be fully signed in your dev data.
 const UNSIGNED_CAMPAIGN_CREATOR_ID = getEnv('UNSIGNED_CAMPAIGN_CREATOR_ID')
 
+// Optional — Phase 6A (notifications) checks, skipped if blank.
+const CREATOR_A_NOTIFICATION_ID = getEnv('CREATOR_A_NOTIFICATION_ID')
+
 const required = { BRAND_A_TOKEN, CREATOR_A_TOKEN, CREATOR_B_TOKEN, CONVERSATION_ID, PRIVATE_CAMPAIGN_ID }
 const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k)
 if (missing.length > 0) {
@@ -427,6 +430,65 @@ async function main() {
     const leaked = leaksAnyKey(text, ['charge_amount', 'profit', 'total_charge', 'total_profit', 'brand_notes'])
     return { pass: res.status === 200 && leaked.length === 0, detail: `status ${res.status}, leaked: ${leaked.join(',') || 'none'}` }
   })
+
+  // ── Phase 6A — notifications ─────────────────────────────────────────────────
+
+  await check("Creator A's own GET /api/notifications has no charge/profit/brand_notes/client_name", async () => {
+    const res = await request('/api/notifications?limit=50', { headers: authHeaders(CREATOR_A_TOKEN) })
+    const text = await res.text()
+    const leaked = leaksAnyKey(text, ['charge_amount', 'profit', 'total_charge', 'total_profit', 'brand_notes', 'client_name'])
+    return { pass: res.status === 200 && leaked.length === 0, detail: `status ${res.status}, leaked: ${leaked.join(',') || 'none'}` }
+  })
+
+  if (CREATOR_A_NOTIFICATION_ID) {
+    // GET is scoped by the trusted x-user-id header (.eq('user_id', userId)
+    // server-side) — Creator B's own list can structurally never include
+    // Creator A's notification, so there's nothing to probe there. The real
+    // question is PATCH: does it actually scope the UPDATE by owner, or
+    // does it just return 200 "success" while silently affecting 0 rows
+    // (which would look identical from the HTTP response alone)? Verified
+    // by checking Creator A's notification is genuinely untouched after
+    // Creator B's attempt, not just by the status code of that attempt.
+    await check("Creator A's notification isn't listed for Creator B (GET /api/notifications)", async () => {
+      const res = await request('/api/notifications?limit=50', { headers: authHeaders(CREATOR_B_TOKEN) })
+      const text = await res.text()
+      return { pass: res.status === 200 && !text.includes(CREATOR_A_NOTIFICATION_ID), detail: `status ${res.status}, leaked id: ${text.includes(CREATOR_A_NOTIFICATION_ID)}` }
+    })
+
+    await check("Creator B marking Creator A's notification read has no real effect", async () => {
+      const markRes = await request('/api/notifications', {
+        method: 'PATCH',
+        headers: { ...authHeaders(CREATOR_B_TOKEN), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: CREATOR_A_NOTIFICATION_ID }),
+      })
+      const checkRes = await request('/api/notifications?limit=50', { headers: authHeaders(CREATOR_A_TOKEN) })
+      const data = await checkRes.json().catch(() => ({ notifications: [] }))
+      const row = (data.notifications || []).find((n) => n.id === CREATOR_A_NOTIFICATION_ID)
+      // row may be undefined if it's already read and outside the first 50 —
+      // in that case there's nothing this check can observe either way.
+      const stillUnread = row ? row.is_read === false : null
+      return {
+        pass: markRes.status < 500 && (stillUnread === null || stillUnread === true),
+        detail: `PATCH status ${markRes.status}, Creator A's copy still unread: ${stillUnread}`,
+      }
+    })
+
+    await check("Creator B archiving Creator A's notification has no real effect", async () => {
+      const archiveRes = await request('/api/notifications', {
+        method: 'PATCH',
+        headers: { ...authHeaders(CREATOR_B_TOKEN), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: CREATOR_A_NOTIFICATION_ID, archived: true }),
+      })
+      const checkRes = await request('/api/notifications?limit=50', { headers: authHeaders(CREATOR_A_TOKEN) })
+      const text = await checkRes.text()
+      return {
+        pass: archiveRes.status < 500 && checkRes.status === 200 && text.includes(CREATOR_A_NOTIFICATION_ID),
+        detail: `PATCH status ${archiveRes.status}, still visible to Creator A: ${text.includes(CREATOR_A_NOTIFICATION_ID)}`,
+      }
+    })
+  } else {
+    skip("Creator B can't read or modify Creator A's notification", 'CREATOR_A_NOTIFICATION_ID not set')
+  }
 
   // Positive controls — if these fail, every 404 above might just mean the
   // route is broken for everyone, not that access control actually works.
