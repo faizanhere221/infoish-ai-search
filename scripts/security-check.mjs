@@ -54,6 +54,11 @@ const SHARE_TOKEN = getEnv('SHARE_TOKEN')
 // Optional — Phase 5 (payments) checks, skipped if blank.
 const PAYMENT_ID = getEnv('PAYMENT_ID')
 const PAYOUT_METHOD_ID = getEnv('PAYOUT_METHOD_ID')
+// A second campaign_creators row of Brand A's, with no fully_signed contract
+// (any status, including none at all) — used for the payout-details 404
+// check below so it still has something to test even if CAMPAIGN_CREATOR_ID
+// itself happens to already be fully signed in your dev data.
+const UNSIGNED_CAMPAIGN_CREATOR_ID = getEnv('UNSIGNED_CAMPAIGN_CREATOR_ID')
 
 const required = { BRAND_A_TOKEN, CREATOR_A_TOKEN, CREATOR_B_TOKEN, CONVERSATION_ID, PRIVATE_CAMPAIGN_ID }
 const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k)
@@ -190,6 +195,11 @@ async function main() {
 
   // ── Phase 4 — contracts/reporting ──────────────────────────────────────────
 
+  // Shared across the CAMPAIGN_CREATOR_ID and CONTRACT_ID blocks below (two
+  // separate `if`s, so this can't be declared inside either one without
+  // going out of scope for the other).
+  const FORBIDDEN_CREATOR_KEYS = ['charge_amount', 'brand_notes', 'client_name']
+
   if (CAMPAIGN_CREATOR_ID) {
     // /dashboard/go/:id is a server-rendered redirect resolver (not a
     // client-rendered page like /contracts/:id below) — it verifies the JWT
@@ -249,8 +259,6 @@ async function main() {
         return { pass: res.status === 404, detail: `status ${res.status}` }
       })
     }
-
-    const FORBIDDEN_CREATOR_KEYS = ['charge_amount', 'brand_notes', 'client_name']
 
     for (const resource of ['offers', 'deliverables', 'events']) {
       await check(`Creator A's own /api/campaign-creators/:id/${resource} has no charge_amount/brand_notes/client_name`, async () => {
@@ -334,9 +342,10 @@ async function main() {
   if (CAMPAIGN_CREATOR_ID) {
     // Adaptive: only meaningful when the row's contract (if CONTRACT_ID is
     // set) is NOT fully_signed yet — payout-details 404s until it is. If the
-    // contract happens to already be fully_signed in your test data, this
-    // check doesn't apply and is skipped rather than asserting the wrong
-    // thing.
+    // contract happens to already be fully_signed in your test data, fall
+    // back to UNSIGNED_CAMPAIGN_CREATOR_ID (a different row of Brand A's
+    // with no fully_signed contract) if set, otherwise skip rather than
+    // asserting the wrong thing.
     let contractIsFullySigned = false
     if (CONTRACT_ID) {
       const contractRes = await request(`/api/contracts/${CONTRACT_ID}`, { headers: authHeaders(BRAND_A_TOKEN) })
@@ -346,15 +355,18 @@ async function main() {
       }
     }
 
-    if (!contractIsFullySigned) {
+    const unsignedRowId = !contractIsFullySigned ? CAMPAIGN_CREATOR_ID : UNSIGNED_CAMPAIGN_CREATOR_ID
+
+    if (unsignedRowId) {
       await check('Brand A gets 404 on payout-details without a fully signed contract', async () => {
-        const res = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/payout-details`, { headers: authHeaders(BRAND_A_TOKEN) })
+        const res = await request(`/api/campaign-creators/${unsignedRowId}/payout-details`, { headers: authHeaders(BRAND_A_TOKEN) })
         return { pass: res.status === 404, detail: `status ${res.status}` }
       })
-      skip('Payout-details (no ?reveal) never contains raw account details', 'needs a fully_signed contract to get a 200 to inspect — see the 404 check above')
     } else {
-      skip('Brand A gets 404 on payout-details without a fully signed contract', 'the contract on CAMPAIGN_CREATOR_ID is already fully_signed in this test data')
+      skip('Brand A gets 404 on payout-details without a fully signed contract', 'the contract on CAMPAIGN_CREATOR_ID is already fully_signed in this test data, and UNSIGNED_CAMPAIGN_CREATOR_ID is not set')
+    }
 
+    if (contractIsFullySigned) {
       await check('Payout-details (no ?reveal) never contains raw account details', async () => {
         const res = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/payout-details`, { headers: authHeaders(BRAND_A_TOKEN) })
         const text = await res.text()
@@ -363,6 +375,8 @@ async function main() {
         const leaksRawDetails = text.includes('"details":')
         return { pass: res.status === 200 && !leaksRawDetails, detail: `status ${res.status}, leaked raw details: ${leaksRawDetails}` }
       })
+    } else {
+      skip('Payout-details (no ?reveal) never contains raw account details', 'needs a fully_signed contract to get a 200 to inspect — see the 404 check above')
     }
 
     await check('Creating a milestone payment without deliverable_ids returns 400', async () => {
