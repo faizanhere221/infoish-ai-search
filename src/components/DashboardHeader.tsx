@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   MessageSquare,
   Bell,
@@ -13,6 +13,24 @@ import {
 import ProfileDropdown, { type ProfileDropdownProfile } from './ProfileDropdown'
 import { useConversationsList } from '@/hooks/useConversationsList'
 import { usePolling } from '@/hooks/usePolling'
+import { captureError } from '@/lib/error-tracking'
+import { getEventTab, campaignCreatorGoUrl } from '@/lib/campaign-creator-cta'
+
+interface HeaderNotification {
+  id: string
+  title: string
+  content: string
+  related_type: string | null
+  related_id: string | null
+  is_read: boolean
+}
+
+function notificationHref(n: HeaderNotification): string | null {
+  const tab = getEventTab(n.related_type)
+  if (tab && n.related_id) {return campaignCreatorGoUrl(n.related_id, tab)}
+  if (n.related_type === 'conversation' && n.related_id) {return `/messages/${n.related_id}`}
+  return null
+}
 
 interface DashboardHeaderProps {
   userType: 'brand' | 'creator'
@@ -22,10 +40,14 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ userType, profile, hideNotifications = false }: DashboardHeaderProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [authToken, setAuthToken] = useState<string | null>(null)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
+  const [latestNotifications, setLatestNotifications] = useState<HeaderNotification[]>([])
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false)
   const [campaignBadgeCount, setCampaignBadgeCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const notifRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setAuthToken(localStorage.getItem('auth_token'))
@@ -35,20 +57,31 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
   // on refocus) by the same hook the inbox itself uses.
   const { unreadTotal: unreadMessages } = useConversationsList(userType, profile?.id ?? null, authToken)
 
-  const fetchNotificationAndCampaignCounts = useCallback(async () => {
+  // Latest 10 + unread count for the bell dropdown, polled every 20s while
+  // the tab is visible (usePolling pauses in the background automatically).
+  const fetchNotifications = useCallback(async () => {
     if (!profile?.id || !authToken) {return}
-
     try {
-      const notifRes = await fetch('/api/notifications?unread=true&limit=1', {
+      const res = await fetch('/api/notifications?limit=10', {
         headers: { Authorization: `Bearer ${authToken}` },
       })
-      if (notifRes.ok) {
-        const notifData = await notifRes.json()
-        setUnreadNotifications(notifData.unread_count ?? 0)
+      if (res.ok) {
+        const data = await res.json()
+        setUnreadNotifications(data.unread_count ?? 0)
+        setLatestNotifications(data.notifications ?? [])
       }
+    } catch (err) {
+      captureError(err, { context: 'DashboardHeader: fetchNotifications' })
+    }
+  }, [profile, authToken])
 
-      // Fetch campaign-related count badge: active campaigns for brands,
-      // total applications for creators
+  useEffect(() => { fetchNotifications() }, [fetchNotifications])
+  usePolling(fetchNotifications, 20000, { enabled: Boolean(profile?.id && authToken) })
+
+  const fetchCampaignBadgeCount = useCallback(async () => {
+    if (!profile?.id || !authToken) {return}
+    try {
+      // Active campaigns for brands, total applications for creators
       if (userType === 'brand') {
         const campaignsRes = await fetch('/api/campaigns?status=published&limit=50', {
           headers: { Authorization: `Bearer ${authToken}` },
@@ -67,14 +100,39 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
         }
       }
     } catch (err) {
-      console.error('Error fetching unread counts:', err)
+      captureError(err, { context: 'DashboardHeader: fetchCampaignBadgeCount' })
     }
   }, [profile, userType, authToken])
 
   useEffect(() => {
-    fetchNotificationAndCampaignCounts()
-  }, [fetchNotificationAndCampaignCounts])
-  usePolling(fetchNotificationAndCampaignCounts, 5000, { enabled: Boolean(profile?.id && authToken) })
+    fetchCampaignBadgeCount()
+  }, [fetchCampaignBadgeCount])
+  usePolling(fetchCampaignBadgeCount, 5000, { enabled: Boolean(profile?.id && authToken) })
+
+  // Close the notification dropdown on an outside click.
+  useEffect(() => {
+    if (!notifDropdownOpen) {return}
+    const onClick = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {setNotifDropdownOpen(false)}
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [notifDropdownOpen])
+
+  const openNotification = async (n: HeaderNotification) => {
+    setNotifDropdownOpen(false)
+    if (!n.is_read && authToken) {
+      setLatestNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x)))
+      setUnreadNotifications((c) => Math.max(0, c - 1))
+      fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: n.id }),
+      }).catch((err) => captureError(err, { context: 'DashboardHeader: markRead' }))
+    }
+    const href = notificationHref(n)
+    router.push(href ?? '/notifications')
+  }
 
   const navItems = userType === 'brand' ? [
     { href: '/dashboard/brand', label: 'Dashboard' },
@@ -149,17 +207,53 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
           <div className="flex items-center gap-2">
             {/* Notifications Bell */}
             {!hideNotifications && (
-              <Link
-                href="/notifications"
-                className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
-              >
-                <Bell className="w-5 h-5" />
-                {unreadNotifications > 0 && (
-                  <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-xs rounded-full font-bold border-2 border-white">
-                    {unreadNotifications > 9 ? '9+' : unreadNotifications}
-                  </span>
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={() => setNotifDropdownOpen((o) => !o)}
+                  className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+                  aria-label="Notifications"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadNotifications > 0 && (
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-xs rounded-full font-bold border-2 border-white">
+                      {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                    </span>
+                  )}
+                </button>
+
+                {notifDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-80 max-w-[90vw] bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden z-50">
+                    <div className="px-4 py-3 border-b border-gray-100 font-semibold text-sm text-gray-900">
+                      Notifications
+                    </div>
+                    {latestNotifications.length === 0 ? (
+                      <div className="px-4 py-8 text-center text-sm text-gray-400">No notifications yet</div>
+                    ) : (
+                      <div className="max-h-96 overflow-y-auto divide-y divide-gray-100">
+                        {latestNotifications.map((n) => (
+                          <button
+                            key={n.id}
+                            onClick={() => openNotification(n)}
+                            className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${!n.is_read ? 'bg-brand-pink/5' : ''}`}
+                          >
+                            <p className={`text-sm font-medium truncate ${!n.is_read ? 'text-gray-900' : 'text-gray-600'}`}>
+                              {n.title}
+                            </p>
+                            <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{n.content}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <Link
+                      href="/notifications"
+                      onClick={() => setNotifDropdownOpen(false)}
+                      className="block px-4 py-3 text-center text-sm font-medium text-brand-purple-dark hover:bg-brand-pink/5 border-t border-gray-100"
+                    >
+                      View all
+                    </Link>
+                  </div>
                 )}
-              </Link>
+              </div>
             )}
 
             {/* Messages (Quick access) */}
