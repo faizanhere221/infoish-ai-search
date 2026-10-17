@@ -16,6 +16,10 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
   // branch below see it would just fail verification and 401 before the
   // route's own check ever runs.
   if (pathname.startsWith('/api/cron/')) {return true}
+  // Unsubscribe links are designed to work without being logged in — the
+  // signed token in the query string (verified inside the route itself,
+  // see src/lib/email/unsubscribeToken.ts) is the credential, not a JWT.
+  if (pathname === '/api/email/unsubscribe') {return true}
   return false
 }
 

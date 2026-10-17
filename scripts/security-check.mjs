@@ -63,6 +63,15 @@ const UNSIGNED_CAMPAIGN_CREATOR_ID = getEnv('UNSIGNED_CAMPAIGN_CREATOR_ID')
 // Optional — Phase 6A (notifications) checks, skipped if blank.
 const CREATOR_A_NOTIFICATION_ID = getEnv('CREATOR_A_NOTIFICATION_ID')
 
+// Optional — Phase 6B (email) checks, skipped if blank.
+// A fresh, unused password-reset token's raw value (not its hash) — trigger
+// POST /api/auth/forgot-password for a disposable test account, then copy
+// the token out of the server console log (no RESEND_API_KEY) or the email
+// itself. WRITES DATA: running this check changes that account's password
+// to the fixed value below. Only ever use a disposable test account.
+const PASSWORD_RESET_TOKEN = getEnv('PASSWORD_RESET_TOKEN')
+const PASSWORD_RESET_TEST_NEW_PASSWORD = 'SecurityCheckReset123'
+
 const required = { BRAND_A_TOKEN, CREATOR_A_TOKEN, CREATOR_B_TOKEN, CONVERSATION_ID, PRIVATE_CAMPAIGN_ID }
 const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k)
 if (missing.length > 0) {
@@ -107,6 +116,19 @@ function skip(name, reason) {
 // response shape it ended up, without needing to know the exact schema.
 function leaksAnyKey(text, keys) {
   return keys.filter((k) => text.includes(`"${k}":`))
+}
+
+// Reads the payload of a JWT without verifying its signature — fine here
+// since the token is one this script was already handed to use as a bearer
+// credential; this just reads the email claim already inside it instead of
+// needing a separate env var for the same account.
+function decodeJwtPayload(token) {
+  try {
+    const payload = token.split('.')[1]
+    return JSON.parse(Buffer.from(payload, 'base64url').toString('utf-8'))
+  } catch {
+    return null
+  }
 }
 
 async function main() {
@@ -488,6 +510,89 @@ async function main() {
     })
   } else {
     skip("Creator B can't read or modify Creator A's notification", 'CREATOR_A_NOTIFICATION_ID not set')
+  }
+
+  // ── Phase 6B — email ──────────────────────────────────────────────────────────
+
+  await check('GET /api/cron/message-digest returns 401 without the secret', async () => {
+    const res = await request('/api/cron/message-digest')
+    return { pass: res.status === 401, detail: `status ${res.status}` }
+  })
+
+  await check('GET /api/cron/daily-summary returns 401 without the secret', async () => {
+    const res = await request('/api/cron/daily-summary')
+    return { pass: res.status === 401, detail: `status ${res.status}` }
+  })
+
+  await check('Cron routes reject a wrong secret, not just a missing one', async () => {
+    const res = await request('/api/cron/daily-summary', { headers: { Authorization: 'Bearer not-the-real-secret' } })
+    return { pass: res.status === 401, detail: `status ${res.status}` }
+  })
+
+  // Unsubscribe links carry their own userId inside a signed token — there
+  // is no separate "which user" parameter on the request for an attacker to
+  // substitute, so the only thing a black-box test can probe is that an
+  // unsigned/garbage token is rejected outright rather than falling back to
+  // some default account.
+  await check("POST /api/email/unsubscribe rejects a garbage token (can't fall back to another user)", async () => {
+    const res = await request('/api/email/unsubscribe?token=not-a-real-token', { method: 'POST' })
+    return { pass: res.status === 400, detail: `status ${res.status}` }
+  })
+
+  await check('Password reset rejects an unknown/garbage token', async () => {
+    const res = await request('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: `not-a-real-token-${Date.now()}`, password: 'SomePassword123' }),
+    })
+    return { pass: res.status === 400, detail: `status ${res.status}` }
+  })
+
+  const creatorAClaims = decodeJwtPayload(CREATOR_A_TOKEN)
+  if (creatorAClaims?.email) {
+    await check('Forgot-password responds identically for a real vs a fake email (no enumeration)', async () => {
+      const [resReal, resFake] = await Promise.all([
+        request('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: creatorAClaims.email }),
+        }),
+        request('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: `definitely-not-registered-${Date.now()}@example.com` }),
+        }),
+      ])
+      const [textReal, textFake] = await Promise.all([resReal.text(), resFake.text()])
+      return {
+        pass: resReal.status === resFake.status && textReal === textFake,
+        detail: `real: ${resReal.status}, fake: ${resFake.status}, identical body: ${textReal === textFake}`,
+      }
+    })
+  } else {
+    skip('Forgot-password responds identically for a real vs a fake email', "couldn't decode an email claim from CREATOR_A_TOKEN")
+  }
+
+  if (PASSWORD_RESET_TOKEN) {
+    await check('Password reset token works once, then rejects reuse (single-use)', async () => {
+      const body = JSON.stringify({ token: PASSWORD_RESET_TOKEN, password: PASSWORD_RESET_TEST_NEW_PASSWORD })
+      const first = await request('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      })
+      const second = await request('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      })
+      return {
+        pass: first.status === 200 && second.status === 400,
+        detail: `first use: ${first.status}, reuse attempt: ${second.status}`,
+      }
+    })
+  } else {
+    skip('Password reset token works once, then rejects reuse', 'PASSWORD_RESET_TOKEN not set — see .env.test.example')
   }
 
   // Positive controls — if these fail, every 404 above might just mean the
