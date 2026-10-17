@@ -29,6 +29,8 @@ There is no test suite (no Jest/Vitest/Playwright config, no `test` script). Ver
 
 When something looks impossible from reading the code (stale data, phantom errors, a route that behaves differently than its source), suspect a stale `.next` cache before anything else: `rm -rf .next && npm run build`. If a build fails with `Cannot find module for page: ...`, a leftover `next dev`/`next start` process from an earlier session is holding a lock on `.next`. Find it with `netstat -ano | grep LISTENING` (ports 3000 and other `next start -p <port>` ports) and kill it before rebuilding.
 
+- The user often has `npm run dev` running on port 3000. Never run `npm run build` or start another server while it's up. To verify, use `npx tsc --noEmit` and `npm run lint`, or ask the user to stop their dev server first. If you start a server for testing, kill it before finishing.
+
 ## Tech Stack (DO NOT change versions without asking)
 
 - **Framework:** Next.js 14.2.35 (App Router), React 18.3.1, TypeScript 5.9.3
