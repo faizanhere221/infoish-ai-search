@@ -11,6 +11,11 @@ function isPublicApiRoute(pathname: string, method: string): boolean {
   if (method === 'POST' && pathname === '/api/referral/track') {return true}
   if (method === 'POST' && /^\/api\/creators\/[^/]+\/view$/.test(pathname)) {return true}
   if (method === 'GET' && /^\/api\/share\/[^/]+$/.test(pathname)) {return true}
+  // Cron routes carry their own bearer secret (CRON_SECRET, checked in the
+  // route itself via src/lib/cron-auth.ts) — not a JWT, so letting the JWT
+  // branch below see it would just fail verification and 401 before the
+  // route's own check ever runs.
+  if (pathname.startsWith('/api/cron/')) {return true}
   return false
 }
 
