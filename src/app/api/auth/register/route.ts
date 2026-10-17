@@ -5,6 +5,13 @@ import { rateLimit } from '@/lib/rate-limit'
 import { logActivity } from '@/lib/activity'
 import { validateEmail } from '@/utils/validateEmail'
 import { emitEvent } from '@/lib/events/emit'
+import { captureError } from '@/lib/error-tracking'
+import { sendEmail } from '@/lib/email/send'
+import { welcomeEmail } from '@/lib/email/templates/welcome'
+import { verifyEmailTemplate } from '@/lib/email/templates/verifyEmail'
+import { generateToken, hashToken } from '@/lib/email/tokens'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 
 export async function POST(request: NextRequest) {
   try {
@@ -92,7 +99,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (userError) {
-      console.error('Error creating user:', userError)
+      captureError(userError, { route: 'POST /api/auth/register' })
       return NextResponse.json(
         { error: 'Failed to create user' },
         { status: 500 }
@@ -121,6 +128,50 @@ export async function POST(request: NextRequest) {
       data: { userType: user_type },
     })
 
+    // Welcome + verification emails are fire-and-forget — a failure here
+    // must never turn into a failed registration (the account already
+    // exists at this point).
+    try {
+      const welcome = welcomeEmail(user_type)
+      await sendEmail({
+        to: user.email,
+        subject: welcome.subject,
+        html: welcome.html,
+        text: welcome.text,
+        category: 'security',
+        template: `welcome_${user_type}`,
+        idempotencyKey: `welcome:${user.id}`,
+        userId: user.id,
+        deferrable: false,
+      })
+
+      const rawToken = generateToken()
+      const { error: tokenError } = await supabase.from('email_verification_tokens').insert({
+        user_id: user.id,
+        token_hash: hashToken(rawToken),
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      })
+      if (tokenError) {
+        captureError(tokenError, { route: 'POST /api/auth/register', context: 'verification token' })
+      } else {
+        const verifyUrl = `${APP_URL}/verify-email?token=${rawToken}`
+        const verify = verifyEmailTemplate(verifyUrl)
+        await sendEmail({
+          to: user.email,
+          subject: verify.subject,
+          html: verify.html,
+          text: verify.text,
+          category: 'security',
+          template: 'verify_email',
+          idempotencyKey: `verify_email:${user.id}:initial`,
+          userId: user.id,
+          deferrable: false,
+        })
+      }
+    } catch (emailError) {
+      captureError(emailError, { route: 'POST /api/auth/register', context: 'welcome/verification email' })
+    }
+
     // Return user without sensitive data
     const { password_hash: _, ...safeUser } = user
 
@@ -131,7 +182,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 })
 
   } catch (error) {
-    console.error('Registration error:', error)
+    captureError(error, { route: 'POST /api/auth/register' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

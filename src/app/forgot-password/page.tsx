@@ -10,7 +10,7 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError('Please enter a valid email address')
@@ -18,11 +18,19 @@ export default function ForgotPasswordPage() {
     }
     setError('')
     setIsLoading(true)
-    // Simulate a short delay so it feels real
-    setTimeout(() => {
+    try {
+      await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+    } finally {
+      // Always show the same confirmation, whether or not the request
+      // succeeded — the API itself never reveals whether the email exists,
+      // and a network blip shouldn't tip that off either.
       setIsLoading(false)
       setSubmitted(true)
-    }, 800)
+    }
   }
 
   return (

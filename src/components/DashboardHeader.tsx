@@ -47,11 +47,37 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false)
   const [campaignBadgeCount, setCampaignBadgeCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [emailVerified, setEmailVerified] = useState(true) // assume verified until we know otherwise — avoids a flash of the banner
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle')
   const notifRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setAuthToken(localStorage.getItem('auth_token'))
+    const userStr = localStorage.getItem('auth_user')
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        setEmailVerified(user.email_verified !== false)
+      } catch {
+        // malformed localStorage — nothing to recover, just don't show the banner
+      }
+    }
   }, [])
+
+  const resendVerification = async () => {
+    if (!authToken || resendState === 'sending') {return}
+    setResendState('sending')
+    try {
+      await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${authToken}` },
+      })
+      setResendState('sent')
+    } catch (err) {
+      captureError(err, { context: 'DashboardHeader: resendVerification' })
+      setResendState('idle')
+    }
+  }
 
   // Messages unread badge: polled every 10s (paused while hidden, refetched
   // on refocus) by the same hook the inbox itself uses.
@@ -165,6 +191,7 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
   }
 
   return (
+    <>
     <header className="relative bg-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -321,5 +348,25 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
       </div>
       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-pink to-brand-purple" />
     </header>
+
+    {!emailVerified && (
+      <div className="bg-amber-50 border-b border-amber-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-center gap-3 flex-wrap text-sm">
+          <span className="text-amber-800">Verify your email address to secure your account.</span>
+          {resendState === 'sent' ? (
+            <span className="text-amber-700 font-medium">Verification email sent</span>
+          ) : (
+            <button
+              onClick={resendVerification}
+              disabled={resendState === 'sending'}
+              className="text-amber-900 font-semibold hover:underline disabled:opacity-50"
+            >
+              {resendState === 'sending' ? 'Sending...' : 'Resend email'}
+            </button>
+          )}
+        </div>
+      </div>
+    )}
+    </>
   )
 }
