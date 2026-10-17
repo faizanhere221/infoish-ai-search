@@ -3,24 +3,33 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
-const CreateNotificationSchema = z.object({
-  user_id: z.string().uuid(),
-  type: z.enum([
-    'deal_created', 'deal_accepted', 'deal_declined',
-    'deal_delivered', 'deal_approved', 'deal_completed', 'new_message',
-  ]),
-  title: z.string().min(1).max(200),
-  content: z.string().min(1).max(1000),
-  related_type: z.string().max(50).optional().nullable(),
-  related_id: z.string().uuid().optional().nullable(),
+const CATEGORIES = ['messages', 'offers', 'contracts', 'work', 'payments', 'account'] as const
+
+const MarkSchema = z.object({
+  id: z.string().min(1).optional(), // single notification; omit + all:true for bulk
+  all: z.boolean().optional(),
+  read: z.boolean().optional(), // defaults to true — PATCH exists to mark read/archived, not unread
+  archived: z.boolean().optional(),
 })
 
-const MarkReadSchema = z.object({
-  id: z.string().uuid().optional(),   // single notification; omit to mark all
-  all: z.boolean().optional(),        // explicit flag to mark all
-})
+// Cursor is "<created_at ISO timestamp>|<id>", same composite-cursor
+// convention as GET /api/conversations/[id]/messages — unambiguous even
+// when two notifications share a created_at timestamp.
+function parseCursor(raw: string | null): { createdAt: string; id: string } | null {
+  if (!raw) {return null}
+  const sep = raw.lastIndexOf('|')
+  if (sep === -1) {return null}
+  const createdAt = raw.slice(0, sep)
+  const id = raw.slice(sep + 1)
+  if (!createdAt || !id) {return null}
+  return { createdAt, id }
+}
 
-// GET /api/notifications — paginated list for the authenticated user
+// GET /api/notifications — cursor-paginated list for the authenticated
+// user. ?category=offers|contracts|work|payments|messages|account,
+// ?priority=action, ?archived=true (defaults to false — archived
+// notifications are hidden from the normal list), ?unread=true,
+// ?before=<cursor> for infinite scroll.
 export async function GET(request: NextRequest) {
   const userId = request.headers.get('x-user-id')
   if (!userId) {
@@ -29,84 +38,53 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20') || 20, 1), 50)
-  const offset = Math.max(parseInt(searchParams.get('offset') || '0') || 0, 0)
   const unreadOnly = searchParams.get('unread') === 'true'
+  const showArchived = searchParams.get('archived') === 'true'
+  const category = searchParams.get('category')
+  const priority = searchParams.get('priority')
+  const before = parseCursor(searchParams.get('before'))
 
   const supabase = createServerSupabase()
 
   let query = supabase
     .from('notifications')
-    .select('*', { count: 'exact' })
+    .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1)
+    .order('id', { ascending: false })
+    .limit(limit)
 
-  if (unreadOnly) {
-    query = query.eq('is_read', false)
+  query = showArchived ? query.not('archived_at', 'is', null) : query.is('archived_at', null)
+  if (unreadOnly) {query = query.eq('is_read', false)}
+  if (category && (CATEGORIES as readonly string[]).includes(category)) {query = query.eq('category', category)}
+  if (priority === 'action' || priority === 'info') {query = query.eq('priority', priority)}
+  if (before) {
+    query = query.or(`created_at.lt.${before.createdAt},and(created_at.eq.${before.createdAt},id.lt.${before.id})`)
   }
 
-  const { data: notifications, error, count } = await query
+  const { data: notifications, error } = await query
 
   if (error) {
     captureError(error, { route: 'GET /api/notifications' })
     return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 })
   }
 
-  const unreadCount = unreadOnly
-    ? (count ?? 0)
-    : await getUnreadCount(supabase, userId)
+  const rows = notifications ?? []
+  const unreadCount = await getUnreadCount(supabase, userId)
+  const nextCursor = rows.length === limit ? `${rows[rows.length - 1].created_at}|${rows[rows.length - 1].id}` : null
 
   return NextResponse.json({
-    notifications: notifications ?? [],
+    notifications: rows,
     unread_count: unreadCount,
-    pagination: {
-      limit,
-      offset,
-      total: count ?? 0,
-      has_more: offset + limit < (count ?? 0),
-    },
+    has_more: rows.length === limit,
+    next_cursor: nextCursor,
   })
 }
 
-// POST /api/notifications — internal use: create a notification for any user
-export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => null)
-  if (!body) {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
-  }
-
-  const parsed = CreateNotificationSchema.safeParse(body)
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Invalid request body', details: parsed.error.flatten().fieldErrors },
-      { status: 400 }
-    )
-  }
-
-  const supabase = createServerSupabase()
-  const { data: notification, error } = await supabase
-    .from('notifications')
-    .insert({
-      user_id: parsed.data.user_id,
-      type: parsed.data.type,
-      title: parsed.data.title,
-      content: parsed.data.content,
-      related_type: parsed.data.related_type ?? null,
-      related_id: parsed.data.related_id ?? null,
-      is_read: false,
-    })
-    .select()
-    .single()
-
-  if (error) {
-    captureError(error, { route: 'POST /api/notifications' })
-    return NextResponse.json({ error: 'Failed to create notification' }, { status: 500 })
-  }
-
-  return NextResponse.json({ notification }, { status: 201 })
-}
-
-// PATCH /api/notifications — mark one or all notifications as read
+// PATCH /api/notifications — mark one/all as read, or archive one.
+// { id, archived: true }        -> archive a single notification
+// { id }  /  { id, read: true } -> mark a single notification read
+// { all: true }                 -> mark every unread notification read
 export async function PATCH(request: NextRequest) {
   const userId = request.headers.get('x-user-id')
   if (!userId) {
@@ -118,7 +96,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const parsed = MarkReadSchema.safeParse(body)
+  const parsed = MarkSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Invalid request body', details: parsed.error.flatten().fieldErrors },
@@ -129,32 +107,43 @@ export async function PATCH(request: NextRequest) {
   const supabase = createServerSupabase()
 
   if (parsed.data.id) {
-    // Mark single notification — verify ownership
+    const updates: Record<string, unknown> = {}
+    if (parsed.data.archived !== undefined) {
+      updates.archived_at = parsed.data.archived ? new Date().toISOString() : null
+    }
+    if (parsed.data.archived === undefined || parsed.data.read !== undefined) {
+      const markRead = parsed.data.read ?? true
+      updates.is_read = markRead
+      updates.read_at = markRead ? new Date().toISOString() : null
+    }
+
     const { error } = await supabase
       .from('notifications')
-      .update({ is_read: true })
+      .update(updates)
       .eq('id', parsed.data.id)
       .eq('user_id', userId) // ownership enforced here
     if (error) {
       captureError(error, { route: 'PATCH /api/notifications' })
       return NextResponse.json({ error: 'Failed to update notification' }, { status: 500 })
     }
-    return NextResponse.json({ message: 'Notification marked as read' })
+    return NextResponse.json({ message: 'Notification updated' })
   }
 
-  // Mark all unread notifications for this user
-  const { error } = await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('user_id', userId)
-    .eq('is_read', false)
+  if (parsed.data.all) {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('is_read', false)
 
-  if (error) {
-    captureError(error, { route: 'PATCH /api/notifications' })
-    return NextResponse.json({ error: 'Failed to update notifications' }, { status: 500 })
+    if (error) {
+      captureError(error, { route: 'PATCH /api/notifications' })
+      return NextResponse.json({ error: 'Failed to update notifications' }, { status: 500 })
+    }
+    return NextResponse.json({ message: 'All notifications marked as read' })
   }
 
-  return NextResponse.json({ message: 'All notifications marked as read' })
+  return NextResponse.json({ error: 'Must provide either id or all:true' }, { status: 400 })
 }
 
 async function getUnreadCount(supabase: ReturnType<typeof createServerSupabase>, userId: string) {
@@ -163,5 +152,6 @@ async function getUnreadCount(supabase: ReturnType<typeof createServerSupabase>,
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('is_read', false)
+    .is('archived_at', null)
   return count ?? 0
 }
