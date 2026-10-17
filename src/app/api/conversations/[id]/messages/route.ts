@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedConversation } from '@/lib/conversations'
+import { getUserIdFromCreator, getUserIdFromBrand } from '@/lib/notifications'
+import { emitNewMessageNotification } from '@/lib/events/emit'
 import type { Attachment } from '@/types/marketplace'
 
 const DEFAULT_LIMIT = 50
@@ -172,6 +174,16 @@ export async function POST(
       })
       return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
     }
+
+    const recipientUserId = callerProfileId === conversation.creator_id
+      ? await getUserIdFromBrand(supabase, conversation.brand_id)
+      : await getUserIdFromCreator(supabase, conversation.creator_id)
+    await emitNewMessageNotification(supabase, {
+      conversationId,
+      senderUserId: callerUserId,
+      recipientUserId,
+      preview: content ? content.substring(0, 100) : 'Sent an attachment',
+    })
 
     return NextResponse.json({
       message: 'Message sent successfully',

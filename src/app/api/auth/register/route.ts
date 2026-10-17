@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 import { rateLimit } from '@/lib/rate-limit'
 import { logActivity } from '@/lib/activity'
 import { validateEmail } from '@/utils/validateEmail'
+import { emitEvent } from '@/lib/events/emit'
 
 export async function POST(request: NextRequest) {
   try {
@@ -106,6 +107,18 @@ export async function POST(request: NextRequest) {
       details: { email: user.email, user_type },
       ipAddress: ip,
       userAgent: request.headers.get('user-agent') ?? undefined,
+    })
+
+    // 'system' is never written anywhere FK-constrained (no campaignCreatorId
+    // here, and notifications.user_id has no FK) — it only needs to not
+    // equal the recipient, since emitEvent never notifies its own actor.
+    await emitEvent(supabase, {
+      type: 'account_created',
+      actorUserId: 'system',
+      recipientUserIds: [user.id],
+      relatedType: 'account',
+      relatedId: user.id,
+      data: { userType: user_type },
     })
 
     // Return user without sensitive data
