@@ -71,6 +71,16 @@ export interface CancelParams {
   reason: string
 }
 
+export interface AdminResolveDisputeParams {
+  paymentId: string
+  resolution: 'marked_paid' | 'confirmed'
+}
+
+export interface AdminCancelParams {
+  paymentId: string
+  reason: string
+}
+
 // The seam between "how a payment record's state changes" and "how money
 // actually moved." Every route goes through this interface, never touching
 // `creator_payments` directly, so a future 'stripe' implementation can slot
@@ -89,6 +99,11 @@ export interface PaymentProvider {
   confirmReceived(supabase: SupabaseClient, params: ConfirmReceivedParams): Promise<TransitionResult>
   dispute(supabase: SupabaseClient, params: DisputeParams): Promise<TransitionResult>
   cancel(supabase: SupabaseClient, params: CancelParams): Promise<TransitionResult>
+  // Admin-only overrides (src/app/api/admin/payments/[id]/*) — same
+  // conditional-UPDATE race safety as every transition above, just a
+  // different "from" status set reachable only by an admin action.
+  adminResolveDispute(supabase: SupabaseClient, params: AdminResolveDisputeParams): Promise<TransitionResult>
+  adminCancel(supabase: SupabaseClient, params: AdminCancelParams): Promise<TransitionResult>
 }
 
 async function fetchCurrent(supabase: SupabaseClient, paymentId: string): Promise<PaymentRecord> {
@@ -177,6 +192,47 @@ class ManualPaymentProvider implements PaymentProvider {
       .update({ status: 'cancelled', cancelled_reason: params.reason })
       .eq('id', params.paymentId)
       .in('status', ['scheduled', 'due'])
+      .select()
+      .maybeSingle()
+
+    if (error) {throw error}
+    if (data) {return { record: data as PaymentRecord, applied: true }}
+    return { record: await fetchCurrent(supabase, params.paymentId), applied: false }
+  }
+
+  // Admin resolves a dispute by deciding which way it actually went: the
+  // brand's claim was right (back to marked_paid, so the creator confirms
+  // again) or the creator's claim was right (straight to confirmed). Only
+  // ever moves a payment that's actually 'disputed'.
+  async adminResolveDispute(supabase: SupabaseClient, params: AdminResolveDisputeParams): Promise<TransitionResult> {
+    const update: Record<string, unknown> = { status: params.resolution, dispute_reason: null }
+    if (params.resolution === 'confirmed') {update.confirmed_at = new Date().toISOString()}
+    if (params.resolution === 'marked_paid') {update.marked_paid_at = new Date().toISOString()}
+
+    const { data, error } = await supabase
+      .from('creator_payments')
+      .update(update)
+      .eq('id', params.paymentId)
+      .eq('status', 'disputed')
+      .select()
+      .maybeSingle()
+
+    if (error) {throw error}
+    if (data) {return { record: data as PaymentRecord, applied: true }}
+    return { record: await fetchCurrent(supabase, params.paymentId), applied: false }
+  }
+
+  // Admin override cancel — broader "from" set than the brand's own
+  // cancel() above (which only applies pre-payment), since an admin may
+  // need to cancel a payment that's already marked_paid or disputed as
+  // part of resolving an escalation. Never cancels an already-confirmed
+  // or already-cancelled payment — those are terminal.
+  async adminCancel(supabase: SupabaseClient, params: AdminCancelParams): Promise<TransitionResult> {
+    const { data, error } = await supabase
+      .from('creator_payments')
+      .update({ status: 'cancelled', cancelled_reason: params.reason })
+      .eq('id', params.paymentId)
+      .in('status', ['scheduled', 'due', 'marked_paid', 'disputed'])
       .select()
       .maybeSingle()
 

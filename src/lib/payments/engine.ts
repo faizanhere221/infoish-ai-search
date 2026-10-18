@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { paymentProvider, type PaymentRecord } from '@/lib/payments/provider'
 import type { MarkPaidParams, PayoutMethodType } from '@/lib/payments/provider'
 import { recordCampaignCreatorAction, logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
+import { emitEvent } from '@/lib/events/emit'
 import { getUserIdFromBrand, getUserIdFromCreator } from '@/lib/notifications'
 import { formatMoney } from '@/components/campaigns/utils'
 
@@ -422,6 +423,67 @@ export async function cancelPayment(
       title: 'Payment cancelled',
       content: `A payment of ${formatMoney(record.amount, record.currency)} was cancelled: ${params.reason}`,
     },
+  })
+
+  return { record, applied }
+}
+
+// Admin resolves a dispute (POST /api/admin/payments/[id]/resolve-dispute).
+// Unlike every brand/creator transition above, this notifies BOTH parties
+// via emitEvent directly (actorType: 'admin') rather than
+// recordCampaignCreatorAction — an admin decision doesn't need a chat
+// system message, just the notification + campaign_creator_events row.
+export async function adminResolveDispute(
+  supabase: SupabaseClient,
+  params: RowContext & { paymentId: string; resolution: 'marked_paid' | 'confirmed'; resolutionNote: string; actorUserId: string }
+): Promise<EngineResult> {
+  const { record, applied } = await paymentProvider.adminResolveDispute(supabase, {
+    paymentId: params.paymentId,
+    resolution: params.resolution,
+  })
+  if (!applied) {return { record, applied }}
+
+  const [brandUserId, creatorUserId] = await Promise.all([
+    getUserIdFromBrand(supabase, params.brandId),
+    getUserIdFromCreator(supabase, params.creatorId),
+  ])
+
+  await emitEvent(supabase, {
+    type: 'payment_dispute_resolved',
+    actorUserId: params.actorUserId,
+    actorType: 'admin',
+    campaignCreatorId: params.campaignCreatorId,
+    recipientUserIds: [brandUserId, creatorUserId],
+    data: { payment_id: record.id, amount: record.amount, currency: record.currency, resolution: params.resolution, resolutionNote: params.resolutionNote },
+  })
+
+  return { record, applied }
+}
+
+// Admin override cancel (POST /api/admin/payments/[id]/cancel). Same
+// both-parties emitEvent pattern as adminResolveDispute above.
+export async function adminCancelPayment(
+  supabase: SupabaseClient,
+  params: RowContext & { paymentId: string; reason: string; actorUserId: string }
+): Promise<EngineResult> {
+  const { record, applied } = await paymentProvider.adminCancel(supabase, {
+    paymentId: params.paymentId,
+    reason: params.reason,
+  })
+  if (!applied) {return { record, applied }}
+
+  const [brandUserId, creatorUserId] = await Promise.all([
+    getUserIdFromBrand(supabase, params.brandId),
+    getUserIdFromCreator(supabase, params.creatorId),
+  ])
+
+  await emitEvent(supabase, {
+    type: 'payment_admin_cancelled',
+    actorUserId: params.actorUserId,
+    actorType: 'admin',
+    campaignCreatorId: params.campaignCreatorId,
+    recipientUserIds: [brandUserId, creatorUserId],
+    data: { payment_id: record.id, amount: record.amount, currency: record.currency, reason: params.reason },
   })
 
   return { record, applied }

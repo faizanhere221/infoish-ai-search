@@ -22,6 +22,8 @@ const ACTION_GROUPS = [
   { value: 'auth', label: 'Authentication' },
   { value: 'deals', label: 'Deals' },
   { value: 'profile', label: 'Profile' },
+  { value: 'payments', label: 'Payments' },
+  { value: 'moderation', label: 'Moderation' },
   { value: 'admin', label: 'Admin' },
 ]
 
@@ -61,6 +63,11 @@ const ACTION_META: Record<string, { color: string; icon: string }> = {
   partner_deleted:               { color: 'bg-red-500/20 text-red-400',       icon: '🗑' },
   partner_payout_recorded:      { color: 'bg-emerald-500/20 text-emerald-400', icon: '$' },
   partner_commission_updated:   { color: 'bg-amber-500/20 text-amber-400',    icon: '$' },
+  payment_viewed:               { color: 'bg-slate-500/20 text-slate-400',    icon: '👁' },
+  payment_proof_viewed:         { color: 'bg-slate-500/20 text-slate-400',    icon: '👁' },
+  payment_note_added:           { color: 'bg-cyan-500/20 text-cyan-400',      icon: '✎' },
+  payment_dispute_resolved:     { color: 'bg-emerald-500/20 text-emerald-400', icon: '✓' },
+  payment_admin_cancelled:      { color: 'bg-red-500/20 text-red-400',        icon: '⊘' },
 }
 
 function actionMeta(action: string) {

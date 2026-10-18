@@ -18,6 +18,11 @@ const ACTION_GROUPS: Record<string, string[]> = {
     'settings_updated',
     'partner_created', 'partner_updated', 'partner_deleted', 'partner_payout_recorded', 'partner_commission_updated',
   ],
+  payments: [
+    'payment_viewed', 'payment_proof_viewed', 'payment_note_added',
+    'payment_dispute_resolved', 'payment_admin_cancelled',
+  ],
+  moderation: [],
 }
 
 const PAGE_SIZE_MAX = 100
