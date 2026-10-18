@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (err) {
-    console.error('Users export error:', err)
+    captureError(err, { route: 'GET /api/admin/users/export' })
     return NextResponse.json({ error: 'Export failed' }, { status: 500 })
   }
 }

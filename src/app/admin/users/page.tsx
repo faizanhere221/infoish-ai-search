@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { ReasonDialog } from '@/components/admin/ReasonDialog'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, Trash2, X, RefreshCw,
   ChevronLeft, ChevronRight, Shield, User, Building2,
-  Filter, AlertTriangle,
+  Filter,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -149,10 +150,13 @@ export default function AdminUsersPage() {
   // Modal
   const [modalUser, setModalUser] = useState<UserDetail | null>(null)
   const [modalLoading, setModalLoading] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
-  // Action states
-  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
+  // Every mutating action (single or bulk) goes through this — a reason is
+  // required before it fires, shown via the shared ReasonDialog.
+  type PendingAction =
+    | { type: 'activate' | 'suspend' | 'delete'; userId: string }
+    | { type: 'bulk-activate' | 'bulk-suspend' | 'bulk-delete' }
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
 
   const fetchUsers = useCallback(async (isRefresh = false) => {
     if (isRefresh) {setRefreshing(true)}
@@ -203,62 +207,89 @@ export default function AdminUsersPage() {
     setModalLoading(false)
   }
 
-  const toggleStatus = async (userId: string, currentActive: boolean) => {
-    setActionLoading(a => ({ ...a, [userId]: true }))
-    await fetch(`/api/admin/users/${userId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ is_active: !currentActive }),
-    })
-    setUsers(u => u.map(x => x.id === userId ? { ...x, is_active: !currentActive } : x))
-    if (modalUser?.user.id === userId) {
-      setModalUser(m => m ? { ...m, user: { ...m.user, is_active: !currentActive } } : m)
+  // Single-user activate/suspend/delete all go through the dedicated,
+  // logged routes now — never the generic PATCH/DELETE directly.
+  const runSingleAction = async (reason: string, type: 'activate' | 'suspend' | 'delete', userId: string) => {
+    if (type === 'delete') {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to delete user')
+      }
+      setUsers(u => u.filter(x => x.id !== userId))
+      setTotal(t => t - 1)
+      if (modalUser?.user.id === userId) {setModalUser(null)}
+      return
     }
-    setActionLoading(a => ({ ...a, [userId]: false }))
+
+    const res = await fetch(`/api/admin/users/${userId}/${type}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error || `Failed to ${type} user`)
+    }
+    const isActive = type === 'activate'
+    setUsers(u => u.map(x => x.id === userId ? { ...x, is_active: isActive } : x))
+    if (modalUser?.user.id === userId) {
+      setModalUser(m => m ? { ...m, user: { ...m.user, is_active: isActive } } : m)
+    }
   }
 
-  const deleteUser = async (userId: string) => {
-    setActionLoading(a => ({ ...a, [userId]: true }))
-    await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
-    setUsers(u => u.filter(x => x.id !== userId))
-    setTotal(t => t - 1)
-    setConfirmDelete(null)
-    if (modalUser?.user.id === userId) {setModalUser(null)}
-    setActionLoading(a => ({ ...a, [userId]: false }))
-  }
-
-  const bulkAction = async (action: 'activate' | 'suspend' | 'delete') => {
+  const runBulkAction = async (reason: string, type: 'bulk-activate' | 'bulk-suspend' | 'bulk-delete') => {
     const ids = Array.from(selected)
-    if (action === 'delete') {
-      await Promise.all(ids.map(id => fetch(`/api/admin/users/${id}`, { method: 'DELETE' })))
+    if (type === 'bulk-delete') {
+      await Promise.all(ids.map(id => fetch(`/api/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      })))
       setUsers(u => u.filter(x => !selected.has(x.id)))
       setTotal(t => t - ids.length)
     } else {
+      const action = type === 'bulk-activate' ? 'activate' : 'suspend'
       const isActive = action === 'activate'
-      await Promise.all(ids.map(id => fetch(`/api/admin/users/${id}`, {
-        method: 'PATCH',
+      await Promise.all(ids.map(id => fetch(`/api/admin/users/${id}/${action}`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: isActive }),
+        body: JSON.stringify({ reason }),
       })))
       setUsers(u => u.map(x => selected.has(x.id) ? { ...x, is_active: isActive } : x))
     }
     setSelected(new Set())
   }
 
+  const [actionError, setActionError] = useState('')
+  const confirmPendingAction = async (reason: string) => {
+    if (!pendingAction) {return}
+    setActionError('')
+    try {
+      if ('userId' in pendingAction) {
+        await runSingleAction(reason, pendingAction.type, pendingAction.userId)
+      } else {
+        await runBulkAction(reason, pendingAction.type)
+      }
+      setPendingAction(null)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Action failed')
+    }
+  }
+
+  // Real server-side export (up to 10,000 rows, not just the current page)
+  // — a plain navigation so the browser sends the auth_token cookie; no
+  // separate client-side CSV construction needed.
   const exportCsv = () => {
-    const headers = ['ID', 'Email', 'Type', 'Name', 'Username', 'Role', 'Status', 'Verified', 'Created', 'Last Active']
-    const rows = users.map(u => [
-      u.id, u.email, u.user_type, u.profile_name, u.profile_username,
-      u.role, u.is_active ? 'Active' : 'Suspended',
-      u.email_verified ? 'Yes' : 'No',
-      fmtDate(u.created_at), fmtDate(u.last_login_at),
-    ])
-    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `users-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
+    const params = new URLSearchParams()
+    if (search) {params.set('search', search)}
+    if (filterType !== 'all') {params.set('user_type', filterType)}
+    if (filterStatus !== 'all') {params.set('status', filterStatus)}
+    window.open(`/api/admin/users/export?${params.toString()}`, '_blank')
   }
 
   const toggleSelect = (id: string) => {
@@ -344,9 +375,9 @@ export default function AdminUsersPage() {
       {selected.size > 0 && (
         <div className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
           <span className="text-sm font-medium text-violet-700">{selected.size} selected</span>
-          <button onClick={() => bulkAction('activate')} className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Activate</button>
-          <button onClick={() => bulkAction('suspend')} className="px-3 py-1.5 text-xs font-medium bg-amber-600 text-white rounded-lg hover:bg-amber-700">Suspend</button>
-          <button onClick={() => bulkAction('delete')} className="px-3 py-1.5 text-xs font-medium bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
+          <button onClick={() => setPendingAction({ type: 'bulk-activate' })} className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Activate</button>
+          <button onClick={() => setPendingAction({ type: 'bulk-suspend' })} className="px-3 py-1.5 text-xs font-medium bg-amber-600 text-white rounded-lg hover:bg-amber-700">Suspend</button>
+          <button onClick={() => setPendingAction({ type: 'bulk-delete' })} className="px-3 py-1.5 text-xs font-medium bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
           <button onClick={() => setSelected(new Set())} className="ml-auto text-xs text-gray-500 hover:text-gray-700">Clear selection</button>
         </div>
       )}
@@ -414,12 +445,12 @@ export default function AdminUsersPage() {
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button onClick={() => toggleStatus(u.id, u.is_active)} disabled={!!actionLoading[u.id]}
+                        <button onClick={() => setPendingAction({ type: u.is_active ? 'suspend' : 'activate', userId: u.id })}
                           title={u.is_active ? 'Suspend' : 'Activate'}
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-amber-600 transition-colors">
                           {u.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                         </button>
-                        <button onClick={() => setConfirmDelete(u.id)} title="Delete"
+                        <button onClick={() => setPendingAction({ type: 'delete', userId: u.id })} title="Delete"
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors">
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -434,30 +465,33 @@ export default function AdminUsersPage() {
         <Pagination page={page} total={total} limit={20} onPage={setPage} />
       </div>
 
-      {/* Delete confirmation */}
-      {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Delete User</h3>
-                <p className="text-sm text-gray-500">This action cannot be undone.</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-600 mb-5">
-              All data associated with this user (deals, messages, profile) will be permanently deleted.
-            </p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmDelete(null)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
-              <button onClick={() => deleteUser(confirmDelete)} disabled={!!actionLoading[confirmDelete]}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50">
-                {actionLoading[confirmDelete] ? 'Deleting…' : 'Delete'}
-              </button>
-            </div>
-          </div>
+      {/* Every activate/suspend/delete action — single or bulk — confirms
+          through this one dialog, reason required. */}
+      {pendingAction && (
+        <ReasonDialog
+          title={
+            pendingAction.type === 'delete' || pendingAction.type === 'bulk-delete'
+              ? 'Delete user' + (pendingAction.type === 'bulk-delete' ? `s (${selected.size})` : '')
+              : pendingAction.type === 'suspend' || pendingAction.type === 'bulk-suspend'
+                ? 'Suspend user' + (pendingAction.type === 'bulk-suspend' ? `s (${selected.size})` : '')
+                : 'Activate user' + (pendingAction.type === 'bulk-activate' ? `s (${selected.size})` : '')
+          }
+          description={
+            pendingAction.type === 'delete' || pendingAction.type === 'bulk-delete'
+              ? 'The account is soft-deleted and anonymized (email, name, avatar, payout methods removed). Content and financial records are kept. This cannot be undone, and is blocked if the user has unsettled payments or an active contract.'
+              : pendingAction.type === 'suspend' || pendingAction.type === 'bulk-suspend'
+                ? "The user can't log in while suspended. Note: a session token they already have stays valid until it naturally expires — suspension doesn't revoke it immediately."
+                : undefined
+          }
+          danger={pendingAction.type === 'delete' || pendingAction.type === 'bulk-delete'}
+          confirmLabel={pendingAction.type.includes('delete') ? 'Delete' : pendingAction.type.includes('suspend') ? 'Suspend' : 'Activate'}
+          onConfirm={confirmPendingAction}
+          onClose={() => { setPendingAction(null); setActionError('') }}
+        />
+      )}
+      {actionError && (
+        <div className="fixed bottom-4 right-4 z-50 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg shadow-lg max-w-sm">
+          {actionError}
         </div>
       )}
 
@@ -576,7 +610,7 @@ export default function AdminUsersPage() {
 
                 {/* Actions */}
                 <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap gap-2">
-                  <button onClick={() => toggleStatus(modalUser.user.id, modalUser.user.is_active)}
+                  <button onClick={() => setPendingAction({ type: modalUser.user.is_active ? 'suspend' : 'activate', userId: modalUser.user.id })}
                     className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       modalUser.user.is_active
                         ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
@@ -584,7 +618,7 @@ export default function AdminUsersPage() {
                     }`}>
                     {modalUser.user.is_active ? 'Suspend User' : 'Activate User'}
                   </button>
-                  <button onClick={() => { setModalUser(null); setConfirmDelete(modalUser.user.id) }}
+                  <button onClick={() => { setModalUser(null); setPendingAction({ type: 'delete', userId: modalUser.user.id }) }}
                     className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-lg text-sm font-medium">
                     Delete
                   </button>
