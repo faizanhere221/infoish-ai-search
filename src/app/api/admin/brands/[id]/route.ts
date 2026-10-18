@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
+import { logAdminAction, requireReason } from '@/lib/admin-action'
 
 export async function GET(
   _request: NextRequest,
@@ -25,56 +27,72 @@ export async function GET(
 
     return NextResponse.json({ brand, user, deals })
   } catch (err) {
-    console.error('Admin brand detail error:', err)
+    captureError(err, { route: 'GET /api/admin/brands/[id]' })
     return NextResponse.json({ error: 'Failed to fetch brand' }, { status: 500 })
   }
 }
 
+// PATCH — is_active is rejected here: use POST /api/admin/users/[userId]/activate
+// or /suspend (the same one path every user type goes through). There is no
+// dedicated /verify route for brands (unlike creators), so verification_status
+// is handled directly here, but still requires a reason and still logs.
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerSupabase()
-    const body = await request.json()
-
-    const ALLOWED = new Set(['verification_status'])
-    const updates: Record<string, unknown> = {}
-
-    for (const [k, v] of Object.entries(body)) {
-      if (ALLOWED.has(k)) {updates[k] = v}
-    }
+    const body = await request.json().catch(() => ({}))
 
     if ('is_active' in body) {
-      const { data: brand } = await supabase
-        .from('brands').select('user_id').eq('id', params.id).single()
-      if (brand?.user_id) {
-        await supabase
-          .from('users')
-          .update({ is_active: Boolean(body.is_active) })
-          .eq('id', brand.user_id)
-      }
+      return NextResponse.json(
+        { error: 'is_active must be changed via the user-level /activate or /suspend endpoint, not this generic PATCH.' },
+        { status: 400 }
+      )
     }
 
-    if (Object.keys(updates).length === 0 && !('is_active' in body)) {
-      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
+    const VALID_STATUSES = ['pending', 'verified', 'rejected']
+    if (!('verification_status' in body) || !VALID_STATUSES.includes(body.verification_status)) {
+      return NextResponse.json({ error: `verification_status must be one of: ${VALID_STATUSES.join(', ')}` }, { status: 400 })
     }
 
-    let brandData = null
-    if (Object.keys(updates).length > 0) {
-      const { data, error } = await supabase
-        .from('brands')
-        .update(updates)
-        .eq('id', params.id)
-        .select('id, verification_status')
-        .single()
-      if (error) {throw error}
-      brandData = data
+    const reasonCheck = requireReason(body)
+    if (!reasonCheck.ok) {
+      return NextResponse.json({ error: reasonCheck.error }, { status: 400 })
+    }
+    const verificationStatus = body.verification_status as string
+
+    const supabase = createServerSupabase()
+    const { data: before } = await supabase.from('brands').select('id, verification_status').eq('id', params.id).single()
+    if (!before) {
+      return NextResponse.json({ error: 'Brand not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ brand: brandData })
+    const { data: brand, error } = await supabase
+      .from('brands')
+      .update({ verification_status: verificationStatus })
+      .eq('id', params.id)
+      .select('id, verification_status')
+      .single()
+
+    if (error || !brand) {
+      captureError(error ?? new Error('brand verify: no row returned'), { route: 'PATCH /api/admin/brands/[id]' })
+      return NextResponse.json({ error: 'Failed to update brand' }, { status: 500 })
+    }
+
+    logAdminAction({
+      request,
+      adminId: request.headers.get('x-user-id'),
+      action: 'brand_verified',
+      targetType: 'brand',
+      targetId: params.id,
+      reason: reasonCheck.reason,
+      before: { verification_status: before.verification_status },
+      after: { verification_status: verificationStatus },
+    })
+
+    return NextResponse.json({ brand })
   } catch (err) {
-    console.error('Admin brand update error:', err)
+    captureError(err, { route: 'PATCH /api/admin/brands/[id]' })
     return NextResponse.json({ error: 'Failed to update brand' }, { status: 500 })
   }
 }

@@ -4,10 +4,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { ReasonDialog } from '@/components/admin/ReasonDialog'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, ShieldCheck, ShieldX, Shield,
-  X, RefreshCw, Filter, ChevronLeft, ChevronRight, Building2, AlertTriangle,
+  X, RefreshCw, Filter, ChevronLeft, ChevronRight, Building2,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -42,6 +43,11 @@ interface BrandDetail {
 
 const INDUSTRIES = ['SaaS', 'AI/ML', 'Developer Tools', 'Cloud Services', 'Cybersecurity', 'Fintech', 'E-commerce', 'Health Tech', 'EdTech', 'Marketing Tech', 'Enterprise Software', 'Gaming', 'Other']
 const COMPANY_SIZES = ['1-10', '11-50', '51-200', '201-500', '501-1000', '1000+']
+
+type PendingBrandAction =
+  | { kind: 'verify'; brandId: string; nextStatus: 'verified' | 'pending' }
+  | { kind: 'suspend' | 'activate' | 'delete'; brandId: string; userId: string }
+  | { kind: 'bulk-suspend' | 'bulk-activate' }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -131,8 +137,8 @@ export default function AdminBrandsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [modalDetail, setModalDetail] = useState<BrandDetail | null>(null)
   const [modalLoading, setModalLoading] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
-  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
+  const [pendingAction, setPendingAction] = useState<PendingBrandAction | null>(null)
+  const [actionError, setActionError] = useState('')
 
   const fetchBrands = useCallback(async (isRefresh = false) => {
     if (isRefresh) {setRefreshing(true);} else {setLoading(true)}
@@ -173,31 +179,60 @@ export default function AdminBrandsPage() {
     setModalLoading(false)
   }
 
-  const patchBrand = async (id: string, updates: Record<string, unknown>) => {
-    setActionLoading(a => ({ ...a, [id]: true }))
-    await fetch(`/api/admin/brands/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates),
-    })
+  const applyLocal = (id: string, updates: Record<string, unknown>) => {
     setBrands(bs => bs.map(b => b.id === id ? { ...b, ...updates } : b))
     if (modalDetail?.brand.id === id) {
       setModalDetail(m => m ? { ...m, brand: { ...m.brand, ...updates } } : m)
     }
-    setActionLoading(a => ({ ...a, [id]: false }))
   }
 
-  const deleteUser = async (brandId: string) => {
-    // Find user_id for this brand and delete the user record
-    const brand = brands.find(b => b.id === brandId)
-    if (!brand) {return}
-    setActionLoading(a => ({ ...a, [brandId]: true }))
-    await fetch(`/api/admin/users/${brand.user_id}`, { method: 'DELETE' })
-    setBrands(bs => bs.filter(b => b.id !== brandId))
-    setTotal(t => t - 1)
-    setConfirmDelete(null)
-    setModalDetail(null)
-    setActionLoading(a => ({ ...a, [brandId]: false }))
+  const confirmPendingAction = async (reason: string) => {
+    if (!pendingAction) {return}
+    setActionError('')
+    try {
+      if (pendingAction.kind === 'verify') {
+        const res = await fetch(`/api/admin/brands/${pendingAction.brandId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ verification_status: pendingAction.nextStatus, reason }),
+        })
+        if (!res.ok) {throw new Error((await res.json().catch(() => ({})))?.error || 'Failed to update verification')}
+        applyLocal(pendingAction.brandId, { verification_status: pendingAction.nextStatus })
+      } else if (pendingAction.kind === 'suspend' || pendingAction.kind === 'activate') {
+        const res = await fetch(`/api/admin/users/${pendingAction.userId}/${pendingAction.kind}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason }),
+        })
+        if (!res.ok) {throw new Error((await res.json().catch(() => ({})))?.error || 'Failed to update status')}
+        applyLocal(pendingAction.brandId, { is_active: pendingAction.kind === 'activate' })
+      } else if (pendingAction.kind === 'delete') {
+        const res = await fetch(`/api/admin/users/${pendingAction.userId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason }),
+        })
+        if (!res.ok) {throw new Error((await res.json().catch(() => ({})))?.error || 'Failed to delete account')}
+        setBrands(bs => bs.filter(b => b.id !== pendingAction.brandId))
+        setTotal(t => t - 1)
+        setModalDetail(null)
+      } else {
+        const kind = pendingAction.kind === 'bulk-suspend' ? 'suspend' : 'activate'
+        const targets = brands.filter(b => selected.has(b.id))
+        await Promise.all(targets.map(b =>
+          fetch(`/api/admin/users/${b.user_id}/${kind}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason }),
+          })
+        ))
+        targets.forEach(b => applyLocal(b.id, { is_active: kind === 'activate' }))
+        setSelected(new Set())
+      }
+      setPendingAction(null)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Action failed')
+    }
   }
 
   const clearFilters = () => {
@@ -292,8 +327,8 @@ export default function AdminBrandsPage() {
       {selected.size > 0 && (
         <div className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center gap-3">
           <span className="text-sm font-medium text-violet-700">{selected.size} selected</span>
-          <button onClick={() => { selected.forEach(id => patchBrand(id, { is_active: true })); setSelected(new Set()) }} className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg">Activate All</button>
-          <button onClick={() => { selected.forEach(id => patchBrand(id, { is_active: false })); setSelected(new Set()) }} className="px-3 py-1.5 text-xs font-medium bg-amber-600 text-white rounded-lg">Suspend All</button>
+          <button onClick={() => setPendingAction({ kind: 'bulk-activate' })} className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg">Activate All</button>
+          <button onClick={() => setPendingAction({ kind: 'bulk-suspend' })} className="px-3 py-1.5 text-xs font-medium bg-amber-600 text-white rounded-lg">Suspend All</button>
           <button onClick={() => setSelected(new Set())} className="ml-auto text-xs text-gray-500 hover:text-gray-700">Clear</button>
         </div>
       )}
@@ -360,12 +395,12 @@ export default function AdminBrandsPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => openDetail(b.id)} title="View" className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"><Eye className="w-4 h-4" /></button>
-                        <button onClick={() => patchBrand(b.id, { verification_status: b.verification_status === 'verified' ? 'pending' : 'verified' })} disabled={!!actionLoading[b.id]}
+                        <button onClick={() => setPendingAction({ kind: 'verify', brandId: b.id, nextStatus: b.verification_status === 'verified' ? 'pending' : 'verified' })}
                           title={b.verification_status === 'verified' ? 'Unverify' : 'Verify'}
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-emerald-600">
                           {b.verification_status === 'verified' ? <ShieldX className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
                         </button>
-                        <button onClick={() => patchBrand(b.id, { is_active: !b.is_active })} disabled={!!actionLoading[b.id]}
+                        <button onClick={() => setPendingAction({ kind: b.is_active ? 'suspend' : 'activate', brandId: b.id, userId: b.user_id })}
                           title={b.is_active ? 'Suspend' : 'Activate'}
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-amber-600">
                           {b.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
@@ -380,30 +415,6 @@ export default function AdminBrandsPage() {
         )}
         <Pagination page={page} total={total} limit={20} onPage={setPage} />
       </div>
-
-      {/* Delete confirmation */}
-      {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Delete Brand Account</h3>
-                <p className="text-sm text-gray-500">This action is permanent.</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmDelete(null)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
-              <button onClick={() => deleteUser(confirmDelete)} disabled={!!actionLoading[confirmDelete]}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50">
-                {actionLoading[confirmDelete] ? 'Deleting…' : 'Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Detail drawer */}
       {(modalLoading || modalDetail) && (
@@ -479,15 +490,15 @@ export default function AdminBrandsPage() {
                   </div>
 
                   <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap gap-2">
-                    <button onClick={() => patchBrand(String(b.id), { verification_status: b.verification_status === 'verified' ? 'pending' : 'verified' })}
+                    <button onClick={() => setPendingAction({ kind: 'verify', brandId: String(b.id), nextStatus: b.verification_status === 'verified' ? 'pending' : 'verified' })}
                       className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${b.verification_status === 'verified' ? 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}>
                       {b.verification_status === 'verified' ? 'Remove Verification' : 'Verify Brand'}
                     </button>
-                    <button onClick={() => patchBrand(String(b.id), { is_active: !b.is_active })}
+                    <button onClick={() => setPendingAction({ kind: b.is_active ? 'suspend' : 'activate', brandId: String(b.id), userId: String(b.user_id) })}
                       className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${b.is_active ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}>
                       {b.is_active ? 'Suspend' : 'Activate'}
                     </button>
-                    <button onClick={() => { setModalDetail(null); setConfirmDelete(String(b.id)) }}
+                    <button onClick={() => setPendingAction({ kind: 'delete', brandId: String(b.id), userId: String(b.user_id) })}
                       className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-lg text-sm font-medium">
                       Delete Account
                     </button>
@@ -497,6 +508,33 @@ export default function AdminBrandsPage() {
             })()}
           </div>
         </div>
+      )}
+
+      {pendingAction && (
+        <ReasonDialog
+          title={
+            pendingAction.kind === 'verify' ? (pendingAction.nextStatus === 'verified' ? 'Verify Brand' : 'Remove Verification') :
+            pendingAction.kind === 'suspend' ? 'Suspend Brand Account' :
+            pendingAction.kind === 'activate' ? 'Activate Brand Account' :
+            pendingAction.kind === 'delete' ? 'Delete Brand Account' :
+            pendingAction.kind === 'bulk-suspend' ? `Suspend ${selected.size} Brand Accounts` :
+            `Activate ${selected.size} Brand Accounts`
+          }
+          description={
+            pendingAction.kind === 'suspend' || pendingAction.kind === 'bulk-suspend'
+              ? "The user can't log in while suspended. Note: a session token they already have stays valid until it naturally expires — suspension doesn't revoke it immediately."
+              : pendingAction.kind === 'delete'
+              ? 'This anonymizes the account (email, name, logo). Deals and financial records are kept. This cannot be undone.'
+              : undefined
+          }
+          danger={pendingAction.kind === 'suspend' || pendingAction.kind === 'bulk-suspend' || pendingAction.kind === 'delete'}
+          confirmLabel="Confirm"
+          onConfirm={confirmPendingAction}
+          onClose={() => { setPendingAction(null); setActionError('') }}
+        />
+      )}
+      {actionError && (
+        <div className="fixed bottom-4 right-4 z-50 bg-red-600 text-white px-4 py-2.5 rounded-lg shadow-lg text-sm">{actionError}</div>
       )}
     </div>
   )
