@@ -199,6 +199,7 @@ const MIGRATION_ORDER = [
   'workflow_ux_fixes_migration.sql',
   'phase6a_notifications_migration.sql',
   'phase6b_email_migration.sql',
+  'drift_fix_migration.sql',
 ]
 
 function main() {

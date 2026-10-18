@@ -36,6 +36,7 @@ or whenever you need to know what's really live rather than what should be.
 | 21 | `workflow_ux_fixes_migration.sql` | Fixes `accept_campaign_offer()` leaving a row on `'drafting'` instead of `'confirmed'` after acceptance. |
 | 22 | `phase6a_notifications_migration.sql` | Brings `notifications` up to what the app code already expected (`content`, `related_type`/`related_id`, `read_at` — see note below) plus the new notification-center columns: `category`, `priority`, `archived_at`, `email_status`, `data`. |
 | 23 | `phase6b_email_migration.sql` | Email via Resend: `email_log`, `email_verification_tokens`, `password_reset_tokens`, `users.email_preferences`, `conversations.last_digest_sent_at`, `email_daily_usage`. |
+| 24 | `drift_fix_migration.sql` | Closes every gap in "Known drift" below: the 9 `reviews` columns (+2 the code needs that schema.sql never declared), `creator_services.includes`, `creators.is_featured`, `creators.search_vector` (+ its trigger, index, backfill), and `activity_logs`/`platform_settings` (retyped to VARCHAR(255) ids — the original UUID-vs-VARCHAR FK mismatch is why they were never created at all). Dry-run verified (wrapped in BEGIN/ROLLBACK) — every statement succeeds. |
 
 ## Known drift (as of writing — re-run `check:schema` to get current state)
 
@@ -45,19 +46,17 @@ or whenever you need to know what's really live rather than what should be.
   actually applied before `phase6a_notifications_migration.sql` fixed it.
   If you're reading this before running that migration, every notification
   insert fails silently (caught and swallowed) — see `docs/NOTIFICATIONS.md`.
-- **`activity_logs`**, **`platform_settings`**: declared by their migration
-  files, referenced by application code (`/api/admin/settings`, the admin
-  activity log), but neither table exists live. Those admin pages are
-  likely silently broken. Not fixed as part of any work that found this —
-  flagged for whoever picks it up.
-- **`reviews`**: missing `title`, `content`, `communication_rating`,
-  `quality_rating`, `timeliness_rating`, `response`, `response_at`,
-  `is_public`, `updated_at` — `schema.sql` declares these, live only has
-  the older `migration.sql` shape (`id, deal_id, reviewer_id, reviewee_id,
-  rating, comment, created_at`).
-- **`creator_services.includes`**, **`creators.search_vector`**,
-  **`creators.is_featured`**: declared, not live.
+- **`activity_logs`**, **`platform_settings`**, **`reviews`**'s 9 missing
+  columns (+2 the code needs that schema.sql never declared),
+  **`creator_services.includes`**, **`creators.search_vector`**,
+  **`creators.is_featured`** — all fixed by `drift_fix_migration.sql` (#24
+  above). `activity_logs`/`platform_settings` were never created at all:
+  both declared a UUID column `REFERENCES users(id)`, but `users.id` is
+  VARCHAR(255) — Postgres refuses a foreign key between incompatible
+  types, so the `CREATE TABLE` itself failed outright, every time anyone
+  tried to run it.
 
 None of these were introduced by `check-schema.mjs` — it only surfaced them.
-Fixing any of them means writing a new `supabase/<name>_migration.sql` per
-CLAUDE.md's convention, not editing the file that first declared the column.
+Fixing one of them going forward means writing a new
+`supabase/<name>_migration.sql` per CLAUDE.md's convention, not editing the
+file that first declared the column.
