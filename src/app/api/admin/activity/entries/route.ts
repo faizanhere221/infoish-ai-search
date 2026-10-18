@@ -17,6 +17,7 @@ const ACTION_GROUPS: Record<string, string[]> = {
     'contact_submission_updated', 'contact_submission_deleted', 'newsletter_subscriber_deleted',
     'settings_updated',
     'partner_created', 'partner_updated', 'partner_deleted', 'partner_payout_recorded', 'partner_commission_updated',
+    'email_resent',
   ],
   payments: [
     'payment_viewed', 'payment_proof_viewed', 'payment_note_added',
