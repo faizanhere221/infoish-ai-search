@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
+import { logActivity } from '@/lib/activity'
 
+// GET /api/admin/users/export — the real server-side export (up to 10,000
+// rows, not just whatever page is loaded in the table). Exporting a bulk
+// user list counts as "every admin view of sensitive data" per
+// instruction, so it's logged (no reason needed for a read).
 export async function GET(request: NextRequest) {
   try {
     const supabase = createServerSupabase()
@@ -23,6 +28,13 @@ export async function GET(request: NextRequest) {
 
     const { data: users, error } = await query
     if (error) {throw error}
+
+    void logActivity({
+      userId: request.headers.get('x-user-id'),
+      action: 'users_exported',
+      entityType: 'user',
+      details: { count: users?.length ?? 0, search, user_type: userType, status },
+    })
 
     const headers = ['ID', 'Email', 'Type', 'Status', 'Verified', 'Role', 'Created', 'Last Login']
     const rows = (users ?? []).map(u => [

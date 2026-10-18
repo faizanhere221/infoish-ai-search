@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
 
 const VALID_SORT = new Set(['created_at', 'last_login_at', 'email'])
 
@@ -14,10 +15,49 @@ export async function GET(request: NextRequest) {
     const userType = searchParams.get('type') ?? 'all'
     const status = searchParams.get('status') ?? 'all'
     const role = searchParams.get('role') ?? 'all'
+    const verified = searchParams.get('verified') ?? ''
+    const featured = searchParams.get('featured') === 'true'
     const dateFrom = searchParams.get('date_from') ?? ''
     const dateTo = searchParams.get('date_to') ?? ''
     const sortBy = VALID_SORT.has(searchParams.get('sort_by') ?? '') ? (searchParams.get('sort_by') as string) : 'created_at'
     const sortAsc = searchParams.get('sort_order') === 'asc'
+
+    // Intersected across every filter below that needs to resolve ids from
+    // creators/brands first (search by name/handle, verified, featured) —
+    // `null` means "no such filter applied," an empty array means
+    // "applied, and it matched nothing."
+    let allowedIds: string[] | null = null
+    const intersect = (ids: string[]): string[] => (allowedIds ? allowedIds.filter((id) => ids.includes(id)) : ids)
+
+    if (search) {
+      const [{ data: byEmail }, { data: byCreator }, { data: byBrand }] = await Promise.all([
+        supabase.from('users').select('id').ilike('email', `%${search}%`),
+        supabase.from('creators').select('user_id').or(`display_name.ilike.%${search}%,username.ilike.%${search}%`),
+        supabase.from('brands').select('user_id').ilike('company_name', `%${search}%`),
+      ])
+      allowedIds = intersect([
+        ...(byEmail ?? []).map((u) => u.id),
+        ...(byCreator ?? []).map((c) => c.user_id),
+        ...(byBrand ?? []).map((b) => b.user_id),
+      ])
+    }
+
+    if (verified) {
+      const [{ data: creators }, { data: brands }] = await Promise.all([
+        supabase.from('creators').select('user_id').eq('verification_status', verified),
+        supabase.from('brands').select('user_id').eq('verification_status', verified),
+      ])
+      allowedIds = intersect([...(creators ?? []).map((c) => c.user_id), ...(brands ?? []).map((b) => b.user_id)])
+    }
+
+    if (featured) {
+      const { data: creators } = await supabase.from('creators').select('user_id').eq('is_featured', true)
+      allowedIds = intersect((creators ?? []).map((c) => c.user_id))
+    }
+
+    if (allowedIds !== null && allowedIds.length === 0) {
+      return NextResponse.json({ users: [], total: 0, page, limit })
+    }
 
     let query = supabase
       .from('users')
@@ -25,7 +65,7 @@ export async function GET(request: NextRequest) {
       .order(sortBy, { ascending: sortAsc })
       .range((page - 1) * limit, page * limit - 1)
 
-    if (search) {query = query.ilike('email', `%${search}%`)}
+    if (allowedIds !== null) {query = query.in('id', allowedIds)}
     if (userType !== 'all') {query = query.eq('user_type', userType)}
     if (status === 'active') {query = query.eq('is_active', true)}
     if (status === 'suspended') {query = query.eq('is_active', false)}
@@ -70,7 +110,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ users: enriched, total: count ?? 0, page, limit })
   } catch (err) {
-    console.error('Admin users list error:', err)
+    captureError(err, { route: 'GET /api/admin/users' })
     return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
   }
 }

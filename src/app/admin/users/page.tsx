@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, Trash2, X, RefreshCw,
   ChevronLeft, ChevronRight, Shield, User, Building2,
-  Filter,
+  Filter, ExternalLink,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -30,6 +31,26 @@ interface UserDetail {
   user: AdminUser
   profile: Record<string, unknown> | null
   deals: { id: string; title: string; status: string; amount: number; currency: string; created_at: string }[]
+  workflow: {
+    rows: { id: string; campaign_title: string; other_name: string; status: string; updated_at: string }[]
+    rowStatusCounts: Record<string, number>
+    totalRows: number
+  }
+  contracts: {
+    items: { id: string; version: number; status: string; created_at: string; campaign_title: string; other_name: string }[]
+    statusCounts: Record<string, number>
+    total: number
+  }
+  payments: {
+    items: { id: string; amount: number; currency: string; status: string; due_date: string | null; created_at: string; campaign_title: string; other_name: string }[]
+    totals: Record<string, Record<string, number>>
+    total: number
+  }
+  reports: {
+    items: { id: string; role: 'reporter' | 'reported'; counterpart_email: string; category: string; status: string; created_at: string }[]
+    openCount: number
+  }
+  recentActivity: { id: string; label: string; created_at: string }[]
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -121,9 +142,10 @@ function Pagination({ page, total, limit, onPage }: { page: number; total: numbe
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function AdminUsersPage() {
+function AdminUsersContent() {
   useDocumentTitle('Users')
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // Data state
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -131,13 +153,16 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
-  // Filter state
-  const [search, setSearch] = useState('')
-  const [filterType, setFilterType] = useState('all')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [filterRole, setFilterRole] = useState('all')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  // Filter state — read once from the URL on mount, so dashboard tile deep
+  // links (e.g. /admin/users?date_from=...&type=creator) actually apply.
+  const [search, setSearch] = useState(searchParams.get('search') ?? '')
+  const [filterType, setFilterType] = useState(searchParams.get('type') ?? 'all')
+  const [filterStatus, setFilterStatus] = useState(searchParams.get('status') ?? 'all')
+  const [filterRole, setFilterRole] = useState(searchParams.get('role') ?? 'all')
+  const [filterVerified, setFilterVerified] = useState(searchParams.get('verified') ?? '')
+  const [filterFeatured, setFilterFeatured] = useState(searchParams.get('featured') === 'true')
+  const [dateFrom, setDateFrom] = useState(searchParams.get('date_from') ?? '')
+  const [dateTo, setDateTo] = useState(searchParams.get('date_to') ?? '')
 
   // Sort + pagination
   const [sortField, setSortField] = useState('created_at')
@@ -171,6 +196,8 @@ export default function AdminUsersPage() {
       if (filterType !== 'all') {params.set('type', filterType)}
       if (filterStatus !== 'all') {params.set('status', filterStatus)}
       if (filterRole !== 'all') {params.set('role', filterRole)}
+      if (filterVerified) {params.set('verified', filterVerified)}
+      if (filterFeatured) {params.set('featured', 'true')}
       if (dateFrom) {params.set('date_from', dateFrom)}
       if (dateTo) {params.set('date_to', dateTo)}
 
@@ -183,7 +210,7 @@ export default function AdminUsersPage() {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [page, sortField, sortDir, search, filterType, filterStatus, filterRole, dateFrom, dateTo, router])
+  }, [page, sortField, sortDir, search, filterType, filterStatus, filterRole, filterVerified, filterFeatured, dateFrom, dateTo, router])
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
@@ -292,6 +319,12 @@ export default function AdminUsersPage() {
     window.open(`/api/admin/users/export?${params.toString()}`, '_blank')
   }
 
+  const hasFilters = Boolean(search || filterType !== 'all' || filterStatus !== 'all' || filterRole !== 'all' || filterVerified || filterFeatured || dateFrom || dateTo)
+  const clearFilters = () => {
+    setSearch(''); setFilterType('all'); setFilterStatus('all'); setFilterRole('all')
+    setFilterVerified(''); setFilterFeatured(false); setDateFrom(''); setDateTo(''); setPage(1)
+  }
+
   const toggleSelect = (id: string) => {
     setSelected(s => {
       const n = new Set(s)
@@ -332,7 +365,7 @@ export default function AdminUsersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by email…"
+              placeholder="Search by name, email, or handle…"
               value={search}
               onChange={e => handleSearch(e.target.value)}
               className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
@@ -358,12 +391,24 @@ export default function AdminUsersPage() {
             <option value="admin">Admin</option>
             <option value="super_admin">Super Admin</option>
           </select>
+          <select value={filterVerified} onChange={e => { setFilterVerified(e.target.value); setPage(1) }}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+            <option value="">Any Verification</option>
+            <option value="verified">Verified</option>
+            <option value="pending">Pending</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white cursor-pointer select-none">
+            <input type="checkbox" checked={filterFeatured} onChange={e => { setFilterFeatured(e.target.checked); setPage(1) }}
+              className="rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
+            Featured only
+          </label>
           <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1) }}
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500" />
           <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1) }}
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500" />
-          {(search || filterType !== 'all' || filterStatus !== 'all' || filterRole !== 'all' || dateFrom || dateTo) && (
-            <button onClick={() => { setSearch(''); setFilterType('all'); setFilterStatus('all'); setFilterRole('all'); setDateFrom(''); setDateTo(''); setPage(1) }}
+          {hasFilters && (
+            <button onClick={clearFilters}
               className="flex items-center gap-1 px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg bg-white">
               <X className="w-3.5 h-3.5" /> Clear
             </button>
@@ -606,6 +651,130 @@ export default function AdminUsersPage() {
                       </div>
                     </section>
                   )}
+
+                  {/* Campaigns (workflow tracker rows) */}
+                  {modalUser.workflow.totalRows > 0 && (
+                    <section>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Campaigns ({modalUser.workflow.totalRows})</h3>
+                        <Link href={`/admin/campaign-creators?${modalUser.user.user_type === 'creator' ? 'creator_id' : 'brand_id'}=${modalUser.profile?.id}`}
+                          className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-700">
+                          View all <ExternalLink className="w-3 h-3" />
+                        </Link>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {Object.entries(modalUser.workflow.rowStatusCounts).map(([status, count]) => (
+                          <span key={status} className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 capitalize">{status.replace('_', ' ')}: {count}</span>
+                        ))}
+                      </div>
+                      <div className="space-y-2">
+                        {modalUser.workflow.rows.map(r => (
+                          <div key={r.id} className="flex items-center justify-between text-sm p-2 rounded-lg bg-gray-50">
+                            <div className="flex-1 min-w-0 pr-2">
+                              <p className="font-medium text-gray-700 truncate">{r.campaign_title}</p>
+                              <p className="text-xs text-gray-400">{r.other_name}</p>
+                            </div>
+                            <span className="text-xs text-gray-500 capitalize whitespace-nowrap">{r.status.replace('_', ' ')}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Contracts */}
+                  {modalUser.contracts.total > 0 && (
+                    <section>
+                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Contracts ({modalUser.contracts.total})</h3>
+                      <div className="space-y-2">
+                        {modalUser.contracts.items.map(c => (
+                          <div key={c.id} className="flex items-center justify-between text-sm p-2 rounded-lg bg-gray-50">
+                            <div className="flex-1 min-w-0 pr-2">
+                              <p className="font-medium text-gray-700 truncate">{c.campaign_title} · v{c.version}</p>
+                              <p className="text-xs text-gray-400">{c.other_name}</p>
+                            </div>
+                            <span className="text-xs text-gray-500 capitalize whitespace-nowrap">{c.status.replace('_', ' ')}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Payments — totals grouped by currency, never summed across currencies */}
+                  {modalUser.payments.total > 0 && (
+                    <section>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Payments ({modalUser.payments.total})</h3>
+                        <Link href={`/admin/payments?${modalUser.user.user_type === 'creator' ? 'creator_id' : 'brand_id'}=${modalUser.profile?.id}`}
+                          className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-700">
+                          View all <ExternalLink className="w-3 h-3" />
+                        </Link>
+                      </div>
+                      <div className="space-y-1 mb-2">
+                        {Object.entries(modalUser.payments.totals).map(([currency, byStatus]) => (
+                          <div key={currency} className="flex flex-wrap gap-1.5">
+                            {Object.entries(byStatus).map(([status, amount]) => (
+                              <span key={status} className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 capitalize">
+                                {status.replace('_', ' ')}: {currency} {amount.toLocaleString()}
+                              </span>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="space-y-2">
+                        {modalUser.payments.items.map(p => (
+                          <div key={p.id} className="flex items-center justify-between text-sm p-2 rounded-lg bg-gray-50">
+                            <div className="flex-1 min-w-0 pr-2">
+                              <p className="font-medium text-gray-700 truncate">{p.campaign_title}</p>
+                              <p className="text-xs text-gray-400 capitalize">{p.status.replace('_', ' ')}</p>
+                            </div>
+                            <span className="text-gray-600 font-semibold whitespace-nowrap">{p.currency} {Number(p.amount).toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Reports — as reporter or reported */}
+                  {modalUser.reports.items.length > 0 && (
+                    <section>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                          Reports {modalUser.reports.openCount > 0 && <span className="text-red-500">({modalUser.reports.openCount} open)</span>}
+                        </h3>
+                        <Link href="/admin/reports" className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-700">
+                          View all <ExternalLink className="w-3 h-3" />
+                        </Link>
+                      </div>
+                      <div className="space-y-2">
+                        {modalUser.reports.items.map(r => (
+                          <div key={r.id} className="flex items-center justify-between text-sm p-2 rounded-lg bg-gray-50">
+                            <div className="flex-1 min-w-0 pr-2">
+                              <p className="font-medium text-gray-700 truncate">
+                                {r.role === 'reporter' ? 'Reported' : 'Reported by'} {r.counterpart_email}
+                              </p>
+                              <p className="text-xs text-gray-400 capitalize">{r.category}</p>
+                            </div>
+                            <span className="text-xs text-gray-500 capitalize whitespace-nowrap">{r.status}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Recent activity */}
+                  {modalUser.recentActivity.length > 0 && (
+                    <section>
+                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Recent Activity</h3>
+                      <div className="space-y-1.5">
+                        {modalUser.recentActivity.map(a => (
+                          <div key={a.id} className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600 capitalize">{a.label.replace(/_/g, ' ')}</span>
+                            <span className="text-gray-400 whitespace-nowrap">{fmtRelative(a.created_at)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
                 </div>
 
                 {/* Actions */}
@@ -629,5 +798,13 @@ export default function AdminUsersPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function AdminUsersPage() {
+  return (
+    <Suspense>
+      <AdminUsersContent />
+    </Suspense>
   )
 }
