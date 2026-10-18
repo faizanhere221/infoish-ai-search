@@ -70,6 +70,14 @@ const SUPER_ADMIN_TOKEN = getEnv('SUPER_ADMIN_TOKEN')
 // verify suspension actually writes an activity_logs row. Never a real account.
 const ADMIN_TEST_TARGET_USER_ID = getEnv('ADMIN_TEST_TARGET_USER_ID')
 
+// Optional — Phase 7B (admin visibility: payments/workflow/contracts/
+// reports/email) checks, skipped if blank.
+// WRITES DATA: fires up to 6 real POST /api/reports calls from Creator A
+// against this user id to prove the per-reporter rate limit (5/hour)
+// actually triggers a 429. Only ever point this at a disposable test
+// account — never a real brand/creator.
+const RATE_LIMIT_TEST_REPORTED_USER_ID = getEnv('RATE_LIMIT_TEST_REPORTED_USER_ID')
+
 // Optional — Phase 6B (email) checks, skipped if blank.
 // A fresh, unused password-reset token's raw value (not its hash) — trigger
 // POST /api/auth/forgot-password for a disposable test account, then copy
@@ -705,6 +713,64 @@ async function main() {
     })
   } else {
     skip('[control] Super admin CAN reach a super_admin-only route', 'SUPER_ADMIN_TOKEN not set')
+  }
+
+  // ── Phase 7B — admin visibility (payments/workflow/contracts/reports/email) ────
+
+  if (CREATOR_A_TOKEN) {
+    // The middleware-level role gate (asserted once above for /api/admin/
+    // users) is the single enforcement point for every /api/admin/* route,
+    // but each of these is a brand-new route this phase added — checked
+    // individually so a future route-specific bypass would actually be
+    // caught here, not just assumed covered by the generic case.
+    const NEW_ADMIN_ROUTES = [
+      '/api/admin/payments?limit=1',
+      '/api/admin/campaign-creators?limit=1',
+      '/api/admin/contracts?limit=1',
+      '/api/admin/reports?limit=1',
+      '/api/admin/email?limit=1',
+    ]
+    for (const route of NEW_ADMIN_ROUTES) {
+      await check(`Non-admin token gets 403 on ${route.split('?')[0]}`, async () => {
+        const res = await request(route, { headers: authHeaders(CREATOR_A_TOKEN) })
+        return { pass: res.status === 403, detail: `status ${res.status}` }
+      })
+    }
+  } else {
+    skip('Non-admin token gets 403 on every new Phase 7B admin route', 'CREATOR_A_TOKEN not set')
+  }
+
+  if (ADMIN_TOKEN && PAYMENT_ID) {
+    const FORBIDDEN_PAYOUT_KEYS = ['details_encrypted', 'account_holder_name', 'account_number', 'iban', 'routing_number', 'sort_code']
+    await check('GET /api/admin/payments/:id never leaks raw payout details, masked preview only', async () => {
+      const res = await request(`/api/admin/payments/${PAYMENT_ID}`, { headers: authHeaders(ADMIN_TOKEN) })
+      const text = await res.text()
+      const leaked = leaksAnyKey(text, FORBIDDEN_PAYOUT_KEYS)
+      return { pass: res.status === 200 && leaked.length === 0, detail: `status ${res.status}, leaked: ${leaked.join(',') || 'none'}` }
+    })
+  } else {
+    skip('GET /api/admin/payments/:id never leaks raw payout details', 'ADMIN_TOKEN/PAYMENT_ID not set')
+  }
+
+  if (RATE_LIMIT_TEST_REPORTED_USER_ID) {
+    await check('POST /api/reports rate limits a reporter at 5/hour', async () => {
+      const statuses = []
+      for (let i = 0; i < 6; i += 1) {
+        const res = await request('/api/reports', {
+          method: 'POST',
+          headers: { ...authHeaders(CREATOR_A_TOKEN), 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            reported_user_id: RATE_LIMIT_TEST_REPORTED_USER_ID,
+            category: 'other',
+            note: `security-check rate-limit probe #${i + 1}`,
+          }),
+        })
+        statuses.push(res.status)
+      }
+      return { pass: statuses.includes(429), detail: `statuses: ${statuses.join(',')}` }
+    })
+  } else {
+    skip('POST /api/reports rate limits a reporter at 5/hour', 'RATE_LIMIT_TEST_REPORTED_USER_ID not set — see .env.test.example (WRITES DATA)')
   }
 
   // Positive controls — if these fail, every 404 above might just mean the
