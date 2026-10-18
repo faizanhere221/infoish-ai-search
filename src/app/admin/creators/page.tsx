@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { ReasonDialog } from '@/components/admin/ReasonDialog'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, Star, Shield, ShieldCheck, ShieldX,
@@ -146,7 +147,6 @@ export default function AdminCreatorsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [modalDetail, setModalDetail] = useState<CreatorDetail | null>(null)
   const [modalLoading, setModalLoading] = useState(false)
-  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
 
   const fetchCreators = useCallback(async (isRefresh = false) => {
     if (isRefresh) {setRefreshing(true);} else {setLoading(true)}
@@ -189,19 +189,75 @@ export default function AdminCreatorsPage() {
     setModalLoading(false)
   }
 
-  const patchCreator = async (id: string, updates: Record<string, unknown>) => {
-    setActionLoading(a => ({ ...a, [id]: true }))
-    await fetch(`/api/admin/creators/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates),
-    })
-    // Optimistic update
+  // Every action below goes through its own dedicated, logged endpoint —
+  // never the generic PATCH, which now rejects verification_status/
+  // is_featured/is_active entirely. Applies the real server response
+  // (not an unconditional optimistic guess) so a failure never silently
+  // shows the wrong state — see docs/ADMIN_AUDIT.md for why that mattered
+  // (is_featured 500ing used to get masked by an optimistic update).
+  type PendingCreatorAction =
+    | { kind: 'verify'; creatorId: string; nextStatus: 'verified' | 'pending' }
+    | { kind: 'feature'; creatorId: string; nextFeatured: boolean }
+    | { kind: 'availability'; creatorId: string; nextAvailable: boolean }
+    | { kind: 'suspend' | 'activate'; creatorId: string; userId: string }
+    | { kind: 'bulk-suspend' | 'bulk-activate' }
+  const [pendingAction, setPendingAction] = useState<PendingCreatorAction | null>(null)
+  const [actionError, setActionError] = useState('')
+
+  const applyLocal = (id: string, updates: Record<string, unknown>) => {
     setCreators(cs => cs.map(c => c.id === id ? { ...c, ...updates } : c))
     if (modalDetail?.creator.id === id) {
       setModalDetail(m => m ? { ...m, creator: { ...m.creator, ...updates } } : m)
     }
-    setActionLoading(a => ({ ...a, [id]: false }))
+  }
+
+  const confirmPendingAction = async (reason: string) => {
+    if (!pendingAction) {return}
+    setActionError('')
+    try {
+      if (pendingAction.kind === 'verify') {
+        const res = await fetch(`/api/admin/creators/${pendingAction.creatorId}/verify`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: pendingAction.nextStatus, reason }),
+        })
+        if (!res.ok) {throw new Error((await res.json().catch(() => ({}))).error || 'Failed to update verification')}
+        applyLocal(pendingAction.creatorId, { verification_status: pendingAction.nextStatus })
+      } else if (pendingAction.kind === 'feature') {
+        const res = await fetch(`/api/admin/creators/${pendingAction.creatorId}/feature`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ featured: pendingAction.nextFeatured, reason }),
+        })
+        if (!res.ok) {throw new Error((await res.json().catch(() => ({}))).error || 'Failed to update feature status')}
+        applyLocal(pendingAction.creatorId, { is_featured: pendingAction.nextFeatured })
+      } else if (pendingAction.kind === 'availability') {
+        const res = await fetch(`/api/admin/creators/${pendingAction.creatorId}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_available: pendingAction.nextAvailable, reason }),
+        })
+        if (!res.ok) {throw new Error((await res.json().catch(() => ({}))).error || 'Failed to update availability')}
+        applyLocal(pendingAction.creatorId, { is_available: pendingAction.nextAvailable })
+      } else if (pendingAction.kind === 'suspend' || pendingAction.kind === 'activate') {
+        const res = await fetch(`/api/admin/users/${pendingAction.userId}/${pendingAction.kind}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason }),
+        })
+        if (!res.ok) {throw new Error((await res.json().catch(() => ({}))).error || `Failed to ${pendingAction.kind} user`)}
+        applyLocal(pendingAction.creatorId, { is_active: pendingAction.kind === 'activate' })
+      } else {
+        const activate = pendingAction.kind === 'bulk-activate'
+        const ids = Array.from(selected)
+        const targets = creators.filter(c => ids.includes(c.id))
+        await Promise.all(targets.map(c => fetch(`/api/admin/users/${c.user_id}/${activate ? 'activate' : 'suspend'}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason }),
+        })))
+        setCreators(cs => cs.map(c => ids.includes(c.id) ? { ...c, is_active: activate } : c))
+        setSelected(new Set())
+      }
+      setPendingAction(null)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Action failed')
+    }
   }
 
   const clearFilters = () => {
@@ -310,8 +366,8 @@ export default function AdminCreatorsPage() {
       {selected.size > 0 && (
         <div className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center gap-3">
           <span className="text-sm font-medium text-violet-700">{selected.size} selected</span>
-          <button onClick={() => { selected.forEach(id => patchCreator(id, { is_active: false })); setSelected(new Set()) }} className="px-3 py-1.5 text-xs font-medium bg-amber-600 text-white rounded-lg">Suspend All</button>
-          <button onClick={() => { selected.forEach(id => patchCreator(id, { is_active: true })); setSelected(new Set()) }} className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg">Activate All</button>
+          <button onClick={() => setPendingAction({ kind: 'bulk-suspend' })} className="px-3 py-1.5 text-xs font-medium bg-amber-600 text-white rounded-lg">Suspend All</button>
+          <button onClick={() => setPendingAction({ kind: 'bulk-activate' })} className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg">Activate All</button>
           <button onClick={() => setSelected(new Set())} className="ml-auto text-xs text-gray-500 hover:text-gray-700">Clear</button>
         </div>
       )}
@@ -390,17 +446,17 @@ export default function AdminCreatorsPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => openDetail(c.id)} title="View" className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"><Eye className="w-4 h-4" /></button>
-                        <button onClick={() => patchCreator(c.id, { verification_status: c.verification_status === 'verified' ? 'pending' : 'verified' })} disabled={!!actionLoading[c.id]}
+                        <button onClick={() => setPendingAction({ kind: 'verify', creatorId: c.id, nextStatus: c.verification_status === 'verified' ? 'pending' : 'verified' })}
                           title={c.verification_status === 'verified' ? 'Unverify' : 'Verify'}
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-emerald-600">
                           {c.verification_status === 'verified' ? <ShieldX className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
                         </button>
-                        <button onClick={() => patchCreator(c.id, { is_featured: !c.is_featured })} disabled={!!actionLoading[c.id]}
+                        <button onClick={() => setPendingAction({ kind: 'feature', creatorId: c.id, nextFeatured: !c.is_featured })}
                           title={c.is_featured ? 'Unfeature' : 'Feature'}
                           className={`p-1.5 rounded hover:bg-gray-100 ${c.is_featured ? 'text-amber-500' : 'text-gray-400 hover:text-amber-500'}`}>
                           <Sparkles className="w-4 h-4" />
                         </button>
-                        <button onClick={() => patchCreator(c.id, { is_active: !c.is_active })} disabled={!!actionLoading[c.id]}
+                        <button onClick={() => setPendingAction({ kind: c.is_active ? 'suspend' : 'activate', creatorId: c.id, userId: c.user_id })}
                           title={c.is_active ? 'Suspend' : 'Activate'}
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-amber-600">
                           {c.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
@@ -502,15 +558,15 @@ export default function AdminCreatorsPage() {
                   </div>
 
                   <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap gap-2">
-                    <button onClick={() => patchCreator(String(c.id), { verification_status: c.verification_status === 'verified' ? 'pending' : 'verified' })}
+                    <button onClick={() => setPendingAction({ kind: 'verify', creatorId: String(c.id), nextStatus: c.verification_status === 'verified' ? 'pending' : 'verified' })}
                       className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${c.verification_status === 'verified' ? 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}>
                       {c.verification_status === 'verified' ? 'Remove Verification' : 'Verify Creator'}
                     </button>
-                    <button onClick={() => patchCreator(String(c.id), { is_featured: !c.is_featured })}
+                    <button onClick={() => setPendingAction({ kind: 'feature', creatorId: String(c.id), nextFeatured: !c.is_featured })}
                       className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${c.is_featured ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'}`}>
                       {c.is_featured ? 'Unfeature' : 'Feature'}
                     </button>
-                    <button onClick={() => patchCreator(String(c.id), { is_active: !c.is_active })}
+                    <button onClick={() => setPendingAction({ kind: c.is_active ? 'suspend' : 'activate', creatorId: String(c.id), userId: String(c.user_id) })}
                       className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${c.is_active ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}>
                       {c.is_active ? 'Suspend' : 'Activate'}
                     </button>
@@ -519,6 +575,34 @@ export default function AdminCreatorsPage() {
               )
             })()}
           </div>
+        </div>
+      )}
+
+      {pendingAction && (
+        <ReasonDialog
+          title={
+            pendingAction.kind === 'verify' ? (pendingAction.nextStatus === 'verified' ? 'Verify creator' : 'Remove verification')
+            : pendingAction.kind === 'feature' ? (pendingAction.nextFeatured ? 'Feature creator' : 'Unfeature creator')
+            : pendingAction.kind === 'availability' ? 'Change availability'
+            : pendingAction.kind === 'suspend' ? 'Suspend creator'
+            : pendingAction.kind === 'activate' ? 'Activate creator'
+            : pendingAction.kind === 'bulk-suspend' ? `Suspend creators (${selected.size})`
+            : `Activate creators (${selected.size})`
+          }
+          description={
+            pendingAction.kind === 'suspend' || pendingAction.kind === 'bulk-suspend'
+              ? "The user can't log in while suspended. A session token they already have stays valid until it naturally expires."
+              : undefined
+          }
+          danger={pendingAction.kind === 'suspend' || pendingAction.kind === 'bulk-suspend'}
+          confirmLabel="Confirm"
+          onConfirm={confirmPendingAction}
+          onClose={() => { setPendingAction(null); setActionError('') }}
+        />
+      )}
+      {actionError && (
+        <div className="fixed bottom-4 right-4 z-50 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg shadow-lg max-w-sm">
+          {actionError}
         </div>
       )}
     </div>
