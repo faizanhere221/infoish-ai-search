@@ -21,6 +21,7 @@ const ACTION_GROUPS: Record<string, string[]> = {
   payments: [
     'payment_viewed', 'payment_proof_viewed', 'payment_note_added',
     'payment_dispute_resolved', 'payment_admin_cancelled',
+    'contract_viewed', 'contract_voided_by_admin',
   ],
   moderation: [],
 }
