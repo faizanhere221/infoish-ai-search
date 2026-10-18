@@ -23,7 +23,7 @@ const ACTION_GROUPS: Record<string, string[]> = {
     'payment_dispute_resolved', 'payment_admin_cancelled',
     'contract_viewed', 'contract_voided_by_admin',
   ],
-  moderation: [],
+  moderation: ['report_reviewing', 'report_resolved', 'report_conversation_opened'],
 }
 
 const PAGE_SIZE_MAX = 100

@@ -29,9 +29,11 @@ import {
   Gift,
   Bookmark,
   BookmarkCheck,
+  Flag,
   type LucideIcon
 } from 'lucide-react'
 import { usePartner } from '@/hooks/usePartner'
+import { ReportDialog } from '@/components/ReportDialog'
 
 interface CreatorProfile {
   id: string
@@ -137,6 +139,7 @@ export default function CreatorProfilePage() {
   const [userType, setUserType] = useState<string | null>(null)
   const [brandProfile, setBrandProfile] = useState<{ id: string } | null>(null)
   const [savingToRoster, setSavingToRoster] = useState(false)
+  const [reporting, setReporting] = useState(false)
   const [savedToRoster, setSavedToRoster] = useState(false)
 
   const checkIfOwnProfile = useCallback(() => {
@@ -636,6 +639,15 @@ export default function CreatorProfilePage() {
                   )}
                 </button>
               )}
+
+              {userType && !isOwnProfile && (
+                <button
+                  onClick={() => setReporting(true)}
+                  className="w-full mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-red-500"
+                >
+                  <Flag className="w-3 h-3" /> Report this profile
+                </button>
+              )}
             </div>
 
             {/* Platforms */}
@@ -679,6 +691,10 @@ export default function CreatorProfilePage() {
           </div>
         </div>
       </main>
+
+      {reporting && creator && (
+        <ReportDialog reportedUserId={creator.user_id} onClose={() => setReporting(false)} />
+      )}
     </div>
   )
 }

@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Check, Clock, RefreshCw, MessageSquare, FileText, Download, ImageOff, ArrowRight } from 'lucide-react'
+import { Check, Clock, RefreshCw, MessageSquare, FileText, Download, ImageOff, ArrowRight, Flag } from 'lucide-react'
 import type { ThreadMessage } from '@/hooks/useConversationThread'
 import type { Attachment } from '@/types/marketplace'
 import { useSignedAttachmentUrl } from '@/hooks/useSignedAttachmentUrl'
 import { getEventCta, campaignCreatorGoUrl } from '@/lib/campaign-creator-cta'
+import { ReportDialog } from '@/components/ReportDialog'
 
 interface ChatThreadProps {
   messages: ThreadMessage[]
@@ -125,6 +126,7 @@ export function ChatThread({
   const containerRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const [wasAtBottom, setWasAtBottom] = useState(true)
+  const [reportingMessage, setReportingMessage] = useState<ThreadMessage | null>(null)
 
   // Only auto-scroll to the newest message if the viewer was already at (or
   // near) the bottom — otherwise a poll landing new messages would yank
@@ -283,6 +285,16 @@ export function ChatThread({
                       </>
                     )}
                     {!message.pendingStatus && <span>{formatMessageTime(message.created_at)}</span>}
+                    {!own && (
+                      <button
+                        onClick={() => setReportingMessage(message)}
+                        className="text-gray-300 hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-pink rounded"
+                        aria-label="Report this message"
+                        title="Report"
+                      >
+                        <Flag className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                   {showSeen && (
                     <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
@@ -318,6 +330,15 @@ export function ChatThread({
       )}
 
       <div ref={bottomRef} />
+
+      {reportingMessage && (
+        <ReportDialog
+          reportedUserId={reportingMessage.sender_id}
+          messageId={reportingMessage.id}
+          conversationId={conversationId}
+          onClose={() => setReportingMessage(null)}
+        />
+      )}
     </div>
   )
 }
