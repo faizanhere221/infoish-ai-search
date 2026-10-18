@@ -63,6 +63,13 @@ const UNSIGNED_CAMPAIGN_CREATOR_ID = getEnv('UNSIGNED_CAMPAIGN_CREATOR_ID')
 // Optional — Phase 6A (notifications) checks, skipped if blank.
 const CREATOR_A_NOTIFICATION_ID = getEnv('CREATOR_A_NOTIFICATION_ID')
 
+// Optional — Phase 7A (admin hardening) checks, skipped if blank.
+const ADMIN_TOKEN = getEnv('ADMIN_TOKEN')
+const SUPER_ADMIN_TOKEN = getEnv('SUPER_ADMIN_TOKEN')
+// A disposable test user's id — ADMIN_TOKEN suspends then reactivates it to
+// verify suspension actually writes an activity_logs row. Never a real account.
+const ADMIN_TEST_TARGET_USER_ID = getEnv('ADMIN_TEST_TARGET_USER_ID')
+
 // Optional — Phase 6B (email) checks, skipped if blank.
 // A fresh, unused password-reset token's raw value (not its hash) — trigger
 // POST /api/auth/forgot-password for a disposable test account, then copy
@@ -593,6 +600,111 @@ async function main() {
     })
   } else {
     skip('Password reset token works once, then rejects reuse', 'PASSWORD_RESET_TOKEN not set — see .env.test.example')
+  }
+
+  // ── Phase 7A — admin hardening ────────────────────────────────────────────────
+
+  if (ADMIN_TOKEN || SUPER_ADMIN_TOKEN) {
+    const nonAdminToken = CREATOR_A_TOKEN
+    await check('Creator token gets 403 on /api/admin/* (middleware-level gate)', async () => {
+      const res = await request('/api/admin/users?limit=1', { headers: authHeaders(nonAdminToken) })
+      return { pass: res.status === 403, detail: `status ${res.status}` }
+    })
+
+    await check('Brand token gets 403 on /api/admin/* (middleware-level gate)', async () => {
+      const res = await request('/api/admin/users?limit=1', { headers: authHeaders(BRAND_A_TOKEN) })
+      return { pass: res.status === 403, detail: `status ${res.status}` }
+    })
+  } else {
+    skip('Creator/Brand token gets 403 on /api/admin/*', 'ADMIN_TOKEN/SUPER_ADMIN_TOKEN not set')
+  }
+
+  if (ADMIN_TOKEN) {
+    // All three checks use a bogus/nonexistent id: every route checks the
+    // caller's role before it ever touches the target row, so the 403
+    // happens before any real lookup — safe to probe without a real id.
+    const BOGUS_ID = '00000000-0000-0000-0000-000000000000'
+
+    await check('Admin (not super) gets 403 on DELETE /api/admin/users/:id', async () => {
+      const res = await request(`/api/admin/users/${BOGUS_ID}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'security-check probe — should never reach the DB' }),
+      })
+      return { pass: res.status === 403, detail: `status ${res.status}` }
+    })
+
+    await check('Admin (not super) gets 403 changing a role (PATCH /api/admin/users/:id)', async () => {
+      const res = await request(`/api/admin/users/${BOGUS_ID}`, {
+        method: 'PATCH',
+        headers: { ...authHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: 'super_admin', reason: 'security-check probe — should never reach the DB' }),
+      })
+      return { pass: res.status === 403, detail: `status ${res.status}` }
+    })
+
+    await check('Admin (not super) gets 403 on PATCH /api/admin/settings', async () => {
+      const res = await request('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { ...authHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'security-check probe — should never reach the DB' }),
+      })
+      return { pass: res.status === 403, detail: `status ${res.status}` }
+    })
+
+    if (ADMIN_TEST_TARGET_USER_ID) {
+      await check('Admin suspending a user writes a real activity_logs row (and reactivating undoes it)', async () => {
+        try {
+          const suspendRes = await request(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}/suspend`, {
+            method: 'POST',
+            headers: { ...authHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: 'security-check probe — reactivated immediately after' }),
+          })
+          if (suspendRes.status !== 200) {
+            return { pass: false, detail: `suspend returned ${suspendRes.status}, expected 200` }
+          }
+
+          const logsRes = await request('/api/admin/activity/entries?group=admin&limit=5', { headers: authHeaders(ADMIN_TOKEN) })
+          const logsData = await logsRes.json().catch(() => ({ logs: [] }))
+          const wrote = (logsData.logs ?? []).some(
+            (l) => l.action === 'user_suspended' && l.entity_id === ADMIN_TEST_TARGET_USER_ID
+          )
+          return { pass: logsRes.status === 200 && wrote, detail: `activity log status ${logsRes.status}, matching row found: ${wrote}` }
+        } finally {
+          // Always reactivate, even if the assertion above failed, so this
+          // check never leaves the test account suspended.
+          await request(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}/activate`, {
+            method: 'POST',
+            headers: { ...authHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: 'security-check probe — restoring state' }),
+          })
+        }
+      })
+    } else {
+      skip('Admin suspending a user writes a real activity_logs row', 'ADMIN_TEST_TARGET_USER_ID not set')
+    }
+  } else {
+    skip('Admin (not super) gets 403 on delete/role-change/settings', 'ADMIN_TOKEN not set')
+  }
+
+  if (SUPER_ADMIN_TOKEN) {
+    await check('[control] Super admin CAN reach a super_admin-only route (PATCH /api/admin/settings, written back unchanged)', async () => {
+      // Round-trips one existing value back to itself (true no-op in effect,
+      // not an empty body) so this exercises the super_admin gate without
+      // actually changing platform behavior.
+      const getRes = await request('/api/admin/settings', { headers: authHeaders(SUPER_ADMIN_TOKEN) })
+      const getData = await getRes.json().catch(() => ({}))
+      const currentPageSize = getData?.settings?.default_page_size ?? 20
+
+      const res = await request('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { ...authHeaders(SUPER_ADMIN_TOKEN), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ default_page_size: currentPageSize, reason: 'security-check probe — value written back unchanged' }),
+      })
+      return { pass: res.status === 200, detail: `status ${res.status}` }
+    })
+  } else {
+    skip('[control] Super admin CAN reach a super_admin-only route', 'SUPER_ADMIN_TOKEN not set')
   }
 
   // Positive controls — if these fail, every 404 above might just mean the
