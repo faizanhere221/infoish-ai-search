@@ -26,23 +26,40 @@ const ACTION_GROUPS = [
 ]
 
 const ACTION_META: Record<string, { color: string; icon: string }> = {
-  login:              { color: 'bg-emerald-500/20 text-emerald-400', icon: '→' },
-  logout:             { color: 'bg-slate-500/20 text-slate-400',    icon: '←' },
-  register:           { color: 'bg-blue-500/20 text-blue-400',      icon: '+' },
-  deal_created:       { color: 'bg-violet-500/20 text-violet-400',  icon: '$' },
-  deal_accepted:      { color: 'bg-emerald-500/20 text-emerald-400', icon: '✓' },
-  deal_rejected:      { color: 'bg-red-500/20 text-red-400',        icon: '✗' },
-  deal_completed:     { color: 'bg-amber-500/20 text-amber-400',    icon: '★' },
-  deal_cancelled:     { color: 'bg-orange-500/20 text-orange-400',  icon: '⊘' },
-  profile_updated:    { color: 'bg-cyan-500/20 text-cyan-400',      icon: '✎' },
-  creator_verified:   { color: 'bg-emerald-500/20 text-emerald-400', icon: '✓' },
-  creator_featured:   { color: 'bg-amber-500/20 text-amber-400',    icon: '★' },
-  brand_verified:     { color: 'bg-emerald-500/20 text-emerald-400', icon: '✓' },
-  user_suspended:     { color: 'bg-red-500/20 text-red-400',        icon: '⊘' },
-  user_activated:     { color: 'bg-emerald-500/20 text-emerald-400', icon: '↑' },
-  user_deleted:       { color: 'bg-red-700/20 text-red-500',        icon: '🗑' },
-  impersonation:      { color: 'bg-purple-500/20 text-purple-400',  icon: '👤' },
-  admin_login:        { color: 'bg-violet-500/20 text-violet-400',  icon: '⚙' },
+  login:                       { color: 'bg-emerald-500/20 text-emerald-400', icon: '→' },
+  logout:                      { color: 'bg-slate-500/20 text-slate-400',    icon: '←' },
+  register:                    { color: 'bg-blue-500/20 text-blue-400',      icon: '+' },
+  deal_created:                { color: 'bg-violet-500/20 text-violet-400',  icon: '$' },
+  deal_accepted:                { color: 'bg-emerald-500/20 text-emerald-400', icon: '✓' },
+  deal_declined:                { color: 'bg-red-500/20 text-red-400',        icon: '✗' },
+  deal_delivered:                { color: 'bg-blue-500/20 text-blue-400',       icon: '📦' },
+  deal_approved:                { color: 'bg-emerald-500/20 text-emerald-400', icon: '✓' },
+  deal_revision:                { color: 'bg-amber-500/20 text-amber-400',    icon: '↺' },
+  deal_completed:               { color: 'bg-amber-500/20 text-amber-400',    icon: '★' },
+  deal_cancelled:               { color: 'bg-orange-500/20 text-orange-400',  icon: '⊘' },
+  profile_updated:              { color: 'bg-cyan-500/20 text-cyan-400',      icon: '✎' },
+  creator_verified:             { color: 'bg-emerald-500/20 text-emerald-400', icon: '✓' },
+  creator_featured:             { color: 'bg-amber-500/20 text-amber-400',    icon: '★' },
+  creator_availability_changed: { color: 'bg-cyan-500/20 text-cyan-400',      icon: '✎' },
+  brand_verified:               { color: 'bg-emerald-500/20 text-emerald-400', icon: '✓' },
+  user_suspended:               { color: 'bg-red-500/20 text-red-400',        icon: '⊘' },
+  user_activated:               { color: 'bg-emerald-500/20 text-emerald-400', icon: '↑' },
+  user_deleted:                 { color: 'bg-red-700/20 text-red-500',        icon: '🗑' },
+  user_role_changed:            { color: 'bg-purple-500/20 text-purple-400',  icon: '⚙' },
+  impersonation_blocked:        { color: 'bg-slate-500/20 text-slate-400',    icon: '⊘' },
+  admin_login:                  { color: 'bg-violet-500/20 text-violet-400',  icon: '⚙' },
+  admin_created:                { color: 'bg-violet-500/20 text-violet-400',  icon: '+' },
+  admin_updated:                { color: 'bg-cyan-500/20 text-cyan-400',      icon: '✎' },
+  admin_revoked:                { color: 'bg-red-500/20 text-red-400',        icon: '⊘' },
+  contact_submission_updated:   { color: 'bg-cyan-500/20 text-cyan-400',      icon: '✎' },
+  contact_submission_deleted:   { color: 'bg-red-500/20 text-red-400',        icon: '🗑' },
+  newsletter_subscriber_deleted: { color: 'bg-red-500/20 text-red-400',       icon: '🗑' },
+  settings_updated:             { color: 'bg-cyan-500/20 text-cyan-400',      icon: '✎' },
+  partner_created:              { color: 'bg-violet-500/20 text-violet-400',  icon: '+' },
+  partner_updated:              { color: 'bg-cyan-500/20 text-cyan-400',      icon: '✎' },
+  partner_deleted:               { color: 'bg-red-500/20 text-red-400',       icon: '🗑' },
+  partner_payout_recorded:      { color: 'bg-emerald-500/20 text-emerald-400', icon: '$' },
+  partner_commission_updated:   { color: 'bg-amber-500/20 text-amber-400',    icon: '$' },
 }
 
 function actionMeta(action: string) {
@@ -87,7 +104,7 @@ export default function ActivityPage() {
       if (group)    {params.set('group', group)}
       if (dateFrom) {params.set('date_from', dateFrom)}
       if (dateTo)   {params.set('date_to', dateTo)}
-      const res = await fetch(`/api/admin/activity/logs?${params}`)
+      const res = await fetch(`/api/admin/activity/entries?${params}`)
       const data = await res.json()
       setLogs(data.logs ?? [])
       setTotal(data.total ?? 0)

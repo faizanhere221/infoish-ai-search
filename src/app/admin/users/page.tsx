@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
-  Eye, UserX, UserCheck, Trash2, X, RefreshCw, LogIn,
+  Eye, UserX, UserCheck, Trash2, X, RefreshCw,
   ChevronLeft, ChevronRight, Shield, User, Building2,
   Filter, AlertTriangle,
 } from 'lucide-react'
@@ -225,16 +225,6 @@ export default function AdminUsersPage() {
     setConfirmDelete(null)
     if (modalUser?.user.id === userId) {setModalUser(null)}
     setActionLoading(a => ({ ...a, [userId]: false }))
-  }
-
-  const impersonate = async (userId: string) => {
-    const res = await fetch(`/api/admin/users/${userId}/impersonate`, { method: 'POST' })
-    const data = await res.json()
-    if (data.token && data.dashboardPath) {
-      // Store token in sessionStorage and open in new tab
-      const url = `${window.location.origin}${data.dashboardPath}?impersonate=${data.token}`
-      window.open(url, '_blank')
-    }
   }
 
   const bulkAction = async (action: 'activate' | 'suspend' | 'delete') => {
@@ -594,12 +584,6 @@ export default function AdminUsersPage() {
                     }`}>
                     {modalUser.user.is_active ? 'Suspend User' : 'Activate User'}
                   </button>
-                  {(modalUser.user.user_type === 'creator' || modalUser.user.user_type === 'brand') && (
-                    <button onClick={() => impersonate(modalUser.user.id)}
-                      className="flex items-center gap-1.5 px-4 py-2 bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-200 rounded-lg text-sm font-medium">
-                      <LogIn className="w-4 h-4" /> Impersonate
-                    </button>
-                  )}
                   <button onClick={() => { setModalUser(null); setConfirmDelete(modalUser.user.id) }}
                     className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-lg text-sm font-medium">
                     Delete
