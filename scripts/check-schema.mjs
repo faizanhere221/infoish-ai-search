@@ -200,6 +200,7 @@ const MIGRATION_ORDER = [
   'phase6a_notifications_migration.sql',
   'phase6b_email_migration.sql',
   'drift_fix_migration.sql',
+  'phase7a_admin_migration.sql',
 ]
 
 function main() {

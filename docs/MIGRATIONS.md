@@ -37,6 +37,7 @@ or whenever you need to know what's really live rather than what should be.
 | 22 | `phase6a_notifications_migration.sql` | Brings `notifications` up to what the app code already expected (`content`, `related_type`/`related_id`, `read_at` — see note below) plus the new notification-center columns: `category`, `priority`, `archived_at`, `email_status`, `data`. |
 | 23 | `phase6b_email_migration.sql` | Email via Resend: `email_log`, `email_verification_tokens`, `password_reset_tokens`, `users.email_preferences`, `conversations.last_digest_sent_at`, `email_daily_usage`. |
 | 24 | `drift_fix_migration.sql` | Closes every gap in "Known drift" below: the 9 `reviews` columns (+2 the code needs that schema.sql never declared), `creator_services.includes`, `creators.is_featured`, `creators.search_vector` (+ its trigger, index, backfill), and `activity_logs`/`platform_settings` (retyped to VARCHAR(255) ids — the original UUID-vs-VARCHAR FK mismatch is why they were never created at all). Dry-run verified (wrapped in BEGIN/ROLLBACK) — every statement succeeds. |
+| 25 | `phase7a_admin_migration.sql` | Admin hardening: `users.deleted_at` for soft-delete + anonymization (replaces the previous hard `DELETE /api/admin/users/[id]`) — distinct from `is_active=false` (suspended, reversible) vs `deleted_at` set (anonymized, permanent). |
 
 ## Known drift (as of writing — re-run `check:schema` to get current state)
 
