@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Shield, ShieldOff, X, Eye, EyeOff, CheckCircle, AlertTriangle } from 'lucide-react'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { ReasonDialog } from '@/components/admin/ReasonDialog'
 
 interface Admin {
   id: string
@@ -36,6 +37,12 @@ export default function AdminsPage() {
   const [role, setRole]         = useState<'admin' | 'super_admin'>('admin')
   const [showPwd, setShowPwd]   = useState(false)
   const [creating, setCreating] = useState(false)
+  const [createReason, setCreateReason] = useState('')
+
+  type PendingAdminAction =
+    | { kind: 'toggle-active'; admin: Admin }
+    | { kind: 'role'; admin: Admin; newRole: 'admin' | 'super_admin' }
+  const [pendingAction, setPendingAction] = useState<PendingAdminAction | null>(null)
 
   useEffect(() => { fetchAdmins() }, [])
 
@@ -61,18 +68,22 @@ export default function AdminsPage() {
 
   async function createAdmin(e: React.FormEvent) {
     e.preventDefault()
+    if (createReason.trim().length < 3) {
+      showToast('error', 'Enter a reason (at least 3 characters)')
+      return
+    }
     setCreating(true)
     try {
       const res = await fetch('/api/admin/admins', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, role }),
+        body: JSON.stringify({ email, password, role, reason: createReason.trim() }),
       })
       const data = await res.json()
       if (!res.ok) {throw new Error(data.error ?? 'Failed')}
       setAdmins(prev => [data.admin, ...prev])
       setShowForm(false)
-      setEmail(''); setPassword(''); setRole('admin')
+      setEmail(''); setPassword(''); setRole('admin'); setCreateReason('')
       showToast('success', `Admin ${data.admin.email} created`)
     } catch (err) {
       showToast('error', err instanceof Error ? err.message : 'Failed to create admin')
@@ -81,33 +92,33 @@ export default function AdminsPage() {
     }
   }
 
-  async function toggleActive(admin: Admin) {
+  async function confirmPendingAction(reason: string) {
+    if (!pendingAction) {return}
     try {
-      const res = await fetch(`/api/admin/admins/${admin.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: !admin.is_active }),
-      })
-      const data = await res.json()
-      if (!res.ok) {throw new Error(data.error ?? 'Failed')}
-      setAdmins(prev => prev.map(a => a.id === admin.id ? { ...a, is_active: !a.is_active } : a))
-      showToast('success', `Admin ${admin.is_active ? 'suspended' : 'activated'}`)
-    } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Failed')
-    }
-  }
-
-  async function changeRole(admin: Admin, newRole: 'admin' | 'super_admin') {
-    try {
-      const res = await fetch(`/api/admin/admins/${admin.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole }),
-      })
-      const data = await res.json()
-      if (!res.ok) {throw new Error(data.error ?? 'Failed')}
-      setAdmins(prev => prev.map(a => a.id === admin.id ? { ...a, role: newRole } : a))
-      showToast('success', 'Role updated')
+      if (pendingAction.kind === 'toggle-active') {
+        const admin = pendingAction.admin
+        const res = await fetch(`/api/admin/users/${admin.id}/${admin.is_active ? 'suspend' : 'activate'}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason }),
+        })
+        const data = await res.json()
+        if (!res.ok) {throw new Error(data.error ?? 'Failed')}
+        setAdmins(prev => prev.map(a => a.id === admin.id ? { ...a, is_active: !a.is_active } : a))
+        showToast('success', `Admin ${admin.is_active ? 'suspended' : 'activated'}`)
+      } else {
+        const { admin, newRole } = pendingAction
+        const res = await fetch(`/api/admin/admins/${admin.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: newRole, reason }),
+        })
+        const data = await res.json()
+        if (!res.ok) {throw new Error(data.error ?? 'Failed')}
+        setAdmins(prev => prev.map(a => a.id === admin.id ? { ...a, role: newRole } : a))
+        showToast('success', 'Role updated')
+      }
+      setPendingAction(null)
     } catch (err) {
       showToast('error', err instanceof Error ? err.message : 'Failed')
     }
@@ -195,6 +206,16 @@ export default function AdminsPage() {
                 ))}
               </div>
             </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1">Reason</label>
+              <textarea
+                value={createReason}
+                onChange={e => setCreateReason(e.target.value)}
+                rows={2}
+                placeholder="Why are you creating this admin account?"
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-white resize-none focus:outline-none focus:border-violet-500"
+              />
+            </div>
             <div className="flex gap-3">
               <button type="submit" disabled={creating}
                 className="px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
@@ -249,7 +270,7 @@ export default function AdminsPage() {
                   <td className="px-4 py-3">
                     <select
                       value={admin.role}
-                      onChange={e => changeRole(admin, e.target.value as 'admin' | 'super_admin')}
+                      onChange={e => setPendingAction({ kind: 'role', admin, newRole: e.target.value as 'admin' | 'super_admin' })}
                       className="text-xs bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-white focus:outline-none focus:border-violet-500"
                     >
                       <option value="admin">Admin</option>
@@ -266,7 +287,7 @@ export default function AdminsPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       <button
-                        onClick={() => toggleActive(admin)}
+                        onClick={() => setPendingAction({ kind: 'toggle-active', admin })}
                         title={admin.is_active ? 'Suspend' : 'Activate'}
                         className={`p-1.5 rounded-lg transition-colors ${admin.is_active ? 'text-amber-400 hover:bg-amber-500/10' : 'text-emerald-400 hover:bg-emerald-500/10'}`}
                       >
@@ -280,6 +301,25 @@ export default function AdminsPage() {
           </tbody>
         </table>
       </div>
+
+      {pendingAction && (
+        <ReasonDialog
+          title={
+            pendingAction.kind === 'toggle-active'
+              ? `${pendingAction.admin.is_active ? 'Suspend' : 'Activate'} ${pendingAction.admin.email}`
+              : `Change ${pendingAction.admin.email} to ${pendingAction.newRole === 'super_admin' ? 'Super Admin' : 'Admin'}`
+          }
+          description={
+            pendingAction.kind === 'toggle-active' && pendingAction.admin.is_active
+              ? "The admin can't log in while suspended. A session token they already have stays valid until it naturally expires — suspension doesn't revoke it immediately."
+              : undefined
+          }
+          danger={pendingAction.kind === 'toggle-active' && pendingAction.admin.is_active}
+          confirmLabel="Confirm"
+          onConfirm={confirmPendingAction}
+          onClose={() => setPendingAction(null)}
+        />
+      )}
     </div>
   )
 }

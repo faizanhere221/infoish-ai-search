@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
+import { logAdminAction, requireReason } from '@/lib/admin-action'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
-import { logActivity } from '@/lib/activity'
 
 const createSchema = z.object({
   email:    z.string().email(),
@@ -27,11 +28,14 @@ export async function GET(request: NextRequest) {
       .in('role', ['admin', 'super_admin'])
       .order('created_at', { ascending: false })
 
-    if (error) {throw error}
+    if (error) {
+      captureError(error, { route: 'GET /api/admin/admins' })
+      return NextResponse.json({ error: 'Failed to fetch admins' }, { status: 500 })
+    }
 
     return NextResponse.json({ admins: admins ?? [] })
   } catch (err) {
-    console.error('List admins error:', err)
+    captureError(err, { route: 'GET /api/admin/admins' })
     return NextResponse.json({ error: 'Failed to fetch admins' }, { status: 500 })
   }
 }
@@ -48,8 +52,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
     }
 
+    const reasonCheck = requireReason(body)
+    if (!reasonCheck.ok) {
+      return NextResponse.json({ error: reasonCheck.error }, { status: 400 })
+    }
+
     const { email, password, role } = parsed.data
-    const adminId = request.headers.get('x-user-id') ?? undefined
+    const adminId = request.headers.get('x-user-id')
     const supabase = createServerSupabase()
 
     // Check if user already exists
@@ -74,19 +83,25 @@ export async function POST(request: NextRequest) {
       .select('id, email, role, created_at')
       .single()
 
-    if (error) {throw error}
+    if (error || !newAdmin) {
+      captureError(error ?? new Error('admin create: no row returned'), { route: 'POST /api/admin/admins' })
+      return NextResponse.json({ error: 'Failed to create admin' }, { status: 500 })
+    }
 
-    void logActivity({
-      userId: adminId,
+    logAdminAction({
+      request,
+      adminId,
       action: 'admin_created',
-      entityType: 'user',
-      entityId: newAdmin?.id,
-      details: { email, role },
+      targetType: 'user',
+      targetId: newAdmin.id,
+      reason: reasonCheck.reason,
+      before: null,
+      after: { email, role },
     })
 
     return NextResponse.json({ admin: newAdmin }, { status: 201 })
   } catch (err) {
-    console.error('Create admin error:', err)
+    captureError(err, { route: 'POST /api/admin/admins' })
     return NextResponse.json({ error: 'Failed to create admin' }, { status: 500 })
   }
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Save, AlertTriangle, CheckCircle, Info } from 'lucide-react'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { ReasonDialog } from '@/components/admin/ReasonDialog'
 
 interface Settings {
   site_name: string
@@ -70,6 +71,7 @@ export default function SettingsPage() {
   const [saving, setSaving]     = useState(false)
   const [toast, setToast]       = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
   const [missingTable, setMissingTable] = useState(false)
+  const [confirmSave, setConfirmSave] = useState(false)
 
   useEffect(() => {
     fetch('/api/admin/settings')
@@ -87,17 +89,18 @@ export default function SettingsPage() {
     setSettings(s => ({ ...s, [key]: value }))
   }
 
-  async function save() {
+  async function save(reason: string) {
     setSaving(true)
     try {
       const res = await fetch('/api/admin/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
+        body: JSON.stringify({ ...settings, reason }),
       })
       const data = await res.json()
       if (!res.ok) {throw new Error(data.error ?? 'Failed to save')}
       setToast({ type: 'success', msg: 'Settings saved successfully' })
+      setConfirmSave(false)
     } catch (err) {
       setToast({ type: 'error', msg: err instanceof Error ? err.message : 'Failed to save settings' })
     } finally {
@@ -125,7 +128,7 @@ export default function SettingsPage() {
           <p className="text-slate-400 text-sm mt-1">Configure platform-wide settings (super admin only)</p>
         </div>
         <button
-          onClick={save}
+          onClick={() => setConfirmSave(true)}
           disabled={saving}
           className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
         >
@@ -133,6 +136,16 @@ export default function SettingsPage() {
           {saving ? 'Saving…' : 'Save Changes'}
         </button>
       </div>
+
+      {confirmSave && (
+        <ReasonDialog
+          title="Save Platform Settings"
+          description="This changes platform-wide behavior for all users."
+          confirmLabel="Save"
+          onConfirm={save}
+          onClose={() => setConfirmSave(false)}
+        />
+      )}
 
       {/* Toast */}
       {toast && (

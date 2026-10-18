@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
+import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { z } from 'zod'
 
 const patchSchema = z.record(z.string(), z.unknown())
@@ -39,7 +41,7 @@ export async function GET() {
 
     return NextResponse.json({ settings })
   } catch (err) {
-    console.error('Get settings error:', err)
+    captureError(err, { route: 'GET /api/admin/settings' })
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 })
   }
 }
@@ -52,13 +54,24 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const parsed = patchSchema.safeParse(body)
+    const reasonCheck = requireReason(body)
+    if (!reasonCheck.ok) {
+      return NextResponse.json({ error: reasonCheck.error }, { status: 400 })
+    }
+
+    const { reason: _reason, ...settingsBody } = body as Record<string, unknown>
+    const parsed = patchSchema.safeParse(settingsBody)
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid settings' }, { status: 400 })
     }
 
     const adminId = request.headers.get('x-user-id') ?? null
     const supabase = createServerSupabase()
+
+    const { data: beforeRows } = await supabase
+      .from('platform_settings')
+      .select('key, value')
+      .in('key', Object.keys(parsed.data))
 
     const upserts = Object.entries(parsed.data).map(([key, value]) => ({
       key,
@@ -75,12 +88,25 @@ export async function PATCH(request: NextRequest) {
       if ((error as { code?: string }).code === '42P01') {
         return NextResponse.json({ error: 'Run settings migration first' }, { status: 503 })
       }
-      throw error
+      captureError(error, { route: 'PATCH /api/admin/settings' })
+      return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 })
     }
+
+    const before = Object.fromEntries((beforeRows ?? []).map((r) => [r.key, r.value]))
+    logAdminAction({
+      request,
+      adminId,
+      action: 'settings_updated',
+      targetType: 'platform_settings',
+      targetId: 'global',
+      reason: reasonCheck.reason,
+      before,
+      after: parsed.data,
+    })
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('Update settings error:', err)
+    captureError(err, { route: 'PATCH /api/admin/settings' })
     return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 })
   }
 }
