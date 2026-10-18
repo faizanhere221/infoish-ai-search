@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
-import { logActivity } from '@/lib/activity'
+import { captureError } from '@/lib/error-tracking'
+import { logAdminAction, requireReason } from '@/lib/admin-action'
 
 export async function GET(
   _request: NextRequest,
@@ -26,19 +27,20 @@ export async function GET(
 
     return NextResponse.json({ deal, brand, creator })
   } catch (err) {
-    console.error('Admin deal detail error:', err)
+    captureError(err, { route: 'GET /api/admin/deals/[id]' })
     return NextResponse.json({ error: 'Failed to fetch deal' }, { status: 500 })
   }
 }
 
+// Not currently called from any admin UI (per docs/ADMIN_AUDIT.md) — brought
+// up to the same reason+logging standard as every other admin mutation so
+// it's correct if/when a UI is wired to it, rather than left as a silent gap.
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const adminId = request.headers.get('x-user-id') ?? undefined
-    const supabase = createServerSupabase()
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
 
     const ALLOWED = new Set(['status', 'amount', 'currency', 'notes'])
     const updates: Record<string, unknown> = {}
@@ -50,26 +52,47 @@ export async function PATCH(
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
 
+    const reasonCheck = requireReason(body)
+    if (!reasonCheck.ok) {
+      return NextResponse.json({ error: reasonCheck.error }, { status: 400 })
+    }
+
+    const supabase = createServerSupabase()
+    const { data: before } = await supabase
+      .from('deals')
+      .select('id, status, amount, currency, notes')
+      .eq('id', params.id)
+      .single()
+    if (!before) {
+      return NextResponse.json({ error: 'Deal not found' }, { status: 404 })
+    }
+
     const { data: deal, error } = await supabase
       .from('deals')
       .update(updates)
       .eq('id', params.id)
-      .select('id, status, title')
+      .select('id, status, title, amount, currency, notes')
       .single()
 
-    if (error) {throw error}
+    if (error || !deal) {
+      captureError(error ?? new Error('deal update: no row returned'), { route: 'PATCH /api/admin/deals/[id]' })
+      return NextResponse.json({ error: 'Failed to update deal' }, { status: 500 })
+    }
 
-    void logActivity({
-      userId: adminId,
+    logAdminAction({
+      request,
+      adminId: request.headers.get('x-user-id'),
       action: 'deal_updated',
-      entityType: 'deal',
-      entityId: params.id,
-      details: { updates, title: deal?.title },
+      targetType: 'deal',
+      targetId: params.id,
+      reason: reasonCheck.reason,
+      before,
+      after: { ...before, ...updates },
     })
 
     return NextResponse.json({ deal })
   } catch (err) {
-    console.error('Admin deal update error:', err)
+    captureError(err, { route: 'PATCH /api/admin/deals/[id]' })
     return NextResponse.json({ error: 'Failed to update deal' }, { status: 500 })
   }
 }

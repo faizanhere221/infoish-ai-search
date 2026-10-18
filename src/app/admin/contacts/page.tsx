@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, User, Building, Calendar, MessageSquare, Eye, Reply, Trash, Check } from 'lucide-react';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { ReasonDialog } from '@/components/admin/ReasonDialog';
 
 interface ContactSubmission {
   id: string;
@@ -20,6 +21,8 @@ const ContactAdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedSubmission, setSelectedSubmission] = useState<ContactSubmission | null>(null);
   const [filter, setFilter] = useState<'all' | 'new' | 'read' | 'replied'>('all');
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState('');
 
   useEffect(() => {
     loadSubmissions();
@@ -62,24 +65,28 @@ const ContactAdminDashboard: React.FC = () => {
     }
   };
 
-  const deleteSubmission = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this message?')) {return;}
-
+  const confirmDeleteSubmission = async (reason: string) => {
+    if (!pendingDeleteId) {return;}
+    setActionError('');
     try {
       const response = await fetch('/api/admin/contact-submissions/delete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id: pendingDeleteId, reason }),
       });
 
-      if (response.ok) {
-        setSubmissions(prev => prev.filter(sub => sub.id !== id));
-        setSelectedSubmission(null);
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to delete submission');
       }
+
+      setSubmissions(prev => prev.filter(sub => sub.id !== pendingDeleteId));
+      setSelectedSubmission(null);
+      setPendingDeleteId(null);
     } catch (error) {
-      console.error('Error deleting submission:', error);
+      setActionError(error instanceof Error ? error.message : 'Failed to delete submission');
     }
   };
 
@@ -295,7 +302,7 @@ const ContactAdminDashboard: React.FC = () => {
                             <Reply className="w-4 h-4" />
                           </a>
                           <button
-                            onClick={() => deleteSubmission(submission.id)}
+                            onClick={() => setPendingDeleteId(submission.id)}
                             className="text-red-600 hover:text-red-900"
                           >
                             <Trash className="w-4 h-4" />
@@ -383,6 +390,20 @@ const ContactAdminDashboard: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {pendingDeleteId && (
+          <ReasonDialog
+            title="Delete Contact Message"
+            description="This permanently removes the message. This cannot be undone."
+            danger
+            confirmLabel="Delete"
+            onConfirm={confirmDeleteSubmission}
+            onClose={() => { setPendingDeleteId(null); setActionError(''); }}
+          />
+        )}
+        {actionError && (
+          <div className="fixed bottom-4 right-4 z-50 bg-red-600 text-white px-4 py-2.5 rounded-lg shadow-lg text-sm">{actionError}</div>
         )}
       </div>
     </div>
