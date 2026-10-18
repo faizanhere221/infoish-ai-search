@@ -19,6 +19,7 @@ export default function RecordPayoutModal({ partnerId, pendingBalanceCents, onCl
   const [method, setMethod] = useState(PAYMENT_METHODS[0])
   const [reference, setReference] = useState('')
   const [notes, setNotes] = useState('')
+  const [reason, setReason] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -37,6 +38,10 @@ export default function RecordPayoutModal({ partnerId, pendingBalanceCents, onCl
       setError(`Amount can't exceed the pending balance of $${pendingBalance.toFixed(2)}`)
       return
     }
+    if (reason.trim().length < 3) {
+      setError('Enter a reason (at least 3 characters)')
+      return
+    }
 
     setIsSubmitting(true)
     try {
@@ -48,6 +53,7 @@ export default function RecordPayoutModal({ partnerId, pendingBalanceCents, onCl
           payment_method: method,
           payment_reference: reference || undefined,
           notes: notes || undefined,
+          reason: reason.trim(),
           // A payout recorded here already happened (admin is logging a
           // completed transfer), so mark it completed immediately —
           // that's what makes referral_partners.total_paid_cents update.
@@ -134,6 +140,17 @@ export default function RecordPayoutModal({ partnerId, pendingBalanceCents, onCl
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
               placeholder="Optional"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Reason *</label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={2}
+              placeholder="Why are you recording this payout?"
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
             />
           </div>

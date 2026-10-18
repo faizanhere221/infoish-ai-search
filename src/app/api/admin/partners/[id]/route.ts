@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
+import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { z } from 'zod'
 import { getPartnerStats, isValidReferralCode } from '@/lib/referral'
 
@@ -42,7 +44,7 @@ export async function GET(
 
     return NextResponse.json({ partner, recent_signups: recentSignups ?? [], stats })
   } catch (err) {
-    console.error('Admin partner detail error:', err)
+    captureError(err, { route: 'GET /api/admin/partners/[id]' })
     return NextResponse.json({ error: 'Failed to fetch partner' }, { status: 500 })
   }
 }
@@ -66,7 +68,20 @@ export async function PUT(
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
 
+    const reasonCheck = requireReason(body)
+    if (!reasonCheck.ok) {
+      return NextResponse.json({ error: reasonCheck.error }, { status: 400 })
+    }
+
     const supabase = createServerSupabase()
+    const { data: before } = await supabase
+      .from('referral_partners')
+      .select('name, email, referral_code, commission_rate, status, user_id')
+      .eq('id', params.id)
+      .single()
+    if (!before) {
+      return NextResponse.json({ error: 'Partner not found' }, { status: 404 })
+    }
 
     if (parsed.data.referral_code) {
       const code = parsed.data.referral_code.toLowerCase().trim()
@@ -104,14 +119,25 @@ export async function PUT(
       .select()
       .single()
 
-    if (error) {
-      console.error('Error updating referral partner:', error)
+    if (error || !partner) {
+      captureError(error ?? new Error('partner update: no row returned'), { route: 'PUT /api/admin/partners/[id]' })
       return NextResponse.json({ error: 'Failed to update partner' }, { status: 500 })
     }
 
+    logAdminAction({
+      request,
+      adminId: request.headers.get('x-user-id'),
+      action: 'partner_updated',
+      targetType: 'partner',
+      targetId: params.id,
+      reason: reasonCheck.reason,
+      before,
+      after: parsed.data,
+    })
+
     return NextResponse.json({ partner })
   } catch (err) {
-    console.error('Admin partner update error:', err)
+    captureError(err, { route: 'PUT /api/admin/partners/[id]' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -120,11 +146,21 @@ export async function PUT(
 // rather than removing the row, so referral/commission/payout history is
 // preserved instead of being cascade-deleted)
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const body = await request.json().catch(() => ({}))
+    const reasonCheck = requireReason(body)
+    if (!reasonCheck.ok) {
+      return NextResponse.json({ error: reasonCheck.error }, { status: 400 })
+    }
+
     const supabase = createServerSupabase()
+    const { data: before } = await supabase.from('referral_partners').select('status').eq('id', params.id).single()
+    if (!before) {
+      return NextResponse.json({ error: 'Partner not found' }, { status: 404 })
+    }
 
     const { data: partner, error } = await supabase
       .from('referral_partners')
@@ -134,12 +170,24 @@ export async function DELETE(
       .single()
 
     if (error || !partner) {
+      captureError(error ?? new Error('partner deactivate: no row returned'), { route: 'DELETE /api/admin/partners/[id]' })
       return NextResponse.json({ error: 'Partner not found' }, { status: 404 })
     }
 
+    logAdminAction({
+      request,
+      adminId: request.headers.get('x-user-id'),
+      action: 'partner_deleted',
+      targetType: 'partner',
+      targetId: params.id,
+      reason: reasonCheck.reason,
+      before: { status: before.status },
+      after: { status: 'deactivated' },
+    })
+
     return NextResponse.json({ message: 'Partner deactivated', partner })
   } catch (err) {
-    console.error('Admin partner deactivation error:', err)
+    captureError(err, { route: 'DELETE /api/admin/partners/[id]' })
     return NextResponse.json({ error: 'Failed to deactivate partner' }, { status: 500 })
   }
 }

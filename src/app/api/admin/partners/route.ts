@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
+import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { z } from 'zod'
 import { generateReferralCode, isValidReferralCode } from '@/lib/referral'
 
@@ -36,7 +38,10 @@ export async function GET(request: NextRequest) {
     if (search) {query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,referral_code.ilike.%${search}%`)}
 
     const { data: partners, count, error } = await query
-    if (error) {throw error}
+    if (error) {
+      captureError(error, { route: 'GET /api/admin/partners' })
+      return NextResponse.json({ error: 'Failed to fetch partners' }, { status: 500 })
+    }
 
     // Live earnings per partner (sum of approved/paid commissions), same
     // definition used everywhere else — referral_partners.total_earnings_cents
@@ -77,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ partners: enriched, total: count ?? 0, page, limit, summary })
   } catch (err) {
-    console.error('Admin partners list error:', err)
+    captureError(err, { route: 'GET /api/admin/partners' })
     return NextResponse.json({ error: 'Failed to fetch partners' }, { status: 500 })
   }
 }
@@ -92,6 +97,11 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid request body', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
+    }
+
+    const reasonCheck = requireReason(body)
+    if (!reasonCheck.ok) {
+      return NextResponse.json({ error: reasonCheck.error }, { status: 400 })
     }
 
     const { user_id, name, email, commission_rate } = parsed.data
@@ -144,14 +154,25 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
-    if (error) {
-      console.error('Error creating referral partner:', error)
+    if (error || !partner) {
+      captureError(error ?? new Error('partner create: no row returned'), { route: 'POST /api/admin/partners' })
       return NextResponse.json({ error: 'Failed to create partner' }, { status: 500 })
     }
 
+    logAdminAction({
+      request,
+      adminId: request.headers.get('x-user-id'),
+      action: 'partner_created',
+      targetType: 'partner',
+      targetId: partner.id,
+      reason: reasonCheck.reason,
+      before: null,
+      after: { name, email, referral_code: referralCode },
+    })
+
     return NextResponse.json({ message: 'Partner created successfully', partner }, { status: 201 })
   } catch (err) {
-    console.error('Admin partner creation error:', err)
+    captureError(err, { route: 'POST /api/admin/partners' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

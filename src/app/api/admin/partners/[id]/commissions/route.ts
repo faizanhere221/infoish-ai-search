@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { getEnrichedCommissions, formatCents } from '@/lib/referral'
 import { emitEvent } from '@/lib/events/emit'
 import { captureError } from '@/lib/error-tracking'
+import { logAdminAction, requireReason } from '@/lib/admin-action'
 
 // GET - All commissions for a given partner (admin only, enforced by middleware)
 export async function GET(
@@ -41,6 +42,12 @@ export async function PUT(
     }
 
     const { commissionId, status } = parsed.data
+
+    const reasonCheck = requireReason(body)
+    if (!reasonCheck.ok) {
+      return NextResponse.json({ error: reasonCheck.error }, { status: 400 })
+    }
+
     const supabase = createServerSupabase()
 
     const { data: commission, error } = await supabase
@@ -72,6 +79,17 @@ export async function PUT(
       captureError(updateError, { route: 'PUT /api/admin/partners/[id]/commissions' })
       return NextResponse.json({ error: 'Failed to update commission' }, { status: 500 })
     }
+
+    logAdminAction({
+      request,
+      adminId: request.headers.get('x-user-id'),
+      action: 'partner_commission_updated',
+      targetType: 'partner',
+      targetId: params.id,
+      reason: reasonCheck.reason,
+      before: { commission_id: commissionId, status: commission.status },
+      after: { commission_id: commissionId, status },
+    })
 
     // Notify the partner on approval (best-effort)
     if (status === 'approved') {

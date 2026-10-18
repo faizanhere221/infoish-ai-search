@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowLeft, Pencil, Pause, Play, Ban, AlertTriangle, AlertCircle, Loader2,
+  ArrowLeft, Pencil, Pause, Play, Ban, AlertCircle, Loader2,
   Users, UserCheck, DollarSign, Wallet, Wallet2, Plus, RefreshCw, UserPlus,
 } from 'lucide-react'
 import PartnerStatsCard from '@/components/partner/PartnerStatsCard'
@@ -14,6 +14,7 @@ import CommissionTable from '@/components/partner/CommissionTable'
 import PayoutTable from '@/components/partner/PayoutTable'
 import RecordPayoutModal from '@/components/admin/RecordPayoutModal'
 import LinkUserModal from '@/components/admin/LinkUserModal'
+import { ReasonDialog } from '@/components/admin/ReasonDialog'
 import { formatCents } from '@/lib/referral'
 import type { PartnerStats, PartnerStatus, ReferralCommission, ReferralPartner, ReferralPayout, ReferralSignup } from '@/types/referral'
 
@@ -46,11 +47,13 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
   const [editEmail, setEditEmail] = useState('')
   const [editRate, setEditRate] = useState('')
   const [editStatus, setEditStatus] = useState<PartnerStatus>('active')
+  const [editReason, setEditReason] = useState('')
   const [savingEdit, setSavingEdit] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
 
   const [statusActionLoading, setStatusActionLoading] = useState(false)
   const [confirmDeactivate, setConfirmDeactivate] = useState(false)
+  const [pendingStatusAction, setPendingStatusAction] = useState<PartnerStatus | null>(null)
   const [showLinkUserModal, setShowLinkUserModal] = useState(false)
 
   const [activeTab, setActiveTab] = useState<Tab>('referrals')
@@ -61,6 +64,7 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
   const [commissionsLoading, setCommissionsLoading] = useState(true)
   const [commissionsError, setCommissionsError] = useState(false)
   const [commissionActionId, setCommissionActionId] = useState<string | null>(null)
+  const [confirmApproveCommissionId, setConfirmApproveCommissionId] = useState<string | null>(null)
   const [confirmCancelCommissionId, setConfirmCancelCommissionId] = useState<string | null>(null)
   const [payouts, setPayouts] = useState<ReferralPayout[]>([])
   const [payoutsLoading, setPayoutsLoading] = useState(true)
@@ -153,49 +157,51 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
     fetchPayouts()
   }, [fetchReferrals, fetchCommissions, fetchPayouts])
 
-  const handleApproveCommission = async (commissionId: string) => {
-    setCommissionActionId(commissionId)
+  const handleApproveCommission = async (reason: string) => {
+    if (!confirmApproveCommissionId) {return}
+    setCommissionActionId(confirmApproveCommissionId)
     try {
       const res = await fetch(`/api/admin/partners/${partnerId}/commissions`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ commissionId, status: 'approved' }),
+        body: JSON.stringify({ commissionId: confirmApproveCommissionId, status: 'approved', reason }),
       })
-      if (res.ok) {
-        await Promise.all([fetchCommissions(), fetchDetail()])
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || 'Failed to approve commission')
       }
-    } catch (err) {
-      console.error('Error approving commission:', err)
+      await Promise.all([fetchCommissions(), fetchDetail()])
+      setConfirmApproveCommissionId(null)
     } finally {
       setCommissionActionId(null)
     }
   }
 
-  const handleConfirmCancelCommission = async () => {
+  const handleConfirmCancelCommission = async (reason: string) => {
     if (!confirmCancelCommissionId) {return}
     setCommissionActionId(confirmCancelCommissionId)
     try {
       const res = await fetch(`/api/admin/partners/${partnerId}/commissions`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ commissionId: confirmCancelCommissionId, status: 'cancelled' }),
+        body: JSON.stringify({ commissionId: confirmCancelCommissionId, status: 'cancelled', reason }),
       })
-      if (res.ok) {
-        await Promise.all([fetchCommissions(), fetchDetail()])
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || 'Failed to cancel commission')
       }
-    } catch (err) {
-      console.error('Error cancelling commission:', err)
+      await Promise.all([fetchCommissions(), fetchDetail()])
+      setConfirmCancelCommissionId(null)
     } finally {
       setCommissionActionId(null)
-      setConfirmCancelCommissionId(null)
     }
   }
 
-  const updatePartner = async (updates: Record<string, unknown>) => {
+  const updatePartner = async (updates: Record<string, unknown>, reason: string) => {
     const res = await fetch(`/api/admin/partners/${partnerId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates),
+      body: JSON.stringify({ ...updates, reason }),
     })
     const data = await res.json()
     if (!res.ok) {throw new Error(data.error || 'Failed to update partner')}
@@ -205,6 +211,10 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
 
   const handleSaveEdit = async () => {
     setEditError(null)
+    if (editReason.trim().length < 3) {
+      setEditError('Enter a reason (at least 3 characters)')
+      return
+    }
     setSavingEdit(true)
     try {
       await updatePartner({
@@ -212,8 +222,9 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
         email: editEmail.trim(),
         commission_rate: parseFloat(editRate) || 0,
         status: editStatus,
-      })
+      }, editReason.trim())
       setIsEditing(false)
+      setEditReason('')
     } catch (err) {
       setEditError(err instanceof Error ? err.message : 'Failed to update partner')
     } finally {
@@ -221,29 +232,27 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
     }
   }
 
-  const handleStatusAction = async (status: PartnerStatus) => {
+  const handleConfirmStatusAction = async (reason: string) => {
+    if (!pendingStatusAction) {return}
     setStatusActionLoading(true)
     try {
-      await updatePartner({ status })
-    } catch (err) {
-      console.error('Error updating partner status:', err)
+      await updatePartner({ status: pendingStatusAction }, reason)
+      setPendingStatusAction(null)
     } finally {
       setStatusActionLoading(false)
     }
   }
 
-  const handleDeactivate = async () => {
-    setStatusActionLoading(true)
-    try {
-      const res = await fetch(`/api/admin/partners/${partnerId}`, { method: 'DELETE' })
-      const data = await res.json()
-      if (res.ok) {setPartner(data.partner)}
-    } catch (err) {
-      console.error('Error deactivating partner:', err)
-    } finally {
-      setStatusActionLoading(false)
-      setConfirmDeactivate(false)
-    }
+  const handleDeactivate = async (reason: string) => {
+    const res = await fetch(`/api/admin/partners/${partnerId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {throw new Error(data?.error || 'Failed to deactivate partner')}
+    setPartner(data.partner)
+    setConfirmDeactivate(false)
   }
 
   if (loading) {
@@ -317,7 +326,7 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
             )}
             {partner.status === 'active' && (
               <button
-                onClick={() => handleStatusAction('paused')}
+                onClick={() => setPendingStatusAction('paused')}
                 disabled={statusActionLoading}
                 className="flex items-center gap-2 px-3 py-2 border border-amber-200 bg-amber-50 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-100 disabled:opacity-50"
               >
@@ -326,7 +335,7 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
             )}
             {partner.status !== 'active' && (
               <button
-                onClick={() => handleStatusAction('active')}
+                onClick={() => setPendingStatusAction('active')}
                 disabled={statusActionLoading}
                 className="flex items-center gap-2 px-3 py-2 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-100 disabled:opacity-50"
               >
@@ -406,6 +415,16 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
                 </select>
               </div>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Reason *</label>
+              <textarea
+                value={editReason}
+                onChange={(e) => setEditReason(e.target.value)}
+                rows={2}
+                placeholder="Why are you making this change?"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+              />
+            </div>
             <div className="flex gap-3">
               <button
                 onClick={handleSaveEdit}
@@ -480,7 +499,7 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
           <CommissionTable
             commissions={commissions}
             isLoading={commissionsLoading}
-            onApprove={handleApproveCommission}
+            onApprove={(id) => setConfirmApproveCommissionId(id)}
             onCancel={(id) => setConfirmCancelCommissionId(id)}
             actionLoadingId={commissionActionId}
           />
@@ -496,60 +515,49 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
 
       {/* Deactivate confirmation */}
       {confirmDeactivate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Deactivate Partner</h3>
-                <p className="text-sm text-gray-500">Their referral link will stop working. History is kept.</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmDeactivate(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">
-                Cancel
-              </button>
-              <button
-                onClick={handleDeactivate}
-                disabled={statusActionLoading}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
-              >
-                {statusActionLoading ? 'Deactivating…' : 'Deactivate'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ReasonDialog
+          title="Deactivate Partner"
+          description="Their referral link will stop working. History is kept."
+          danger
+          confirmLabel="Deactivate"
+          onConfirm={handleDeactivate}
+          onClose={() => setConfirmDeactivate(false)}
+        />
+      )}
+
+      {/* Pause/activate confirmation */}
+      {pendingStatusAction && (
+        <ReasonDialog
+          title={pendingStatusAction === 'paused' ? 'Pause Partner' : 'Activate Partner'}
+          description={pendingStatusAction === 'paused' ? 'Their referral link will stop working until reactivated.' : undefined}
+          danger={pendingStatusAction === 'paused'}
+          confirmLabel="Confirm"
+          onConfirm={handleConfirmStatusAction}
+          onClose={() => setPendingStatusAction(null)}
+        />
+      )}
+
+      {/* Approve commission confirmation */}
+      {confirmApproveCommissionId && (
+        <ReasonDialog
+          title="Approve Commission"
+          description="This marks the commission as owed to the partner."
+          confirmLabel="Approve"
+          onConfirm={handleApproveCommission}
+          onClose={() => setConfirmApproveCommissionId(null)}
+        />
       )}
 
       {/* Cancel commission confirmation */}
       {confirmCancelCommissionId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Cancel Commission</h3>
-                <p className="text-sm text-gray-500">The partner will not be paid for this deal. This can&apos;t be undone.</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmCancelCommissionId(null)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">
-                Keep It
-              </button>
-              <button
-                onClick={handleConfirmCancelCommission}
-                disabled={commissionActionId === confirmCancelCommissionId}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
-              >
-                {commissionActionId === confirmCancelCommissionId ? 'Cancelling…' : 'Cancel Commission'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ReasonDialog
+          title="Cancel Commission"
+          description="The partner will not be paid for this deal. This can't be undone."
+          danger
+          confirmLabel="Cancel Commission"
+          onConfirm={handleConfirmCancelCommission}
+          onClose={() => setConfirmCancelCommissionId(null)}
+        />
       )}
 
       {showPayoutModal && (

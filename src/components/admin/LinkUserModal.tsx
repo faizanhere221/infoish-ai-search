@@ -21,6 +21,7 @@ export default function LinkUserModal({ partnerId, onClose, onSuccess }: LinkUse
   const [userQuery, setUserQuery] = useState('')
   const [userResults, setUserResults] = useState<UserOption[]>([])
   const [selectedUser, setSelectedUser] = useState<UserOption | null>(null)
+  const [reason, setReason] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const userSearchTimer = useRef<ReturnType<typeof setTimeout>>()
@@ -48,13 +49,17 @@ export default function LinkUserModal({ partnerId, onClose, onSuccess }: LinkUse
       setError('Select a user to link')
       return
     }
+    if (reason.trim().length < 3) {
+      setError('Enter a reason (at least 3 characters)')
+      return
+    }
     setError(null)
     setIsSubmitting(true)
     try {
       const res = await fetch(`/api/admin/partners/${partnerId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: selectedUser.id }),
+        body: JSON.stringify({ user_id: selectedUser.id, reason: reason.trim() }),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -132,6 +137,15 @@ export default function LinkUserModal({ partnerId, onClose, onSuccess }: LinkUse
             )}
           </div>
         )}
+
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Reason *</label>
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          rows={2}
+          placeholder="Why are you linking this user?"
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none mb-5"
+        />
 
         <div className="flex gap-3">
           <button

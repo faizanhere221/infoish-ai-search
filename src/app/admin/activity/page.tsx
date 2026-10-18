@@ -37,6 +37,7 @@ const ACTION_META: Record<string, { color: string; icon: string }> = {
   deal_revision:                { color: 'bg-amber-500/20 text-amber-400',    icon: '↺' },
   deal_completed:               { color: 'bg-amber-500/20 text-amber-400',    icon: '★' },
   deal_cancelled:               { color: 'bg-orange-500/20 text-orange-400',  icon: '⊘' },
+  deal_updated:                 { color: 'bg-cyan-500/20 text-cyan-400',      icon: '✎' },
   profile_updated:              { color: 'bg-cyan-500/20 text-cyan-400',      icon: '✎' },
   creator_verified:             { color: 'bg-emerald-500/20 text-emerald-400', icon: '✓' },
   creator_featured:             { color: 'bg-amber-500/20 text-amber-400',    icon: '★' },

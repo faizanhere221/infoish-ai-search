@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { captureError } from '@/lib/error-tracking'
+import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { z } from 'zod'
 
 const CreatePayoutSchema = z.object({
@@ -25,13 +27,13 @@ export async function GET(
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching partner payouts:', error)
+      captureError(error, { route: 'GET /api/admin/partners/[id]/payouts' })
       return NextResponse.json({ error: 'Failed to fetch payouts' }, { status: 500 })
     }
 
     return NextResponse.json({ payouts: payouts ?? [], total: payouts?.length ?? 0 })
   } catch (err) {
-    console.error('Admin partner payouts fetch error:', err)
+    captureError(err, { route: 'GET /api/admin/partners/[id]/payouts' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -51,6 +53,11 @@ export async function POST(
         { error: 'Invalid request body', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
+    }
+
+    const reasonCheck = requireReason(body)
+    if (!reasonCheck.ok) {
+      return NextResponse.json({ error: reasonCheck.error }, { status: 400 })
     }
 
     const supabase = createServerSupabase()
@@ -80,14 +87,25 @@ export async function POST(
       .select()
       .single()
 
-    if (error) {
-      console.error('Error creating referral payout:', error)
+    if (error || !payout) {
+      captureError(error ?? new Error('payout: no row returned'), { route: 'POST /api/admin/partners/[id]/payouts' })
       return NextResponse.json({ error: 'Failed to record payout' }, { status: 500 })
     }
 
+    logAdminAction({
+      request,
+      adminId: request.headers.get('x-user-id'),
+      action: 'partner_payout_recorded',
+      targetType: 'partner',
+      targetId: params.id,
+      reason: reasonCheck.reason,
+      before: null,
+      after: { payout_id: payout.id, amount_cents, payment_method, status: payout.status },
+    })
+
     return NextResponse.json({ message: 'Payout recorded successfully', payout }, { status: 201 })
   } catch (err) {
-    console.error('Admin partner payout creation error:', err)
+    captureError(err, { route: 'POST /api/admin/partners/[id]/payouts' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

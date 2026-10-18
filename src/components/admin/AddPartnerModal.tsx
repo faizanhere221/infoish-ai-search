@@ -39,6 +39,7 @@ export default function AddPartnerModal({ onClose, onSuccess }: AddPartnerModalP
   const [codeTouched, setCodeTouched] = useState(false)
   const [codeStatus, setCodeStatus] = useState<CodeStatus>('idle')
   const [commissionRate, setCommissionRate] = useState('20')
+  const [reason, setReason] = useState('')
   const [userQuery, setUserQuery] = useState('')
   const [userResults, setUserResults] = useState<UserOption[]>([])
   const [selectedUser, setSelectedUser] = useState<UserOption | null>(null)
@@ -119,6 +120,10 @@ export default function AddPartnerModal({ onClose, onSuccess }: AddPartnerModalP
       setError('Referral code must be 5-30 lowercase letters, numbers, or hyphens')
       return
     }
+    if (reason.trim().length < 3) {
+      setError('Enter a reason (at least 3 characters)')
+      return
+    }
 
     setIsSubmitting(true)
     try {
@@ -131,6 +136,7 @@ export default function AddPartnerModal({ onClose, onSuccess }: AddPartnerModalP
           referral_code: referralCode.trim(),
           commission_rate: parseFloat(commissionRate) || 20,
           user_id: selectedUser?.id || undefined,
+          reason: reason.trim(),
         }),
       })
 
@@ -328,6 +334,17 @@ export default function AddPartnerModal({ onClose, onSuccess }: AddPartnerModalP
                 )}
               </>
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Reason *</label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={2}
+              placeholder="Why are you adding this partner?"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+            />
           </div>
 
           <div className="flex gap-3 pt-2">

@@ -9,7 +9,7 @@ import { captureError } from '@/lib/error-tracking'
 // introduced elsewhere (grep logActivity/logAdminAction call sites).
 const ACTION_GROUPS: Record<string, string[]> = {
   auth: ['login', 'logout', 'register', 'admin_login'],
-  deals: ['deal_created', 'deal_accepted', 'deal_declined', 'deal_delivered', 'deal_approved', 'deal_revision', 'deal_completed', 'deal_cancelled'],
+  deals: ['deal_created', 'deal_accepted', 'deal_declined', 'deal_delivered', 'deal_approved', 'deal_revision', 'deal_completed', 'deal_cancelled', 'deal_updated'],
   profile: ['profile_updated', 'creator_verified', 'creator_featured', 'creator_availability_changed', 'brand_verified'],
   admin: [
     'user_activated', 'user_suspended', 'user_deleted', 'user_role_changed', 'impersonation_blocked',
