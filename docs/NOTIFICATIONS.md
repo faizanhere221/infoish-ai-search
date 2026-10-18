@@ -52,6 +52,9 @@ message digest (`new_message`).
 | `payment_disputed` 📧 | payments | action | the brand | `disputePayment()` |
 | `payment_cancelled` | payments | info | the creator | `cancelPayment()` |
 | `kill_fee_created` | payments | info | the creator | `createKillFeeIfEligible()` (row dropped after a draft existed) |
+| `payment_dispute_resolved` | payments | info | both parties | Phase 7B admin action, `/admin/payments` |
+| `payment_admin_cancelled` | payments | info | both parties | Phase 7B admin action, `/admin/payments` |
+| `contract_voided_by_admin` | contracts | info | both parties | Phase 7B admin action, `/admin/contracts` |
 
 Not wired through emitEvent (deliberately log-only, no notification — see
 `logCampaignCreatorEvent()` call sites): `contract_drafted`, `payment_created`,
@@ -109,6 +112,7 @@ unread for 15+ minutes, throttled to once per conversation per 3 hours
 | Event type | Category | Priority | Recipient | Fired from |
 |---|---|---|---|---|
 | `account_created` | account | info | the new user, about themselves | `POST /api/auth/register` |
+| `admin_warning` | account | action | the reported user | Phase 7B admin action, `/admin/reports` |
 
 ## Reserved, not yet wired
 

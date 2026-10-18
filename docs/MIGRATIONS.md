@@ -38,6 +38,7 @@ or whenever you need to know what's really live rather than what should be.
 | 23 | `phase6b_email_migration.sql` | Email via Resend: `email_log`, `email_verification_tokens`, `password_reset_tokens`, `users.email_preferences`, `conversations.last_digest_sent_at`, `email_daily_usage`. |
 | 24 | `drift_fix_migration.sql` | Closes every gap in "Known drift" below: the 9 `reviews` columns (+2 the code needs that schema.sql never declared), `creator_services.includes`, `creators.is_featured`, `creators.search_vector` (+ its trigger, index, backfill), and `activity_logs`/`platform_settings` (retyped to VARCHAR(255) ids — the original UUID-vs-VARCHAR FK mismatch is why they were never created at all). Dry-run verified (wrapped in BEGIN/ROLLBACK) — every statement succeeds. |
 | 25 | `phase7a_admin_migration.sql` | Admin hardening: `users.deleted_at` for soft-delete + anonymization (replaces the previous hard `DELETE /api/admin/users/[id]`) — distinct from `is_active=false` (suspended, reversible) vs `deleted_at` set (anonymized, permanent). |
+| 26 | `phase7b_admin_migration.sql` | Admin visibility/control over phases 1-6: `reports` table (users reporting a message or a user; admin moderation queue). Everything else Phase 7B touches already existed live — admin internal notes/reasons go through `activity_logs`, not new columns. |
 
 ## Known drift (as of writing — re-run `check:schema` to get current state)
 

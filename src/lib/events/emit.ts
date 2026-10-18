@@ -38,8 +38,10 @@ export interface EmitEventParams {
   // Required when campaignCreatorId is set — campaign_creator_events.actor_type
   // is NOT NULL. Not part of the caller's literal "never notify yourself"
   // concern, just data the event log needs; omit for non-campaign-creator
-  // events (signups, applications, deals, messages).
-  actorType?: 'brand' | 'creator'
+  // events (signups, applications, deals, messages). 'admin' covers
+  // Phase 7B admin-initiated actions (resolve dispute, cancel, void
+  // contract) — the column is a plain VARCHAR(10), no DB-level constraint.
+  actorType?: 'brand' | 'creator' | 'admin'
   // One notification per id here, except the actor — you are never notified
   // about your own action. Pass `null`/`undefined` entries freely (e.g. a
   // lookup that came back empty); they're filtered out, not errors.

@@ -118,6 +118,12 @@ export const EVENT_CATALOG: Record<string, EventCatalogEntry> = {
     title: () => 'Contract voided',
     content: (d) => `The signed contract was voided: ${str(d, 'reason')}`,
   },
+  contract_voided_by_admin: {
+    category: 'contracts',
+    priority: 'info',
+    title: () => 'Contract voided by Infoishai',
+    content: (d) => `An Infoishai admin voided this contract: ${str(d, 'reason')}`,
+  },
 
   // ── Deliverables / work ─────────────────────────────────────────────────
   deliverable_added: {
@@ -212,6 +218,18 @@ export const EVENT_CATALOG: Record<string, EventCatalogEntry> = {
     title: () => 'Kill fee due',
     content: (d) => `A kill fee of ${money(d)} is due`,
   },
+  payment_dispute_resolved: {
+    category: 'payments',
+    priority: 'info',
+    title: () => 'Payment dispute resolved',
+    content: (d) => `An Infoishai admin resolved the dispute over ${money(d)}: ${str(d, 'resolutionNote')}`,
+  },
+  payment_admin_cancelled: {
+    category: 'payments',
+    priority: 'info',
+    title: () => 'Payment cancelled by Infoishai',
+    content: (d) => `An Infoishai admin cancelled a payment of ${money(d)}: ${str(d, 'reason')}`,
+  },
 
   // ── Applications (pre-tracker) ──────────────────────────────────────────
   application_received: {
@@ -267,6 +285,12 @@ export const EVENT_CATALOG: Record<string, EventCatalogEntry> = {
   },
 
   // ── Account ─────────────────────────────────────────────────────────────
+  admin_warning: {
+    category: 'account',
+    priority: 'action',
+    title: () => "You've received a warning",
+    content: (d) => `An Infoishai admin issued a warning on your account: ${str(d, 'note')}`,
+  },
   account_created: {
     category: 'account',
     priority: 'info',
