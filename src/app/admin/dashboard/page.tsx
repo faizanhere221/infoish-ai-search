@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import {
   Users, UserSquare, Building2, Handshake, DollarSign, Activity,
   RefreshCw, TrendingUp, TrendingDown, Minus, UserPlus, MessageSquare,
-  AlertCircle,
+  AlertCircle, Megaphone, Tags, FileSignature, ListChecks, Wallet, Mail, ChevronRight,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -36,6 +37,22 @@ interface ActivityItem {
   message: string
   detail: string
   timestamp: string
+}
+
+interface WorkflowOverview {
+  signups: {
+    last7: number
+    last7ByType: Record<string, number>
+    last30: number
+    last30ByType: Record<string, number>
+  }
+  activeCampaigns: number
+  trackerByStatus: Record<string, number>
+  offersPending: number
+  contractsWaitingSignature: number
+  deliverablesOverdue: number
+  paymentsByCurrency: Record<string, { due: number; overdue: number; disputed: number }>
+  email: { sentToday: number; dailyLimit: number; failedToday: number }
 }
 
 // ─── SVG Line Chart ───────────────────────────────────────────────────────────
@@ -248,6 +265,45 @@ function StatCard({
   )
 }
 
+// ─── Link Stat Card (Phase 7B tiles — every one links to its filtered list) ───
+
+function LinkStatCard({
+  href,
+  label,
+  value,
+  sub,
+  icon: Icon,
+  iconBg,
+}: {
+  href: string
+  label: string
+  value: string | number
+  sub?: string
+  icon: React.ElementType
+  iconBg: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:border-violet-200 hover:shadow-md transition-all group block"
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">{label}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          {sub && <p className="text-xs text-gray-400 mt-0.5 truncate">{sub}</p>}
+        </div>
+        <div className={`w-10 h-10 rounded-lg ${iconBg} flex items-center justify-center flex-shrink-0 ml-3`}>
+          <Icon className="w-5 h-5 text-white" />
+        </div>
+      </div>
+      <div className="mt-3 flex items-center gap-1 text-xs font-medium text-violet-500 group-hover:text-violet-600">
+        View list <ChevronRight className="w-3.5 h-3.5" />
+      </div>
+    </Link>
+  )
+}
+
 // ─── Activity Icon ────────────────────────────────────────────────────────────
 
 function ActivityIcon({ type }: { type: ActivityItem['type'] }) {
@@ -292,6 +348,7 @@ export default function AdminDashboard() {
   useDocumentTitle('Dashboard')
   const router = useRouter()
   const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [workflow, setWorkflow] = useState<WorkflowOverview | null>(null)
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -300,9 +357,10 @@ export default function AdminDashboard() {
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) {setRefreshing(true)}
     try {
-      const [statsRes, activityRes] = await Promise.all([
+      const [statsRes, activityRes, overviewRes] = await Promise.all([
         fetch('/api/admin/stats'),
         fetch('/api/admin/activity'),
+        fetch('/api/admin/overview'),
       ])
 
       if (statsRes.status === 401 || statsRes.status === 403) {
@@ -310,15 +368,17 @@ export default function AdminDashboard() {
         return
       }
 
-      const [statsData, activityData] = await Promise.all([
+      const [statsData, activityData, overviewData] = await Promise.all([
         statsRes.json(),
         activityRes.json(),
+        overviewRes.json(),
       ])
 
       if (statsRes.ok) {setStats(statsData)}
       else {setError(statsData.error ?? 'Failed to load stats')}
 
       if (activityRes.ok) {setActivities(activityData.activities ?? [])}
+      if (overviewRes.ok) {setWorkflow(overviewData)}
     } catch {
       setError('Network error. Please try again.')
     } finally {
@@ -391,6 +451,124 @@ export default function AdminDashboard() {
           Refresh
         </button>
       </div>
+
+      {/* Workflow overview — campaign-workflow health, every tile links to its filtered list */}
+      {workflow && (
+        <div className="space-y-4">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Workflow Overview</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+            <LinkStatCard
+              href={`/admin/users?date_from=${new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)}`}
+              label="New Signups (7d)"
+              value={workflow.signups.last7}
+              sub={`${workflow.signups.last7ByType.creator ?? 0} creators, ${workflow.signups.last7ByType.brand ?? 0} brands`}
+              icon={UserPlus}
+              iconBg="bg-blue-500"
+            />
+            <LinkStatCard
+              href={`/admin/users?date_from=${new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)}`}
+              label="New Signups (30d)"
+              value={workflow.signups.last30}
+              sub={`${workflow.signups.last30ByType.creator ?? 0} creators, ${workflow.signups.last30ByType.brand ?? 0} brands`}
+              icon={UserPlus}
+              iconBg="bg-indigo-500"
+            />
+            <LinkStatCard
+              href="/admin/campaign-creators"
+              label="Active Campaigns"
+              value={workflow.activeCampaigns}
+              icon={Megaphone}
+              iconBg="bg-violet-500"
+            />
+            <LinkStatCard
+              href="/admin/campaign-creators?filter=offers_pending"
+              label="Offers Pending"
+              value={workflow.offersPending}
+              icon={Tags}
+              iconBg="bg-amber-500"
+            />
+            <LinkStatCard
+              href="/admin/contracts?filter=awaiting_signature"
+              label="Contracts Awaiting Signature"
+              value={workflow.contractsWaitingSignature}
+              icon={FileSignature}
+              iconBg="bg-cyan-500"
+            />
+            <LinkStatCard
+              href="/admin/campaign-creators?filter=deliverables_overdue"
+              label="Overdue Deliverables"
+              value={workflow.deliverablesOverdue}
+              icon={ListChecks}
+              iconBg="bg-rose-500"
+            />
+            <LinkStatCard
+              href="/admin/email"
+              label="Emails Sent Today"
+              value={`${workflow.email.sentToday}/${workflow.email.dailyLimit}`}
+              sub={`${workflow.email.failedToday} failed today`}
+              icon={Mail}
+              iconBg="bg-emerald-500"
+            />
+            <LinkStatCard
+              href="/admin/email?status=failed"
+              label="Failed Emails (today)"
+              value={workflow.email.failedToday}
+              icon={Mail}
+              iconBg="bg-red-500"
+            />
+          </div>
+
+          {/* Tracker rows by status */}
+          {Object.keys(workflow.trackerByStatus).length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <h3 className="font-semibold text-gray-800 text-sm mb-3">Tracker Rows by Status</h3>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                {Object.entries(workflow.trackerByStatus).map(([status, count]) => (
+                  <Link
+                    key={status}
+                    href={`/admin/campaign-creators?status=${status}`}
+                    className="text-center p-3 rounded-lg border border-gray-100 bg-gray-50 hover:bg-violet-50 hover:border-violet-200 transition-colors"
+                  >
+                    <p className="text-xl font-bold text-gray-800">{count}</p>
+                    <p className="text-xs text-gray-500 capitalize mt-0.5">{status.replace('_', ' ')}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Payments by currency — never summed across currencies */}
+          {Object.keys(workflow.paymentsByCurrency).length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <h3 className="font-semibold text-gray-800 text-sm mb-1 flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-gray-400" /> Payments Due / Overdue / Disputed
+              </h3>
+              <p className="text-gray-400 text-xs mb-3">Shown per currency — never summed across currencies</p>
+              <div className="flex flex-wrap gap-4">
+                {Object.entries(workflow.paymentsByCurrency).map(([currency, counts]) => (
+                  <div key={currency} className="flex-1 min-w-48 border border-gray-100 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-gray-700 mb-2">{currency}</p>
+                    <div className="flex gap-3">
+                      <Link href={`/admin/payments?currency=${currency}&status=due`} className="text-center flex-1 hover:text-violet-600">
+                        <p className="text-lg font-bold text-amber-600">{counts.due}</p>
+                        <p className="text-xs text-gray-500">Due</p>
+                      </Link>
+                      <Link href={`/admin/payments?currency=${currency}&status=due&overdue=true`} className="text-center flex-1 hover:text-violet-600">
+                        <p className="text-lg font-bold text-red-600">{counts.overdue}</p>
+                        <p className="text-xs text-gray-500">Overdue</p>
+                      </Link>
+                      <Link href={`/admin/payments?currency=${currency}&status=disputed`} className="text-center flex-1 hover:text-violet-600">
+                        <p className="text-lg font-bold text-orange-600">{counts.disputed}</p>
+                        <p className="text-xs text-gray-500">Disputed</p>
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">

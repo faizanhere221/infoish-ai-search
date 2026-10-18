@@ -7,6 +7,7 @@ import {
   LayoutDashboard, Users, UserSquare, Building2, Handshake,
   FileText, Mail, LogOut, Menu, X, Shield,
   Activity, BarChart2, Search, ChevronDown, Settings, UserCog, Share2,
+  Wallet, ClipboardList, FileSignature, Flag,
 } from 'lucide-react'
 
 // ─── Nav structure ────────────────────────────────────────────────────────────
@@ -20,9 +21,18 @@ const NAV = [
     ],
   },
   { label: 'Deals',       href: '/admin/deals',       icon: Handshake },
+  {
+    label: 'Workflow', icon: ClipboardList, children: [
+      { label: 'Tracker',   href: '/admin/campaign-creators', icon: ClipboardList },
+      { label: 'Contracts', href: '/admin/contracts',         icon: FileSignature },
+      { label: 'Payments',  href: '/admin/payments',          icon: Wallet },
+    ],
+  },
+  { label: 'Reports',     href: '/admin/reports',     icon: Flag },
   { label: 'Partners',    href: '/admin/partners',    icon: Share2 },
   { label: 'Analytics',   href: '/admin/analytics',   icon: BarChart2 },
   { label: 'Activity',    href: '/admin/activity',    icon: Activity },
+  { label: 'Email',       href: '/admin/email',       icon: Mail },
   { label: 'Search',      href: '/admin/search',      icon: Search },
   { label: 'Contacts',    href: '/admin/contacts',    icon: FileText },
   { label: 'Newsletter',  href: '/admin/newsletter',  icon: Mail },
@@ -175,6 +185,8 @@ const ROUTE_NAMES: Record<string, string> = {
   search: 'Search', settings: 'Settings', admins: 'Admins', payments: 'Payments',
   contacts: 'Contacts', newsletter: 'Newsletter', subscriptions: 'Subscriptions',
   partners: 'Partners', payouts: 'Payouts',
+  'campaign-creators': 'Workflow Tracker', contracts: 'Contracts', email: 'Email',
+  reports: 'Reports',
 }
 
 function Breadcrumbs() {
