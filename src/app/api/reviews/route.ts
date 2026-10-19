@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const CreateReviewSchema = z.object({
   deal_id: z.string().uuid(),
   reviewer_id: z.string().uuid(),

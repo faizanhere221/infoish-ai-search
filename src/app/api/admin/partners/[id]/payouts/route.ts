@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const CreatePayoutSchema = z.object({
   amount_cents: z.number().int().positive(),
   payment_method: z.string().max(100).optional().nullable(),

@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { hashToken } from '@/lib/email/tokens'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const VerifySchema = z.object({ token: z.string().min(1) })
 
 // POST /api/auth/verify-email — consumes a verification token (single use,

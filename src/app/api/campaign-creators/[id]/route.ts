@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedCampaignCreatorRow } from '@/lib/campaign-creator-auth'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string }
 }

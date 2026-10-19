@@ -6,6 +6,8 @@ import { getUserIdFromCreator, getUserIdFromBrand } from '@/lib/notifications'
 import { emitNewMessageNotification } from '@/lib/events/emit'
 import type { Attachment } from '@/types/marketplace'
 
+export const dynamic = 'force-dynamic'
+
 const DEFAULT_LIMIT = 50
 const MAX_LIMIT = 100
 const MAX_MESSAGE_LENGTH = 5000

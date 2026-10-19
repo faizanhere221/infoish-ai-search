@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { verifyUnsubscribeToken } from '@/lib/email/unsubscribeToken'
 import { PREFERENCE_CATEGORIES } from '@/lib/email/send'
 
+export const dynamic = 'force-dynamic'
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 
 // Applies the unsubscribe: flips the token's own category to false, or

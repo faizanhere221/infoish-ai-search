@@ -5,6 +5,8 @@ import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { emitEvent } from '@/lib/events/emit'
 import { getUserIdFromBrand, getUserIdFromCreator } from '@/lib/notifications'
 
+export const dynamic = 'force-dynamic'
+
 // POST /api/admin/contracts/[id]/void — admin override void, broader than
 // voidContractOnTermsChange (which only ever voids a fully_signed contract
 // automatically): an admin can void any non-void contract, at any stage.

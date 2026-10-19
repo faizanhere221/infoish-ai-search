@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 type ActivityItem = {
   id: string
   type: 'registration' | 'deal' | 'message'

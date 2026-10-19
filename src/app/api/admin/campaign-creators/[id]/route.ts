@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/admin/campaign-creators/[id] — read-only full detail: the row
 // itself, offers, every contract version, deliverables + their results,
 // the events timeline, and payments. Admin-only visibility into the

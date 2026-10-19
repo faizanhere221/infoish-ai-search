@@ -5,6 +5,8 @@ import { loadAuthorizedDeliverable } from '@/lib/campaign-creator-auth'
 import { logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string; deliverableId: string; resultId: string }
 }

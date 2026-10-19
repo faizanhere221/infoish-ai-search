@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }

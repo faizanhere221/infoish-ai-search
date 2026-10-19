@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
+export const dynamic = 'force-dynamic'
+
 // Groups backing the admin/activity page's "ACTION_GROUPS" filter. Not
 // declared anywhere else — inferred from the page's own group labels
 // (Authentication/Deals/Profile/Admin) since no backing route existed

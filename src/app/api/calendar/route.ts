@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/calendar — draft_due/publish_due across every deliverable the
 // caller can see. Brands see every campaign they own (filterable by
 // campaign_id/client_name); creators see only their own rows. Never

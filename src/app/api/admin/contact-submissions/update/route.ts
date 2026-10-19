@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
 
+export const dynamic = 'force-dynamic'
+
 // Not treated as a reason-worthy admin action (unlike suspend/delete/verify):
 // this fires automatically when an admin opens or replies to a message, not
 // from a deliberate confirm click, so a reason prompt would fire on every

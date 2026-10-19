@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
+export const dynamic = 'force-dynamic'
+
 const VALID_STATUS = new Set([
   'shortlisted', 'contacted', 'negotiating', 'confirmed', 'drafting',
   'draft_review', 'scheduled', 'posted', 'completed', 'dropped',

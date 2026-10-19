@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const UpdateCreatorSchema = z.object({
   display_name: z.string().min(1).max(100).optional(),
   bio: z.string().max(2000).optional().nullable(),

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
+export const dynamic = 'force-dynamic'
+
 const VALID_STATUS = new Set(['open', 'reviewing', 'resolved', 'dismissed'])
 
 // GET /api/admin/reports — the moderation queue. Filter by status.

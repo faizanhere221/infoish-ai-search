@@ -9,6 +9,8 @@ import {
   DELIVERABLE_TYPES,
 } from '@/types/campaigns'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string }
 }

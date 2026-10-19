@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2 } from 'lucide-react'
@@ -25,6 +25,18 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 
 export default function MyCampaignDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+      </div>
+    }>
+      <MyCampaignDetailPageContent />
+    </Suspense>
+  )
+}
+
+function MyCampaignDetailPageContent() {
   const params = useParams<{ id: string }>()
   const rowId = params.id
   const router = useRouter()

@@ -7,6 +7,8 @@ import { getUserIdFromCreator } from '@/lib/notifications'
 import { buildRenderedBody } from '@/lib/contracts/render'
 import { hashContractBody } from '@/lib/contracts/template'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string; contractId: string }
 }

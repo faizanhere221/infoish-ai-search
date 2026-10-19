@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { APPLICATION_STATUSES } from '@/types/campaigns'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/applications - List the calling creator's own applications, with
 // campaign (+ brand) details joined in. Supports ?status= and ?campaign_id=
 // filters.

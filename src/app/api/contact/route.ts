@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { validateEmail } from '@/utils/validateEmail'
 import { rateLimit } from '@/lib/rate-limit'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'

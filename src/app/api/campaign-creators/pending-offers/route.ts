@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/campaign-creators/pending-offers — creator-only: every pending
 // offer sent BY a brand that this creator hasn't responded to yet, across
 // every campaign. Drives the "Offer waiting" surfacing on the creator

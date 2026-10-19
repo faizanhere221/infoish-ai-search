@@ -6,6 +6,8 @@ import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 import { APPLICATION_STATUSES } from '@/types/campaigns'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string; applicationId: string }
 }

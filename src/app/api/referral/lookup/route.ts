@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { isValidReferralCode } from '@/lib/referral'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Look up a referral partner by code (public, used to validate a
 // referral link/cookie before showing "referred by X" messaging at signup)
 export async function GET(request: NextRequest) {

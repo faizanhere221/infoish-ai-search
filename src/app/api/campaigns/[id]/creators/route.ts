@@ -8,6 +8,8 @@ import { expireStaleOffers } from '@/lib/campaign-creator-auth'
 import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
 import { getUserIdFromCreator } from '@/lib/notifications'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string }
 }

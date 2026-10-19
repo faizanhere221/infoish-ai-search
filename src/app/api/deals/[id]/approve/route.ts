@@ -6,6 +6,8 @@ import { postDealSystemMessage } from '@/lib/deal-messages'
 import { emitEvent } from '@/lib/events/emit'
 import { captureError, captureMessage } from '@/lib/error-tracking'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string }
 }

@@ -11,6 +11,8 @@ import { welcomeEmail } from '@/lib/email/templates/welcome'
 import { verifyEmailTemplate } from '@/lib/email/templates/verifyEmail'
 import { generateToken, hashToken } from '@/lib/email/tokens'
 
+export const dynamic = 'force-dynamic'
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 
 export async function POST(request: NextRequest) {

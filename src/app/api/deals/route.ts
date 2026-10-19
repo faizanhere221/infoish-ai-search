@@ -5,6 +5,8 @@ import { emitEvent } from '@/lib/events/emit'
 import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const CreateDealSchema = z.object({
   creator_id: z.string().uuid(),
   brand_id: z.string().uuid(),

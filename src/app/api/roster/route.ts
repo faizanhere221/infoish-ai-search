@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 import { latestResultByDeliverable, onTimeRate, cpm, type ResultRow, type DeliverableForReport } from '@/lib/reporting'
 
+export const dynamic = 'force-dynamic'
+
 const AddToRosterSchema = z.object({
   creator_id: z.string().min(1),
   notes: z.string().max(2000).optional().nullable(),

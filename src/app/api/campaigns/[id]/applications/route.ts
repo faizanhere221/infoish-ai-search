@@ -5,6 +5,8 @@ import { getUserIdFromBrand } from '@/lib/notifications'
 import { emitEvent } from '@/lib/events/emit'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string }
 }

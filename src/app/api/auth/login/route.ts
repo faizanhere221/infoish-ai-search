@@ -6,6 +6,8 @@ import { rateLimit } from '@/lib/rate-limit'
 import { logActivity } from '@/lib/activity'
 import { validateEmail } from '@/utils/validateEmail'
 
+export const dynamic = 'force-dynamic'
+
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET
   if (!secret) {throw new Error('JWT_SECRET environment variable is required')}

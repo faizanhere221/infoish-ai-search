@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const CATEGORIES = ['messages', 'offers', 'contracts', 'work', 'payments', 'account'] as const
 
 const MarkSchema = z.object({

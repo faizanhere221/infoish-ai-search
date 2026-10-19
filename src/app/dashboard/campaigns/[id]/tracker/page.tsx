@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -46,6 +46,18 @@ const PAYMENT_STATUS_BADGE: Record<string, { bg: string; text: string; label: st
 }
 
 export default function CampaignTrackerPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+      </div>
+    }>
+      <CampaignTrackerPageContent />
+    </Suspense>
+  )
+}
+
+function CampaignTrackerPageContent() {
   const params = useParams<{ id: string }>()
   const campaignId = params.id
   const router = useRouter()

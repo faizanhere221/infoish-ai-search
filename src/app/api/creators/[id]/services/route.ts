@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const ServiceSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(2000).optional().nullable(),

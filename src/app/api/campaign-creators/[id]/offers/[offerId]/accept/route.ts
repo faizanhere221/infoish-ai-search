@@ -7,6 +7,8 @@ import { getUserIdFromBrand, getUserIdFromCreator } from '@/lib/notifications'
 import { formatMoney } from '@/components/campaigns/utils'
 import { createDraftContract } from '@/lib/contracts/lifecycle'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string; offerId: string }
 }

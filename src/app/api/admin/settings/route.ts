@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const patchSchema = z.record(z.string(), z.unknown())
 
 const DEFAULT_SETTINGS: Record<string, unknown> = {

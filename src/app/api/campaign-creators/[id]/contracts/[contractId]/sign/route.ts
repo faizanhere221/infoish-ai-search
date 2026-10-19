@@ -7,6 +7,8 @@ import { getUserIdFromBrand, getUserIdFromCreator } from '@/lib/notifications'
 import { createInitialPaymentOnSign } from '@/lib/payments/engine'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string; contractId: string }
 }

@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { encryptPayoutDetails, buildMaskedPreview } from '@/lib/payments/crypto'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const DetailsSchema = z.object({
   email: z.string().email().max(255).optional(),
   bank_name: z.string().max(255).optional(),

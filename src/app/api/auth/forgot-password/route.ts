@@ -8,6 +8,8 @@ import { passwordResetTemplate } from '@/lib/email/templates/passwordReset'
 import { generateToken, hashToken } from '@/lib/email/tokens'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 
 const ForgotPasswordSchema = z.object({ email: z.string().min(1) })

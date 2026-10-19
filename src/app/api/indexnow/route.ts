@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 // IndexNow key verification file lives at public/{key}.txt — see
 // https://www.indexnow.org/. Submitting URLs here tells Bing, Yandex, and
 // other participating search engines to re-crawl them right away instead

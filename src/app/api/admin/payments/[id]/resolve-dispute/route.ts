@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { adminResolveDispute } from '@/lib/payments/engine'
 
+export const dynamic = 'force-dynamic'
+
 const VALID_RESOLUTIONS = ['marked_paid', 'confirmed']
 
 // POST /api/admin/payments/[id]/resolve-dispute — admin decides which way a

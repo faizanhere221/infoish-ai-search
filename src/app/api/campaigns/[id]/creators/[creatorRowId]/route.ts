@@ -7,6 +7,8 @@ import { voidContractOnTermsChange } from '@/lib/contracts/lifecycle'
 import { getUserIdFromCreator } from '@/lib/notifications'
 import { createKillFeeIfEligible } from '@/lib/payments/engine'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string; creatorRowId: string }
 }

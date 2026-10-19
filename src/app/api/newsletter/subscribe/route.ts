@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { validateEmail } from '@/utils/validateEmail'
 import { rateLimit } from '@/lib/rate-limit'
 
+export const dynamic = 'force-dynamic'
+
 // POST /api/newsletter/subscribe
 // Referenced by src/components/footer.tsx and src/components/NewsletterForm.tsx
 // (and already carved out as a public route in src/middleware.ts), but this

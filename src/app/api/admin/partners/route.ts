@@ -5,6 +5,8 @@ import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { z } from 'zod'
 import { generateReferralCode, isValidReferralCode } from '@/lib/referral'
 
+export const dynamic = 'force-dynamic'
+
 const CreatePartnerSchema = z.object({
   user_id: z.string().max(255).optional().nullable(),
   name: z.string().min(1).max(255),

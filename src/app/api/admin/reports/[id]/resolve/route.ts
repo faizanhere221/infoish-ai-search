@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { emitEvent } from '@/lib/events/emit'
 
+export const dynamic = 'force-dynamic'
+
 const VALID_ACTIONS = ['warned', 'suspended', 'dismissed']
 
 // POST /api/admin/reports/[id]/resolve — action is one of:

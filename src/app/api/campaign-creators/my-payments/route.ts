@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { refreshDuePayments } from '@/lib/payments/engine'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/campaign-creators/my-payments — creator only. Every payment
 // record of theirs across every campaign, joined with campaign/brand info.
 // Never includes charge/profit — creator_payments only ever carries payout

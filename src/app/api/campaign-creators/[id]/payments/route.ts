@@ -5,6 +5,8 @@ import { loadAuthorizedCampaignCreatorRow } from '@/lib/campaign-creator-auth'
 import { refreshDuePayments, createMilestonePayment } from '@/lib/payments/engine'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string }
 }

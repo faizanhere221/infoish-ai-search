@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { getPartnerStats } from '@/lib/referral'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Current partner's dashboard stats (auth required, caller must be a partner)
 export async function GET(request: NextRequest) {
   try {

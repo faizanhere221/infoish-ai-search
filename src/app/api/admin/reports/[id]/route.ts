@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/admin/reports/[id] — detail. Opening an 'open' report moves it
 // to 'reviewing' automatically (passive bookkeeping, like marking a
 // contact message read on view — not a reason-worthy admin decision, so

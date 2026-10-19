@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { getEnrichedCommissions } from '@/lib/referral'
 
+export const dynamic = 'force-dynamic'
+
 // GET - All commissions for the current partner (auth required, caller must be a partner)
 export async function GET(request: NextRequest) {
   try {

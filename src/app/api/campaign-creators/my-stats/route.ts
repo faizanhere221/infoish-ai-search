@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { onTimeRate, type DeliverableForReport } from '@/lib/reporting'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/campaign-creators/my-stats — creator-only: campaigns completed,
 // total earned (from payout_amount only — never charge/profit, which this
 // creator never sees anywhere else either), and on-time rate across every

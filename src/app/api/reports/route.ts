@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { rateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const CATEGORIES = ['spam', 'harassment', 'scam', 'inappropriate', 'impersonation', 'other']
 
 const ReportSchema = z.object({

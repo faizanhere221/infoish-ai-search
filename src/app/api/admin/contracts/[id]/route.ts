@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/admin/contracts/[id] — full detail, including the body
 // snapshot. Logged: a contract body can include special_terms a brand
 // considers confidential, so an admin reading it counts as viewing

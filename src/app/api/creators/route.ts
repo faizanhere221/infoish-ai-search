@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { updateReferralOnProfileComplete } from '@/lib/referral'
 
+export const dynamic = 'force-dynamic'
+
 // GET - List/Search creators
 export async function GET(request: NextRequest) {
   try {

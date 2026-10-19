@@ -5,6 +5,8 @@ import { loadAuthorizedCampaignCreatorRow } from '@/lib/campaign-creator-auth'
 import { logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
 import { decryptPayoutDetails } from '@/lib/payments/crypto'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string }
 }

@@ -4,7 +4,23 @@
 
 type ErrorContext = Record<string, unknown>
 
+// Next throws these as plain Errors with a special `digest` to signal
+// internal control flow, not an application failure: DYNAMIC_SERVER_USAGE
+// bails a route to dynamic rendering, NEXT_REDIRECT carries a redirect(),
+// NEXT_NOT_FOUND carries a notFound(). Every route in this codebase already
+// funnels its catch block through captureError(), so every one of those
+// catch blocks is an equally good place to accidentally swallow one of
+// these — reporting it to Sentry and returning a generic 500 instead of
+// letting Next's own machinery see it breaks the redirect/notFound/dynamic
+// bailout entirely. Checking here protects every call site at once instead
+// of auditing ~160 individual try/catch blocks.
+function isNextInternalSignal(error: unknown): boolean {
+  const digest = (error as { digest?: unknown } | null)?.digest
+  return typeof digest === 'string' && (digest === 'DYNAMIC_SERVER_USAGE' || digest === 'NEXT_NOT_FOUND' || digest.startsWith('NEXT_REDIRECT'))
+}
+
 export function captureError(error: unknown, context?: ErrorContext): void {
+  if (isNextInternalSignal(error)) {throw error}
   if (context) {
     console.error('[error-tracking]', error, context)
   } else {

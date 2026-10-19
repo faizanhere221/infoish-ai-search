@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { rateLimit } from '@/lib/rate-limit'
 
+export const dynamic = 'force-dynamic'
+
 // POST - Increment a creator's public profile view count (public, no auth).
 // Fire-and-forget from the client; failures are non-fatal to the caller.
 // Best-effort: if profile_views doesn't exist yet (migration not applied),

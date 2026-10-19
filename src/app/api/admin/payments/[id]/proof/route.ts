@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
 
+export const dynamic = 'force-dynamic'
+
 const BUCKET = 'payment-proofs'
 const SIGNED_URL_TTL_SECONDS = 300
 

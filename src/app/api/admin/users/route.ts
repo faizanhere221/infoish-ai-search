@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
+export const dynamic = 'force-dynamic'
+
 const VALID_SORT = new Set(['created_at', 'last_login_at', 'email'])
 
 export async function GET(request: NextRequest) {

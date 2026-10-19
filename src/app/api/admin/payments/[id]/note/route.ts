@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
 
+export const dynamic = 'force-dynamic'
+
 // POST /api/admin/payments/[id]/note — purely internal: logged to
 // activity_logs (shows up in the payment detail's History panel), never
 // surfaced to the brand or creator, so this does NOT call emitEvent unlike

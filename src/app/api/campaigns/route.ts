@@ -9,6 +9,8 @@ import {
   DELIVERABLE_TYPES,
 } from '@/types/campaigns'
 
+export const dynamic = 'force-dynamic'
+
 const OBJECTIVE_VALUES = CAMPAIGN_OBJECTIVES.map((o) => o.value) as [string, ...string[]]
 const CATEGORY_VALUES = CAMPAIGN_CATEGORIES.map((c) => c.value) as [string, ...string[]]
 const PLATFORM_VALUES = PLATFORMS.map((p) => p.value) as [string, ...string[]]

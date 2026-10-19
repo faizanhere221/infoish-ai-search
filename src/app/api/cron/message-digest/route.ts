@@ -7,6 +7,8 @@ import { sendEmail } from '@/lib/email/send'
 import { messageDigestTemplate } from '@/lib/email/templates/messageDigest'
 import { signUnsubscribeToken } from '@/lib/email/unsubscribeToken'
 
+export const dynamic = 'force-dynamic'
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 const BATCH_LIMIT = 50
 const UNREAD_MIN_AGE_MS = 15 * 60 * 1000

@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { PREFERENCE_CATEGORIES } from '@/lib/email/send'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const DEFAULT_PREFERENCES: Record<string, boolean> = {
   messages: true,
   offers: true,

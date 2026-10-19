@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { getNextStep } from '@/lib/campaign-creator-next-step'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/dashboard/action-needed
 // The same campaign_creators rows the tracker (brand) / my-campaigns
 // (creator) pages already list, filtered down to "it's your turn" via the

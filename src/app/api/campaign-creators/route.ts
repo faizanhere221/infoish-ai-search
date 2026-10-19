@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { CAMPAIGN_CREATOR_STATUSES } from '@/types/campaigns'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/campaign-creators - the calling creator's own tracker rows across
 // every campaign, with campaign + brand details joined in. Mirrors
 // /api/applications (same "my own X" shape). Strips charge_amount,

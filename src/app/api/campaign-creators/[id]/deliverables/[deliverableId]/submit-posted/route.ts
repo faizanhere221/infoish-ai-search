@@ -6,6 +6,8 @@ import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
 import { getUserIdFromBrand } from '@/lib/notifications'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string; deliverableId: string }
 }

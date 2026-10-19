@@ -6,6 +6,8 @@ import { logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
 import { buildRenderedBody } from '@/lib/contracts/render'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string }
 }

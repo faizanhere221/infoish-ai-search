@@ -7,6 +7,8 @@ import {
 } from '@/lib/reporting'
 import { refreshDuePayments } from '@/lib/payments/engine'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string }
 }

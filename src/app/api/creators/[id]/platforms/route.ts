@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const PLATFORM_IDS = [
   'youtube', 'twitter', 'linkedin', 'instagram', 'tiktok', 'twitch',
   'blog', 'newsletter', 'podcast', 'github', 'discord', 'other',

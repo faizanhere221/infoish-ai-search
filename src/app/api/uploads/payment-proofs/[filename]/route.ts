@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 const BUCKET = 'payment-proofs'
 
 // GET /api/uploads/payment-proofs/[filename]?dealId=<uuid>

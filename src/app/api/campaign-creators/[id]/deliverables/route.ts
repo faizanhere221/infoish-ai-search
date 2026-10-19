@@ -8,6 +8,8 @@ import { getUserIdFromCreator } from '@/lib/notifications'
 import { DELIVERABLE_FORMATS } from '@/types/campaigns'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string }
 }

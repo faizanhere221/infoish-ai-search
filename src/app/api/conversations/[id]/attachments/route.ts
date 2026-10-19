@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedConversation } from '@/lib/conversations'
 import { rateLimit } from '@/lib/rate-limit'
 
+export const dynamic = 'force-dynamic'
+
 const BUCKET = 'chat-attachments'
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 

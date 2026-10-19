@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction } from '@/lib/admin-action'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/admin/reports/[id]/conversation — the ONLY way an admin can
 // read conversation content: reached from a report that has a
 // conversation_id, never a general conversation browser (per

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/admin/overview — Phase 7B's new admin-dashboard tiles: campaign
 // workflow health that the pre-existing /api/admin/stats (legacy
 // users/deals KPIs) never covered. Read-only, no logging needed (viewing

@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const UpdateBrandSchema = z.object({
   company_name: z.string().min(1).max(200).optional(),
   company_website: z.string().max(500).optional().nullable(),

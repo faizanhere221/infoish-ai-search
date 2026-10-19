@@ -5,6 +5,8 @@ import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { z } from 'zod'
 import { getPartnerStats, isValidReferralCode } from '@/lib/referral'
 
+export const dynamic = 'force-dynamic'
+
 const UpdatePartnerSchema = z.object({
   name: z.string().min(1).max(255).optional(),
   email: z.string().email().max(255).optional(),

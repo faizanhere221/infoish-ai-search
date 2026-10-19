@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { rateLimit } from '@/lib/rate-limit'
 import { latestResultByDeliverable, sumEngagementTotals, cpm, type ResultRow } from '@/lib/reporting'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { token: string }
 }

@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
 
+export const dynamic = 'force-dynamic'
+
 // GET — admin-only via middleware. Shape matches what
 // src/app/admin/newsletter/page.tsx expects (it was previously calling this
 // exact path, which never existed — only the oddly-suffixed

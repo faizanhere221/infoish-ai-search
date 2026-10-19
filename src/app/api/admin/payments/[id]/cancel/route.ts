@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { adminCancelPayment } from '@/lib/payments/engine'
 
+export const dynamic = 'force-dynamic'
+
 // POST /api/admin/payments/[id]/cancel — admin override cancel, broader
 // than the brand's own cancel (scheduled/due only): also reaches
 // marked_paid/disputed, for resolving an escalation. Notifies both parties

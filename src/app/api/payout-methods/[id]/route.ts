@@ -4,6 +4,8 @@ import { captureError } from '@/lib/error-tracking'
 import { encryptPayoutDetails, buildMaskedPreview } from '@/lib/payments/crypto'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: { id: string }
 }

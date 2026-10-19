@@ -5,6 +5,8 @@ import { logAdminAction, requireReason } from '@/lib/admin-action'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const createSchema = z.object({
   email:    z.string().email(),
   password: z.string().min(8),

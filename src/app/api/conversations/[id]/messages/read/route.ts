@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedConversation } from '@/lib/conversations'
 
+export const dynamic = 'force-dynamic'
+
 // POST - Mark all of the OTHER party's messages in this conversation as read
 // for the authenticated caller, and zero the caller's own unread counter.
 // A dedicated endpoint (not a GET side effect) so loading messages is a pure

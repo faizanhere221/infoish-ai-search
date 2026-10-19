@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 const VALID_SORT = new Set(['created_at', 'total_deals', 'total_spent', 'company_name'])
 
 export async function GET(request: NextRequest) {

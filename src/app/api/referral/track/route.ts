@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 import { isValidReferralCode } from '@/lib/referral'
 
+export const dynamic = 'force-dynamic'
+
 const TrackReferralSchema = z.object({
   referral_code: z.string().min(1).max(30),
   user_id: z.string().max(255).optional().nullable(),

@@ -6,6 +6,8 @@ import { sendEmail } from '@/lib/email/send'
 import { verifyEmailTemplate } from '@/lib/email/templates/verifyEmail'
 import { generateToken, hashToken } from '@/lib/email/tokens'
 
+export const dynamic = 'force-dynamic'
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 
 // POST /api/auth/resend-verification — the logged-in user only, so a
