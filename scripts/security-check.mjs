@@ -203,6 +203,23 @@ async function main() {
     return { pass: res.status === 404, detail: `status ${res.status}` }
   })
 
+  // The legacy /api/uploads/payment-proofs/[filename] route (superseded by
+  // the signed-URL proof flow — see src/app/api/campaign-creators/[id]/
+  // payments/[paymentId]/proof/) was removed entirely, not just re-gated.
+  // Both logged-out and an authenticated-but-wrong-party caller must get a
+  // plain 404 (the route not existing), not a 401/403 from some
+  // resurrected auth check — this also guards against it quietly coming
+  // back without another security review.
+  await check('Logged-out caller gets 404 on the removed payment-proofs upload route', async () => {
+    const res = await request('/api/uploads/payment-proofs/test.png')
+    return { pass: res.status === 404, detail: `status ${res.status}` }
+  })
+
+  await check('Creator B gets 404 on the removed payment-proofs upload route', async () => {
+    const res = await request('/api/uploads/payment-proofs/test.png', { headers: authHeaders(CREATOR_B_TOKEN) })
+    return { pass: res.status === 404, detail: `status ${res.status}` }
+  })
+
   await check('Creator B sees no private campaigns and no client_name key (GET /api/campaigns)', async () => {
     const res = await request('/api/campaigns?limit=50', { headers: authHeaders(CREATOR_B_TOKEN) })
     const text = await res.text()
