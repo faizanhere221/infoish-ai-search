@@ -7,6 +7,7 @@ import {
   DELIVERABLE_TYPES,
 } from '@/types/campaigns'
 import type { CampaignFormData } from '../CampaignWizard'
+import { formatDate as formatDateUTC } from '@/lib/format-date'
 
 interface Step5ReviewProps {
   data: CampaignFormData
@@ -26,12 +27,7 @@ function formatBudget(data: CampaignFormData) {
 }
 
 function formatDate(value: string) {
-  if (!value) {return '—'}
-  return new Date(`${value}T00:00:00`).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  return formatDateUTC(value, { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
 function SummaryRow({ label: rowLabel, value }: { label: string; value: React.ReactNode }) {

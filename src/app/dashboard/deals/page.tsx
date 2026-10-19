@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import type { ProfileDropdownProfile } from '@/components/ProfileDropdown'
+import { formatDate as formatDateUTC } from '@/lib/format-date'
 
 interface Deal {
   id: string
@@ -452,8 +453,7 @@ function DealCard({ deal, userType }: { deal: Deal; userType: 'brand' | 'creator
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) {return 'No deadline'}
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    return formatDateUTC(dateStr)
   }
 
   const isActionNeeded = deal.status === 'delivered' && userType === 'brand'

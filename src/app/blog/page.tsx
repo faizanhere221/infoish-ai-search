@@ -5,6 +5,7 @@ import Header from '@/components/header'
 import Link from 'next/link'
 import { Calendar, User, ArrowRight, TrendingUp, Star, Sparkles, Hash, Users } from 'lucide-react'
 import { useState } from 'react'
+import { formatDate } from '@/lib/format-date'
 
 
 interface BlogPost {
@@ -445,7 +446,7 @@ export default function BlogPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
-                        <span>{new Date(post.date).toLocaleDateString()}</span>
+                        <span>{formatDate(post.date)}</span>
                       </div>
                     </div>
                     

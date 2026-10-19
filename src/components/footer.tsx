@@ -6,7 +6,11 @@ import { useState } from 'react'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear()
+  // getUTCFullYear(), not getFullYear() — this renders on both server
+  // (UTC) and client (visitor's local zone); using the local-zone year
+  // risks a one-year hydration mismatch for visitors near a UTC year
+  // boundary (e.g. New Year's Eve in a timezone ahead of UTC).
+  const currentYear = new Date().getUTCFullYear()
   const [email, setEmail] = useState('')
   const [subscriptionStatus, setSubscriptionStatus] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)

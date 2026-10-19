@@ -34,6 +34,7 @@ import {
 } from 'lucide-react'
 import { usePartner } from '@/hooks/usePartner'
 import { ReportDialog } from '@/components/ReportDialog'
+import { formatMonthYear } from '@/lib/format-date'
 
 interface CreatorProfile {
   id: string
@@ -311,11 +312,6 @@ export default function CreatorProfilePage() {
     ? Math.min(...activeServices.map(s => s.price))
     : null
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-  }
-
   const formatFollowers = (num: number): string => {
     if (num >= 1000000) {return (num / 1000000).toFixed(1) + 'M'}
     if (num >= 1000) {return (num / 1000).toFixed(1) + 'K'}
@@ -439,7 +435,7 @@ export default function CreatorProfilePage() {
                     )}
                     <span className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      Joined {formatDate(creator.created_at)}
+                      Joined {formatMonthYear(creator.created_at)}
                     </span>
                   </div>
                 </div>

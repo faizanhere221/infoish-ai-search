@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { formatDate as formatDateUTC } from '@/lib/format-date'
 import {
   Search, X, RefreshCw, Filter, ChevronLeft, ChevronRight, Eye, AlertTriangle,
 } from 'lucide-react'
@@ -36,8 +37,7 @@ const STATUS_STYLES: Record<string, string> = {
 const STATUSES = ['shortlisted', 'contacted', 'negotiating', 'confirmed', 'drafting', 'draft_review', 'scheduled', 'posted', 'completed', 'dropped']
 
 function fmtDate(d: string | null) {
-  if (!d) {return '—'}
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  return formatDateUTC(d)
 }
 
 function Pagination({ page, total, limit, onPage }: { page: number; total: number; limit: number; onPage: (p: number) => void }) {

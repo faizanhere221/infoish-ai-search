@@ -1,5 +1,6 @@
 import { CAMPAIGN_CATEGORIES, PLATFORMS, CAMPAIGN_CREATOR_STATUS_LABELS, DELIVERABLE_STATUS_LABELS } from '@/types/campaigns'
 import type { Campaign, CampaignStatus, CampaignCreatorStatus, DeliverableStatus } from '@/types/campaigns'
+import { formatDate as formatDateUTC } from '@/lib/format-date'
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: '$',
@@ -30,8 +31,7 @@ export function formatBudget(
 }
 
 export function formatDate(dateStr: string | null): string {
-  if (!dateStr) {return '—'}
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  return formatDateUTC(dateStr)
 }
 
 // Relative for anything within the last week ("2 hours ago"), falling back

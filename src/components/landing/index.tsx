@@ -1331,7 +1331,8 @@ export function Footer() {
         </div>
 
         <div className="pt-8 border-t border-gray-800 text-sm text-center">
-          <p>© {new Date().getFullYear()} Infoishai. All rights reserved. | Find Tech Influencers Marketplace</p>
+          {/* getUTCFullYear(), not getFullYear() — avoids a one-year hydration mismatch near a UTC year boundary (server renders UTC, browser renders local). */}
+          <p>© {new Date().getUTCFullYear()} Infoishai. All rights reserved. | Find Tech Influencers Marketplace</p>
         </div>
       </div>
     </footer>
