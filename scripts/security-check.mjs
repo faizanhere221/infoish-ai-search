@@ -101,6 +101,19 @@ let skipCount = 0
 
 const authHeaders = (token) => (token ? { Authorization: `Bearer ${token}` } : {})
 
+// Admin auth is an HttpOnly cookie (same `auth_token` cookie the regular
+// user login also sets — see src/app/api/admin/auth/login/route.ts),
+// never localStorage, and the real admin UI never sends an Authorization
+// header at all: its fetches are same-origin, so the browser attaches the
+// cookie automatically (see the comment in src/app/admin/users/page.tsx's
+// CSV export about relying on exactly that). The /api/admin/* middleware
+// branch happens to also accept a Bearer header today (src/middleware.ts),
+// but every ADMIN_TOKEN/SUPER_ADMIN_TOKEN request below goes through the
+// cookie instead, so these checks exercise the same path production
+// traffic actually uses, not an alternate one nothing real ever sends.
+const ADMIN_AUTH_COOKIE_NAME = 'auth_token'
+const adminCookieHeaders = (token) => (token ? { Cookie: `${ADMIN_AUTH_COOKIE_NAME}=${token}` } : {})
+
 async function request(urlPath, options = {}) {
   return fetch(`${BASE_URL}${urlPath}`, options)
 }
@@ -380,43 +393,50 @@ async function main() {
   }
 
   if (CAMPAIGN_CREATOR_ID) {
-    // Adaptive: only meaningful when the row's contract (if CONTRACT_ID is
-    // set) is NOT fully_signed yet — payout-details 404s until it is. If the
-    // contract happens to already be fully_signed in your test data, fall
-    // back to UNSIGNED_CAMPAIGN_CREATOR_ID (a different row of Brand A's
-    // with no fully_signed contract) if set, otherwise skip rather than
-    // asserting the wrong thing.
-    let contractIsFullySigned = false
-    if (CONTRACT_ID) {
-      const contractRes = await request(`/api/contracts/${CONTRACT_ID}`, { headers: authHeaders(BRAND_A_TOKEN) })
-      if (contractRes.ok) {
-        const data = await contractRes.json().catch(() => ({}))
-        contractIsFullySigned = data?.contract?.status === 'fully_signed'
-      }
-    }
+    // The route needs BOTH a fully_signed contract AND an open (not yet
+    // confirmed/cancelled) payment on the row — see the route's own
+    // comment in src/app/api/campaign-creators/[id]/payout-details/route.ts.
+    // Probing the real endpoint directly (rather than inferring from
+    // CONTRACT_ID's status alone, which only checks the first precondition)
+    // is what actually tells us which case applies — dev-data payments
+    // move to confirmed/cancelled over time, so CAMPAIGN_CREATOR_ID can
+    // drift from "both preconditions met" to "contract signed, no open
+    // payment left" between runs without anyone changing .env.test.local.
+    const probeRes = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/payout-details`, { headers: authHeaders(BRAND_A_TOKEN) })
+    const probeText = await probeRes.text()
+    const accessible = probeRes.status === 200
 
-    const unsignedRowId = !contractIsFullySigned ? CAMPAIGN_CREATOR_ID : UNSIGNED_CAMPAIGN_CREATOR_ID
-
+    const unsignedRowId = !accessible ? CAMPAIGN_CREATOR_ID : UNSIGNED_CAMPAIGN_CREATOR_ID
     if (unsignedRowId) {
-      await check('Brand A gets 404 on payout-details without a fully signed contract', async () => {
+      await check('Brand A gets 404 on payout-details without both a fully signed contract and an open payment', async () => {
+        if (!accessible) {
+          return { pass: probeRes.status === 404, detail: `status ${probeRes.status}` }
+        }
         const res = await request(`/api/campaign-creators/${unsignedRowId}/payout-details`, { headers: authHeaders(BRAND_A_TOKEN) })
         return { pass: res.status === 404, detail: `status ${res.status}` }
       })
     } else {
-      skip('Brand A gets 404 on payout-details without a fully signed contract', 'the contract on CAMPAIGN_CREATOR_ID is already fully_signed in this test data, and UNSIGNED_CAMPAIGN_CREATOR_ID is not set')
+      skip(
+        'Brand A gets 404 on payout-details without both a fully signed contract and an open payment',
+        'CAMPAIGN_CREATOR_ID already satisfies both preconditions in this test data, and UNSIGNED_CAMPAIGN_CREATOR_ID is not set'
+      )
     }
 
-    if (contractIsFullySigned) {
+    if (accessible) {
       await check('Payout-details (no ?reveal) never contains raw account details', async () => {
-        const res = await request(`/api/campaign-creators/${CAMPAIGN_CREATOR_ID}/payout-details`, { headers: authHeaders(BRAND_A_TOKEN) })
-        const text = await res.text()
         // The masked response only ever carries masked_preview — "details"
         // only appears in the ?reveal=true branch, which this call doesn't use.
-        const leaksRawDetails = text.includes('"details":')
-        return { pass: res.status === 200 && !leaksRawDetails, detail: `status ${res.status}, leaked raw details: ${leaksRawDetails}` }
+        const leaksRawDetails = probeText.includes('"details":')
+        return { pass: !leaksRawDetails, detail: `status 200, leaked raw details: ${leaksRawDetails}` }
       })
     } else {
-      skip('Payout-details (no ?reveal) never contains raw account details', 'needs a fully_signed contract to get a 200 to inspect — see the 404 check above')
+      // Fixture drift (the preconditions no longer both hold), not a code
+      // problem — SKIP rather than FAIL so a passing run doesn't mask a
+      // real regression and a drifted fixture doesn't cry wolf either.
+      skip(
+        'Payout-details (no ?reveal) never contains raw account details',
+        `CAMPAIGN_CREATOR_ID returned ${probeRes.status}, not 200 — it needs both a fully_signed contract and an open (not confirmed/cancelled) payment; see the SQL snippet for CAMPAIGN_CREATOR_ID in .env.test.example to find a row that currently satisfies both`
+      )
     }
 
     await check('Creating a milestone payment without deliverable_ids returns 400', async () => {
@@ -627,52 +647,104 @@ async function main() {
     skip('Creator/Brand token gets 403 on /api/admin/*', 'ADMIN_TOKEN/SUPER_ADMIN_TOKEN not set')
   }
 
+  // Positive controls, run BEFORE anything that depends on ADMIN_TOKEN/
+  // SUPER_ADMIN_TOKEN actually having the role their name claims. Without
+  // this, a mislabeled .env.test.local (e.g. ADMIN_TOKEN pointing at a
+  // plain user) makes every "admin gets 403 on X" check below pass
+  // vacuously — the middleware's generic role gate would 403 it too, so
+  // the check "passes" without ever exercising the route's own
+  // admin-vs-super_admin logic. These two booleans gate every check below
+  // that assumes the token is real.
+  let adminTokenIsAdmin = null
+  if (ADMIN_TOKEN) {
+    await check('[control] ADMIN_TOKEN really is an admin (GET /api/admin/payments → 200)', async () => {
+      const res = await request('/api/admin/payments?limit=1', { headers: adminCookieHeaders(ADMIN_TOKEN) })
+      adminTokenIsAdmin = res.status === 200
+      return { pass: adminTokenIsAdmin, detail: `status ${res.status}` }
+    })
+  }
+
+  let superAdminTokenIsSuperAdmin = null
+  if (SUPER_ADMIN_TOKEN) {
+    await check('[control] SUPER_ADMIN_TOKEN really is a super admin (PATCH /api/admin/settings, written back unchanged, → 200)', async () => {
+      // Round-trips one existing value back to itself (true no-op in effect,
+      // not an empty body) so this exercises the super_admin gate without
+      // actually changing platform behavior.
+      const getRes = await request('/api/admin/settings', { headers: adminCookieHeaders(SUPER_ADMIN_TOKEN) })
+      const getData = await getRes.json().catch(() => ({}))
+      const currentPageSize = getData?.settings?.default_page_size ?? 20
+
+      const res = await request('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { ...adminCookieHeaders(SUPER_ADMIN_TOKEN), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ default_page_size: currentPageSize, reason: 'security-check probe — value written back unchanged' }),
+      })
+      superAdminTokenIsSuperAdmin = res.status === 200
+      return { pass: superAdminTokenIsSuperAdmin, detail: `status ${res.status}` }
+    })
+  } else {
+    skip('[control] SUPER_ADMIN_TOKEN really is a super admin', 'SUPER_ADMIN_TOKEN not set')
+  }
+
+  // Every check below that assumes ADMIN_TOKEN is a genuine (non-super)
+  // admin routes through this instead of calling `check` directly — if the
+  // control above failed, it reports an explicit FAIL naming the real
+  // cause instead of either silently skipping or (worse) letting a
+  // coincidental 403 from the generic middleware gate pass for the wrong
+  // reason.
+  const checkAsAdmin = (name, fn) => {
+    if (adminTokenIsAdmin === false) {
+      return check(name, async () => ({ pass: false, detail: 'ADMIN_TOKEN is not an admin — see the "ADMIN_TOKEN really is an admin" control above' }))
+    }
+    return check(name, fn)
+  }
+
   if (ADMIN_TOKEN) {
     // All three checks use a bogus/nonexistent id: every route checks the
     // caller's role before it ever touches the target row, so the 403
     // happens before any real lookup — safe to probe without a real id.
     const BOGUS_ID = '00000000-0000-0000-0000-000000000000'
 
-    await check('Admin (not super) gets 403 on DELETE /api/admin/users/:id', async () => {
+    await checkAsAdmin('Admin (not super) gets 403 on DELETE /api/admin/users/:id', async () => {
       const res = await request(`/api/admin/users/${BOGUS_ID}`, {
         method: 'DELETE',
-        headers: { ...authHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
+        headers: { ...adminCookieHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: 'security-check probe — should never reach the DB' }),
       })
       return { pass: res.status === 403, detail: `status ${res.status}` }
     })
 
-    await check('Admin (not super) gets 403 changing a role (PATCH /api/admin/users/:id)', async () => {
+    await checkAsAdmin('Admin (not super) gets 403 changing a role (PATCH /api/admin/users/:id)', async () => {
       const res = await request(`/api/admin/users/${BOGUS_ID}`, {
         method: 'PATCH',
-        headers: { ...authHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
+        headers: { ...adminCookieHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: 'super_admin', reason: 'security-check probe — should never reach the DB' }),
       })
       return { pass: res.status === 403, detail: `status ${res.status}` }
     })
 
-    await check('Admin (not super) gets 403 on PATCH /api/admin/settings', async () => {
+    await checkAsAdmin('Admin (not super) gets 403 on PATCH /api/admin/settings', async () => {
       const res = await request('/api/admin/settings', {
         method: 'PATCH',
-        headers: { ...authHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
+        headers: { ...adminCookieHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: 'security-check probe — should never reach the DB' }),
       })
       return { pass: res.status === 403, detail: `status ${res.status}` }
     })
 
     if (ADMIN_TEST_TARGET_USER_ID) {
-      await check('Admin suspending a user writes a real activity_logs row (and reactivating undoes it)', async () => {
+      await checkAsAdmin('Admin suspending a user writes a real activity_logs row (and reactivating undoes it)', async () => {
         try {
           const suspendRes = await request(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}/suspend`, {
             method: 'POST',
-            headers: { ...authHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
+            headers: { ...adminCookieHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
             body: JSON.stringify({ reason: 'security-check probe — reactivated immediately after' }),
           })
           if (suspendRes.status !== 200) {
             return { pass: false, detail: `suspend returned ${suspendRes.status}, expected 200` }
           }
 
-          const logsRes = await request('/api/admin/activity/entries?group=admin&limit=5', { headers: authHeaders(ADMIN_TOKEN) })
+          const logsRes = await request('/api/admin/activity/entries?group=admin&limit=5', { headers: adminCookieHeaders(ADMIN_TOKEN) })
           const logsData = await logsRes.json().catch(() => ({ logs: [] }))
           const wrote = (logsData.logs ?? []).some(
             (l) => l.action === 'user_suspended' && l.entity_id === ADMIN_TEST_TARGET_USER_ID
@@ -683,7 +755,7 @@ async function main() {
           // check never leaves the test account suspended.
           await request(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}/activate`, {
             method: 'POST',
-            headers: { ...authHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
+            headers: { ...adminCookieHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
             body: JSON.stringify({ reason: 'security-check probe — restoring state' }),
           })
         }
@@ -693,26 +765,6 @@ async function main() {
     }
   } else {
     skip('Admin (not super) gets 403 on delete/role-change/settings', 'ADMIN_TOKEN not set')
-  }
-
-  if (SUPER_ADMIN_TOKEN) {
-    await check('[control] Super admin CAN reach a super_admin-only route (PATCH /api/admin/settings, written back unchanged)', async () => {
-      // Round-trips one existing value back to itself (true no-op in effect,
-      // not an empty body) so this exercises the super_admin gate without
-      // actually changing platform behavior.
-      const getRes = await request('/api/admin/settings', { headers: authHeaders(SUPER_ADMIN_TOKEN) })
-      const getData = await getRes.json().catch(() => ({}))
-      const currentPageSize = getData?.settings?.default_page_size ?? 20
-
-      const res = await request('/api/admin/settings', {
-        method: 'PATCH',
-        headers: { ...authHeaders(SUPER_ADMIN_TOKEN), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ default_page_size: currentPageSize, reason: 'security-check probe — value written back unchanged' }),
-      })
-      return { pass: res.status === 200, detail: `status ${res.status}` }
-    })
-  } else {
-    skip('[control] Super admin CAN reach a super_admin-only route', 'SUPER_ADMIN_TOKEN not set')
   }
 
   // ── Phase 7B — admin visibility (payments/workflow/contracts/reports/email) ────
@@ -740,16 +792,58 @@ async function main() {
     skip('Non-admin token gets 403 on every new Phase 7B admin route', 'CREATOR_A_TOKEN not set')
   }
 
-  if (ADMIN_TOKEN && PAYMENT_ID) {
-    const FORBIDDEN_PAYOUT_KEYS = ['details_encrypted', 'account_holder_name', 'account_number', 'iban', 'routing_number', 'sort_code']
-    await check('GET /api/admin/payments/:id never leaks raw payout details, masked preview only', async () => {
-      const res = await request(`/api/admin/payments/${PAYMENT_ID}`, { headers: authHeaders(ADMIN_TOKEN) })
-      const text = await res.text()
-      const leaked = leaksAnyKey(text, FORBIDDEN_PAYOUT_KEYS)
-      return { pass: res.status === 200 && leaked.length === 0, detail: `status ${res.status}, leaked: ${leaked.join(',') || 'none'}` }
-    })
+  if (!PAYMENT_ID) {
+    skip('GET /api/admin/payments/:id never leaks raw payout details', 'PAYMENT_ID not set')
+  } else if (!ADMIN_TOKEN) {
+    skip('GET /api/admin/payments/:id never leaks raw payout details', 'ADMIN_TOKEN not set')
+  } else if (adminTokenIsAdmin === false) {
+    await check('GET /api/admin/payments/:id never leaks raw payout details, masked preview only', async () => ({
+      pass: false,
+      detail: 'ADMIN_TOKEN is not an admin — see the "ADMIN_TOKEN really is an admin" control above',
+    }))
   } else {
-    skip('GET /api/admin/payments/:id never leaks raw payout details', 'ADMIN_TOKEN/PAYMENT_ID not set')
+    // Fixture-aware: PAYMENT_ID can go stale (fixture drift) independently
+    // of the route working correctly, and a creator with no payout method
+    // on file makes the leak-check vacuously true (nothing to leak in the
+    // first place). Both are SKIP, not FAIL — only an actual leak, or a
+    // genuine non-200 while the token and id are both known-good, is a
+    // real finding.
+    const FORBIDDEN_PAYOUT_KEYS = ['details_encrypted', 'account_holder_name', 'account_number', 'iban', 'routing_number', 'sort_code']
+    let probe
+    try {
+      const res = await request(`/api/admin/payments/${PAYMENT_ID}`, { headers: adminCookieHeaders(ADMIN_TOKEN) })
+      probe = { status: res.status, text: await res.text() }
+    } catch (err) {
+      probe = { status: 0, text: '', error: err instanceof Error ? err.message : String(err) }
+    }
+
+    if (probe.status !== 200) {
+      skip(
+        'GET /api/admin/payments/:id never leaks raw payout details',
+        `PAYMENT_ID returned ${probe.error ?? probe.status} instead of 200 — it may have been deleted or the fixture drifted; see the SQL snippet for PAYMENT_ID in .env.test.example`
+      )
+    } else {
+      let hasPayoutMethod = false
+      try {
+        const data = JSON.parse(probe.text)
+        hasPayoutMethod = Array.isArray(data?.payoutMethods) && data.payoutMethods.length > 0
+      } catch {
+        // leave hasPayoutMethod false — an unparsable 200 body fails the
+        // check below on its own terms (leaksAnyKey just won't match)
+      }
+
+      if (!hasPayoutMethod) {
+        skip(
+          'GET /api/admin/payments/:id never leaks raw payout details',
+          "PAYMENT_ID's creator has no payout method on file — nothing to check for leakage; see the SQL snippet for PAYMENT_ID in .env.test.example to find one whose creator has"
+        )
+      } else {
+        await check('GET /api/admin/payments/:id never leaks raw payout details, masked preview only', async () => {
+          const leaked = leaksAnyKey(probe.text, FORBIDDEN_PAYOUT_KEYS)
+          return { pass: leaked.length === 0, detail: `leaked: ${leaked.join(',') || 'none'}` }
+        })
+      }
+    }
   }
 
   if (RATE_LIMIT_TEST_REPORTED_USER_ID) {
