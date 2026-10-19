@@ -1,5 +1,7 @@
 import { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { createServerSupabase } from '@/lib/db'
+import { isCreatorPublic } from '@/lib/creators/visibility'
 
 type Props = {
   params: { username: string }
@@ -14,7 +16,7 @@ export async function generateMetadata({ params }: { params: { username: string 
     const supabase = createServerSupabase()
     const { data: creator } = await supabase
       .from('creators')
-      .select('display_name, username, bio, niches, total_followers, country')
+      .select('user_id, display_name, username, bio, niches, total_followers, country, hidden_from_marketplace')
       .eq('username', username)
       .single()
 
@@ -23,6 +25,19 @@ export async function generateMetadata({ params }: { params: { username: string 
         title: 'Creator Not Found',
         robots: { index: false, follow: true },
       }
+    }
+
+    // A deleted, suspended, or admin-hidden creator's profile 404s for
+    // real (not just a "not found" message with a 200 status) —
+    // notFound() here triggers that for the whole route, since this runs
+    // as part of the same render pass as the page itself.
+    const { data: ownerUser } = await supabase
+      .from('users')
+      .select('deleted_at, is_active')
+      .eq('id', creator.user_id)
+      .single()
+    if (!isCreatorPublic(ownerUser, creator)) {
+      notFound()
     }
 
     const niches = Array.isArray(creator.niches) && creator.niches.length > 0
@@ -53,7 +68,10 @@ export async function generateMetadata({ params }: { params: { username: string 
         canonical: url,
       },
     }
-  } catch {
+  } catch (error) {
+    // Never swallow notFound()'s own signal — see captureError's identical
+    // guard in src/lib/error-tracking.ts for why.
+    if ((error as { digest?: unknown } | null)?.digest === 'NEXT_NOT_FOUND') {throw error}
     return {
       title: 'Tech Creator Profile',
       description: 'View this tech creator profile on Infoishai, the B2B tech influencer marketplace.',

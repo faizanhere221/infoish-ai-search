@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
+import { revalidatePublicSurfacesForUser } from '@/lib/creators/revalidate'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,6 +48,8 @@ export async function POST(
       captureError(error ?? new Error('suspend: no row'), { route: 'POST /api/admin/users/[id]/suspend' })
       return NextResponse.json({ error: 'Failed to suspend user' }, { status: 500 })
     }
+
+    await revalidatePublicSurfacesForUser(supabase, params.id)
 
     // Suspension is checked at login (and at the top of every JWT-verified
     // request that reads is_active server-side) — it does NOT invalidate a

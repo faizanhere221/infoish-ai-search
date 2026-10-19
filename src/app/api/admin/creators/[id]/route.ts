@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
+import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,12 +37,13 @@ export async function GET(
   }
 }
 
-// PATCH — is_featured and verification_status are rejected here: use the
-// dedicated, logged /feature and /verify routes. is_active is rejected
-// too: use POST /api/admin/users/[userId]/activate or /suspend (the same
-// one path every user type goes through, not a creator-specific second
-// one). Only is_available is handled directly here, since nothing else
-// owns that field — it still requires a reason and still logs.
+// PATCH — is_featured, verification_status, and hidden_from_marketplace
+// are rejected here: use the dedicated, logged /feature, /verify, and
+// /hide routes. is_active is rejected too: use POST
+// /api/admin/users/[userId]/activate or /suspend (the same one path every
+// user type goes through, not a creator-specific second one). Only
+// is_available is handled directly here, since nothing else owns that
+// field — it still requires a reason and still logs.
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -49,10 +51,10 @@ export async function PATCH(
   try {
     const body = await request.json().catch(() => ({}))
 
-    const rejected = ['is_featured', 'verification_status', 'is_active'].filter((k) => k in body)
+    const rejected = ['is_featured', 'verification_status', 'is_active', 'hidden_from_marketplace'].filter((k) => k in body)
     if (rejected.length > 0) {
       return NextResponse.json(
-        { error: `${rejected.join(', ')} must be changed via their dedicated endpoint (/feature, /verify, or the user-level /activate|/suspend), not this generic PATCH.` },
+        { error: `${rejected.join(', ')} must be changed via their dedicated endpoint (/feature, /verify, /hide, or the user-level /activate|/suspend), not this generic PATCH.` },
         { status: 400 }
       )
     }
@@ -77,13 +79,15 @@ export async function PATCH(
       .from('creators')
       .update({ is_available: isAvailable })
       .eq('id', params.id)
-      .select('id, verification_status, is_available, is_featured')
+      .select('id, username, verification_status, is_available, is_featured')
       .single()
 
     if (error) {
       captureError(error, { route: 'PATCH /api/admin/creators/[id]' })
       return NextResponse.json({ error: 'Failed to update creator' }, { status: 500 })
     }
+
+    revalidateCreatorPublicSurfaces(creator.username)
 
     logAdminAction({
       request,

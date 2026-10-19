@@ -10,12 +10,17 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createServerSupabase()
     const { searchParams } = new URL(request.url)
+    const callerRole = request.headers.get('x-user-role') ?? 'user'
 
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20')))
     const search = searchParams.get('search') ?? ''
     const userType = searchParams.get('type') ?? 'all'
     const status = searchParams.get('status') ?? 'all'
+
+    if (status === 'deleted' && callerRole !== 'super_admin') {
+      return NextResponse.json({ error: 'Super admin only' }, { status: 403 })
+    }
     const role = searchParams.get('role') ?? 'all'
     const verified = searchParams.get('verified') ?? ''
     const featured = searchParams.get('featured') === 'true'
@@ -63,14 +68,22 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('users')
-      .select('id, email, user_type, role, is_active, email_verified, created_at, last_login_at', { count: 'exact' })
+      .select('id, email, user_type, role, is_active, deleted_at, email_verified, created_at, last_login_at', { count: 'exact' })
       .order(sortBy, { ascending: sortAsc })
       .range((page - 1) * limit, page * limit - 1)
 
+    // Deleted accounts are excluded from every default/active/suspended
+    // view — only the super_admin-only `status=deleted` view (gated
+    // above) shows them.
+    if (status === 'deleted') {
+      query = query.not('deleted_at', 'is', null)
+    } else {
+      query = query.is('deleted_at', null)
+      if (status === 'active') {query = query.eq('is_active', true)}
+      if (status === 'suspended') {query = query.eq('is_active', false)}
+    }
     if (allowedIds !== null) {query = query.in('id', allowedIds)}
     if (userType !== 'all') {query = query.eq('user_type', userType)}
-    if (status === 'active') {query = query.eq('is_active', true)}
-    if (status === 'suspended') {query = query.eq('is_active', false)}
     if (role !== 'all') {query = query.eq('role', role)}
     if (dateFrom) {query = query.gte('created_at', dateFrom)}
     if (dateTo) {query = query.lte('created_at', dateTo + 'T23:59:59')}

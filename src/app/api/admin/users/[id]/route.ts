@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { logActivity } from '@/lib/activity'
+import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
+import { checkDeletionBlockers, checkLinkedRecords, hardDeleteUser } from '@/lib/admin-user-deletion'
 import bcrypt from 'bcryptjs'
 import { randomUUID } from 'node:crypto'
 
@@ -321,84 +323,24 @@ export async function PATCH(
   }
 }
 
-interface BlockingCheck {
-  blocked: boolean
-  reasons: string[]
-}
-
-// "Unsettled payment" / "active contract" for a creator or brand profile —
-// shared by the two branches below. An active contract is any non-void
-// contract whose campaign_creators row hasn't reached a terminal state
-// (completed/dropped); an unsettled payment is any creator_payments row
-// that hasn't reached confirmed or cancelled. Legacy `deals` still open
-// (not completed/cancelled/declined) count too — those are real
-// commitments regardless of which flow created them.
-async function checkDeletionBlockers(
-  supabase: ReturnType<typeof createServerSupabase>,
-  profileType: 'creator' | 'brand',
-  profileId: string
-): Promise<BlockingCheck> {
-  const reasons: string[] = []
-
-  let campaignCreatorRows: { id: string; status: string }[] = []
-  if (profileType === 'creator') {
-    const { data } = await supabase.from('campaign_creators').select('id, status').eq('creator_id', profileId)
-    campaignCreatorRows = data ?? []
-  } else {
-    const { data: brandCampaigns } = await supabase.from('campaigns').select('id').eq('brand_id', profileId)
-    const campaignIds = (brandCampaigns ?? []).map((c) => c.id)
-    if (campaignIds.length > 0) {
-      const { data } = await supabase.from('campaign_creators').select('id, status').in('campaign_id', campaignIds)
-      campaignCreatorRows = data ?? []
-    }
-  }
-
-  const rowIds = (campaignCreatorRows ?? []).map((r) => r.id as string)
-  const activeRowIds = (campaignCreatorRows ?? [])
-    .filter((r) => !['completed', 'dropped'].includes(r.status as string))
-    .map((r) => r.id as string)
-
-  if (rowIds.length > 0) {
-    const { count: unsettledPayments } = await supabase
-      .from('creator_payments')
-      .select('id', { count: 'exact', head: true })
-      .in('campaign_creator_id', rowIds)
-      .not('status', 'in', '(confirmed,cancelled)')
-    if ((unsettledPayments ?? 0) > 0) {
-      reasons.push(`${unsettledPayments} unsettled payment(s) on the campaign workflow`)
-    }
-  }
-
-  if (activeRowIds.length > 0) {
-    const { count: activeContracts } = await supabase
-      .from('campaign_contracts')
-      .select('id', { count: 'exact', head: true })
-      .in('campaign_creator_id', activeRowIds)
-      .neq('status', 'void')
-    if ((activeContracts ?? 0) > 0) {
-      reasons.push(`${activeContracts} active contract(s) on an engagement that hasn't concluded`)
-    }
-  }
-
-  const dealField = profileType === 'creator' ? 'creator_id' : 'brand_id'
-  const { count: activeDeals } = await supabase
-    .from('deals')
-    .select('id', { count: 'exact', head: true })
-    .eq(dealField, profileId)
-    .not('status', 'in', '(completed,cancelled,declined)')
-  if ((activeDeals ?? 0) > 0) {
-    reasons.push(`${activeDeals} active legacy deal(s)`)
-  }
-
-  return { blocked: reasons.length > 0, reasons }
-}
-
-// DELETE — super_admin only, reason required, logged. Soft-delete +
-// anonymization, not a hard DELETE: email/name/avatar/payout methods are
-// removed; everything else (messages, deliverables, payments, deals) stays
-// — those are financial/audit records, not the deleted person's data to
-// erase. Blocked entirely if the profile has an unsettled payment or an
-// active contract (checkDeletionBlockers above), and blocked for
+// DELETE — super_admin only, reason required, logged. Two modes, decided
+// automatically by checkLinkedRecords (src/lib/admin-user-deletion.ts):
+//   - Zero linked records anywhere (never sent a message, never had a
+//     conversation/campaign/application/deal/review/report/referral) →
+//     a real hard delete. Nothing worth preserving exists, so just remove
+//     the row entirely.
+//   - Anything at all → the original soft-delete + anonymization:
+//     email/name/avatar/bio/location/niches/languages/payout
+//     methods/platform handles/portfolio/services are all removed;
+//     everything else (messages, deliverables, payments, deals) stays —
+//     those are financial/audit records, not the deleted person's data
+//     to erase.
+// Either way, every public-facing surface (marketplace, search, sitemap)
+// must also stop returning this creator at all — see
+// src/lib/creators/visibility.ts — and every mutation revalidates those
+// surfaces so an ISR cache doesn't keep serving the old page. Blocked
+// entirely (before either mode runs) if the profile has an unsettled
+// payment or an active contract (checkDeletionBlockers), and blocked for
 // self-deletion or deleting the last super_admin.
 export async function DELETE(
   request: NextRequest,
@@ -448,23 +390,51 @@ export async function DELETE(
       }
     }
 
-    let profile: { id: string; name: string } | null = null
+    let profile: { id: string; name: string; username?: string } | null = null
     if (target.user_type === 'creator') {
       const { data } = await supabase.from('creators').select('id, display_name, username').eq('user_id', target.id).single()
-      if (data) {profile = { id: data.id, name: data.display_name }}
+      if (data) {profile = { id: data.id, name: data.display_name, username: data.username }}
     } else if (target.user_type === 'brand') {
       const { data } = await supabase.from('brands').select('id, company_name').eq('user_id', target.id).single()
       if (data) {profile = { id: data.id, name: data.company_name }}
     }
 
-    if (profile && (target.user_type === 'creator' || target.user_type === 'brand')) {
-      const blockers = await checkDeletionBlockers(supabase, target.user_type, profile.id)
+    const linkedProfile = profile && (target.user_type === 'creator' || target.user_type === 'brand')
+      ? { type: target.user_type, id: profile.id }
+      : null
+
+    if (linkedProfile) {
+      const blockers = await checkDeletionBlockers(supabase, linkedProfile.type, linkedProfile.id)
       if (blockers.blocked) {
         return NextResponse.json(
           { error: `Cannot delete: ${blockers.reasons.join('; ')}. Resolve these first.` },
           { status: 400 }
         )
       }
+    }
+
+    const linked = await checkLinkedRecords(supabase, target.id, linkedProfile)
+
+    if (!linked.hasAny) {
+      // Nothing worth preserving exists for this account anywhere — a
+      // real hard delete instead of soft-delete + anonymizing a record
+      // that has no history to protect.
+      await hardDeleteUser(supabase, target.id, linkedProfile)
+
+      if (profile?.username) {revalidateCreatorPublicSurfaces(profile.username)}
+
+      logAdminAction({
+        request,
+        adminId,
+        action: 'user_hard_deleted',
+        targetType: 'user',
+        targetId: target.id,
+        reason: reasonCheck.reason,
+        before: { email: target.email, user_type: target.user_type, role: target.role, profile_name: profile?.name ?? null },
+        after: null,
+      })
+
+      return NextResponse.json({ message: 'User permanently deleted', mode: 'hard' })
     }
 
     const anonymizedEmail = `deleted-${target.id}@deleted.invalid`
@@ -488,9 +458,36 @@ export async function DELETE(
     if (profile && target.user_type === 'creator') {
       await supabase
         .from('creators')
-        .update({ display_name: 'Deleted user', username: `deleted-${profile.id}`, profile_photo_url: null, bio: null })
+        .update({
+          display_name: 'Deleted user',
+          username: `deleted-${profile.id}`,
+          profile_photo_url: null,
+          bio: null,
+          country: null,
+          city: null,
+          niches: [],
+          languages: [],
+        })
         .eq('id', profile.id)
       await supabase.from('payout_methods').delete().eq('creator_id', profile.id)
+      await supabase.from('creator_platforms').delete().eq('creator_id', profile.id)
+      await supabase.from('creator_portfolio').delete().eq('creator_id', profile.id)
+      await supabase.from('creator_services').delete().eq('creator_id', profile.id)
+
+      // Avatar files live under avatars/<creatorId>/<timestamp>.<ext> (see
+      // POST /api/creators/[id]/avatar) — upload uses upsert on a
+      // timestamped path, so an old avatar is never overwritten by a new
+      // one; there can be more than one file here to remove.
+      const { data: avatarFiles } = await supabase.storage.from('avatars').list(profile.id)
+      if (avatarFiles && avatarFiles.length > 0) {
+        await supabase.storage.from('avatars').remove(avatarFiles.map((f) => `${profile.id}/${f.name}`))
+      }
+
+      // Revalidate the OLD username path too, not just the new one — the
+      // old path's ISR cache still has the live profile rendered and
+      // would keep serving it until its own window expires otherwise.
+      revalidateCreatorPublicSurfaces(profile.username)
+      revalidateCreatorPublicSurfaces(`deleted-${profile.id}`)
     } else if (profile && target.user_type === 'brand') {
       await supabase
         .from('brands')
@@ -509,7 +506,7 @@ export async function DELETE(
       after: { email: anonymizedEmail, profile_name: 'Deleted user' },
     })
 
-    return NextResponse.json({ message: 'User deleted' })
+    return NextResponse.json({ message: 'User deleted', mode: 'soft' })
   } catch (err) {
     captureError(err, { route: 'DELETE /api/admin/users/[id]' })
     return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 })

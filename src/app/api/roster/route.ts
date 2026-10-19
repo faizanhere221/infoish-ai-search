@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 import { latestResultByDeliverable, onTimeRate, cpm, type ResultRow, type DeliverableForReport } from '@/lib/reporting'
+import { getExcludedCreatorUserIdsList, isCreatorPublic } from '@/lib/creators/visibility'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,6 +66,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ roster: [], total: count ?? 0, limit, offset })
     }
 
+    // A deleted/suspended/hidden creator drops off the roster entirely —
+    // same "no longer discoverable" rule as the marketplace listing, not
+    // the "keep showing Deleted user" rule for an actual engagement record
+    // (this is a brand's saved-for-later bookmark, not one).
+    const excludedUserIds = await getExcludedCreatorUserIdsList(supabase)
     let creatorIds = [...new Set(entries.map((e) => e.creator_id))]
 
     let creators: CreatorSummaryRow[] = []
@@ -72,7 +78,10 @@ export async function GET(request: NextRequest) {
       .from('creators')
       .select('id, username, display_name, profile_photo_url, total_followers, avg_engagement_rate')
       .in('id', creatorIds)
+      .eq('hidden_from_marketplace', false)
+      .not('user_id', 'in', excludedUserIds)
     creators = creatorRows || []
+    creatorIds = creators.map((c) => c.id)
 
     if (search) {
       const q = search.toLowerCase()
@@ -203,8 +212,16 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerSupabase()
 
-    const { data: creator } = await supabase.from('creators').select('id').eq('id', parsed.data.creator_id).single()
+    const { data: creator } = await supabase
+      .from('creators')
+      .select('id, user_id, hidden_from_marketplace')
+      .eq('id', parsed.data.creator_id)
+      .single()
     if (!creator) {
+      return NextResponse.json({ error: 'Creator not found' }, { status: 404 })
+    }
+    const { data: ownerUser } = await supabase.from('users').select('deleted_at, is_active').eq('id', creator.user_id).single()
+    if (!isCreatorPublic(ownerUser, creator)) {
       return NextResponse.json({ error: 'Creator not found' }, { status: 404 })
     }
 

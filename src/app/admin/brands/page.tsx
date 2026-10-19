@@ -31,6 +31,7 @@ interface AdminBrand {
   // Joined
   email: string
   is_active: boolean
+  deleted_at: string | null
   last_login_at: string | null
   role: string
 }
@@ -72,7 +73,8 @@ function VerifyBadge({ status }: { status: string }) {
   return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700"><Shield className="w-3 h-3" />Pending</span>
 }
 
-function StatusBadge({ active }: { active: boolean }) {
+function StatusBadge({ active, deletedAt }: { active: boolean; deletedAt?: string | null }) {
+  if (deletedAt) {return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700">Deleted</span>}
   return active
     ? <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Active</span>
     : <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Suspended</span>
@@ -114,6 +116,32 @@ export default function AdminBrandsPage() {
   useDocumentTitle('Brands')
   const router = useRouter()
 
+  // The "Deleted" status filter is super_admin only — client-side this is
+  // just UX (hide the option), the server-side 403 on status=deleted for
+  // a plain admin is the real gate.
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  useEffect(() => { setIsSuperAdmin(localStorage.getItem('admin_role') === 'super_admin') }, [])
+
+  // Shown in the delete confirmation dialog so the admin knows which mode
+  // will actually apply (hard delete vs soft-delete + anonymization)
+  // before confirming — fetched fresh every time, never assumed.
+  interface DeletionPreview { blocked: boolean; blockingReasons: string[]; mode: 'hard' | 'soft' | null; linkedRecords: string[] }
+  const [deletionPreview, setDeletionPreview] = useState<DeletionPreview | null>(null)
+  const [deletionPreviewLoading, setDeletionPreviewLoading] = useState(false)
+
+  const openDeleteConfirm = async (brandId: string, userId: string) => {
+    setPendingAction({ kind: 'delete', brandId, userId })
+    setDeletionPreview(null)
+    setDeletionPreviewLoading(true)
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/deletion-preview`)
+      const data = await res.json()
+      if (res.ok) {setDeletionPreview(data)}
+    } finally {
+      setDeletionPreviewLoading(false)
+    }
+  }
+
   const [brands, setBrands] = useState<AdminBrand[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -150,7 +178,9 @@ export default function AdminBrandsPage() {
       if (filterCountry) {params.set('country', filterCountry)}
       if (filterMinSpent) {params.set('min_spent', filterMinSpent)}
       if (filterMaxSpent) {params.set('max_spent', filterMaxSpent)}
-      if (filterStatus !== 'all') {params.set('status', filterStatus)}
+      // status=deleted is super_admin only server-side (403 for anyone
+      // else) — never send it unless we've confirmed that role.
+      if (filterStatus !== 'all' && !(filterStatus === 'deleted' && !isSuperAdmin)) {params.set('status', filterStatus)}
       if (filterVerification) {params.set('verification_status', filterVerification)}
       if (dateFrom) {params.set('date_from', dateFrom)}
       if (dateTo) {params.set('date_to', dateTo)}
@@ -161,7 +191,7 @@ export default function AdminBrandsPage() {
       setBrands(data.brands ?? [])
       setTotal(data.total ?? 0)
     } finally { setLoading(false); setRefreshing(false) }
-  }, [page, sortField, sortDir, search, filterIndustry, filterSize, filterCountry, filterMinSpent, filterMaxSpent, filterStatus, filterVerification, dateFrom, dateTo, router])
+  }, [page, sortField, sortDir, search, filterIndustry, filterSize, filterCountry, filterMinSpent, filterMaxSpent, filterStatus, filterVerification, dateFrom, dateTo, router, isSuperAdmin])
 
   useEffect(() => { fetchBrands() }, [fetchBrands])
 
@@ -248,7 +278,7 @@ export default function AdminBrandsPage() {
     const rows = brands.map(b => [
       b.company_name, b.contact_name ?? '', b.email, b.industry ?? '', b.company_size ?? '',
       b.country ?? '', b.total_deals, `$${b.total_spent.toFixed(2)}`,
-      b.verification_status, b.is_active ? 'Active' : 'Suspended', fmtDate(b.created_at),
+      b.verification_status, b.deleted_at ? 'Deleted' : b.is_active ? 'Active' : 'Suspended', fmtDate(b.created_at),
     ])
     const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
     const a = document.createElement('a')
@@ -307,6 +337,7 @@ export default function AdminBrandsPage() {
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
             <option value="suspended">Suspended</option>
+            {isSuperAdmin && <option value="deleted">Deleted</option>}
           </select>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -390,7 +421,7 @@ export default function AdminBrandsPage() {
                     <td className="px-4 py-3 text-sm font-medium text-gray-700">{b.total_deals}</td>
                     <td className="px-4 py-3 text-sm font-semibold text-emerald-700">${Number(b.total_spent).toLocaleString('en-US', { maximumFractionDigits: 0 })}</td>
                     <td className="px-4 py-3"><VerifyBadge status={b.verification_status} /></td>
-                    <td className="px-4 py-3"><StatusBadge active={b.is_active} /></td>
+                    <td className="px-4 py-3"><StatusBadge active={b.is_active} deletedAt={b.deleted_at} /></td>
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{fmtDate(b.created_at)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
@@ -440,7 +471,7 @@ export default function AdminBrandsPage() {
                         <p className="text-sm text-gray-500">{String(b.email)}</p>
                         <div className="flex items-center gap-2 mt-1.5">
                           <VerifyBadge status={String(b.verification_status)} />
-                          <StatusBadge active={Boolean(b.is_active)} />
+                          <StatusBadge active={Boolean(b.is_active)} deletedAt={b.deleted_at} />
                         </div>
                       </div>
                     </div>
@@ -498,7 +529,7 @@ export default function AdminBrandsPage() {
                       className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${b.is_active ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}>
                       {b.is_active ? 'Suspend' : 'Activate'}
                     </button>
-                    <button onClick={() => setPendingAction({ kind: 'delete', brandId: String(b.id), userId: String(b.user_id) })}
+                    <button onClick={() => openDeleteConfirm(String(b.id), String(b.user_id))}
                       className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-lg text-sm font-medium">
                       Delete Account
                     </button>
@@ -524,13 +555,21 @@ export default function AdminBrandsPage() {
             pendingAction.kind === 'suspend' || pendingAction.kind === 'bulk-suspend'
               ? "The user can't log in while suspended. Note: a session token they already have stays valid until it naturally expires — suspension doesn't revoke it immediately."
               : pendingAction.kind === 'delete'
-              ? 'This anonymizes the account (email, name, logo). Deals and financial records are kept. This cannot be undone.'
+              ? deletionPreviewLoading
+                ? 'Checking this account for linked records…'
+                : deletionPreview?.blocked
+                  ? `Cannot delete: ${deletionPreview.blockingReasons.join('; ')}. Resolve these first.`
+                  : deletionPreview?.mode === 'hard'
+                    ? 'This account has no linked records anywhere (no conversations, campaigns, deals, reviews, or reports) — it will be permanently deleted, not just anonymized. This cannot be undone.'
+                    : deletionPreview?.mode === 'soft'
+                      ? `This account has history to preserve (${deletionPreview.linkedRecords.join(', ')}) — it will be anonymized (email, name, logo). Deals and financial records are kept. This cannot be undone.`
+                      : 'This anonymizes the account (email, name, logo). Deals and financial records are kept. This cannot be undone.'
               : undefined
           }
           danger={pendingAction.kind === 'suspend' || pendingAction.kind === 'bulk-suspend' || pendingAction.kind === 'delete'}
-          confirmLabel="Confirm"
+          confirmLabel={pendingAction.kind === 'delete' && deletionPreview?.mode === 'hard' ? 'Permanently Delete' : 'Confirm'}
           onConfirm={confirmPendingAction}
-          onClose={() => { setPendingAction(null); setActionError('') }}
+          onClose={() => { setPendingAction(null); setActionError(''); setDeletionPreview(null) }}
         />
       )}
       {actionError && (

@@ -1,15 +1,19 @@
 import { MetadataRoute } from 'next'
 import { createServerSupabase } from '@/lib/db'
+import { getExcludedCreatorUserIdsList } from '@/lib/creators/visibility'
 
 const baseUrl = 'https://infoishai.com'
 
 async function getCreatorRoutes(): Promise<MetadataRoute.Sitemap> {
   try {
     const supabase = createServerSupabase()
+    const excludedUserIds = await getExcludedCreatorUserIdsList(supabase)
     const { data: creators } = await supabase
       .from('creators')
       .select('username, updated_at')
       .eq('verification_status', 'verified')
+      .eq('hidden_from_marketplace', false)
+      .not('user_id', 'in', excludedUserIds)
       .limit(5000)
 
     if (!creators) {return []}

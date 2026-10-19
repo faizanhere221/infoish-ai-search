@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
+import { revalidatePublicSurfacesForUser } from '@/lib/creators/revalidate'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,6 +44,8 @@ export async function POST(
       captureError(error ?? new Error('activate: no row'), { route: 'POST /api/admin/users/[id]/activate' })
       return NextResponse.json({ error: 'Failed to activate user' }, { status: 500 })
     }
+
+    await revalidatePublicSurfacesForUser(supabase, params.id)
 
     logAdminAction({
       request,

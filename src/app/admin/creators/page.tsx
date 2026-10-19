@@ -8,6 +8,7 @@ import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, Star, Shield, ShieldCheck, ShieldX,
   Sparkles, X, RefreshCw, Filter, ChevronLeft, ChevronRight,
+  EyeOff,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -27,10 +28,12 @@ interface AdminCreator {
   verification_status: 'pending' | 'verified' | 'rejected'
   is_available: boolean
   is_featured: boolean
+  hidden_from_marketplace: boolean
   created_at: string
   // Joined
   email: string
   is_active: boolean
+  deleted_at: string | null
   last_login_at: string | null
   role: string
   platform_list: string[]
@@ -70,7 +73,8 @@ function VerifyBadge({ status }: { status: string }) {
   return <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700"><Shield className="w-3 h-3" />Pending</span>
 }
 
-function StatusBadge({ active }: { active: boolean }) {
+function StatusBadge({ active, deletedAt }: { active: boolean; deletedAt?: string | null }) {
+  if (deletedAt) {return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700">Deleted</span>}
   return active
     ? <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Active</span>
     : <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Suspended</span>
@@ -122,6 +126,12 @@ export default function AdminCreatorsPage() {
   useDocumentTitle('Creators')
   const router = useRouter()
 
+  // The "Deleted" status filter is super_admin only — client-side this is
+  // just UX (hide the option), the server-side 403 on status=deleted for
+  // a plain admin is the real gate.
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  useEffect(() => { setIsSuperAdmin(localStorage.getItem('admin_role') === 'super_admin') }, [])
+
   const [creators, setCreators] = useState<AdminCreator[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -160,7 +170,9 @@ export default function AdminCreatorsPage() {
       if (filterMaxFollowers) {params.set('max_followers', filterMaxFollowers)}
       if (filterMinRating) {params.set('min_rating', filterMinRating)}
       if (filterAvailable) {params.set('is_available', filterAvailable)}
-      if (filterStatus !== 'all') {params.set('status', filterStatus)}
+      // status=deleted is super_admin only server-side (403 for anyone
+      // else) — never send it unless we've confirmed that role.
+      if (filterStatus !== 'all' && !(filterStatus === 'deleted' && !isSuperAdmin)) {params.set('status', filterStatus)}
       if (filterVerification) {params.set('verification_status', filterVerification)}
       if (dateFrom) {params.set('date_from', dateFrom)}
       if (dateTo) {params.set('date_to', dateTo)}
@@ -171,7 +183,7 @@ export default function AdminCreatorsPage() {
       setCreators(data.creators ?? [])
       setTotal(data.total ?? 0)
     } finally { setLoading(false); setRefreshing(false) }
-  }, [page, sortField, sortDir, search, filterNiche, filterPlatform, filterCountry, filterMinFollowers, filterMaxFollowers, filterMinRating, filterAvailable, filterStatus, filterVerification, dateFrom, dateTo, router])
+  }, [page, sortField, sortDir, search, filterNiche, filterPlatform, filterCountry, filterMinFollowers, filterMaxFollowers, filterMinRating, filterAvailable, filterStatus, filterVerification, dateFrom, dateTo, router, isSuperAdmin])
 
   useEffect(() => { fetchCreators() }, [fetchCreators])
 
@@ -198,6 +210,7 @@ export default function AdminCreatorsPage() {
   type PendingCreatorAction =
     | { kind: 'verify'; creatorId: string; nextStatus: 'verified' | 'pending' }
     | { kind: 'feature'; creatorId: string; nextFeatured: boolean }
+    | { kind: 'hide'; creatorId: string; nextHidden: boolean }
     | { kind: 'availability'; creatorId: string; nextAvailable: boolean }
     | { kind: 'suspend' | 'activate'; creatorId: string; userId: string }
     | { kind: 'bulk-suspend' | 'bulk-activate' }
@@ -229,6 +242,13 @@ export default function AdminCreatorsPage() {
         })
         if (!res.ok) {throw new Error((await res.json().catch(() => ({}))).error || 'Failed to update feature status')}
         applyLocal(pendingAction.creatorId, { is_featured: pendingAction.nextFeatured })
+      } else if (pendingAction.kind === 'hide') {
+        const res = await fetch(`/api/admin/creators/${pendingAction.creatorId}/hide`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hidden: pendingAction.nextHidden, reason }),
+        })
+        if (!res.ok) {throw new Error((await res.json().catch(() => ({}))).error || 'Failed to update marketplace visibility')}
+        applyLocal(pendingAction.creatorId, { hidden_from_marketplace: pendingAction.nextHidden })
       } else if (pendingAction.kind === 'availability') {
         const res = await fetch(`/api/admin/creators/${pendingAction.creatorId}`, {
           method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -270,12 +290,12 @@ export default function AdminCreatorsPage() {
   const hasFilters = search || filterNiche || filterPlatform || filterCountry || filterMinFollowers || filterMaxFollowers || filterMinRating || filterAvailable || filterStatus !== 'all' || filterVerification || dateFrom || dateTo
 
   const exportCsv = () => {
-    const headers = ['Username', 'Display Name', 'Email', 'Country', 'Niches', 'Platforms', 'Followers', 'Rating', 'Deals', 'Verification', 'Status', 'Available', 'Featured', 'Joined']
+    const headers = ['Username', 'Display Name', 'Email', 'Country', 'Niches', 'Platforms', 'Followers', 'Rating', 'Deals', 'Verification', 'Status', 'Available', 'Featured', 'Hidden', 'Joined']
     const rows = creators.map(c => [
       c.username, c.display_name, c.email, c.country ?? '', c.niches.join(';'),
       c.platform_list.join(';'), c.total_followers, c.avg_rating ?? '',
-      c.completed_deals, c.verification_status, c.is_active ? 'Active' : 'Suspended',
-      c.is_available ? 'Yes' : 'No', c.is_featured ? 'Yes' : 'No', fmtDate(c.created_at),
+      c.completed_deals, c.verification_status, c.deleted_at ? 'Deleted' : c.is_active ? 'Active' : 'Suspended',
+      c.is_available ? 'Yes' : 'No', c.is_featured ? 'Yes' : 'No', c.hidden_from_marketplace ? 'Yes' : 'No', fmtDate(c.created_at),
     ])
     const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
     const a = document.createElement('a')
@@ -334,6 +354,7 @@ export default function AdminCreatorsPage() {
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
             <option value="suspended">Suspended</option>
+            {isSuperAdmin && <option value="deleted">Deleted</option>}
           </select>
           <select value={filterAvailable} onChange={e => { setFilterAvailable(e.target.value); setPage(1) }} className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
             <option value="">Any Availability</option>
@@ -414,6 +435,11 @@ export default function AdminCreatorsPage() {
                           <p className="text-sm font-medium text-gray-800 flex items-center gap-1">
                             {c.display_name}
                             {c.is_featured && <span title="Featured"><Sparkles className="w-3 h-3 text-amber-400" /></span>}
+                            {c.hidden_from_marketplace && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-700" title="Hidden from marketplace">
+                                <EyeOff className="w-3 h-3" />Hidden
+                              </span>
+                            )}
                           </p>
                           <p className="text-xs text-gray-400">@{c.username} · {c.email}</p>
                         </div>
@@ -441,7 +467,7 @@ export default function AdminCreatorsPage() {
                     <td className="px-4 py-3"><Stars rating={c.avg_rating} /></td>
                     <td className="px-4 py-3 text-sm text-gray-700">{c.completed_deals}</td>
                     <td className="px-4 py-3"><VerifyBadge status={c.verification_status} /></td>
-                    <td className="px-4 py-3"><StatusBadge active={c.is_active} /></td>
+                    <td className="px-4 py-3"><StatusBadge active={c.is_active} deletedAt={c.deleted_at} /></td>
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{fmtDate(c.created_at)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
@@ -455,6 +481,11 @@ export default function AdminCreatorsPage() {
                           title={c.is_featured ? 'Unfeature' : 'Feature'}
                           className={`p-1.5 rounded hover:bg-gray-100 ${c.is_featured ? 'text-amber-500' : 'text-gray-400 hover:text-amber-500'}`}>
                           <Sparkles className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => setPendingAction({ kind: 'hide', creatorId: c.id, nextHidden: !c.hidden_from_marketplace })}
+                          title={c.hidden_from_marketplace ? 'Unhide from marketplace' : 'Hide from marketplace'}
+                          className={`p-1.5 rounded hover:bg-gray-100 ${c.hidden_from_marketplace ? 'text-violet-600' : 'text-gray-400 hover:text-violet-600'}`}>
+                          <EyeOff className="w-4 h-4" />
                         </button>
                         <button onClick={() => setPendingAction({ kind: c.is_active ? 'suspend' : 'activate', creatorId: c.id, userId: c.user_id })}
                           title={c.is_active ? 'Suspend' : 'Activate'}
@@ -489,8 +520,9 @@ export default function AdminCreatorsPage() {
                       <p className="text-sm text-gray-500">@{c.username as string} · {c.email as string}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <VerifyBadge status={c.verification_status as string} />
-                        <StatusBadge active={c.is_active as boolean} />
+                        <StatusBadge active={c.is_active as boolean} deletedAt={c.deleted_at as string | null} />
                         {c.is_featured && <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700"><Sparkles className="w-3 h-3" />Featured</span>}
+                        {c.hidden_from_marketplace && <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-700"><EyeOff className="w-3 h-3" />Hidden from marketplace</span>}
                       </div>
                     </div>
                     <button onClick={() => setModalDetail(null)} className="p-1 rounded hover:bg-gray-100"><X className="w-5 h-5 text-gray-500" /></button>
@@ -566,6 +598,10 @@ export default function AdminCreatorsPage() {
                       className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${c.is_featured ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'}`}>
                       {c.is_featured ? 'Unfeature' : 'Feature'}
                     </button>
+                    <button onClick={() => setPendingAction({ kind: 'hide', creatorId: String(c.id), nextHidden: !c.hidden_from_marketplace })}
+                      className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${c.hidden_from_marketplace ? 'bg-violet-50 text-violet-700 hover:bg-violet-100 border-violet-200' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'}`}>
+                      {c.hidden_from_marketplace ? 'Unhide from Marketplace' : 'Hide from Marketplace'}
+                    </button>
                     <button onClick={() => setPendingAction({ kind: c.is_active ? 'suspend' : 'activate', creatorId: String(c.id), userId: String(c.user_id) })}
                       className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${c.is_active ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}>
                       {c.is_active ? 'Suspend' : 'Activate'}
@@ -583,6 +619,7 @@ export default function AdminCreatorsPage() {
           title={
             pendingAction.kind === 'verify' ? (pendingAction.nextStatus === 'verified' ? 'Verify creator' : 'Remove verification')
             : pendingAction.kind === 'feature' ? (pendingAction.nextFeatured ? 'Feature creator' : 'Unfeature creator')
+            : pendingAction.kind === 'hide' ? (pendingAction.nextHidden ? 'Hide from marketplace' : 'Unhide from marketplace')
             : pendingAction.kind === 'availability' ? 'Change availability'
             : pendingAction.kind === 'suspend' ? 'Suspend creator'
             : pendingAction.kind === 'activate' ? 'Activate creator'
@@ -592,7 +629,11 @@ export default function AdminCreatorsPage() {
           description={
             pendingAction.kind === 'suspend' || pendingAction.kind === 'bulk-suspend'
               ? "The user can't log in while suspended. A session token they already have stays valid until it naturally expires."
-              : undefined
+              : pendingAction.kind === 'hide'
+                ? pendingAction.nextHidden
+                  ? "Removes this creator from the marketplace listing, search, sitemap, roster, and campaign discovery. They can still log in and use their dashboard normally — this isn't suspension."
+                  : undefined
+                : undefined
           }
           danger={pendingAction.kind === 'suspend' || pendingAction.kind === 'bulk-suspend'}
           confirmLabel="Confirm"

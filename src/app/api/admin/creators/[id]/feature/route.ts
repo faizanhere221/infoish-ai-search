@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
+import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,6 +56,8 @@ export async function POST(
       before: { is_featured: before.is_featured },
       after: { is_featured: featured },
     })
+
+    revalidateCreatorPublicSurfaces(creator.username)
 
     return NextResponse.json({ success: true, creator })
   } catch (err) {

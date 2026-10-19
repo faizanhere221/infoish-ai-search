@@ -20,6 +20,7 @@ interface AdminUser {
   user_type: 'creator' | 'brand' | 'admin'
   role: string
   is_active: boolean
+  deleted_at: string | null
   email_verified: boolean
   created_at: string
   last_login_at: string | null
@@ -72,7 +73,8 @@ function fmtRelative(d: string | null) {
   return fmtDate(d)
 }
 
-function StatusBadge({ active }: { active: boolean }) {
+function StatusBadge({ active, deletedAt }: { active: boolean; deletedAt?: string | null }) {
+  if (deletedAt) {return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700">Deleted</span>}
   return active
     ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Active</span>
     : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Suspended</span>
@@ -147,6 +149,12 @@ function AdminUsersContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  // The "Deleted" status filter is super_admin only — client-side this is
+  // just UX (hide the option), the server-side 403 on status=deleted for
+  // a plain admin is the real gate.
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  useEffect(() => { setIsSuperAdmin(localStorage.getItem('admin_role') === 'super_admin') }, [])
+
   // Data state
   const [users, setUsers] = useState<AdminUser[]>([])
   const [total, setTotal] = useState(0)
@@ -183,6 +191,26 @@ function AdminUsersContent() {
     | { type: 'bulk-activate' | 'bulk-suspend' | 'bulk-delete' }
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
 
+  // Shown in the delete confirmation dialog so the admin knows which mode
+  // will actually apply (hard delete vs soft-delete + anonymization)
+  // before confirming — fetched fresh every time, never assumed.
+  interface DeletionPreview { blocked: boolean; blockingReasons: string[]; mode: 'hard' | 'soft' | null; linkedRecords: string[] }
+  const [deletionPreview, setDeletionPreview] = useState<DeletionPreview | null>(null)
+  const [deletionPreviewLoading, setDeletionPreviewLoading] = useState(false)
+
+  const openDeleteConfirm = async (userId: string) => {
+    setPendingAction({ type: 'delete', userId })
+    setDeletionPreview(null)
+    setDeletionPreviewLoading(true)
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/deletion-preview`)
+      const data = await res.json()
+      if (res.ok) {setDeletionPreview(data)}
+    } finally {
+      setDeletionPreviewLoading(false)
+    }
+  }
+
   const fetchUsers = useCallback(async (isRefresh = false) => {
     if (isRefresh) {setRefreshing(true)}
     else {setLoading(true)}
@@ -194,7 +222,11 @@ function AdminUsersContent() {
       })
       if (search) {params.set('search', search)}
       if (filterType !== 'all') {params.set('type', filterType)}
-      if (filterStatus !== 'all') {params.set('status', filterStatus)}
+      // status=deleted is super_admin only server-side (403 for anyone
+      // else) — never send it unless we've confirmed that role, so a
+      // stale filter value for a plain admin can't trigger a 403 that
+      // the code below would otherwise treat as a login redirect.
+      if (filterStatus !== 'all' && !(filterStatus === 'deleted' && !isSuperAdmin)) {params.set('status', filterStatus)}
       if (filterRole !== 'all') {params.set('role', filterRole)}
       if (filterVerified) {params.set('verified', filterVerified)}
       if (filterFeatured) {params.set('featured', 'true')}
@@ -210,7 +242,7 @@ function AdminUsersContent() {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [page, sortField, sortDir, search, filterType, filterStatus, filterRole, filterVerified, filterFeatured, dateFrom, dateTo, router])
+  }, [page, sortField, sortDir, search, filterType, filterStatus, filterRole, filterVerified, filterFeatured, dateFrom, dateTo, router, isSuperAdmin])
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
@@ -315,7 +347,7 @@ function AdminUsersContent() {
     const params = new URLSearchParams()
     if (search) {params.set('search', search)}
     if (filterType !== 'all') {params.set('user_type', filterType)}
-    if (filterStatus !== 'all') {params.set('status', filterStatus)}
+    if (filterStatus !== 'all' && !(filterStatus === 'deleted' && !isSuperAdmin)) {params.set('status', filterStatus)}
     window.open(`/api/admin/users/export?${params.toString()}`, '_blank')
   }
 
@@ -383,6 +415,7 @@ function AdminUsersContent() {
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
             <option value="suspended">Suspended</option>
+            {isSuperAdmin && <option value="deleted">Deleted</option>}
           </select>
           <select value={filterRole} onChange={e => { setFilterRole(e.target.value); setPage(1) }}
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
@@ -481,7 +514,7 @@ function AdminUsersContent() {
                       <p className="text-sm text-gray-700">{u.profile_name || '—'}</p>
                       {u.profile_username && <p className="text-xs text-gray-400">@{u.profile_username}</p>}
                     </td>
-                    <td className="px-4 py-3"><StatusBadge active={u.is_active} /></td>
+                    <td className="px-4 py-3"><StatusBadge active={u.is_active} deletedAt={u.deleted_at} /></td>
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{fmtDate(u.created_at)}</td>
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{fmtRelative(u.last_login_at)}</td>
                     <td className="px-4 py-3">
@@ -495,7 +528,7 @@ function AdminUsersContent() {
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-amber-600 transition-colors">
                           {u.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                         </button>
-                        <button onClick={() => setPendingAction({ type: 'delete', userId: u.id })} title="Delete"
+                        <button onClick={() => openDeleteConfirm(u.id)} title="Delete"
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors">
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -522,16 +555,30 @@ function AdminUsersContent() {
                 : 'Activate user' + (pendingAction.type === 'bulk-activate' ? `s (${selected.size})` : '')
           }
           description={
-            pendingAction.type === 'delete' || pendingAction.type === 'bulk-delete'
-              ? 'The account is soft-deleted and anonymized (email, name, avatar, payout methods removed). Content and financial records are kept. This cannot be undone, and is blocked if the user has unsettled payments or an active contract.'
-              : pendingAction.type === 'suspend' || pendingAction.type === 'bulk-suspend'
-                ? "The user can't log in while suspended. Note: a session token they already have stays valid until it naturally expires — suspension doesn't revoke it immediately."
-                : undefined
+            pendingAction.type === 'delete'
+              ? deletionPreviewLoading
+                ? 'Checking this account for linked records…'
+                : deletionPreview?.blocked
+                  ? `Cannot delete: ${deletionPreview.blockingReasons.join('; ')}. Resolve these first.`
+                  : deletionPreview?.mode === 'hard'
+                    ? 'This account has no linked records anywhere (no messages, campaigns, deals, reviews, or reports) — it will be permanently deleted, not just anonymized. This cannot be undone.'
+                    : deletionPreview?.mode === 'soft'
+                      ? `This account has history to preserve (${deletionPreview.linkedRecords.join(', ')}) — it will be soft-deleted and anonymized (email, name, avatar, payout methods removed). Content and financial records are kept. This cannot be undone.`
+                      : 'The account is soft-deleted and anonymized (email, name, avatar, payout methods removed). Content and financial records are kept. This cannot be undone, and is blocked if the user has unsettled payments or an active contract.'
+              : pendingAction.type === 'bulk-delete'
+                ? 'The account is soft-deleted and anonymized (email, name, avatar, payout methods removed). Content and financial records are kept. This cannot be undone, and is blocked if the user has unsettled payments or an active contract.'
+                : pendingAction.type === 'suspend' || pendingAction.type === 'bulk-suspend'
+                  ? "The user can't log in while suspended. Note: a session token they already have stays valid until it naturally expires — suspension doesn't revoke it immediately."
+                  : undefined
           }
           danger={pendingAction.type === 'delete' || pendingAction.type === 'bulk-delete'}
-          confirmLabel={pendingAction.type.includes('delete') ? 'Delete' : pendingAction.type.includes('suspend') ? 'Suspend' : 'Activate'}
+          confirmLabel={
+            pendingAction.type === 'delete' && deletionPreview?.mode === 'hard' ? 'Permanently Delete'
+              : pendingAction.type.includes('delete') ? 'Delete'
+              : pendingAction.type.includes('suspend') ? 'Suspend' : 'Activate'
+          }
           onConfirm={confirmPendingAction}
-          onClose={() => { setPendingAction(null); setActionError('') }}
+          onClose={() => { setPendingAction(null); setActionError(''); setDeletionPreview(null) }}
         />
       )}
       {actionError && (
@@ -560,7 +607,7 @@ function AdminUsersContent() {
                       <h2 className="font-semibold text-gray-900">{modalUser.user.email}</h2>
                       <div className="flex items-center gap-2 mt-0.5">
                         <TypeBadge type={modalUser.user.user_type} />
-                        <StatusBadge active={modalUser.user.is_active} />
+                        <StatusBadge active={modalUser.user.is_active} deletedAt={modalUser.user.deleted_at} />
                       </div>
                     </div>
                   </div>
@@ -787,7 +834,7 @@ function AdminUsersContent() {
                     }`}>
                     {modalUser.user.is_active ? 'Suspend User' : 'Activate User'}
                   </button>
-                  <button onClick={() => { setModalUser(null); setPendingAction({ type: 'delete', userId: modalUser.user.id }) }}
+                  <button onClick={() => { setModalUser(null); openDeleteConfirm(modalUser.user.id) }}
                     className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-lg text-sm font-medium">
                     Delete
                   </button>

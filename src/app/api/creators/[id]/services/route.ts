@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
+import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,7 +43,7 @@ export async function PUT(
 
     const { data: creator } = await supabase
       .from('creators')
-      .select('user_id')
+      .select('user_id, username')
       .eq('id', id)
       .single()
 
@@ -99,6 +100,8 @@ export async function PUT(
 
       savedServices = data || []
     }
+
+    revalidateCreatorPublicSurfaces(creator.username)
 
     return NextResponse.json({ message: 'Services updated successfully', services: savedServices })
 

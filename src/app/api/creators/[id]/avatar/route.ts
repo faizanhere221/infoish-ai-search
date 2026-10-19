@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
+import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,7 +18,7 @@ export async function POST(
 
     const { data: creator } = await supabase
       .from('creators')
-      .select('user_id, profile_photo_url')
+      .select('user_id, username, profile_photo_url')
       .eq('id', id)
       .single()
 
@@ -69,6 +70,8 @@ export async function POST(
       console.error('Error updating profile_photo_url:', updateError)
       return NextResponse.json({ error: 'Failed to save avatar URL' }, { status: 500 })
     }
+
+    revalidateCreatorPublicSurfaces(creator.username)
 
     return NextResponse.json({ profile_photo_url: avatarUrl })
   } catch (error) {

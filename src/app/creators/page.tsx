@@ -1,4 +1,5 @@
 import { createServerSupabase } from '@/lib/db'
+import { getExcludedCreatorUserIdsList } from '@/lib/creators/visibility'
 import CreatorsClient, { type Creator } from './CreatorsClient'
 
 // Revalidate every 30 minutes so Google always sees fresh, server-rendered
@@ -9,9 +10,12 @@ async function getCreators(): Promise<Creator[]> {
   try {
     const supabase = createServerSupabase()
 
+    const excludedUserIds = await getExcludedCreatorUserIdsList(supabase)
     const { data: creators, error } = await supabase
       .from('creators')
       .select('*')
+      .eq('hidden_from_marketplace', false)
+      .not('user_id', 'in', excludedUserIds)
       .order('created_at', { ascending: false })
       .range(0, 99)
 

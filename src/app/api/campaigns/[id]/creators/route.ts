@@ -7,6 +7,7 @@ import { refreshDuePayments } from '@/lib/payments/engine'
 import { expireStaleOffers } from '@/lib/campaign-creator-auth'
 import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
 import { getUserIdFromCreator } from '@/lib/notifications'
+import { isCreatorPublic } from '@/lib/creators/visibility'
 
 export const dynamic = 'force-dynamic'
 
@@ -329,11 +330,22 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const { data: creator } = await supabase
       .from('creators')
-      .select('id')
+      .select('id, user_id, hidden_from_marketplace')
       .eq('id', parsed.data.creator_id)
       .single()
 
     if (!creator) {
+      return NextResponse.json({ error: 'Creator not found' }, { status: 404 })
+    }
+
+    // Attaching a creator to a campaign is a new, forward-looking
+    // discovery action — a deleted/suspended/admin-hidden creator can't be
+    // added going forward, same rule as everywhere else a brand discovers
+    // creators. A row already on the tracker from before deletion is a
+    // different thing (an existing engagement record) and is untouched by
+    // this check — see GET above, which never filters existing rows.
+    const { data: ownerUser } = await supabase.from('users').select('deleted_at, is_active').eq('id', creator.user_id).single()
+    if (!isCreatorPublic(ownerUser, creator)) {
       return NextResponse.json({ error: 'Creator not found' }, { status: 404 })
     }
 

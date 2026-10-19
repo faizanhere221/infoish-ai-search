@@ -298,6 +298,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const handleLogout = async () => {
     try { await fetch('/api/admin/auth/logout', { method: 'POST' }) } finally {
       localStorage.removeItem('admin_email')
+      localStorage.removeItem('admin_role')
       router.push('/admin/login')
     }
   }

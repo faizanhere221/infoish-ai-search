@@ -34,6 +34,7 @@ export default function AdminLoginPage() {
       }
 
       localStorage.setItem('admin_email', data.user?.email ?? email)
+      localStorage.setItem('admin_role', data.user?.role ?? 'admin')
       router.push('/admin/dashboard')
     } catch {
       setError('Network error. Please try again.')

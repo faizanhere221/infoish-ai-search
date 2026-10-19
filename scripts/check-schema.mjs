@@ -202,6 +202,7 @@ const MIGRATION_ORDER = [
   'drift_fix_migration.sql',
   'phase7a_admin_migration.sql',
   'phase7b_admin_migration.sql',
+  'creator_visibility_migration.sql',
 ]
 
 function main() {

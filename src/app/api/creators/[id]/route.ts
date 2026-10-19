@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
+import { isCreatorPublic } from '@/lib/creators/visibility'
+import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,8 +32,9 @@ export async function GET(
 
     // Check if it's a UUID or username
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
-    
+
     let creator = null
+    let foundByUsername = false
 
     if (isUUID) {
       // Try user_id first
@@ -62,9 +65,10 @@ export async function GET(
         .select('*')
         .eq('username', id.toLowerCase())
         .single()
-      
+
       if (byUsername) {
         creator = byUsername
+        foundByUsername = true
       }
     }
 
@@ -73,6 +77,27 @@ export async function GET(
         { error: 'Creator not found' },
         { status: 404 }
       )
+    }
+
+    // Looking this up by username is always the public profile path (the
+    // only caller that ever resolves this way) — a deleted, suspended, or
+    // admin-hidden creator 404s here exactly like a nonexistent username
+    // would. Lookups by id/user_id are internal (settings viewing its own
+    // profile, an existing campaign offer, a legacy-deal prefill) and must
+    // keep resolving after deletion — same "Deleted user" rule as every
+    // other brand-side record, not a public surface.
+    if (foundByUsername) {
+      const { data: ownerUser } = await supabase
+        .from('users')
+        .select('deleted_at, is_active')
+        .eq('id', creator.user_id)
+        .single()
+      if (!isCreatorPublic(ownerUser, creator)) {
+        return NextResponse.json(
+          { error: 'Creator not found' },
+          { status: 404 }
+        )
+      }
     }
 
     // Fetch platforms separately
@@ -161,6 +186,8 @@ export async function PUT(
         { status: 500 }
       )
     }
+
+    revalidateCreatorPublicSurfaces(creator.username)
 
     return NextResponse.json({
       message: 'Creator updated successfully',

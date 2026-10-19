@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { updateReferralOnProfileComplete } from '@/lib/referral'
+import { getExcludedCreatorUserIdsList } from '@/lib/creators/visibility'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +24,13 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('creators')
       .select('*', { count: 'exact' })
+      .eq('hidden_from_marketplace', false)
+
+    // Deleted/suspended creators never appear on this public surface,
+    // regardless of what other filters are applied — see
+    // src/lib/creators/visibility.ts.
+    const excludedUserIds = await getExcludedCreatorUserIdsList(supabase)
+    query = query.not('user_id', 'in', excludedUserIds)
 
     // Platform lives on creator_platforms, not creators — resolve matching
     // creator ids first so it can be applied as a plain .in() filter below.

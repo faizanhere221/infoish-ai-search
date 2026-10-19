@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createServerSupabase()
     const { searchParams } = new URL(request.url)
+    const callerRole = request.headers.get('x-user-role') ?? 'user'
 
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20')))
@@ -27,21 +28,29 @@ export async function GET(request: NextRequest) {
     const sortBy = VALID_SORT.has(searchParams.get('sort_by') ?? '') ? (searchParams.get('sort_by') as string) : 'created_at'
     const sortAsc = searchParams.get('sort_order') === 'asc'
 
-    const emailSearch = search.includes('@') ? search : ''
-    const needsUserFilter = status !== 'all' || !!emailSearch
+    if (status === 'deleted' && callerRole !== 'super_admin') {
+      return NextResponse.json({ error: 'Super admin only' }, { status: 403 })
+    }
 
-    let userIdFilter: string[] | null = null
-    if (needsUserFilter) {
-      let userQuery = supabase.from('users').select('id').eq('user_type', 'brand')
+    const emailSearch = search.includes('@') ? search : ''
+
+    // Always resolved now, not just when another user-level filter is
+    // active — deleted accounts must be excluded by default regardless.
+    // Only the super_admin-only status=deleted view shows them.
+    let userQuery = supabase.from('users').select('id').eq('user_type', 'brand')
+    if (status === 'deleted') {
+      userQuery = userQuery.not('deleted_at', 'is', null)
+    } else {
+      userQuery = userQuery.is('deleted_at', null)
       if (status === 'active') {userQuery = userQuery.eq('is_active', true)}
       if (status === 'suspended') {userQuery = userQuery.eq('is_active', false)}
-      if (emailSearch) {userQuery = userQuery.ilike('email', `%${emailSearch}%`)}
+    }
+    if (emailSearch) {userQuery = userQuery.ilike('email', `%${emailSearch}%`)}
 
-      const { data: matchedUsers } = await userQuery
-      userIdFilter = (matchedUsers ?? []).map(u => u.id)
-      if (userIdFilter.length === 0) {
-        return NextResponse.json({ brands: [], total: 0, page, limit })
-      }
+    const { data: matchedUsers } = await userQuery
+    const userIdFilter = (matchedUsers ?? []).map(u => u.id)
+    if (userIdFilter.length === 0) {
+      return NextResponse.json({ brands: [], total: 0, page, limit })
     }
 
     let query = supabase
@@ -64,7 +73,7 @@ export async function GET(request: NextRequest) {
     if (verificationStatus) {query = query.eq('verification_status', verificationStatus)}
     if (dateFrom) {query = query.gte('created_at', dateFrom)}
     if (dateTo) {query = query.lte('created_at', dateTo + 'T23:59:59')}
-    if (userIdFilter) {query = query.in('user_id', userIdFilter)}
+    query = query.in('user_id', userIdFilter)
 
     const { data: brands, count, error } = await query
     if (error) {throw error}
@@ -76,7 +85,7 @@ export async function GET(request: NextRequest) {
     const userIds = brands.map(b => b.user_id)
     const { data: users } = await supabase
       .from('users')
-      .select('id, email, is_active, last_login_at, role')
+      .select('id, email, is_active, deleted_at, last_login_at, role')
       .in('id', userIds)
 
     const userMap = new Map((users ?? []).map(u => [u.id, u]))
@@ -84,6 +93,7 @@ export async function GET(request: NextRequest) {
       ...b,
       email: userMap.get(b.user_id)?.email ?? '',
       is_active: userMap.get(b.user_id)?.is_active ?? true,
+      deleted_at: userMap.get(b.user_id)?.deleted_at ?? null,
       last_login_at: userMap.get(b.user_id)?.last_login_at ?? null,
       role: userMap.get(b.user_id)?.role ?? 'user',
     }))

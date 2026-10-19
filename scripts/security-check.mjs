@@ -78,6 +78,16 @@ const ADMIN_TEST_TARGET_USER_ID = getEnv('ADMIN_TEST_TARGET_USER_ID')
 // account — never a real brand/creator.
 const RATE_LIMIT_TEST_REPORTED_USER_ID = getEnv('RATE_LIMIT_TEST_REPORTED_USER_ID')
 
+// Optional — creator marketplace visibility checks, skipped if blank.
+// Usernames (not ids) of three different real creators in your dev data:
+// one already soft-deleted, one suspended (is_active=false), one an admin
+// has hidden via the "Hide from marketplace" toggle
+// (creators.hidden_from_marketplace=true). All three must never appear on
+// a public creator surface. Read-only — these checks never write data.
+const DELETED_CREATOR_USERNAME = getEnv('DELETED_CREATOR_USERNAME')
+const SUSPENDED_CREATOR_USERNAME = getEnv('SUSPENDED_CREATOR_USERNAME')
+const HIDDEN_CREATOR_USERNAME = getEnv('HIDDEN_CREATOR_USERNAME')
+
 // Optional — Phase 6B (email) checks, skipped if blank.
 // A fresh, unused password-reset token's raw value (not its hash) — trigger
 // POST /api/auth/forgot-password for a disposable test account, then copy
@@ -865,6 +875,35 @@ async function main() {
     })
   } else {
     skip('POST /api/reports rate limits a reporter at 5/hour', 'RATE_LIMIT_TEST_REPORTED_USER_ID not set — see .env.test.example (WRITES DATA)')
+  }
+
+  // ── Creator marketplace visibility ──────────────────────────────────────────
+
+  if (DELETED_CREATOR_USERNAME) {
+    await check("A deleted creator's profile page returns 404", async () => {
+      const res = await request(`/creators/${DELETED_CREATOR_USERNAME}`)
+      return { pass: res.status === 404, detail: `status ${res.status}` }
+    })
+  } else {
+    skip("A deleted creator's profile page returns 404", 'DELETED_CREATOR_USERNAME not set')
+  }
+
+  const MARKETPLACE_EXCLUDED_CREATORS = [
+    ['a deleted', DELETED_CREATOR_USERNAME],
+    ['a suspended', SUSPENDED_CREATOR_USERNAME],
+    ['an admin-hidden', HIDDEN_CREATOR_USERNAME],
+  ]
+  for (const [label, username] of MARKETPLACE_EXCLUDED_CREATORS) {
+    if (!username) {
+      skip(`GET /api/creators never contains ${label} creator`, `${label === 'a deleted' ? 'DELETED' : label === 'a suspended' ? 'SUSPENDED' : 'HIDDEN'}_CREATOR_USERNAME not set`)
+      continue
+    }
+    await check(`GET /api/creators never contains ${label} creator (search=${username})`, async () => {
+      const res = await request(`/api/creators?search=${encodeURIComponent(username)}&limit=50`)
+      const text = await res.text()
+      const leaked = text.includes(`"username":"${username}"`)
+      return { pass: res.status === 200 && !leaked, detail: `status ${res.status}, leaked: ${leaked}` }
+    })
   }
 
   // Positive controls — if these fail, every 404 above might just mean the
