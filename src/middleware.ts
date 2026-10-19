@@ -53,7 +53,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://lh3.googleusercontent.com https://ypdspiwxsojwjzbagaip.supabase.co",
   "font-src 'self'",
-  "connect-src 'self' https://www.google-analytics.com https://ypdspiwxsojwjzbagaip.supabase.co",
+  "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://ypdspiwxsojwjzbagaip.supabase.co",
   "frame-ancestors 'none'",
 ].join('; ')
 
