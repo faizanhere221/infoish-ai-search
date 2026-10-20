@@ -203,7 +203,99 @@ const MIGRATION_ORDER = [
   'phase7a_admin_migration.sql',
   'phase7b_admin_migration.sql',
   'creator_visibility_migration.sql',
+  'grants_migration.sql',
 ]
+
+// Advisory only (never affects the exit code) — see CLAUDE.md's grants
+// rule and supabase/grants_migration.sql. Supabase's Oct 30 change
+// stopped auto-granting Data API access to new `public` tables, so a
+// table missing a service_role grant is silently unreachable by this
+// app's own service-role key; a table with RLS disabled or a grant to
+// anon/authenticated is a real exposure, since this app's RLS policies
+// are decorative (custom JWT, not Supabase Auth — nothing ever resolves
+// auth.uid()). Reported as warnings for the user to review, not failed
+// on, since fixing them is a deliberate per-table decision, not
+// something this script should block a clean run over.
+const REQUIRED_PRIVILEGES = ['SELECT', 'INSERT', 'UPDATE', 'DELETE']
+
+function checkGrantsAndRls() {
+  const tableRows = psqlRows(`SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename`)
+  const tables = tableRows.map(([t]) => t)
+
+  const rlsRows = psqlRows(
+    `SELECT c.relname, c.relrowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind = 'r'`
+  )
+  const rlsByTable = new Map(rlsRows.map(([name, enabled]) => [name, enabled === 't']))
+
+  const grantRows = psqlRows(
+    `SELECT table_name, grantee, privilege_type FROM information_schema.role_table_grants WHERE table_schema = 'public'`
+  )
+  const serviceRolePrivileges = new Map() // table -> Set(privilege)
+  const unsafeGrantees = new Map() // table -> Set("grantee:privilege")
+  for (const [table, grantee, privilege] of grantRows) {
+    if (grantee === 'service_role') {
+      if (!serviceRolePrivileges.has(table)) {serviceRolePrivileges.set(table, new Set())}
+      serviceRolePrivileges.get(table).add(privilege)
+    } else if (grantee === 'anon' || grantee === 'authenticated') {
+      if (!unsafeGrantees.has(table)) {unsafeGrantees.set(table, new Set())}
+      unsafeGrantees.get(table).add(`${grantee}:${privilege}`)
+    }
+  }
+
+  const missingServiceRole = []
+  const rlsDisabled = []
+  const unsafeGrants = []
+
+  for (const table of tables) {
+    const present = serviceRolePrivileges.get(table) ?? new Set()
+    const missing = REQUIRED_PRIVILEGES.filter((p) => !present.has(p))
+    if (missing.length > 0) {missingServiceRole.push(`${table} (missing: ${missing.join(', ')})`)}
+
+    if (rlsByTable.get(table) === false) {rlsDisabled.push(table)}
+
+    if (unsafeGrantees.has(table)) {unsafeGrants.push(`${table} (${[...unsafeGrantees.get(table)].sort().join(', ')})`)}
+  }
+
+  // Beyond what was asked: a table can have RLS enabled AND a grant to
+  // anon/authenticated and still be fully safe, if it simply has zero
+  // policies — Postgres denies by default when RLS is on and no policy
+  // matches. What's actually exploitable is a *permissive* policy
+  // (qual = unconditional true) that still applies to public/anon/
+  // authenticated — that combination means literal direct unauthenticated
+  // read/write through Supabase's own REST API, bypassing this app
+  // entirely. Surfaced separately because it's a different severity than
+  // "has a grant" alone, and this check turned up real, live instances of
+  // it (see the chat reply, not just this script's output).
+  const permissiveRows = psqlRows(
+    `SELECT tablename, policyname, cmd, roles::text FROM pg_policies WHERE schemaname = 'public' AND qual = 'true'`
+  )
+  const exploitablePermissive = permissiveRows.filter(([, , , roles]) =>
+    /\b(public|anon|authenticated)\b/.test(roles)
+  )
+
+  console.log('Grants & RLS (advisory — see CLAUDE.md\'s grants rule):')
+  if (missingServiceRole.length === 0 && rlsDisabled.length === 0 && unsafeGrants.length === 0 && exploitablePermissive.length === 0) {
+    console.log('  All public tables have full service_role grants, RLS enabled, no anon/authenticated grants, and no unconditionally-permissive policy.\n')
+    return
+  }
+  if (missingServiceRole.length > 0) {
+    console.log('  WARNING: tables missing service_role privileges (run supabase/grants_migration.sql, or grant per-table):')
+    for (const t of missingServiceRole) {console.log(`    ${t}`)}
+  }
+  if (rlsDisabled.length > 0) {
+    console.log('  WARNING: tables with RLS disabled:')
+    for (const t of rlsDisabled) {console.log(`    ${t}`)}
+  }
+  if (unsafeGrants.length > 0) {
+    console.log('  WARNING: tables with an anon/authenticated grant (should never have one):')
+    for (const t of unsafeGrants) {console.log(`    ${t}`)}
+  }
+  if (exploitablePermissive.length > 0) {
+    console.log('  CRITICAL: tables with an unconditionally-permissive RLS policy open to public/anon/authenticated — this is real, live, unauthenticated read/write access via the Supabase REST API, not just a theoretical grant:')
+    for (const [table, policy, cmd, roles] of exploitablePermissive) {console.log(`    ${table} — policy "${policy}" (${cmd}, roles ${roles})`)}
+  }
+  console.log('')
+}
 
 function main() {
   console.log(`Checking live schema against supabase/ migration files...\n`)
@@ -265,6 +357,8 @@ function main() {
       totalMissing += missing.length
     }
   }
+
+  checkGrantsAndRls()
 
   console.log('Storage buckets:')
   const buckets = psqlRows(`SELECT id, public FROM storage.buckets ORDER BY id`)
