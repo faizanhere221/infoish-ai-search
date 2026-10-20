@@ -38,6 +38,15 @@ function loadEnvFile(filePath) {
 const fileEnv = loadEnvFile(path.join(REPO_ROOT, '.env.test.local'))
 const getEnv = (key) => process.env[key] ?? fileEnv[key] ?? ''
 
+// NEXT_PUBLIC_* vars are public by design — read straight from .env.local
+// (not the gitignored .env.test.local above) for the Supabase lockdown
+// checks, which hit the Supabase REST API directly rather than this
+// app's own routes.
+const localEnv = loadEnvFile(path.join(REPO_ROOT, '.env.local'))
+const getLocalEnv = (key) => process.env[key] ?? localEnv[key] ?? ''
+const SUPABASE_URL = getLocalEnv('NEXT_PUBLIC_SUPABASE_URL')
+const SUPABASE_ANON_KEY = getLocalEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+
 const BASE_URL = getEnv('BASE_URL') || 'http://localhost:3000'
 const BRAND_A_TOKEN = getEnv('BRAND_A_TOKEN')
 const CREATOR_A_TOKEN = getEnv('CREATOR_A_TOKEN')
@@ -947,6 +956,65 @@ async function main() {
     })
   } else {
     skip('[control] Brand A / Creator A CAN read the contract', 'CONTRACT_ID not set')
+  }
+
+  // ── Supabase public-schema lockdown ─────────────────────────────────────────
+  // Hits the Supabase REST API directly with ONLY the anon key — not this
+  // app's own routes — to prove supabase/lockdown_migration.sql actually
+  // took effect: no table is anon-readable/writable, and no RPC function
+  // is anon-callable, regardless of what any app-layer auth check says.
+
+  if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+    const anonHeaders = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+    }
+
+    const LOCKED_TABLES = ['users', 'messages', 'creator_payments', 'payout_methods']
+    for (const table of LOCKED_TABLES) {
+      await check(`Anon key gets an error or empty array (never rows) reading public.${table}`, async () => {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&limit=1`, { headers: anonHeaders })
+        if (res.status !== 200) {return { pass: true, detail: `status ${res.status}` }}
+        const body = await res.json().catch(() => null)
+        const rowCount = Array.isArray(body) ? body.length : -1
+        return { pass: rowCount === 0, detail: `status 200, rows: ${rowCount}` }
+      })
+    }
+
+    await check('Anon PATCH on public.users fails', async () => {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.00000000-0000-0000-0000-000000000000`, {
+        method: 'PATCH',
+        headers: anonHeaders,
+        body: JSON.stringify({ role: 'super_admin' }),
+      })
+      return { pass: res.status < 200 || res.status >= 300, detail: `status ${res.status}` }
+    })
+
+    // Every RPC function that existed in public as of this migration —
+    // not auto-discovered, so a function added later needs adding here
+    // too (or just trust the blanket REVOKE EXECUTE in the migration and
+    // treat this list as a spot-check, not exhaustive coverage).
+    const RPC_FUNCTIONS = [
+      'accept_campaign_offer', 'campaign_applications_count_sync', 'campaign_hired_count_sync',
+      'check_rate_limit', 'creators_search_vector_update', 'increment_email_daily_count',
+      'referral_payouts_paid_sync', 'referral_signups_count_sync', 'send_conversation_message',
+      'split_payment', 'sync_campaign_creator_status', 'update_influencer_auth_timestamp',
+      'update_newsletter_updated_at', 'update_tool_subscription', 'update_updated_at',
+      'update_updated_at_column',
+    ]
+    for (const fn of RPC_FUNCTIONS) {
+      await check(`Anon POST to /rest/v1/rpc/${fn} fails`, async () => {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+          method: 'POST',
+          headers: anonHeaders,
+          body: '{}',
+        })
+        return { pass: res.status < 200 || res.status >= 300, detail: `status ${res.status}` }
+      })
+    }
+  } else {
+    skip('Supabase public-schema lockdown checks', 'NEXT_PUBLIC_SUPABASE_URL/NEXT_PUBLIC_SUPABASE_ANON_KEY not found in .env.local')
   }
 
   console.log(`\n${passCount} passed, ${failCount} failed, ${skipCount} skipped`)

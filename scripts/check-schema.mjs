@@ -204,6 +204,7 @@ const MIGRATION_ORDER = [
   'phase7b_admin_migration.sql',
   'creator_visibility_migration.sql',
   'grants_migration.sql',
+  'lockdown_migration.sql',
 ]
 
 // Advisory only (never affects the exit code) — see CLAUDE.md's grants
