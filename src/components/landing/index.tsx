@@ -90,6 +90,10 @@ export function Navigation() {
               Campaigns
             </Link>
 
+            <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
+              Pricing
+            </Link>
+
             <Link href="/blog" className="text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1">
               <BookOpen className="w-4 h-4" />
               Blog
@@ -193,6 +197,10 @@ export function Navigation() {
 
               <Link href="/campaigns" className="text-gray-600 hover:text-gray-900 font-medium py-2">
                 Campaigns
+              </Link>
+
+              <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium py-2">
+                Pricing
               </Link>
 
               <Link href="/blog" className="text-gray-600 hover:text-gray-900 font-medium py-2">

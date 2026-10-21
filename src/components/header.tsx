@@ -308,6 +308,13 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
               </div>
 
               <Link
+                href="/pricing"
+                className="px-4 py-2 text-gray-700 hover:text-brand-purple hover:bg-brand-pink/10 font-medium rounded-lg transition-all"
+              >
+                Pricing
+              </Link>
+
+              <Link
                 href="/blog"
                 className="px-4 py-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 font-medium rounded-lg transition-all"
               >
@@ -661,6 +668,14 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                     ))}
                   </div>
                 )}
+
+                <Link
+                  href="/pricing"
+                  className="text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Pricing
+                </Link>
 
                 <Link
                   href="/blog"
