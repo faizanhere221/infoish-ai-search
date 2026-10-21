@@ -75,8 +75,11 @@ const CSP = [
   // — wildcarding the two base domains covers all of them instead of
   // chasing each one by name. stats.g.doubleclick.net: GA4's
   // conversion-linking/ads-attribution beacon, hit even without a
-  // separate Google Ads integration wired up.
-  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://ypdspiwxsojwjzbagaip.supabase.co",
+  // separate Google Ads integration wired up. www.googletagmanager.com:
+  // once gtag.js loads (allowed via script-src), it fetches its container
+  // config back from googletagmanager.com — without it here that fetch is
+  // blocked and GA4 never initializes, so zero collect requests go out.
+  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://www.googletagmanager.com https://ypdspiwxsojwjzbagaip.supabase.co",
   "frame-ancestors 'none'",
 ].join('; ')
 
