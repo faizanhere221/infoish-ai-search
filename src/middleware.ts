@@ -49,8 +49,16 @@ function stripAuthHeaders(request: NextRequest): Headers {
 // (see config.matcher below — now all page routes, not just /api and /admin).
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
+  // blob:: GA4's gtag.js bundle spins up a web worker from a blob: URL.
+  // worker-src isn't set explicitly below (it used to just fall back to
+  // script-src), so script-src itself needs blob: too or that worker
+  // creation is a CSP violation that throws and halts page JS — including
+  // CookieConsent mounting, which is how GA4 was failing to load at all.
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://www.googletagmanager.com https://www.google-analytics.com",
   "style-src 'self' 'unsafe-inline'",
+  // Explicit worker-src so worker permissions don't rely on the script-src
+  // fallback above.
+  "worker-src 'self' blob:",
   // https://www.website.show: the homepage footer's "Featured on
   // website.show" directory badge — an external, unoptimized SVG served
   // straight from their domain (next/image's `unoptimized` skips our own
