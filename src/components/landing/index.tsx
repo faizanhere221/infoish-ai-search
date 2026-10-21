@@ -1331,6 +1331,24 @@ export function Footer() {
         </div>
 
         <div className="pt-8 border-t border-gray-800 text-sm text-center">
+          <div className="flex justify-center md:justify-start mb-6">
+            {/* eslint-disable-next-line react/jsx-no-target-blank -- deliberately noopener only, not noreferrer: this is a directory listing badge, and noreferrer would strip the Referer header website.show may use to verify the listing, which the backlink itself (crawled, not click-tracked) doesn't need removed. */}
+            <a
+              href="https://www.website.show"
+              title="Featured on website.show"
+              target="_blank"
+              rel="noopener"
+              className="inline-block rounded focus:outline-none focus:ring-2 focus:ring-brand-pink focus:ring-offset-2 focus:ring-offset-[#1A1A2E]"
+            >
+              <Image
+                src="https://www.website.show/badge/websiteshow-badge-light-c1.svg"
+                alt="Featured on website.show"
+                width={216}
+                height={64}
+                unoptimized
+              />
+            </a>
+          </div>
           {/* getUTCFullYear(), not getFullYear() — avoids a one-year hydration mismatch near a UTC year boundary (server renders UTC, browser renders local). */}
           <p>© {new Date().getUTCFullYear()} Infoishai. All rights reserved. | Find Tech Influencers Marketplace</p>
         </div>

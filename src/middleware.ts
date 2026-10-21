@@ -51,7 +51,11 @@ const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://lh3.googleusercontent.com https://ypdspiwxsojwjzbagaip.supabase.co",
+  // https://www.website.show: the homepage footer's "Featured on
+  // website.show" directory badge — an external, unoptimized SVG served
+  // straight from their domain (next/image's `unoptimized` skips our own
+  // image optimizer, so the browser fetches it directly).
+  "img-src 'self' data: blob: https://lh3.googleusercontent.com https://ypdspiwxsojwjzbagaip.supabase.co https://www.website.show",
   "font-src 'self'",
   "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://ypdspiwxsojwjzbagaip.supabase.co",
   "frame-ancestors 'none'",
