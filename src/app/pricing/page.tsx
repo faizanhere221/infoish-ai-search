@@ -30,6 +30,7 @@ interface Tier {
   description: string
   features: string[]
   popular?: boolean
+  ctaLabel?: string
 }
 
 const TIERS: Tier[] = [
@@ -71,16 +72,20 @@ const TIERS: Tier[] = [
     popular: true,
   },
   {
-    name: 'Monthly Retainer',
-    price: '$100–$200',
-    unit: 'per month',
-    description: 'Ongoing influencer marketing support. Get monthly creator matches, one managed campaign, and priority response times.',
+    name: 'Dedicated Marketing Partner',
+    price: 'Let’s Talk',
+    unit: '',
+    description: 'We become your influencer marketing team. You focus on your product. We handle creator strategy, outreach, campaigns, content, and reporting across all your launches.',
     features: [
-      '3 creator matches per month',
-      '1 fully managed campaign per month',
-      'Priority response (under 12 hours)',
-      'Monthly performance report',
+      'Dedicated account manager for your brand',
+      'Unlimited creator matching and outreach',
+      'Full campaign management across all your product launches',
+      'Content strategy, review, and approval coordination',
+      'Creator relationship management (re-bookings, long-term deals)',
+      'Weekly performance reports and ROI tracking',
+      'Priority support with under 6 hour response time',
     ],
+    ctaLabel: 'Contact Us',
   },
 ]
 
@@ -125,7 +130,7 @@ function PricingCard({ tier }: { tier: Tier }) {
       <h2 className="text-lg font-bold text-gray-900">{tier.name}</h2>
       <div className="mt-2 mb-3">
         <span className="text-3xl font-bold text-gray-900">{tier.price}</span>
-        <span className="ml-1.5 text-sm text-gray-500">{tier.unit}</span>
+        {tier.unit && <span className="ml-1.5 text-sm text-gray-500">{tier.unit}</span>}
       </div>
       <p className="text-sm text-gray-600 mb-5">{tier.description}</p>
 
@@ -142,7 +147,7 @@ function PricingCard({ tier }: { tier: Tier }) {
         href="/contact"
         className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-brand-pink to-brand-purple px-5 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-brand-pink/25"
       >
-        Get Started
+        {tier.ctaLabel ?? 'Get Started'}
         <ArrowRight className="h-4 w-4" />
       </Link>
     </div>
