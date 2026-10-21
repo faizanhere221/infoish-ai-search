@@ -40,7 +40,7 @@ const TIERS: Tier[] = [
     description: 'Get 3–5 matched tech creators with audience data, engagement rates, and pricing. Delivered within 48 hours.',
     features: [
       'Creators matched to your niche, budget, and target audience',
-      'Full profile breakdown: audience demographics, engagement rate, past brand work',
+      'Full profile breakdown: audience demographics, engagement rate',
       'Creator rate cards included',
       'Delivered as a ready-to-use shortlist',
     ],
@@ -182,7 +182,7 @@ export default function PricingPage() {
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl border border-gray-200 bg-gray-50 p-8 text-center">
             <p className="mx-auto mb-5 max-w-2xl text-gray-700">
-              Looking for a self-service option? Browse 2,000+ verified tech creators and run campaigns yourself. No account fees, no commissions, no catches.
+              Looking for a self-service option? Browse verified tech creators and run campaigns yourself. No account fees, no commissions, no catches.
             </p>
             <Link
               href="/creators"
