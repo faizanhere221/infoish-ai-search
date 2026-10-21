@@ -58,11 +58,13 @@ export const metadata: Metadata = {
     publishedTime: '2025-12-27T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['Micro-Influencers', 'Influencer Marketing Pakistan', 'Instagram Marketing', 'Marketing Strategy'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Micro-Influencers in Pakistan: 3x More Engagement Than Celebrities (Data + Rates)',
     description: 'Pakistani micro-influencers deliver 3x higher engagement at PKR 5,000 to PKR 25,000 per post. See real rate comparisons, engagement data, and a step-by-step guide to finding verified micro-influencers for your brand.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/micro-influencers-pakistan-guide'
@@ -74,7 +76,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'Micro-Influencers in Pakistan: 3x More Engagement Than Celebrities (Data + Rates)',
   description: 'Pakistani micro-influencers deliver 3x higher engagement at PKR 5,000 to PKR 25,000 per post. See real rate comparisons, engagement data, and a step-by-step guide to finding verified micro-influencers for your brand.',
-  image: 'https://infoishai.com/blog/micro-influencers-pakistan-guide.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2025-12-27',
   dateModified: '2026-10-11',
   author: {

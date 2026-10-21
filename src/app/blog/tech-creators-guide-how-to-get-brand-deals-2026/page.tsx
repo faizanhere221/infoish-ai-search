@@ -27,11 +27,13 @@ export const metadata: Metadata = {
     publishedTime: '2026-07-15T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['Tech Creators', 'Brand Deals', 'Sponsorships', 'Creator Economy'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'How to Get Tech Brand Deals in 2026: Step-by-Step Guide for Creators',
     description: 'Get brand deals as a tech creator. Step-by-step guide covering media kits, rate setting (with 2026 rate tables), outreach templates, and where to find sponsorship opportunities. Works for YouTubers, Twitter, and LinkedIn creators.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/tech-creators-guide-how-to-get-brand-deals-2026'
@@ -43,7 +45,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: "Tech Creator's Guide: How to Get Brand Deals in 2026",
   description: 'Step-by-step guide for tech creators to land paid brand sponsorships in 2026. Covers profile building, rate setting, pitching, and platforms.',
-  image: 'https://infoishai.com/blog/tech-creators-guide-brand-deals-2026.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-07-15',
   dateModified: '2026-07-15',
   author: {

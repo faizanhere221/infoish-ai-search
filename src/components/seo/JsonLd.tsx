@@ -65,12 +65,39 @@ export function SoftwareApplicationJsonLd() {
       price: '0',
       priceCurrency: 'USD',
     },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.9',
-      ratingCount: '500',
-      bestRating: '5',
-      worstRating: '1',
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+export function PersonJsonLd({
+  name,
+  username,
+  description,
+  image,
+  sameAs,
+}: {
+  name: string
+  username: string
+  description?: string
+  image?: string
+  sameAs?: string[]
+}) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    mainEntity: {
+      '@type': 'Person',
+      name,
+      url: `${BASE_URL}/creators/${username}`,
+      ...(description && { description }),
+      ...(image && { image }),
+      ...(sameAs && sameAs.length > 0 && { sameAs }),
     },
   }
 

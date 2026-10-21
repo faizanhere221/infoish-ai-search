@@ -21,7 +21,7 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: '200+ Canadian Tech Influencers | Rates in CAD | Infoishai',
+  title: { absolute: '200+ Canadian Tech Influencers | Rates in CAD | Infoishai' },
   description:
     'Browse 200+ verified Canadian tech influencers. Filter by niche, platform, budget. Compare rates in CAD. Free messaging. No subscription.',
   keywords: [
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     url: 'https://infoishai.com/influencers/canada',
     siteName: 'Infoishai',
     type: 'website',
-    images: [{ url: 'https://infoishai.com/images/canada-tech-influencers.jpg', width: 1200, height: 630, alt: 'Tech influencers in Canada' }],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Tech influencers in Canada' }],
   },
   twitter: {
     card: 'summary_large_image',

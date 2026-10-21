@@ -25,8 +25,8 @@ import { Navigation, Footer } from '@/components/landing'
 // SEO METADATA
 // ============================================================================
 export const metadata: Metadata = {
-  title: 'About Us | Free Tech Influencer Marketplace for B2B Brands',
-  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Trusted by startups and enterprises in 55+ countries.',
+  title: 'About Us | Free Tech Influencer Marketplace',
+  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search, trusted in 55+ countries.',
   keywords: [
     'about infoishai',
     'tech influencer platform',
@@ -37,16 +37,18 @@ export const metadata: Metadata = {
     'tech creator discovery',
   ],
   openGraph: {
-    title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
-    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Trusted by startups and enterprises in 55+ countries.',
+    title: 'About Infoishai | Free Tech Influencer Marketplace',
+    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search, trusted in 55+ countries.',
     url: 'https://infoishai.com/about',
     siteName: 'Infoishai',
     type: 'website',
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'About Infoishai' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'About Infoishai | Free Tech Influencer Marketplace for B2B Brands',
-    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search. Trusted by startups and enterprises in 55+ countries.',
+    title: 'About Infoishai | Free Tech Influencer Marketplace',
+    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search, trusted in 55+ countries.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/about',

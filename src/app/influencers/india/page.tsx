@@ -22,7 +22,7 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: '800+ Indian Tech Influencers | Rates from INR 5,000 | Infoishai',
+  title: { absolute: '800+ Indian Tech Influencers | Rates from INR 5,000 | Infoishai' },
   description:
     'Browse 800+ verified Indian tech influencers. Filter by niche, platform, budget. Compare rates in INR. Free messaging. No subscription.',
   keywords: [
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     url: 'https://infoishai.com/influencers/india',
     siteName: 'Infoishai',
     type: 'website',
-    images: [{ url: 'https://infoishai.com/images/india-tech-influencers.jpg', width: 1200, height: 630, alt: 'Tech influencers in India' }],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Tech influencers in India' }],
   },
   twitter: {
     card: 'summary_large_image',

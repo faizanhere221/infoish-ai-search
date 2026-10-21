@@ -27,11 +27,13 @@ export const metadata: Metadata = {
     publishedTime: '2026-07-15T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['B2B Marketing', 'B2C Marketing', 'Influencer Marketing', 'Tech Marketing'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'B2B vs B2C Influencer Marketing: Key Differences for Tech Brands (2026)',
     description: 'What are the differences between B2B and B2C influencer marketing? Side-by-side comparison of platforms, content formats, budgets, metrics, and creator selection for tech brands. Data-backed guide with rate tables.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/b2b-vs-b2c-influencer-marketing-tech-2026'
@@ -43,7 +45,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'B2B vs B2C Influencer Marketing: What Works for Tech in 2026',
   description: 'B2B and B2C influencer marketing work differently for tech brands. Compare strategies, platforms, and ROI.',
-  image: 'https://infoishai.com/blog/b2b-vs-b2c-influencer-marketing-2026.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-07-15',
   dateModified: '2026-07-15',
   author: {

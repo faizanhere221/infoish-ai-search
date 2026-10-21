@@ -1,5 +1,7 @@
 import { Metadata } from 'next'
 
+export const revalidate = 3600
+
 export const metadata: Metadata = {
   title: { absolute: 'Tech Influencer Campaigns | Find Brand Deals | Infoishai' },
   description:
@@ -30,6 +32,7 @@ export const metadata: Metadata = {
     title: 'Tech Influencer Campaigns | Find Brand Deals | Infoishai',
     description:
       'Browse sponsorship campaigns from tech, AI, and SaaS brands. Apply directly and land your next brand deal — free to join.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/campaigns',

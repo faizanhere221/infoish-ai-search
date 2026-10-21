@@ -25,11 +25,13 @@ export const metadata: Metadata = {
     publishedTime: '2026-08-12T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['Creators', 'Media Kit', 'Tech Influencers', 'Sponsorships'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'How to Build a Creator Media Kit: Guide for Tech Influencers',
     description: 'Step-by-step guide to building a media kit as a tech creator. Includes template structure, what to include, and what to skip.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/creator-media-kit-guide-tech-influencers'
@@ -41,7 +43,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'How to Build a Creator Media Kit: Guide for Tech Influencers',
   description: 'Step-by-step guide to building a media kit as a tech creator. Includes template structure, what to include, and what to skip.',
-  image: 'https://infoishai.com/blog/creator-media-kit-guide.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-08-12',
   dateModified: '2026-08-12',
   author: {

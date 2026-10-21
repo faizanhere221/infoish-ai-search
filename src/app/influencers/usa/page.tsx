@@ -21,7 +21,7 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: '500+ US Tech Influencers | Free Search & Messaging | Infoishai',
+  title: { absolute: '500+ US Tech Influencers | Free Search & Messaging | Infoishai' },
   description:
     'Browse 500+ verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No subscription.',
   keywords: [
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     url: 'https://infoishai.com/influencers/usa',
     siteName: 'Infoishai',
     type: 'website',
-    images: [{ url: 'https://infoishai.com/images/usa-tech-influencers.jpg', width: 1200, height: 630, alt: 'Tech influencers in the USA' }],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Tech influencers in the USA' }],
   },
   twitter: {
     card: 'summary_large_image',

@@ -23,7 +23,7 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: '100+ Dutch Tech Influencers | Benelux & EU Reach | Infoishai',
+  title: { absolute: '100+ Dutch Tech Influencers | Benelux & EU Reach | Infoishai' },
   description:
     'Browse 100+ verified Dutch tech influencers. Benelux and EU coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
   keywords: [
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     url: 'https://infoishai.com/influencers/netherlands',
     siteName: 'Infoishai',
     type: 'website',
-    images: [{ url: 'https://infoishai.com/images/netherlands-tech-influencers.jpg', width: 1200, height: 630, alt: 'Tech influencers in the Netherlands' }],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Tech influencers in the Netherlands' }],
   },
   twitter: {
     card: 'summary_large_image',

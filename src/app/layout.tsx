@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/nextjs'
 import './globals.css'
 import { OrganizationJsonLd, WebSiteJsonLd, SoftwareApplicationJsonLd } from '@/components/seo/JsonLd'
 import CookieConsent from '@/components/CookieConsent'
+import { NavigationTracker } from '@/components/NavigationTracker'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -28,7 +29,7 @@ export function generateMetadata(): Metadata {
       default: 'Infoishai - Tech Creator Sponsorship Marketplace',
       template: '%s | Infoishai',
     },
-    description: 'The marketplace where AI, SaaS, and tech brands find verified content creators for authentic sponsorships. Escrow payment protection. 2,000+ creators. Free to start.',
+    description: 'The marketplace where AI, SaaS, and tech brands find verified content creators for authentic sponsorships. 2,000+ creators. Free to start.',
     applicationName: 'Infoishai',
     keywords: [
       'tech creator marketplace',
@@ -65,7 +66,7 @@ export function generateMetadata(): Metadata {
       url: 'https://infoishai.com',
       siteName: 'Infoishai',
       title: 'Infoishai - Tech Creator Sponsorship Marketplace',
-      description: 'Connect with 2,000+ verified tech creators for authentic sponsorships. Escrow protection. Free to start.',
+      description: 'Connect with 2,000+ verified tech creators for authentic sponsorships. Free to start.',
       images: [
         {
           url: 'https://infoishai.com/og-image.jpg',
@@ -111,6 +112,7 @@ export default function RootLayout({
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-white text-gray-900 antialiased`}>
         <CookieConsent />
+        <NavigationTracker />
 
         <OrganizationJsonLd />
         <WebSiteJsonLd />

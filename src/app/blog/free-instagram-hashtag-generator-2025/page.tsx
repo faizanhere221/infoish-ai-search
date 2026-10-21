@@ -35,11 +35,13 @@ export const metadata: Metadata = {
     publishedTime: '2024-12-23T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['Instagram', 'Hashtags', 'Social Media', 'Free Tool', 'Growth'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Free Instagram Hashtag Generator — Viral Hashtags in Seconds',
     description: 'AI-powered hashtags for Reels, Posts & Stories. 100% free forever.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/free-instagram-hashtag-generator-2025'

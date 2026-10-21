@@ -13,11 +13,13 @@ export const metadata: Metadata = {
     url: 'https://infoishai.com/tools',
     siteName: 'Infoishai',
     type: 'website',
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Free Marketing Tools' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Free Marketing Tools for Tech Creators | Infoishai',
     description: 'Free Instagram Profile Analyzer, AI Hashtag Generator, and more marketing tools. No signup required.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/tools',

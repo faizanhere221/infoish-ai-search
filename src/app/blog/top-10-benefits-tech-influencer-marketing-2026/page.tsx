@@ -24,6 +24,13 @@ export const metadata: Metadata = {
     publishedTime: '2026-07-08T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['Tech Influencer Marketing', 'B2B', 'SaaS', 'Influencer Marketing'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Top 10 Benefits of Tech Influencer Marketing in 2026',
+    description: 'Why do tech brands invest in influencer marketing in 2026? Here are 10 proven benefits with real data, examples, and strategies.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/top-10-benefits-tech-influencer-marketing-2026'
@@ -35,7 +42,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'Top 10 Benefits of Tech Influencer Marketing in 2026',
   description: 'Why do tech brands invest in influencer marketing in 2026? Here are 10 proven benefits with real data, examples, and strategies.',
-  image: 'https://infoishai.com/blog/top-10-benefits-tech-influencer-marketing-2026.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-07-08',
   dateModified: '2026-07-08',
   author: {

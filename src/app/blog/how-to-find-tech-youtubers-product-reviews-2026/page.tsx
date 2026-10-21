@@ -29,11 +29,13 @@ export const metadata: Metadata = {
     publishedTime: '2026-08-05T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['YouTube', 'Tech Influencers', 'Product Reviews', 'Influencer Marketing'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'How to Find Tech YouTubers for Product Reviews in 2026',
     description: 'Step-by-step guide to finding, vetting, and hiring tech YouTubers for product reviews. Covers niches, rates, outreach, and vetting across 9 countries.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/how-to-find-tech-youtubers-product-reviews-2026'
@@ -45,7 +47,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'How to Find Tech YouTubers for Product Reviews in 2026',
   description: 'Step-by-step guide to finding, vetting, and hiring tech YouTubers for product reviews. Covers niches, rates, outreach, and vetting across 9 countries.',
-  image: 'https://infoishai.com/blog/find-tech-youtubers-product-reviews-2026.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-08-05',
   dateModified: '2026-08-05',
   author: {

@@ -7,6 +7,9 @@ export const metadata: Metadata = {
     index: false,
     follow: false,
   },
+  alternates: {
+    canonical: 'https://infoishai.com/campaigns/create',
+  },
 }
 
 export default function CreateCampaignLayout({ children }: { children: React.ReactNode }) {

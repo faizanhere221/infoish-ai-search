@@ -25,11 +25,13 @@ export const metadata: Metadata = {
     publishedTime: '2026-08-10T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['Startups', 'Tech Influencers', 'Influencer Marketing', 'Campaigns'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'How to Run Your First Tech Influencer Campaign: Step-by-Step for Startups',
     description: 'Step-by-step guide for startups running their first tech influencer campaign. Covers budgets, creator selection, briefs, outreach, tracking, and scaling.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/first-tech-influencer-campaign-startup-guide-2026'
@@ -41,7 +43,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'How to Run Your First Tech Influencer Campaign: Step-by-Step for Startups',
   description: 'Step-by-step guide for startups running their first tech influencer campaign. Covers budgets, creator selection, briefs, outreach, tracking, and scaling.',
-  image: 'https://infoishai.com/blog/first-tech-influencer-campaign-2026.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-08-10',
   dateModified: '2026-08-10',
   author: {

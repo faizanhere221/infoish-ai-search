@@ -22,7 +22,7 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: '150+ Australian Tech Influencers | APAC Reach | Infoishai',
+  title: { absolute: '150+ Australian Tech Influencers | APAC Reach | Infoishai' },
   description:
     'Browse 150+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No subscription.',
   keywords: [
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     url: 'https://infoishai.com/influencers/australia',
     siteName: 'Infoishai',
     type: 'website',
-    images: [{ url: 'https://infoishai.com/images/australia-tech-influencers.jpg', width: 1200, height: 630, alt: 'Tech influencers in Australia' }],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Tech influencers in Australia' }],
   },
   twitter: {
     card: 'summary_large_image',

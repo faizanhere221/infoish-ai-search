@@ -24,7 +24,7 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: '100+ Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai',
+  title: { absolute: '100+ Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai' },
   description:
     'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No subscription.',
   keywords: [
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     url: 'https://infoishai.com/influencers/pakistan',
     siteName: 'Infoishai',
     type: 'website',
-    images: [{ url: 'https://infoishai.com/images/pakistan-tech-influencers.jpg', width: 1200, height: 630, alt: 'Tech influencers in Pakistan' }],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Tech influencers in Pakistan' }],
   },
   twitter: {
     card: 'summary_large_image',

@@ -24,7 +24,7 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: '100+ Singapore Tech Influencers | ASEAN Gateway | Infoishai',
+  title: { absolute: '100+ Singapore Tech Influencers | ASEAN Gateway | Infoishai' },
   description:
     'Browse 100+ verified Singapore tech influencers. ASEAN coverage. Filter by niche, platform, budget. Rates in SGD. Free messaging.',
   keywords: [
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     url: 'https://infoishai.com/influencers/singapore',
     siteName: 'Infoishai',
     type: 'website',
-    images: [{ url: 'https://infoishai.com/images/singapore-tech-influencers.jpg', width: 1200, height: 630, alt: 'Tech influencers in Singapore' }],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Tech influencers in Singapore' }],
   },
   twitter: {
     card: 'summary_large_image',

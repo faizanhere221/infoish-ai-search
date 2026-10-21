@@ -26,11 +26,13 @@ export const metadata: Metadata = {
     title: 'How to Find B2B Tech Influencers in 2026: Vetting, Outreach, and Rates',
     description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 2,000+ verified tech creators. Updated for 2026.',
     type: 'article',
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'How to Find B2B Tech Influencers in 2026: Vetting, Outreach, and Rates',
     description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 2,000+ verified tech creators. Updated for 2026.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/how-to-find-tech-influencers-b2b-2026'
@@ -42,7 +44,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'How to Find B2B Tech Influencers in 2026: Vetting, Outreach, and Rates',
   description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 2,000+ verified tech creators. Updated for 2026.',
-  image: 'https://infoishai.com/blog/how-to-find-tech-influencers-b2b-2026.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-07-06',
   dateModified: '2026-07-06',
   author: {

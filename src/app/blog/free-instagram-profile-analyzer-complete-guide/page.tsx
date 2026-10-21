@@ -35,11 +35,13 @@ export const metadata: Metadata = {
     publishedTime: '2025-12-23T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['Instagram', 'Influencer Verification', 'Fake Followers', 'Analytics', 'Free Tool'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Free Instagram Profile Analyzer — Spot Fake Influencers',
     description: 'Detect fake followers and verify influencers before you pay. Free for Pakistani brands.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/free-instagram-profile-analyzer-complete-guide'

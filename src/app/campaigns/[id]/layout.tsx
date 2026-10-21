@@ -1,6 +1,8 @@
 import { Metadata } from 'next'
 import { createServerSupabase } from '@/lib/db'
 
+export const revalidate = 3600
+
 type Props = {
   params: { id: string }
   children: React.ReactNode
@@ -40,11 +42,13 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
         url,
         siteName: 'Infoishai',
         type: 'website',
+        images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: campaign.title }],
       },
       twitter: {
         card: 'summary_large_image',
         title,
         description,
+        images: ['https://infoishai.com/twitter-image.jpg'],
       },
       alternates: {
         canonical: url,

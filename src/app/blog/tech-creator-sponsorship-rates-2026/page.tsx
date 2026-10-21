@@ -25,11 +25,13 @@ export const metadata: Metadata = {
     publishedTime: '2026-08-12T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['Creators', 'Pricing', 'Tech Influencers', 'Sponsorships'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'How Much Should Tech Creators Charge for Sponsorships in 2026?',
     description: 'Pricing guide for tech creators setting sponsorship rates. Covers formulas, benchmarks, and rate cards for YouTube, LinkedIn, Twitter/X, and newsletters.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/tech-creator-sponsorship-rates-2026'
@@ -41,7 +43,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'How Much Should Tech Creators Charge for Sponsorships in 2026?',
   description: 'Pricing guide for tech creators setting sponsorship rates. Covers formulas, benchmarks, and rate cards for YouTube, LinkedIn, Twitter/X, and newsletters.',
-  image: 'https://infoishai.com/blog/tech-creator-sponsorship-rates-2026.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-08-12',
   dateModified: '2026-08-12',
   author: {

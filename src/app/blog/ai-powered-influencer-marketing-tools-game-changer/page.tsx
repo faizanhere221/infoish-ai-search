@@ -26,6 +26,13 @@ export const metadata: Metadata = {
     title: '5 AI Tools That Help Pakistani Brands Find Influencers 10x Faster',
     description: 'Discover AI-powered tools that help Pakistani brands find verified influencers in seconds.',
     type: 'article',
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '5 AI Tools That Help Pakistani Brands Find Influencers 10x Faster',
+    description: 'Discover AI-powered tools that help Pakistani brands find verified influencers in seconds.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/ai-powered-influencer-marketing-tools-game-changer'
@@ -37,7 +44,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: '5 AI Tools That Help Pakistani Brands Find Influencers 10x Faster',
   description: 'Discover the best AI-powered influencer marketing tools for Pakistani brands in 2026. Find verified creators, check fake followers, and launch campaigns faster.',
-  image: 'https://infoishai.com/blog/ai-powered-influencer-marketing-tools-game-changer.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2025-10-20',
   dateModified: '2026-10-11',
   author: {

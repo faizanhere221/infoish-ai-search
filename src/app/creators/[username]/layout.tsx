@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createServerSupabase } from '@/lib/db'
 import { isCreatorPublic } from '@/lib/creators/visibility'
+import { PersonJsonLd } from '@/components/seo/JsonLd'
 
 type Props = {
   params: { username: string }
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: { params: { username: string 
     const supabase = createServerSupabase()
     const { data: creator } = await supabase
       .from('creators')
-      .select('user_id, display_name, username, bio, niches, total_followers, country, hidden_from_marketplace')
+      .select('user_id, display_name, username, bio, niches, total_followers, country, hidden_from_marketplace, profile_photo_url')
       .eq('username', username)
       .single()
 
@@ -58,6 +59,14 @@ export async function generateMetadata({ params }: { params: { username: string 
         url,
         siteName: 'Infoishai',
         type: 'profile',
+        images: [
+          {
+            url: creator.profile_photo_url || 'https://infoishai.com/og-image.jpg',
+            width: 1200,
+            height: 630,
+            alt: creator.display_name,
+          },
+        ],
       },
       twitter: {
         card: 'summary_large_image',
@@ -80,6 +89,25 @@ export async function generateMetadata({ params }: { params: { username: string 
   }
 }
 
-export default function CreatorProfileLayout({ children }: Props) {
-  return children
+export default async function CreatorProfileLayout({ children, params }: Props) {
+  const supabase = createServerSupabase()
+  const { data: creator } = await supabase
+    .from('creators')
+    .select('display_name, username, bio, profile_photo_url')
+    .eq('username', params.username)
+    .single()
+
+  return (
+    <>
+      {creator && (
+        <PersonJsonLd
+          name={creator.display_name}
+          username={creator.username}
+          description={creator.bio || undefined}
+          image={creator.profile_photo_url || undefined}
+        />
+      )}
+      {children}
+    </>
+  )
 }

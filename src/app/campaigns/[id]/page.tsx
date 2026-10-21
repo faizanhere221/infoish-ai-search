@@ -197,7 +197,7 @@ function CampaignDetailPageContent() {
             <Link href="/campaigns" className="p-2 -ml-2 hover:bg-gray-100 rounded-lg">
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </Link>
-            <h1 className="font-semibold text-gray-900 truncate">Campaign Details</h1>
+            <p className="font-semibold text-gray-900 truncate">Campaign Details</p>
           </div>
         </div>
       </div>

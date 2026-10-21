@@ -21,7 +21,7 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: '300+ UK Tech Influencers | Rates from GBP 200 | Infoishai',
+  title: { absolute: '300+ UK Tech Influencers | Rates from GBP 200 | Infoishai' },
   description:
     'Browse 300+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No subscription.',
   keywords: [
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     url: 'https://infoishai.com/influencers/uk',
     siteName: 'Infoishai',
     type: 'website',
-    images: [{ url: 'https://infoishai.com/images/uk-tech-influencers.jpg', width: 1200, height: 630, alt: 'Tech influencers in the United Kingdom' }],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Tech influencers in the United Kingdom' }],
   },
   twitter: {
     card: 'summary_large_image',

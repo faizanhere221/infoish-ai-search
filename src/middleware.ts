@@ -55,9 +55,20 @@ const CSP = [
   // website.show" directory badge — an external, unoptimized SVG served
   // straight from their domain (next/image's `unoptimized` skips our own
   // image optimizer, so the browser fetches it directly).
-  "img-src 'self' data: blob: https://lh3.googleusercontent.com https://ypdspiwxsojwjzbagaip.supabase.co https://www.website.show",
+  // https://www.google-analytics.com / googletagmanager.com: GA4's no-JS
+  // pixel-tracking fallback (an <img> beacon) — script-src/connect-src
+  // already allow the normal fetch-based hit, but without these here too
+  // a browser that falls back to the pixel path gets silently blocked.
+  "img-src 'self' data: blob: https://lh3.googleusercontent.com https://ypdspiwxsojwjzbagaip.supabase.co https://www.website.show https://www.google-analytics.com https://www.googletagmanager.com",
   "font-src 'self'",
-  "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://ypdspiwxsojwjzbagaip.supabase.co",
+  // *.google-analytics.com / *.analytics.google.com: GA4 can send to
+  // numbered regional subdomains (region1.* etc., already explicitly
+  // allowed below) and to collect/debug subdomains that vary by property
+  // — wildcarding the two base domains covers all of them instead of
+  // chasing each one by name. stats.g.doubleclick.net: GA4's
+  // conversion-linking/ads-attribution beacon, hit even without a
+  // separate Google Ads integration wired up.
+  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://ypdspiwxsojwjzbagaip.supabase.co",
   "frame-ancestors 'none'",
 ].join('; ')
 

@@ -23,7 +23,7 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: '200+ German Tech Influencers | DACH Region | Infoishai',
+  title: { absolute: '200+ German Tech Influencers | DACH Region | Infoishai' },
   description:
     'Browse 200+ verified German tech influencers. DACH region coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
   keywords: [
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     url: 'https://infoishai.com/influencers/germany',
     siteName: 'Infoishai',
     type: 'website',
-    images: [{ url: 'https://infoishai.com/images/germany-tech-influencers.jpg', width: 1200, height: 630, alt: 'Tech influencers in Germany' }],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Tech influencers in Germany' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -56,9 +56,6 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/germany',
-    languages: {
-      en: 'https://infoishai.com/influencers/germany',
-    },
   },
 }
 

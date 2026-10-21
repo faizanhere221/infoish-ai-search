@@ -24,11 +24,13 @@ export const metadata: Metadata = {
     publishedTime: '2026-07-27T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['B2C Marketing', 'Influencer Marketing', 'Tech Marketing', 'Consumer Tech'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Top B2C Influencer Marketing Strategies for Tech Brands 2026',
     description: 'B2C influencer marketing strategies for tech brands in 2026. Platform-by-platform playbook with real budgets, creator selection criteria, and ROI benchmarks.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/b2c-influencer-marketing-strategies-tech-brands-2026'
@@ -40,7 +42,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'Top B2C Influencer Marketing Strategies for Tech Brands in 2026',
   description: 'B2C influencer marketing strategies for tech brands. Platform playbook with budgets, creator selection, and ROI benchmarks.',
-  image: 'https://infoishai.com/blog/b2c-influencer-marketing-strategies-2026.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-07-27',
   dateModified: '2026-07-27',
   author: {

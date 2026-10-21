@@ -27,11 +27,13 @@ export const metadata: Metadata = {
     title: 'Influencer Marketing Pakistan 2026: Rates, Platforms, and ROI Data',
     description: 'The complete guide to influencer marketing in Pakistan. Real rates from PKR 5,000 to PKR 5,00,000. Platform comparison (YouTube, Instagram, TikTok). ROI benchmarks. 400+ verified creators. Updated for 2026.',
     type: 'article',
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Influencer Marketing Pakistan 2026: Rates, Platforms, and ROI Data',
     description: 'The complete guide to influencer marketing in Pakistan. Real rates from PKR 5,000 to PKR 5,00,000. Platform comparison (YouTube, Instagram, TikTok). ROI benchmarks. 400+ verified creators. Updated for 2026.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/complete-guide-influencer-marketing-pakistan-2025'
@@ -43,7 +45,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'Influencer Marketing Pakistan 2026: Rates, Platforms, and ROI Data',
   description: 'The complete guide to influencer marketing in Pakistan. Real rates from PKR 5,000 to PKR 5,00,000. Platform comparison (YouTube, Instagram, TikTok). ROI benchmarks. 400+ verified creators. Updated for 2026.',
-  image: 'https://infoishai.com/blog/complete-guide-influencer-marketing-pakistan-2025.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2025-10-16',
   dateModified: '2026-10-11',
   author: {

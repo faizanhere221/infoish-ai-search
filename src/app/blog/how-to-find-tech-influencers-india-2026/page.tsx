@@ -25,11 +25,13 @@ export const metadata: Metadata = {
     publishedTime: '2026-07-28T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['India', 'Tech Influencers', 'Influencer Marketing', 'Creator Economy'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'How to Find Tech Influencers in India: Complete Guide for Brands',
     description: 'Step-by-step guide to finding, vetting, and hiring Indian tech influencers. Covers rates, platforms, niches, language options, and outreach.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/how-to-find-tech-influencers-india-2026'
@@ -41,7 +43,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'How to Find Tech Influencers in India: Complete Guide for Brands',
   description: 'Step-by-step guide to finding, vetting, and hiring Indian tech influencers. Covers rates, platforms, niches, language options, and outreach.',
-  image: 'https://infoishai.com/blog/find-tech-influencers-india-2026.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-07-28',
   dateModified: '2026-07-28',
   author: {

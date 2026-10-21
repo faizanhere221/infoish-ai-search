@@ -25,11 +25,13 @@ export const metadata: Metadata = {
     publishedTime: '2026-08-12T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['Creators', 'Monetization', 'Tech Influencers', 'Income'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Top 10 Ways Tech Creators Earn Money in 2026',
     description: '10 proven income streams for tech creators. Brand deals, affiliates, newsletters, courses, consulting, and platform revenue with real benchmarks.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/ways-tech-creators-earn-money-2026'
@@ -41,7 +43,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'Top 10 Ways Tech Creators Earn Money in 2026',
   description: '10 proven income streams for tech creators. Brand deals, affiliates, newsletters, courses, consulting, and platform revenue with real benchmarks.',
-  image: 'https://infoishai.com/blog/tech-creators-earn-money-2026.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-08-12',
   dateModified: '2026-08-12',
   author: {

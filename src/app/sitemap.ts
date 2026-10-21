@@ -4,6 +4,29 @@ import { getExcludedCreatorUserIdsList } from '@/lib/creators/visibility'
 
 const baseUrl = 'https://infoishai.com'
 
+async function getCampaignRoutes(): Promise<MetadataRoute.Sitemap> {
+  try {
+    const supabase = createServerSupabase()
+    const { data: campaigns } = await supabase
+      .from('campaigns')
+      .select('id, updated_at')
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .limit(5000)
+
+    if (!campaigns) {return []}
+
+    return campaigns.map((campaign) => ({
+      url: `${baseUrl}/campaigns/${campaign.id}`,
+      lastModified: campaign.updated_at ? new Date(campaign.updated_at) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    }))
+  } catch {
+    return []
+  }
+}
+
 async function getCreatorRoutes(): Promise<MetadataRoute.Sitemap> {
   try {
     const supabase = createServerSupabase()
@@ -39,6 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Core marketplace pages
     { url: `${baseUrl}/pricing`, lastModified: today, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${baseUrl}/creators`, lastModified: today, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/campaigns`, lastModified: today, changeFrequency: 'daily', priority: 0.8 },
     { url: `${baseUrl}/influencers/usa`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/influencers/uk`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/influencers/canada`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
@@ -85,6 +109,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   const creatorRoutes = await getCreatorRoutes()
+  const campaignRoutes = await getCampaignRoutes()
 
-  return [...staticRoutes, ...creatorRoutes]
+  return [...staticRoutes, ...creatorRoutes, ...campaignRoutes]
 }

@@ -26,11 +26,13 @@ export const metadata: Metadata = {
     publishedTime: '2026-08-04T00:00:00.000Z',
     authors: ['Infoishai Team'],
     tags: ['Rates', 'Tech Influencers', 'Influencer Marketing', 'Pricing'],
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Tech Influencer Rates 2026: What Every Brand Should Know',
     description: 'Complete guide to tech influencer rates by platform, country, and audience size for 2026. Covers YouTube, LinkedIn, Twitter/X, Instagram, newsletters, and podcasts.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/tech-influencer-rates-2026'
@@ -42,7 +44,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'Tech Influencer Rates 2026: What Every Brand Should Know',
   description: 'Complete guide to tech influencer rates by platform, country, and audience size for 2026. Covers YouTube, LinkedIn, Twitter/X, Instagram, newsletters, and podcasts.',
-  image: 'https://infoishai.com/blog/tech-influencer-rates-2026.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-08-04',
   dateModified: '2026-08-04',
   author: {

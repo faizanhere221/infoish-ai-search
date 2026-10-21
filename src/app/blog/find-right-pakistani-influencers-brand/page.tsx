@@ -26,6 +26,13 @@ export const metadata: Metadata = {
     title: 'How to Find Pakistani Influencers (Without Wasting Hours)',
     description: 'The exact 5-step process to find verified Pakistani influencers in under 10 minutes.',
     type: 'article',
+    images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'How to Find Pakistani Influencers (Without Wasting Hours)',
+    description: 'The exact 5-step process to find verified Pakistani influencers in under 10 minutes.',
+    images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
     canonical: 'https://infoishai.com/blog/find-right-pakistani-influencers-brand'
@@ -37,7 +44,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: 'How to Find Pakistani Influencers (Without Wasting Hours)',
   description: 'How to find and vet Pakistani influencers for your brand. Engagement benchmarks, pricing data, red flags to avoid, and free tools to verify audience quality.',
-  image: 'https://infoishai.com/blog/find-right-pakistani-influencers-brand.jpg',
+  image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2025-10-18',
   dateModified: '2026-10-11',
   author: {
