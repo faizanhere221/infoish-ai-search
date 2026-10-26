@@ -316,6 +316,8 @@ const relatedLinks = [
   { label: 'Find Tech Influencers in Netherlands', href: '/influencers/netherlands' },
   { label: 'Find Tech Influencers in Singapore', href: '/influencers/singapore' },
   { label: 'Browse All Tech Influencers', href: '/creators' },
+  { label: 'Top 20 Indian Tech YouTubers for Brands', href: '/blog/top-indian-tech-youtubers-brand-partnerships-2026' },
+  { label: 'Indian Tech Influencer Rates by City', href: '/blog/indian-tech-influencer-rates-by-city-2026' },
   { label: 'Tech Influencer Marketing Blog', href: '/blog' },
 ]
 

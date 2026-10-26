@@ -24,6 +24,32 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '20',
+    title: 'Indian Tech Influencer Rates by City: Bangalore vs Mumbai vs Delhi',
+    excerpt: 'Indian tech influencer rates by city for 2026. Compare Bangalore, Mumbai, and Delhi-NCR pricing for YouTube, Instagram, LinkedIn, X, and newsletters in INR.',
+    date: '2026-10-26',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '13 min read',
+    slug: 'indian-tech-influencer-rates-by-city-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
+    id: '19',
+    title: 'Top 20 Indian Tech YouTubers for Brand Partnerships in 2026',
+    excerpt: 'The top 20 Indian tech YouTubers for brand partnerships in 2026. Gadget reviewers and coding channels, with language, audience size, best-fit products, and rates.',
+    date: '2026-10-26',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '14 min read',
+    slug: 'top-indian-tech-youtubers-brand-partnerships-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '18',
     title: 'Top 10 Ways Tech Creators Earn Money in 2026',
     excerpt: '10 proven income streams for tech creators in 2026. Brand deals, affiliates, newsletters, courses, consulting, and more. Real earning benchmarks included.',

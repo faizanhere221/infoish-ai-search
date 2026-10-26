@@ -81,6 +81,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Blog
     { url: `${baseUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/blog/indian-tech-influencer-rates-by-city-2026`, lastModified: new Date('2026-10-26'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/top-indian-tech-youtubers-brand-partnerships-2026`, lastModified: new Date('2026-10-26'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/ways-tech-creators-earn-money-2026`, lastModified: new Date('2026-08-12'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/creator-media-kit-guide-tech-influencers`, lastModified: new Date('2026-08-12'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/tech-creator-sponsorship-rates-2026`, lastModified: new Date('2026-08-12'), changeFrequency: 'monthly', priority: 0.7 },
