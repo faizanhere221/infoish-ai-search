@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedConversation } from '@/lib/conversations'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const BUCKET = 'chat-attachments'
 const SIGNED_URL_TTL_SECONDS = 300 // 5 minutes

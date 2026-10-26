@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { isValidReferralCode } from '@/lib/referral'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET - Look up a referral partner by code (public, used to validate a
 // referral link/cookie before showing "referred by X" messaging at signup)

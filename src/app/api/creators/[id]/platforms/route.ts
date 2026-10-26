@@ -6,6 +6,7 @@ import { captureError } from '@/lib/error-tracking'
 import { normalizeProfileUrl, parseFollowerCount } from '@/lib/creators/platform-input'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const PLATFORM_IDS = [
   'youtube', 'twitter', 'linkedin', 'instagram', 'tiktok', 'twitch',

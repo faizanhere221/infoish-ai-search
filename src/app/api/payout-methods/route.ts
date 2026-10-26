@@ -5,6 +5,7 @@ import { encryptPayoutDetails, buildMaskedPreview } from '@/lib/payments/crypto'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const DetailsSchema = z.object({
   email: z.string().email().max(255).optional(),

@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/admin/payments/[id] — detail: context (campaign/brand/creator),
 // a merged history (campaign_creator_events for this payment + any admin

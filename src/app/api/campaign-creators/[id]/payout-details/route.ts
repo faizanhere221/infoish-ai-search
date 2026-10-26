@@ -6,6 +6,7 @@ import { logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
 import { decryptPayoutDetails } from '@/lib/payments/crypto'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string }

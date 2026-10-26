@@ -6,6 +6,7 @@ import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 import { getVerifiedUserId } from '@/lib/verified-user'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const UpdateCreatorSchema = z.object({
   display_name: z.string().min(1).max(100).optional(),

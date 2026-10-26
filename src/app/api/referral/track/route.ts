@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { isValidReferralCode } from '@/lib/referral'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const TrackReferralSchema = z.object({
   referral_code: z.string().min(1).max(30),

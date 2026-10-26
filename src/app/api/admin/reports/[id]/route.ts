@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/admin/reports/[id] — detail. Opening an 'open' report moves it
 // to 'reviewing' automatically (passive bookkeeping, like marking a

@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 function isSuperAdmin(request: NextRequest) {
   return request.headers.get('x-user-role') === 'super_admin'

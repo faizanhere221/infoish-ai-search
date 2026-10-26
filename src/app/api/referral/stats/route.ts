@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { getPartnerStats } from '@/lib/referral'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET - Current partner's dashboard stats (auth required, caller must be a partner)
 export async function GET(request: NextRequest) {

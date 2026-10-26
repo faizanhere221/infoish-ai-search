@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 const MAX_SIZE = 2 * 1024 * 1024 // 2MB

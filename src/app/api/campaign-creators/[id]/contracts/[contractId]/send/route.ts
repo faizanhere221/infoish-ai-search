@@ -8,6 +8,7 @@ import { buildRenderedBody } from '@/lib/contracts/render'
 import { hashContractBody } from '@/lib/contracts/template'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string; contractId: string }

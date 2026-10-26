@@ -6,6 +6,7 @@ import { latestResultByDeliverable, onTimeRate, cpm, type ResultRow, type Delive
 import { getExcludedCreatorUserIdsList, isCreatorPublic } from '@/lib/creators/visibility'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const AddToRosterSchema = z.object({
   creator_id: z.string().min(1),

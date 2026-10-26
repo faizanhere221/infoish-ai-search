@@ -5,6 +5,7 @@ import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { adminCancelPayment } from '@/lib/payments/engine'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // POST /api/admin/payments/[id]/cancel — admin override cancel, broader
 // than the brand's own cancel (scheduled/due only): also reaches

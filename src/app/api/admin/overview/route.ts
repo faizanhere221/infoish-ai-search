@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/admin/overview — Phase 7B's new admin-dashboard tiles: campaign
 // workflow health that the pre-existing /api/admin/stats (legacy

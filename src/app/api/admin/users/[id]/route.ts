@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs'
 import { randomUUID } from 'node:crypto'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/admin/users/[id] — detail. Beyond the account/profile basics,
 // this surfaces everything Phase 7B asked the users page to roll up for a

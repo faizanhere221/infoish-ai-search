@@ -5,6 +5,7 @@ import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const patchSchema = z.record(z.string(), z.unknown())
 

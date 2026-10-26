@@ -8,6 +8,7 @@ import {
 import { refreshDuePayments } from '@/lib/payments/engine'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string }

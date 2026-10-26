@@ -7,6 +7,7 @@ import { dailySummaryTemplate } from '@/lib/email/templates/dailySummary'
 import { signUnsubscribeToken } from '@/lib/email/unsubscribeToken'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 const USER_BATCH_LIMIT = 200

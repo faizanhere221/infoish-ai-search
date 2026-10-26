@@ -9,6 +9,7 @@ import { generateToken, hashToken } from '@/lib/email/tokens'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 

@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const VALID_STATUS = new Set(['sent', 'skipped', 'failed', 'logged_dev'])
 const VALID_CATEGORY = new Set(['messages', 'offers', 'contracts', 'work', 'payments', 'daily_summary', 'security'])

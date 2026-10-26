@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const createSchema = z.object({
   email:    z.string().email(),

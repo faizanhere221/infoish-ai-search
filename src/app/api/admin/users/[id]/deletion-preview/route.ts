@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { checkDeletionBlockers, checkLinkedRecords } from '@/lib/admin-user-deletion'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/admin/users/[id]/deletion-preview — super_admin only, read-only.
 // Runs the exact same checks DELETE /api/admin/users/[id] itself runs, so

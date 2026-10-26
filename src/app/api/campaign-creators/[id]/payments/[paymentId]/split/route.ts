@@ -6,6 +6,7 @@ import { splitPayment } from '@/lib/payments/engine'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string; paymentId: string }

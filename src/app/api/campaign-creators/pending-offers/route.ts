@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/campaign-creators/pending-offers — creator-only: every pending
 // offer sent BY a brand that this creator hasn't responded to yet, across

@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const CreateReviewSchema = z.object({
   deal_id: z.string().uuid(),

@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const VALID_SORT = new Set(['created_at', 'last_login_at', 'email'])
 

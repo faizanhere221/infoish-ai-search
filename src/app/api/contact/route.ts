@@ -4,6 +4,7 @@ import { validateEmail } from '@/utils/validateEmail'
 import { rateLimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 export async function POST(request: NextRequest) {
   try {

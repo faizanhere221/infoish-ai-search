@@ -6,6 +6,7 @@ import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
 import { getUserIdFromCreator } from '@/lib/notifications'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string; deliverableId: string }

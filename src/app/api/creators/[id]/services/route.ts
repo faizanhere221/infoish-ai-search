@@ -6,6 +6,7 @@ import { captureError } from '@/lib/error-tracking'
 import { parsePrice } from '@/lib/creators/platform-input'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const ServiceSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),

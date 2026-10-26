@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const BUCKET = 'payment-proofs'
 const SIGNED_URL_TTL_SECONDS = 300

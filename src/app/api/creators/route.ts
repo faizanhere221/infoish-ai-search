@@ -4,6 +4,7 @@ import { updateReferralOnProfileComplete } from '@/lib/referral'
 import { getExcludedCreatorUserIdsList } from '@/lib/creators/visibility'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET - List/Search creators
 export async function GET(request: NextRequest) {

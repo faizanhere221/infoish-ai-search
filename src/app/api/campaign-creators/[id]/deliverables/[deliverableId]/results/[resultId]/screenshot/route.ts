@@ -5,6 +5,7 @@ import { loadAuthorizedDeliverable } from '@/lib/campaign-creator-auth'
 import { rateLimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string; deliverableId: string; resultId: string }

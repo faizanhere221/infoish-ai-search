@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/admin/users/export — the real server-side export (up to 10,000
 // rows, not just whatever page is loaded in the table). Exporting a bulk

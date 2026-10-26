@@ -5,6 +5,7 @@ import { PREFERENCE_CATEGORIES } from '@/lib/email/send'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const DEFAULT_PREFERENCES: Record<string, boolean> = {
   messages: true,

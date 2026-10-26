@@ -10,6 +10,7 @@ import {
 } from '@/types/campaigns'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const OBJECTIVE_VALUES = CAMPAIGN_OBJECTIVES.map((o) => o.value) as [string, ...string[]]
 const CATEGORY_VALUES = CAMPAIGN_CATEGORIES.map((c) => c.value) as [string, ...string[]]

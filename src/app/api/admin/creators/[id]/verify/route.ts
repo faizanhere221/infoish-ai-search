@@ -5,6 +5,7 @@ import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 export async function POST(
   request: NextRequest,

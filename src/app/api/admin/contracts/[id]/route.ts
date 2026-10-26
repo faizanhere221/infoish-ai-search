@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/admin/contracts/[id] — full detail, including the body
 // snapshot. Logged: a contract body can include special_terms a brand

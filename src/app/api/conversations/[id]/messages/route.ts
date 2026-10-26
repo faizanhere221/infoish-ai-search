@@ -7,6 +7,7 @@ import { emitNewMessageNotification } from '@/lib/events/emit'
 import type { Attachment } from '@/types/marketplace'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const DEFAULT_LIMIT = 50
 const MAX_LIMIT = 100

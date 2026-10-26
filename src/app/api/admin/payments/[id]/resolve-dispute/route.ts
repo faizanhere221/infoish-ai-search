@@ -5,6 +5,7 @@ import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { adminResolveDispute } from '@/lib/payments/engine'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const VALID_RESOLUTIONS = ['marked_paid', 'confirmed']
 

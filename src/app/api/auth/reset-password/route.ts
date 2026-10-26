@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const ResetPasswordSchema = z.object({
   token: z.string().min(1),

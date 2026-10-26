@@ -167,7 +167,7 @@ Database-backed (Postgres, `rate_limits` table). Import from `src/lib/rate-limit
 - Return proper HTTP status codes (400 bad input, 401 unauthorized, 403 forbidden, 404 not found, 500 server errors)
 - Never expose internal error details to the client. Log server-side, return generic message.
 - `src/app/error.tsx` and `src/app/global-error.tsx` handle unhandled client errors
-- Every new API route exports `export const dynamic = 'force-dynamic'`. None of our routes should ever be statically pre-rendered or cached.
+- Every new API route exports `export const dynamic = 'force-dynamic'` AND `export const fetchCache = 'force-no-store'`. None of our routes should ever be statically pre-rendered or cached. `force-dynamic` alone does NOT stop Next 14.2 from caching the Supabase client's fetches inside a route handler: a route exporting only GET (or GET + PUT, since Next's `hasNonStaticMethods()` forgets to check PUT) gets "auto cache" with a one-year revalidate, so its reads go stale and a PUT that SELECTs before writing acts on stale rows.
 - Every page using `useSearchParams()` wraps the part of the component tree that calls it in `<Suspense>` (rename the body to a `*Content` component, wrap it from the default export) — otherwise `next build` fails. Check this whenever you add or touch a page that reads search params.
 - `captureError()` rethrows (doesn't report/swallow) any error carrying Next's internal `digest` (`DYNAMIC_SERVER_USAGE`, `NEXT_REDIRECT`, `NEXT_NOT_FOUND`) — don't wrap calls to `redirect()`/`notFound()` or dynamic-rendering-triggering APIs in a try/catch that reports to captureError without accounting for this.
 

@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const CATEGORIES = ['messages', 'offers', 'contracts', 'work', 'payments', 'account'] as const
 

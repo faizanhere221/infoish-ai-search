@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { APPLICATION_STATUSES } from '@/types/campaigns'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string; applicationId: string }

@@ -6,6 +6,7 @@ import { logCampaignCreatorEvent } from '@/lib/campaign-creator-events'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string; deliverableId: string }

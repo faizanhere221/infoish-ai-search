@@ -7,6 +7,7 @@ import { buildRenderedBody } from '@/lib/contracts/render'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string }

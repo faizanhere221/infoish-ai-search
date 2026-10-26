@@ -6,6 +6,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { logActivity } from '@/lib/activity'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET

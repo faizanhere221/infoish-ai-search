@@ -9,6 +9,7 @@ import { passwordResetTemplate } from '@/lib/email/templates/passwordReset'
 import { generateToken, hashToken } from '@/lib/email/tokens'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 const RESENDABLE_TEMPLATES = new Set(['welcome_creator', 'welcome_brand', 'verify_email', 'password_reset'])

@@ -6,6 +6,7 @@ import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const CreateDealSchema = z.object({
   creator_id: z.string().uuid(),

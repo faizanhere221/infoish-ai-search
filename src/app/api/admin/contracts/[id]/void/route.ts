@@ -6,6 +6,7 @@ import { emitEvent } from '@/lib/events/emit'
 import { getUserIdFromBrand, getUserIdFromCreator } from '@/lib/notifications'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // POST /api/admin/contracts/[id]/void — admin override void, broader than
 // voidContractOnTermsChange (which only ever voids a fully_signed contract

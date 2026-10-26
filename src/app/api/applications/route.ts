@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { APPLICATION_STATUSES } from '@/types/campaigns'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/applications - List the calling creator's own applications, with
 // campaign (+ brand) details joined in. Supports ?status= and ?campaign_id=

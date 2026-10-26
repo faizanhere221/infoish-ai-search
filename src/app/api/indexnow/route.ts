@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // IndexNow key verification file lives at public/{key}.txt — see
 // https://www.indexnow.org/. Submitting URLs here tells Bing, Yandex, and

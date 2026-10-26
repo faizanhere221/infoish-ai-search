@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET — admin-only via middleware. Shape matches what
 // src/app/admin/newsletter/page.tsx expects (it was previously calling this

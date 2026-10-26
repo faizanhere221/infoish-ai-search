@@ -8,6 +8,7 @@ import { formatMoney } from '@/components/campaigns/utils'
 import { createDraftContract } from '@/lib/contracts/lifecycle'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string; offerId: string }

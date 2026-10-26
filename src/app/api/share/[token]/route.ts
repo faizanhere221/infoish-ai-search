@@ -5,6 +5,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { latestResultByDeliverable, sumEngagementTotals, cpm, type ResultRow } from '@/lib/reporting'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { token: string }

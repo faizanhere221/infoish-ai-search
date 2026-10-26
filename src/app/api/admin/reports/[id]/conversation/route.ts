@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { logAdminAction } from '@/lib/admin-action'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/admin/reports/[id]/conversation — the ONLY way an admin can
 // read conversation content: reached from a report that has a

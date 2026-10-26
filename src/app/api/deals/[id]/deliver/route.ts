@@ -6,6 +6,7 @@ import { emitEvent } from '@/lib/events/emit'
 import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string }

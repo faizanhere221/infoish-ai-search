@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/admin/campaign-creators/[id] — read-only full detail: the row
 // itself, offers, every contract version, deliverables + their results,

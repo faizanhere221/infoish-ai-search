@@ -5,6 +5,7 @@ import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { emitEvent } from '@/lib/events/emit'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const VALID_ACTIONS = ['warned', 'suspended', 'dismissed']
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logAdminAction } from '@/lib/admin-action'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // Impersonation is disabled (Phase 7A) — it never actually worked end-to-end:
 // the token it minted was never consumed by anything in the app (no page

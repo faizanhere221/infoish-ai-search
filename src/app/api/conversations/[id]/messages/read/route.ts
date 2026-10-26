@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedConversation } from '@/lib/conversations'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // POST - Mark all of the OTHER party's messages in this conversation as read
 // for the authenticated caller, and zero the caller's own unread counter.

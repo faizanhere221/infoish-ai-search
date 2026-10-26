@@ -5,6 +5,7 @@ import { hashToken } from '@/lib/email/tokens'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const VerifySchema = z.object({ token: z.string().min(1) })
 

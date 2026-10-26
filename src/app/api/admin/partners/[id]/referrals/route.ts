@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { getEnrichedReferralSignups } from '@/lib/referral'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET - All referral signups for a given partner (admin only, enforced by middleware)
 export async function GET(

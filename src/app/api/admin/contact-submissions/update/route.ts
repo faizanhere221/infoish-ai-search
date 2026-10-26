@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // Not treated as a reason-worthy admin action (unlike suspend/delete/verify):
 // this fires automatically when an admin opens or replies to a message, not

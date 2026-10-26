@@ -5,6 +5,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const CATEGORIES = ['spam', 'harassment', 'scam', 'inappropriate', 'impersonation', 'other']
 

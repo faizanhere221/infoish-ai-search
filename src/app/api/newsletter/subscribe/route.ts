@@ -4,6 +4,7 @@ import { validateEmail } from '@/utils/validateEmail'
 import { rateLimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // POST /api/newsletter/subscribe
 // Referenced by src/components/footer.tsx and src/components/NewsletterForm.tsx

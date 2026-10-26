@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { getPartnerStats, isValidReferralCode } from '@/lib/referral'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const UpdatePartnerSchema = z.object({
   name: z.string().min(1).max(255).optional(),

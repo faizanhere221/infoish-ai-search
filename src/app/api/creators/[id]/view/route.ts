@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { rateLimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // POST - Increment a creator's public profile view count (public, no auth).
 // Fire-and-forget from the client; failures are non-fatal to the caller.

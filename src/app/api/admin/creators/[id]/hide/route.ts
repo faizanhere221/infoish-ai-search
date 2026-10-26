@@ -5,6 +5,7 @@ import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // POST /api/admin/creators/[id]/hide — toggle creators.hidden_from_marketplace.
 // For internal test accounts: hides a creator from every public surface

@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { getNextStep } from '@/lib/campaign-creator-next-step'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/dashboard/action-needed
 // The same campaign_creators rows the tracker (brand) / my-campaigns

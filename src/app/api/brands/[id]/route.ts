@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const UpdateBrandSchema = z.object({
   company_name: z.string().min(1).max(200).optional(),

@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { loadAuthorizedDeliverable } from '@/lib/campaign-creator-auth'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const BUCKET = 'deliverables'
 const SIGNED_URL_TTL_SECONDS = 300 // 5 minutes

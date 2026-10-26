@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { latestResultByDeliverable, onTimeRate, type ResultRow, type DeliverableForReport } from '@/lib/reporting'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/analytics — brand owner only. ?start=YYYY-MM-DD&end=YYYY-MM-DD
 // (optional) and ?client=<name> (optional, matches campaigns.client_name

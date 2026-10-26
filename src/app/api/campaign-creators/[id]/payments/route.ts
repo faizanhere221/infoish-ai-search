@@ -6,6 +6,7 @@ import { refreshDuePayments, createMilestonePayment } from '@/lib/payments/engin
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string }

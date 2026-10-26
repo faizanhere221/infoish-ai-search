@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { CAMPAIGN_CREATOR_STATUSES } from '@/types/campaigns'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/campaign-creators - the calling creator's own tracker rows across
 // every campaign, with campaign + brand details joined in. Mirrors

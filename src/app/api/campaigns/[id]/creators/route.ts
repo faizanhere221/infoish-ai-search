@@ -10,6 +10,7 @@ import { getUserIdFromCreator } from '@/lib/notifications'
 import { isCreatorPublic } from '@/lib/creators/visibility'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string }

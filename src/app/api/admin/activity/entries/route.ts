@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // Groups backing the admin/activity page's "ACTION_GROUPS" filter. Not
 // declared anywhere else — inferred from the page's own group labels

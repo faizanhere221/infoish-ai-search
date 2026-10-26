@@ -5,6 +5,7 @@ import { loadAuthorizedConversation } from '@/lib/conversations'
 import { rateLimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const BUCKET = 'chat-attachments'
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB

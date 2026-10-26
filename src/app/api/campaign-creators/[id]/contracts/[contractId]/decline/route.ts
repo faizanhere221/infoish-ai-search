@@ -7,6 +7,7 @@ import { getUserIdFromBrand, getUserIdFromCreator } from '@/lib/notifications'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 interface RouteParams {
   params: { id: string; contractId: string }

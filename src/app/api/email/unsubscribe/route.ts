@@ -5,6 +5,7 @@ import { verifyUnsubscribeToken } from '@/lib/email/unsubscribeToken'
 import { PREFERENCE_CATEGORIES } from '@/lib/email/send'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 

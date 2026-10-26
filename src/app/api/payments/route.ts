@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { refreshDuePayments } from '@/lib/payments/engine'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 // GET /api/payments — brand only. Every payment record across every
 // campaign the brand owns, joined with creator/campaign/client info.
