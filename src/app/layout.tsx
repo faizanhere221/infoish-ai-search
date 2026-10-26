@@ -29,7 +29,7 @@ export function generateMetadata(): Metadata {
       default: 'Infoishai - Tech Creator Sponsorship Marketplace',
       template: '%s | Infoishai',
     },
-    description: 'The marketplace where AI, SaaS, and tech brands find verified content creators for authentic sponsorships. 2,000+ creators. Free to start.',
+    description: 'The marketplace where AI, SaaS, and tech brands find verified content creators for authentic sponsorships. 100+ creators. Free to start.',
     applicationName: 'Infoishai',
     keywords: [
       'tech creator marketplace',
@@ -66,7 +66,7 @@ export function generateMetadata(): Metadata {
       url: 'https://infoishai.com',
       siteName: 'Infoishai',
       title: 'Infoishai - Tech Creator Sponsorship Marketplace',
-      description: 'Connect with 2,000+ verified tech creators for authentic sponsorships. Free to start.',
+      description: 'Connect with 100+ verified tech creators for authentic sponsorships. Free to start.',
       images: [
         {
           url: 'https://infoishai.com/og-image.jpg',
@@ -79,7 +79,7 @@ export function generateMetadata(): Metadata {
     twitter: {
       card: 'summary_large_image',
       title: 'Infoishai - Tech Creator Sponsorship Marketplace',
-      description: 'Connect with 2,000+ verified tech creators for authentic sponsorships.',
+      description: 'Connect with 100+ verified tech creators for authentic sponsorships.',
       site: '@infoishai',
       creator: '@infoishai',
       images: ['https://infoishai.com/twitter-image.jpg'],

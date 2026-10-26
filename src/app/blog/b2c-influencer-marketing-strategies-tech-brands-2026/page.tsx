@@ -597,7 +597,7 @@ export default function B2CInfluencerMarketingStrategiesPage() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
           <h3 className="text-2xl font-bold text-blue-900 mb-4">Find the Right Creators for Your B2C Campaign</h3>
           <p className="text-blue-800 mb-6">
-            Infoishai connects you with 2,000+ verified tech creators, filterable by niche, platform, and budget — no subscription fees.
+            Infoishai connects you with 100+ verified tech creators, filterable by niche, platform, and budget — no subscription fees.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -614,7 +614,7 @@ export default function B2CInfluencerMarketingStrategiesPage() {
               Browse the Creator Directory
             </Link>
           </div>
-          <p className="text-sm text-blue-700 mt-4">No credit card required • 2,000+ verified tech creators • Instant results</p>
+          <p className="text-sm text-blue-700 mt-4">No credit card required • 100+ verified tech creators • Instant results</p>
         </div>
 
         {/* Related Articles */}

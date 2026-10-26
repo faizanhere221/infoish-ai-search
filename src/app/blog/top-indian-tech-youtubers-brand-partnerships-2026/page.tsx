@@ -711,7 +711,7 @@ export default function TopIndianTechYouTubersPage() {
               The top 20 channels are a strong starting point for launch campaigns and brand awareness. For steady conversions on a fixed budget, build a bench of mid-tier creators in your exact niche.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Infoishai lists 2,000+ verified tech creators across 9 countries, including 100+ in India. Compare{' '}
+              Infoishai lists 100+ verified tech content creators in India, with rates, platforms, and niches on each profile. Compare{' '}
               <Link href="/influencers/india" className="text-blue-600 hover:text-blue-700 font-medium">Indian tech influencers by niche, platform, and budget</Link>, message them for free, or{' '}
               <Link href="/campaigns" className="text-blue-600 hover:text-blue-700 font-medium">post a campaign</Link>{' '}
               and let creators apply to you. Search every country in the{' '}

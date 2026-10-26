@@ -587,7 +587,7 @@ Here is a link to the product: [URL]. Happy to set up a free account for you to 
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
           <h3 className="text-2xl font-bold text-blue-900 mb-4">Find Verified Tech Influencers in India</h3>
           <p className="text-blue-800 mb-6">
-            Infoishai connects you with 800+ verified Indian tech creators, filterable by niche, platform, language, and city — no subscription fees.
+            Infoishai connects you with 100+ verified Indian tech creators, filterable by niche, platform, language, and city — no subscription fees.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -604,7 +604,7 @@ Here is a link to the product: [URL]. Happy to set up a free account for you to 
               Browse Indian Tech Creators
             </Link>
           </div>
-          <p className="text-sm text-blue-700 mt-4">No credit card required • 800+ verified Indian creators • Instant results</p>
+          <p className="text-sm text-blue-700 mt-4">No credit card required • 100+ verified Indian creators • Instant results</p>
         </div>
 
         {/* Related Articles */}

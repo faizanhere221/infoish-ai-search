@@ -601,7 +601,7 @@ export default function IndianTechInfluencerRatesByCityPage() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Compare Indian Tech Influencer Rates on Infoishai</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              City tables give you a budget range. Real profiles give you the final number. Infoishai lists 2,000+ verified tech creators across 9 countries, including 100+ in India, with rates, platforms, and niches on each profile.
+              City tables give you a budget range. Real profiles give you the final number. Infoishai lists 100+ verified tech content creators in India, with rates, platforms, and niches on each profile.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
               Filter{' '}

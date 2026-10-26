@@ -264,7 +264,7 @@ export default function Footer() {
               <div className="flex items-center gap-4 text-sm text-white/70">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span>1,800+ Influencers</span>
+                  <span>100+ Influencers</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-brand-purple rounded-full animate-pulse"></div>

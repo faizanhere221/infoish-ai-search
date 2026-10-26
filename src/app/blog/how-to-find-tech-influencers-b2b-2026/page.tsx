@@ -9,7 +9,7 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: 'How to Find B2B Tech Influencers in 2026: Vetting, Outreach, and Rates',
-  description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 2,000+ verified tech creators. Updated for 2026.',
+  description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 100+ verified tech creators. Updated for 2026.',
   keywords: [
     'find tech influencers',
     'b2b influencer marketing',
@@ -24,14 +24,14 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'How to Find B2B Tech Influencers in 2026: Vetting, Outreach, and Rates',
-    description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 2,000+ verified tech creators. Updated for 2026.',
+    description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 100+ verified tech creators. Updated for 2026.',
     type: 'article',
     images: [{ url: 'https://infoishai.com/og-image.jpg', width: 1200, height: 630, alt: 'Infoishai Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'How to Find B2B Tech Influencers in 2026: Vetting, Outreach, and Rates',
-    description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 2,000+ verified tech creators. Updated for 2026.',
+    description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 100+ verified tech creators. Updated for 2026.',
     images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
@@ -43,7 +43,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
   headline: 'How to Find B2B Tech Influencers in 2026: Vetting, Outreach, and Rates',
-  description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 2,000+ verified tech creators. Updated for 2026.',
+  description: 'Find B2B tech influencers for your product. Step-by-step vetting process, outreach email templates, rate benchmarks by platform, and a free database of 100+ verified tech creators. Updated for 2026.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-07-06',
   dateModified: '2026-07-06',
@@ -602,7 +602,7 @@ export default function HowToFindTechInfluencersPage() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
           <h3 className="text-2xl font-bold text-blue-900 mb-4">Find Tech Influencers on Infoishai</h3>
           <p className="text-blue-800 mb-6">
-            Looking for the fastest way to find verified tech creators? Infoishai is the #1 tech influencer marketplace with 2,000+ verified tech creators, filters for niche, platform, and budget, direct messaging, and deal management — no subscription fees.
+            Looking for the fastest way to find verified tech creators? Infoishai is the #1 tech influencer marketplace with 100+ verified tech creators, filters for niche, platform, and budget, direct messaging, and deal management — no subscription fees.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -619,7 +619,7 @@ export default function HowToFindTechInfluencersPage() {
               Get Started Free
             </Link>
           </div>
-          <p className="text-sm text-blue-700 mt-4">No credit card required • 2,000+ verified tech creators • Instant results</p>
+          <p className="text-sm text-blue-700 mt-4">No credit card required • 100+ verified tech creators • Instant results</p>
         </div>
 
         {/* Related Articles */}
