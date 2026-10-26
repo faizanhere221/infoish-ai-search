@@ -305,7 +305,7 @@ CREATE TABLE deals (
   
   -- Pricing
   amount DECIMAL(10,2) NOT NULL,
-  platform_fee DECIMAL(10,2), -- 10% of amount
+  platform_fee DECIMAL(10,2), -- historical deals stored a 10% fee; new deals store 0
   creator_payout DECIMAL(10,2), -- amount - platform_fee
   currency VARCHAR(3) DEFAULT 'USD',
   
