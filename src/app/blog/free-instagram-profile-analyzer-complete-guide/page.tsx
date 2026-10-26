@@ -227,7 +227,7 @@ export default function FreeInstagramProfileAnalyzerGuide() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Instagram Engagement Rate Benchmarks (Pakistan)</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              From our research findings for accounts with <strong>10k–50k followers</strong>:
+              Typical ranges from publicly available industry reports, for accounts with <strong>10k–50k followers</strong>:
             </p>
             
             {/* Benchmark Table */}

@@ -223,7 +223,7 @@ export default function TechInfluencerRates2026Page() {
               Tech influencer rates in 2026 depend on six variables: platform, audience size, engagement rate, niche specialisation, content format, and the creator&apos;s country. A YouTube video from a US creator with 100K subscribers costs $2,000 to $4,000. The same audience size from an Indian creator costs $250 to $600. A LinkedIn post from a UK thought leader with 50K followers costs £800 to £2,000. A Twitter/X thread from a Pakistani creator with 30K followers costs PKR 8,000 to PKR 15,000.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              This guide consolidates rate data across 6 platforms and 9 countries, based on industry benchmarks and verified through Infoishai&apos;s creator marketplace data across 100+ tech influencer profiles.
+              This guide consolidates typical rate ranges across 6 platforms and 9 countries, based on publicly available rate cards and industry reports. Treat them as typical ranges, not fixed prices.
             </p>
           </section>
 

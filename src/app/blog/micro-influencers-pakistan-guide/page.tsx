@@ -324,7 +324,7 @@ export default function MicroInfluencersPakistanBlog() {
             </h2>
 
             <p className="text-gray-700 mb-6 text-lg leading-relaxed">
-              We analyzed <strong>Pakistani influencers</strong> on Infoishai's platform. Here's what the data actually shows about <strong>influencer engagement rates in Pakistan</strong>:
+              Here are typical <strong>influencer engagement rates in Pakistan</strong> by follower tier, based on publicly available industry reports. Use them as a rough guide, not a guarantee:
             </p>
 
             <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 mb-8 border border-indigo-200">
@@ -368,7 +368,7 @@ export default function MicroInfluencersPakistanBlog() {
                 </div>
               </div>
               <p className="text-sm text-gray-500 mt-6 italic">
-                *Data based on analysis of 100+ Pakistani Instagram influencers, December 2025
+                *Typical ranges based on publicly available industry reports on Instagram engagement. Individual accounts vary.
               </p>
             </div>
 
@@ -393,7 +393,7 @@ export default function MicroInfluencersPakistanBlog() {
             </h2>
 
             <p className="text-gray-700 mb-6 text-lg leading-relaxed">
-              Here's the real <strong>influencer pricing in Pakistan</strong> as of 2026. These rates are based on our conversations with hundreds of creators:
+              Here are typical <strong>influencer pricing</strong> ranges in Pakistan for 2026, based on publicly available rate cards and industry reports. Actual quotes vary by creator:
             </p>
 
             <div className="overflow-x-auto mb-8 rounded-xl border border-gray-200">
@@ -454,7 +454,7 @@ export default function MicroInfluencersPakistanBlog() {
             </h2>
 
             <p className="text-gray-700 mb-6 text-lg leading-relaxed">
-              Not all niches perform equally. Based on our data, these are the <strong>top-performing categories for influencer marketing in Pakistan</strong>:
+              Not all niches perform equally. Based on publicly available industry reports, these are typically the <strong>top-performing categories for influencer marketing in Pakistan</strong>:
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
