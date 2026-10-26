@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { jwtVerify } from 'jose'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { rateLimit } from '@/lib/rate-limit'
@@ -14,9 +15,27 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 // stranger can't use this to spam someone else's inbox. Rate limited per
 // user, not just per IP, since the "verify your email" banner's resend
 // button is the only caller.
+//
+// /api/auth/* is a public prefix in middleware, so middleware never injects
+// x-user-id here (and strips any client-supplied one). Verify the JWT in the
+// route itself instead. Reading the raw x-user-id header used to let anyone
+// trigger verification emails for any user id.
+async function verifiedUserId(request: NextRequest): Promise<string | null> {
+  const secret = process.env.JWT_SECRET
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : request.cookies.get('auth_token')?.value
+  if (!token || !secret) {return null}
+  try {
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret))
+    return payload.userId ? String(payload.userId) : null
+  } catch {
+    return null
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id')
+    const userId = await verifiedUserId(request)
     if (!userId) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }

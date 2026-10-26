@@ -268,6 +268,64 @@ async function main() {
     return { pass: res.status === 404, detail: `status ${res.status}` }
   })
 
+  // ── Spoofed identity headers ─────────────────────────────────────────────
+  // Middleware must strip client-supplied x-user-* / x-profile-id on every
+  // request (public and optional-auth routes included) and only set them
+  // from a verified JWT. These send Brand A's real ids as raw headers with
+  // no token at all.
+  const brandAClaims = decodeJwtPayload(BRAND_A_TOKEN) || {}
+  const spoofBrandA = {
+    'x-user-id': String(brandAClaims.userId ?? ''),
+    'x-user-type': 'brand',
+    'x-profile-id': String(brandAClaims.profileId ?? ''),
+    'x-user-role': 'user',
+  }
+
+  await check('Logged-out caller spoofing Brand A headers sees no private campaigns (GET /api/campaigns)', async () => {
+    const res = await request('/api/campaigns?limit=50', { headers: spoofBrandA })
+    const text = await res.text()
+    let leaksPrivate = false
+    try {
+      leaksPrivate = (JSON.parse(text).campaigns || []).some(
+        (c) => c.visibility === 'private' || c.id === PRIVATE_CAMPAIGN_ID
+      )
+    } catch {
+      // non-JSON — status check below still applies
+    }
+    const leaksClientName = text.includes('"client_name"')
+    return {
+      pass: res.status === 200 && !leaksPrivate && !leaksClientName,
+      detail: `status ${res.status}, private leaked: ${leaksPrivate}, client_name leaked: ${leaksClientName}`,
+    }
+  })
+
+  await check('Logged-out caller spoofing Brand A headers gets 404 on the private campaign', async () => {
+    const res = await request(`/api/campaigns/${PRIVATE_CAMPAIGN_ID}`, { headers: spoofBrandA })
+    return { pass: res.status === 404, detail: `status ${res.status}` }
+  })
+
+  await check('Logged-out caller spoofing x-user-role: admin gets 401/403 on /api/admin/users', async () => {
+    const res = await request('/api/admin/users', {
+      headers: { ...spoofBrandA, 'x-user-role': 'super_admin' },
+    })
+    return { pass: res.status === 401 || res.status === 403, detail: `status ${res.status}` }
+  })
+
+  await check('Creator B spoofing x-user-role: admin gets 403 on /api/admin/users', async () => {
+    const res = await request('/api/admin/users', {
+      headers: { ...authHeaders(CREATOR_B_TOKEN), 'x-user-role': 'admin' },
+    })
+    return { pass: res.status === 403, detail: `status ${res.status}` }
+  })
+
+  // /api/auth/* is public in middleware, so this route verifies the JWT
+  // itself. On a regression this sends one verification email to Brand A
+  // (a test account), rate limited to 3 per 15 minutes.
+  await check('Logged-out caller spoofing x-user-id gets 401 on POST /api/auth/resend-verification', async () => {
+    const res = await request('/api/auth/resend-verification', { method: 'POST', headers: spoofBrandA })
+    return { pass: res.status === 401, detail: `status ${res.status}` }
+  })
+
   await check('Creator B cannot apply to the private campaign', async () => {
     const res = await request(`/api/campaigns/${PRIVATE_CAMPAIGN_ID}/applications`, {
       method: 'POST',

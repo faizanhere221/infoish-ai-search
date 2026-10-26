@@ -92,9 +92,17 @@ export async function middleware(request: NextRequest) {
   const method = request.method
   const secret = process.env.JWT_SECRET
 
+  // Strip client-supplied identity headers from EVERY request before any
+  // route logic. Every pass-through below forwards these cleaned headers;
+  // only the verified-JWT branch sets them again. Previously public API
+  // routes, admin pages, and page requests forwarded the raw client headers,
+  // so anything reading x-user-id there trusted a spoofable value.
+  const cleanHeaders = stripAuthHeaders(request)
+  const passThrough = () => NextResponse.next({ request: { headers: cleanHeaders } })
+
   // ── Admin page routes ───────────────────────────────────────────────────────
   if (pathname.startsWith('/admin/')) {
-    if (pathname === '/admin/login') {return withSecurityHeaders(NextResponse.next())}
+    if (pathname === '/admin/login') {return withSecurityHeaders(passThrough())}
 
     if (!secret) {return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))}
 
@@ -107,7 +115,7 @@ export async function middleware(request: NextRequest) {
       if (role !== 'admin' && role !== 'super_admin') {
         return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))
       }
-      return withSecurityHeaders(NextResponse.next())
+      return withSecurityHeaders(passThrough())
     } catch {
       return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))
     }
@@ -115,7 +123,7 @@ export async function middleware(request: NextRequest) {
 
   // ── API routes ──────────────────────────────────────────────────────────────
   if (pathname.startsWith('/api/')) {
-    if (isPublicApiRoute(pathname, method)) {return withSecurityHeaders(NextResponse.next())}
+    if (isPublicApiRoute(pathname, method)) {return withSecurityHeaders(passThrough())}
 
     const optionalAuth = isOptionalAuthApiRoute(pathname, method)
 
@@ -125,7 +133,7 @@ export async function middleware(request: NextRequest) {
 
     if (!token || !secret) {
       if (optionalAuth) {
-        return withSecurityHeaders(NextResponse.next({ request: { headers: stripAuthHeaders(request) } }))
+        return withSecurityHeaders(passThrough())
       }
       if (!token) {return withSecurityHeaders(NextResponse.json({ error: 'Authentication required' }, { status: 401 }))}
       return withSecurityHeaders(NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 }))
@@ -142,7 +150,7 @@ export async function middleware(request: NextRequest) {
         }
       }
 
-      const requestHeaders = new Headers(request.headers)
+      const requestHeaders = new Headers(cleanHeaders)
       requestHeaders.set('x-user-id', String(payload.userId ?? ''))
       requestHeaders.set('x-user-type', String(payload.userType ?? ''))
       requestHeaders.set('x-profile-id', String(payload.profileId ?? ''))
@@ -151,14 +159,14 @@ export async function middleware(request: NextRequest) {
       return withSecurityHeaders(NextResponse.next({ request: { headers: requestHeaders } }))
     } catch {
       if (optionalAuth) {
-        return withSecurityHeaders(NextResponse.next({ request: { headers: stripAuthHeaders(request) } }))
+        return withSecurityHeaders(passThrough())
       }
       return withSecurityHeaders(NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 }))
     }
   }
 
   // ── Everything else (pages) ─────────────────────────────────────────────────
-  return withSecurityHeaders(NextResponse.next())
+  return withSecurityHeaders(passThrough())
 }
 
 export const config = {
