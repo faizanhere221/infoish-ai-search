@@ -70,11 +70,14 @@ It is unique across all partners.
 
 ## Commission calculation
 
-> **Open question (2026-10-27):** Infoishai is free for brands and creators
-> and deals carry no platform fee (`PLATFORM_FEE_PERCENTAGE = 0` in
-> `src/utils/constants.ts`). This calculation still uses its own
-> `PLATFORM_FEE_RATE = 0.05`, so partners keep earning commission on a fee
-> Infoishai no longer collects. Left unchanged pending a product decision.
+> **Paused (2026-10-27):** Infoishai is free for brands and creators and
+> deals carry no platform fee. `REFERRAL_COMMISSIONS_ENABLED = false` in
+> `src/config/product.ts` stops new commissions and commission
+> notifications and hides earnings/payout UI; referral signups are still
+> tracked and still advance on completed deals. The calculation below is
+> unchanged and still uses its own `PLATFORM_FEE_RATE = 0.05`; revisit it
+> before re-enabling. At pause time the live DB had 1 partner (deactivated),
+> 1 signup, 0 commissions and 0 payouts.
 
 Commission is a percentage of a notional 5% platform fee, **not** of the raw
 deal amount:

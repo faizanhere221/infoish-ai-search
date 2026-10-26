@@ -6,6 +6,7 @@ import { Users } from 'lucide-react'
 import { formatRelativeDate } from '@/components/campaigns/utils'
 import { formatCents } from '@/lib/referral'
 import type { ReferralSignup, ReferralSignupStatus } from '@/types/referral'
+import { REFERRAL_COMMISSIONS_ENABLED } from '@/config/product'
 
 interface ReferralTableProps {
   referrals: ReferralSignup[]
@@ -53,7 +54,11 @@ export default function ReferralTable({ referrals, isLoading }: ReferralTablePro
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
         <Users className="w-12 h-12 text-gray-300 mx-auto" />
-        <p className="mt-4 text-gray-500">No referrals yet. Share your link to start earning!</p>
+        <p className="mt-4 text-gray-500">
+          {REFERRAL_COMMISSIONS_ENABLED
+            ? 'No referrals yet. Share your link to start earning!'
+            : 'No referrals yet. The partner program is paused while Infoishai is free. Your referrals are still tracked.'}
+        </p>
       </div>
     )
   }
@@ -68,8 +73,13 @@ export default function ReferralTable({ referrals, isLoading }: ReferralTablePro
               <th className="px-6 py-3 font-medium">Signup Date</th>
               <th className="px-6 py-3 font-medium">Status</th>
               <th className="px-6 py-3 font-medium text-right">Deals</th>
-              <th className="px-6 py-3 font-medium text-right">Earnings</th>
-              <th className="px-6 py-3 font-medium text-right">Commission</th>
+              {/* Money columns hidden while the program is paused. */}
+              {REFERRAL_COMMISSIONS_ENABLED && (
+                <>
+                  <th className="px-6 py-3 font-medium text-right">Earnings</th>
+                  <th className="px-6 py-3 font-medium text-right">Commission</th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -112,12 +122,16 @@ export default function ReferralTable({ referrals, isLoading }: ReferralTablePro
                   <StatusBadge status={referral.status} />
                 </td>
                 <td className="px-6 py-4 text-right text-gray-900">{referral.deals_count ?? 0}</td>
-                <td className="px-6 py-4 text-right text-gray-900 whitespace-nowrap">
-                  {formatCents(referral.total_deal_amount_cents ?? 0)}
-                </td>
-                <td className="px-6 py-4 text-right font-medium text-gray-900 whitespace-nowrap">
-                  {formatCents(referral.total_commission_cents ?? 0)}
-                </td>
+                {REFERRAL_COMMISSIONS_ENABLED && (
+                  <>
+                    <td className="px-6 py-4 text-right text-gray-900 whitespace-nowrap">
+                      {formatCents(referral.total_deal_amount_cents ?? 0)}
+                    </td>
+                    <td className="px-6 py-4 text-right font-medium text-gray-900 whitespace-nowrap">
+                      {formatCents(referral.total_commission_cents ?? 0)}
+                    </td>
+                  </>
+                )}
               </tr>
             ))}
           </tbody>

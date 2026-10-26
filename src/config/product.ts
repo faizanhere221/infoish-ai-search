@@ -152,3 +152,9 @@ export function getTierConfig(
   
   return product.tiers[tier] || null
 }
+// Referral partner program. Infoishai is free for brands and creators, so
+// there is no platform fee to share: while this is false, completed deals
+// still advance a referred creator's signup status (tracking keeps working),
+// but no referral_commissions row is created and no commission notification
+// is sent. See src/lib/referral-commissions.ts and docs/REFERRAL_SYSTEM.md.
+export const REFERRAL_COMMISSIONS_ENABLED = false

@@ -5,6 +5,7 @@ import { getEnrichedCommissions, formatCents } from '@/lib/referral'
 import { emitEvent } from '@/lib/events/emit'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
+import { REFERRAL_COMMISSIONS_ENABLED } from '@/config/product'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -95,7 +96,10 @@ export async function PUT(
     })
 
     // Notify the partner on approval (best-effort)
-    if (status === 'approved') {
+    // Commission notifications are off while the program is paused
+    // (REFERRAL_COMMISSIONS_ENABLED). An admin still approves or cancels
+    // any existing row, without telling the partner they earned money.
+    if (status === 'approved' && REFERRAL_COMMISSIONS_ENABLED) {
       const { data: partner } = await supabase.from('referral_partners').select('user_id').eq('id', params.id).single()
       if (partner?.user_id) {
         await emitEvent(supabase, {

@@ -11,6 +11,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { getUserIdFromCreator } from '@/lib/notifications'
 import { emitEvent } from '@/lib/events/emit'
 import { formatCents } from '@/lib/referral'
+import { REFERRAL_COMMISSIONS_ENABLED } from '@/config/product'
 
 interface CalculateCommissionParams {
   dealId: string
@@ -62,6 +63,11 @@ export async function updateReferralSignupStatus(
   await supabase.from('referral_signups').update({ status: newStatus }).eq('id', signupId)
 }
 
+/** A second (or later) completed deal means an established creator, not a first-timer. */
+function nextSignupStatus(current: string): 'first_deal' | 'active' {
+  return current === 'first_deal' || current === 'active' ? 'active' : 'first_deal'
+}
+
 /**
  * Creates a pending commission for a completed deal, if (and only if) the
  * creator on that deal was referred by an active partner and this deal
@@ -77,11 +83,6 @@ export async function calculateReferralCommission(
   const { dealId, creatorId, dealAmountCents } = params
 
   try {
-    // Edge case: free deal, nothing to take a commission from.
-    if (!dealAmountCents || dealAmountCents <= 0) {
-      return { created: false }
-    }
-
     // 1-2. Was this creator referred? Most creators weren't — that's fine.
     const { data: signup } = await supabase
       .from('referral_signups')
@@ -92,6 +93,20 @@ export async function calculateReferralCommission(
       .single()
 
     if (!signup) {
+      return { created: false }
+    }
+
+    // Program paused (Infoishai is free, so there is no fee to share):
+    // keep tracking the referral's progress, but create no commission and
+    // send no notification. This runs before the partner-status and
+    // free-deal checks so signup tracking holds for every completed deal.
+    if (!REFERRAL_COMMISSIONS_ENABLED) {
+      await updateReferralSignupStatus(supabase, signup.id, nextSignupStatus(signup.status))
+      return { created: false }
+    }
+
+    // Edge case: free deal, nothing to take a commission from.
+    if (!dealAmountCents || dealAmountCents <= 0) {
       return { created: false }
     }
 
@@ -144,10 +159,8 @@ export async function calculateReferralCommission(
       return { created: false, error: commissionError?.message ?? 'Failed to create commission' }
     }
 
-    // 8. Advance the signup's status. A second (or later) completed deal
-    // means they're an established earner, not a first-timer anymore.
-    const targetStatus = signup.status === 'first_deal' || signup.status === 'active' ? 'active' : 'first_deal'
-    await updateReferralSignupStatus(supabase, signup.id, targetStatus)
+    // 8. Advance the signup's status.
+    await updateReferralSignupStatus(supabase, signup.id, nextSignupStatus(signup.status))
 
     // Notify the partner (best-effort — never fails commission creation)
     if (partner.user_id) {

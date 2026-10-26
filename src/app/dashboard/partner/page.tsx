@@ -12,15 +12,19 @@ import CommissionTable from '@/components/partner/CommissionTable'
 import PayoutTable from '@/components/partner/PayoutTable'
 import { usePartner } from '@/hooks/usePartner'
 import { formatCents } from '@/lib/referral'
+import { REFERRAL_COMMISSIONS_ENABLED } from '@/config/product'
 import type { PartnerStats, ReferralSignup, ReferralCommission, ReferralPayout } from '@/types/referral'
 
 type Tab = 'referrals' | 'commissions' | 'payouts'
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'referrals', label: 'Referrals' },
-  { id: 'commissions', label: 'Commissions' },
-  { id: 'payouts', label: 'Payouts' },
-]
+// Commissions/Payouts tabs are hidden while the program is paused.
+const TABS: { id: Tab; label: string }[] = REFERRAL_COMMISSIONS_ENABLED
+  ? [
+      { id: 'referrals', label: 'Referrals' },
+      { id: 'commissions', label: 'Commissions' },
+      { id: 'payouts', label: 'Payouts' },
+    ]
+  : [{ id: 'referrals', label: 'Referrals' }]
 
 interface DashboardUser {
   id: string
@@ -228,9 +232,19 @@ export default function PartnerDashboardPage() {
                   {partner.status}
                 </span>
               </div>
-              <p className="text-gray-500 mt-1">Partner dashboard &middot; {Number(partner.commission_rate)}% commission rate</p>
+              <p className="text-gray-500 mt-1">
+                Partner dashboard
+                {REFERRAL_COMMISSIONS_ENABLED && <> &middot; {Number(partner.commission_rate)}% commission rate</>}
+              </p>
             </div>
           </div>
+
+          {!REFERRAL_COMMISSIONS_ENABLED && (
+            <div className="mb-6 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+              <p className="text-sm text-amber-800">The partner program is paused while Infoishai is free. Your referrals are still tracked.</p>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Your referral link</label>
@@ -257,7 +271,7 @@ export default function PartnerDashboardPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className={`grid grid-cols-1 md:grid-cols-2 ${REFERRAL_COMMISSIONS_ENABLED ? 'lg:grid-cols-4' : ''} gap-6 mb-8`}>
             <PartnerStatsCard
               icon={Users}
               label="Total Referrals"
@@ -272,20 +286,24 @@ export default function PartnerDashboardPage() {
               subtext="Completed their profile or more"
               color="blue"
             />
-            <PartnerStatsCard
-              icon={DollarSign}
-              label="Total Earnings"
-              value={formatCents(stats?.total_earnings_cents ?? 0)}
-              subtext="Approved & paid commissions"
-              color="emerald"
-            />
-            <PartnerStatsCard
-              icon={Wallet}
-              label="Pending Payout"
-              value={formatCents(stats?.pending_payout_cents ?? 0)}
-              subtext="Earned, not yet paid out"
-              color="amber"
-            />
+            {REFERRAL_COMMISSIONS_ENABLED && (
+              <>
+                <PartnerStatsCard
+                  icon={DollarSign}
+                  label="Total Earnings"
+                  value={formatCents(stats?.total_earnings_cents ?? 0)}
+                  subtext="Approved & paid commissions"
+                  color="emerald"
+                />
+                <PartnerStatsCard
+                  icon={Wallet}
+                  label="Pending Payout"
+                  value={formatCents(stats?.pending_payout_cents ?? 0)}
+                  subtext="Earned, not yet paid out"
+                  color="amber"
+                />
+              </>
+            )}
           </div>
         )}
 

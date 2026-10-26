@@ -4,6 +4,7 @@ import { DollarSign, Check, X } from 'lucide-react'
 import { formatDate } from '@/components/campaigns/utils'
 import { formatCents } from '@/lib/referral'
 import type { CommissionStatus, ReferralCommission } from '@/types/referral'
+import { REFERRAL_COMMISSIONS_ENABLED } from '@/config/product'
 
 interface CommissionTableProps {
   commissions: ReferralCommission[]
@@ -57,7 +58,11 @@ export default function CommissionTable({ commissions, isLoading, onApprove, onC
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
         <DollarSign className="w-12 h-12 text-gray-300 mx-auto" />
-        <p className="mt-4 text-gray-500">No commissions yet. You&apos;ll earn when referred creators complete deals.</p>
+        <p className="mt-4 text-gray-500">
+          {REFERRAL_COMMISSIONS_ENABLED
+            ? "No commissions yet. You'll earn when referred creators complete deals."
+            : 'No commissions. The partner program is paused while Infoishai is free. Your referrals are still tracked.'}
+        </p>
       </div>
     )
   }

@@ -4,6 +4,7 @@ import { Wallet } from 'lucide-react'
 import { formatDate } from '@/components/campaigns/utils'
 import { formatCents } from '@/lib/referral'
 import type { PayoutStatus, ReferralPayout } from '@/types/referral'
+import { REFERRAL_COMMISSIONS_ENABLED } from '@/config/product'
 
 interface PayoutTableProps {
   payouts: ReferralPayout[]
@@ -51,7 +52,11 @@ export default function PayoutTable({ payouts, isLoading }: PayoutTableProps) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
         <Wallet className="w-12 h-12 text-gray-300 mx-auto" />
-        <p className="mt-4 text-gray-500">No payouts yet. Request a payout when you reach the minimum balance.</p>
+        <p className="mt-4 text-gray-500">
+          {REFERRAL_COMMISSIONS_ENABLED
+            ? 'No payouts yet. Request a payout when you reach the minimum balance.'
+            : 'No payouts.'}
+        </p>
       </div>
     )
   }
