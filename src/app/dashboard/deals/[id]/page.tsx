@@ -519,20 +519,18 @@ export default function DealDetailPage() {
                   <span className="text-gray-500">Deal Amount</span>
                   <span className="font-medium text-gray-900">{formatCurrency(deal.amount)}</span>
                 </div>
-                {!isCreator && (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Platform Fee (10%)</span>
-                      <span className="text-gray-600">-{formatCurrency(deal.platform_fee)}</span>
-                    </div>
-                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
-                      <span className="font-medium text-gray-900">Creator Receives</span>
-                      <span className="text-lg font-bold text-emerald-600">
-                        {formatCurrency(deal.creator_payout)}
-                      </span>
-                    </div>
-                  </>
-                )}
+                {/* No platform fee: the creator receives the full deal amount.
+                    Older deals stored a 10% platform_fee / reduced creator_payout;
+                    those columns are left as-is in the DB and not shown. */}
+                <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                  <span className="font-medium text-gray-900">Creator Receives</span>
+                  <span className="text-lg font-bold text-emerald-600">
+                    {formatCurrency(deal.amount)}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Infoishai is free for brands and creators. There are no platform fees.
+                </p>
               </div>
 
               <div className="mt-4 pt-4 border-t border-gray-100">

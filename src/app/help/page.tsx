@@ -24,7 +24,7 @@ const FAQS: { category: string; icon: React.ElementType; items: { q: string; a: 
       },
       {
         q: 'Is Infoishai free to use?',
-        a: 'Yes — the platform is completely free. Brands can browse and contact creators at no charge. Creators list their services for free.',
+        a: 'Yes. Infoishai is free for brands and creators. There are no platform fees. Brands browse and contact creators at no charge, and creators list their services for free.',
       },
       {
         q: 'How do I find influencers?',

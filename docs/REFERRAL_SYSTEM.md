@@ -70,7 +70,13 @@ It is unique across all partners.
 
 ## Commission calculation
 
-Commission is a percentage of Infoishai's platform fee, **not** of the raw
+> **Open question (2026-10-27):** Infoishai is free for brands and creators
+> and deals carry no platform fee (`PLATFORM_FEE_PERCENTAGE = 0` in
+> `src/utils/constants.ts`). This calculation still uses its own
+> `PLATFORM_FEE_RATE = 0.05`, so partners keep earning commission on a fee
+> Infoishai no longer collects. Left unchanged pending a product decision.
+
+Commission is a percentage of a notional 5% platform fee, **not** of the raw
 deal amount:
 
 ```

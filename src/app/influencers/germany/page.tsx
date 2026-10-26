@@ -678,7 +678,7 @@ export default function GermanyInfluencersPage() {
           <p className="text-white/90 max-w-2xl mx-auto mb-8 text-base leading-relaxed">
             Join brands across Europe using Infoishai to connect with verified German tech
             creators. Reach the DACH region. Search by niche, platform, language, and audience
-            size. Free to start.
+            size. Free for brands and creators.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link

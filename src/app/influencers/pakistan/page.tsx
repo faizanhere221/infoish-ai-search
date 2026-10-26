@@ -26,7 +26,7 @@ export const revalidate = 86400
 export const metadata: Metadata = {
   title: { absolute: '100+ Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai' },
   description:
-    'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No subscription.',
+    'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No platform fees.',
   keywords: [
     'tech influencers Pakistan',
     'Pakistani tech creators',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: '100+ Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai',
     description:
-      'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No subscription.',
+      'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No platform fees.',
     url: 'https://infoishai.com/influencers/pakistan',
     siteName: 'Infoishai',
     type: 'website',
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '100+ Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai',
     description:
-      'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No subscription.',
+      'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No platform fees.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/pakistan',
@@ -710,7 +710,7 @@ export default function PakistanInfluencersPage() {
           </h2>
           <p className="text-white/90 max-w-2xl mx-auto mb-8 text-base leading-relaxed">
             Join brands using Infoishai to connect with verified Pakistani tech creators. Search by
-            niche, platform, language, and audience size. Free to start.
+            niche, platform, language, and audience size. Free for brands and creators.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link

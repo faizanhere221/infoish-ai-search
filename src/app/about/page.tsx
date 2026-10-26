@@ -443,7 +443,7 @@ export default function AboutPage() {
           </h2>
           <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
             Join hundreds of brands using Infoishai to connect with verified tech influencers.
-            Free to start, no credit card required.
+            Free for brands and creators. No credit card required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link

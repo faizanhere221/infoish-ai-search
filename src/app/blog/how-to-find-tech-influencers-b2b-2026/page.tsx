@@ -602,7 +602,7 @@ export default function HowToFindTechInfluencersPage() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
           <h3 className="text-2xl font-bold text-blue-900 mb-4">Find Tech Influencers on Infoishai</h3>
           <p className="text-blue-800 mb-6">
-            Looking for the fastest way to find verified tech creators? Infoishai is the #1 tech influencer marketplace with 100+ verified tech creators, filters for niche, platform, and budget, direct messaging, and deal management — no subscription fees.
+            Looking for the fastest way to find verified tech creators? Infoishai is the #1 tech influencer marketplace with 100+ verified tech creators, filters for niche, platform, and budget, direct messaging, and deal management. There are no platform fees.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

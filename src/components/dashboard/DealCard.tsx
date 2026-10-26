@@ -31,7 +31,9 @@ export default function DealCard({ deal, viewAs }: DealCardProps) {
   const needsAction = (viewAs === 'creator' && deal.status === 'pending') ||
                       (viewAs === 'brand' && deal.status === 'delivered')
 
-  const displayAmount = viewAs === 'creator' ? deal.creator_payout : deal.amount
+  // No platform fee, so both sides see the full deal amount. Older deals
+  // still store a reduced creator_payout from the old 10% fee.
+  const displayAmount = deal.amount
 
   return (
     <Link 

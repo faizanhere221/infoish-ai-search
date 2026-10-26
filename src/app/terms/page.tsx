@@ -5,7 +5,7 @@ import Header from '@/components/header'
 
 export const metadata: Metadata = {
   title: { absolute: 'Terms of Service | Infoishai' },
-  description: 'The rules and conditions for using Infoishai — account eligibility, creator and brand obligations, platform fees, and usage policies.',
+  description: 'The rules and conditions for using Infoishai — account eligibility, creator and brand obligations, fees, and usage policies.',
   robots: {
     index: false,
     follow: true,
@@ -59,17 +59,14 @@ export default function TermsOfService() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Free to Use</h2>
             <p className="text-gray-700 leading-relaxed">
               Creating an account, searching the creator directory, messaging, and posting
-              campaigns are free for both brands and creators. There are no subscription fees to
-              use the platform.
+              campaigns are free. Infoishai is free for brands and creators. There are no platform fees.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Deals and Platform Fee</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Deals</h2>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
-              <li>When a brand and creator agree on a sponsorship and the brand sends a deal, Infoishai applies a 10% platform fee on the agreed deal amount</li>
-              <li>The creator&apos;s payout is the deal amount minus the platform fee</li>
-              <li>Both parties can see the breakdown (deal amount, platform fee, and creator payout) before the deal is confirmed</li>
+              <li>Infoishai charges no platform fee on deals. The creator receives the full agreed deal amount</li>
               <li>Deal terms, deliverables, deadlines, and revision limits are agreed between the brand and creator directly on the platform</li>
             </ul>
           </section>

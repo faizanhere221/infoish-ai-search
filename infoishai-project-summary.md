@@ -198,7 +198,7 @@ Full route-by-route audit (metadata/images/h1/forms/CTAs) is in **§10**. Route 
 
 ### Deals (7)
 
-- `GET, POST /api/deals` — list caller's deals, or create one (10% platform fee, notifies creator).
+- `GET, POST /api/deals` — list caller's deals, or create one (no platform fee: creator payout = deal amount; notifies creator).
 - `GET, PUT /api/deals/[id]` — fetch with relations, or update limited fields (either party).
 - `POST /api/deals/[id]/accept` — creator accepts, system message + brand notified.
 - `POST /api/deals/[id]/approve` — brand approves delivery → completed; calculates referral commission; updates lifetime stats.
@@ -292,7 +292,7 @@ Full route-by-route audit (metadata/images/h1/forms/CTAs) is in **§10**. Route 
 
 ### deals/
 - `DealStatus.tsx` — status display with timeline/revision warnings.
-- `CreateDealForm.tsx` — brand's deal-creation modal with fee calculation.
+- `CreateDealForm.tsx` — brand's deal-creation modal with a payment summary (no platform fee).
 
 ### landing/index.tsx (single file, 18 named exports)
 `Navigation`, `HeroSection`, `AboutSection`, `HowInfoishaiWorksSection`, `ForBrandsSection`, `ForCreatorsSection`, `ProblemSection`, `SolutionSection`, `PlatformSection`, `CategoriesSection`, `HowItWorksSection`, `WhyMarketplaceSection`, `UseCasesSection`, `FAQSection`, `FinalCTASection`, `NewsletterSection`, `Footer` — the entire homepage/about-page UI.
@@ -350,7 +350,7 @@ Full route-by-route audit (metadata/images/h1/forms/CTAs) is in **§10**. Route 
 - `users.role` (admin_migration.sql) — `'user' | 'admin' | 'super_admin'`, drives all admin-route authorization.
 - `creators.profile_views` (creator_profile_views_migration.sql) — **the migration file explicitly says this has NOT been applied to the live database yet** (blocked by a permission classifier during an earlier session). The dashboard "Profile Views" stat and `POST /api/creators/[id]/view` likely no-op or error against production until someone runs this migration manually.
 - `deals.deliverables` was changed from `TEXT[]` to `JSONB` (deals_services_fix_migration.sql) to hold `{id, description, is_completed}` objects.
-- `referral_commissions.commission_rate` applies to Infoishai's own platform fee (5%, see `PLATFORM_FEE_RATE` in `src/lib/referral-commissions.ts`), not to the raw deal amount — a partner's "20% commission" is 20% of the platform's cut.
+- `referral_commissions.commission_rate` applies to a notional 5% platform fee (`PLATFORM_FEE_RATE` in `src/lib/referral-commissions.ts`), not to the raw deal amount: a partner's "20% commission" is 20% of that 5%. Deals themselves charge no platform fee, so this is an open product question.
 
 **RLS:** `schema.sql` enables RLS on all 14 base tables and defines ~27 policies; `migration.sql`/`referral_system_migration.sql`/`campaigns_migration.sql`/`newsletter_contact_migration.sql` add more (39 + 27 + 8 + 6 + 2 = ~82 policy statements total across the files). **Important: every policy is written against Supabase Auth's `auth.uid()`** (e.g. `USING (auth.uid() = user_id)`), but the app does not use Supabase Auth at all (see §8) — see §14 for why this makes RLS non-functional as a real access-control layer in this app's actual architecture.
 

@@ -23,7 +23,7 @@ export const revalidate = 86400
 export const metadata: Metadata = {
   title: { absolute: '100+ US Tech Influencers | Free Search & Messaging | Infoishai' },
   description:
-    'Browse 100+ verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No subscription.',
+    'Browse 100+ verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No platform fees.',
   keywords: [
     'tech influencers USA',
     'American tech creators',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: '100+ US Tech Influencers | Free Search & Messaging | Infoishai',
     description:
-      'Browse 100+ verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No subscription.',
+      'Browse 100+ verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No platform fees.',
     url: 'https://infoishai.com/influencers/usa',
     siteName: 'Infoishai',
     type: 'website',
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '100+ US Tech Influencers | Free Search & Messaging | Infoishai',
     description:
-      'Browse 100+ verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No subscription.',
+      'Browse 100+ verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No platform fees.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/usa',
@@ -313,7 +313,7 @@ export default function UsaInfluencersPage() {
             Find Tech Influencers in the United States
           </h1>
           <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
-            American tech influencers reach the world&apos;s largest SaaS market ($195 billion) across YouTube, LinkedIn, Twitter, and TikTok. A mid-tier US tech creator charges $500-$3,000 per sponsored video. Infoishai lists 100+ verified US tech creators. Brands search free, filter by niche and platform, and message creators directly with no subscription fees.
+            American tech influencers reach the world&apos;s largest SaaS market ($195 billion) across YouTube, LinkedIn, Twitter, and TikTok. A mid-tier US tech creator charges $500-$3,000 per sponsored video. Infoishai lists 100+ verified US tech creators. Brands search free, filter by niche and platform, and message creators directly. There are no platform fees.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified American tech creators across YouTube, Twitter/X, LinkedIn, and
@@ -546,7 +546,7 @@ export default function UsaInfluencersPage() {
           </h2>
           <p className="text-white/90 max-w-2xl mx-auto mb-8 text-base leading-relaxed">
             Join 500+ brands using Infoishai to connect with verified American tech creators. Search
-            by niche, platform, and audience size. Free to start.
+            by niche, platform, and audience size. Free for brands and creators.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link

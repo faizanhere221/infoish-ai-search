@@ -109,8 +109,8 @@ Once a creator is attached to a campaign (shortlisted by the brand or hired from
 - `users.role`: `'user' | 'admin' | 'super_admin'`
 - `deals.deliverables`: JSONB array of `{id, description, is_completed}`
 - `creators.profile_views`: INTEGER counter, incremented by public API
-- Platform fee: 10% on deals and on campaign-workflow payments (defined in `src/lib/referral-commissions.ts`)
-- Referral commission: percentage of the platform fee, not the deal/payment amount
+- Platform fee: **none**. Infoishai is free for brands and creators. `PLATFORM_FEE_PERCENTAGE` in `src/utils/constants.ts` is `0`, so a new deal's `creator_payout` equals its `amount`. Deals created before 2026-10-27 still store a 10% `platform_fee` and a reduced `creator_payout`; don't backfill them, and the UI shows the full `amount` for every deal. The campaign workflow's `creator_payments` never had a platform fee. User-facing copy says: "Infoishai is free for brands and creators. There are no platform fees."
+- Referral commission: `commission_rate` × `PLATFORM_FEE_RATE` (a separate constant, `0.05`, in `src/lib/referral-commissions.ts`) × the deal amount. It does NOT read `PLATFORM_FEE_PERCENTAGE`, so commissions are still non-zero (1% of the deal at the default 20% rate) even though deals charge no fee. Open product decision; don't change it without asking.
 
 ### API Route Conventions
 

@@ -24,7 +24,7 @@ import {
 // ============================================================================
 export const metadata: Metadata = {
   title: 'Tech Influencer Marketplace | Find Creators Free',
-  description: 'Search verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn. Free to join. No subscription.',
+  description: 'Search verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn. Free to join. No platform fees.',
   keywords: [
     'find tech influencers',
     'tech influencer marketplace',
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     url: 'https://infoishai.com',
     siteName: 'Infoishai',
     title: 'Tech Influencer Marketplace | Find Creators Free',
-    description: 'Search verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn. Free to join. No subscription.',
+    description: 'Search verified tech influencers by niche, platform, and budget. AI, SaaS, developer creators on YouTube, Twitter, LinkedIn. Free to join. No platform fees.',
     images: [
       {
         url: 'https://infoishai.com/og-image.jpg',
@@ -104,7 +104,7 @@ const structuredData = {
     '@type': 'Offer',
     price: '0',
     priceCurrency: 'USD',
-    description: 'Free to join for brands and creators',
+    description: 'Infoishai is free for brands and creators. There are no platform fees.',
   },
   aggregateRating: {
     '@type': 'AggregateRating',
@@ -143,7 +143,7 @@ const faqData = {
       name: 'How much does Infoishai cost?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Infoishai is free to join for both brands and creators. There are no subscription fees or platform charges.',
+        text: 'Infoishai is free for brands and creators. There are no platform fees.',
       },
     },
     {

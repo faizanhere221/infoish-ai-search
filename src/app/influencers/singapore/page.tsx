@@ -672,7 +672,7 @@ export default function SingaporeInfluencersPage() {
           <p className="text-white/90 max-w-2xl mx-auto mb-8 text-base leading-relaxed">
             Join brands across ASEAN using Infoishai to connect with verified Singaporean tech
             creators. Your gateway to Southeast Asia. Search by niche, platform, and audience
-            size. Free to start.
+            size. Free for brands and creators.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link

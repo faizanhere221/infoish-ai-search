@@ -132,10 +132,6 @@ export function CreateDealForm({
     })
   }
 
-  // Calculate platform fee
-  const platformFee = totalAmount * 0.1
-  const creatorPayout = totalAmount - platformFee
-
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
@@ -318,15 +314,14 @@ export function CreateDealForm({
                     <span className="text-gray-500">Deal Amount</span>
                     <span className="text-gray-900">${totalAmount.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Platform Fee (10%)</span>
-                    <span className="text-gray-600">-${platformFee.toFixed(2)}</span>
-                  </div>
                   <div className="pt-2 border-t border-gray-200 flex justify-between font-medium">
                     <span className="text-gray-900">Creator Receives</span>
-                    <span className="text-emerald-600">${creatorPayout.toFixed(2)}</span>
+                    <span className="text-emerald-600">${totalAmount.toFixed(2)}</span>
                   </div>
                 </div>
+                <p className="mt-3 text-xs text-gray-500">
+                  Infoishai is free for brands and creators. There are no platform fees.
+                </p>
               </div>
             )}
           </div>

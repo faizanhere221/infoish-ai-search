@@ -633,7 +633,7 @@ export default function IndianTechInfluencerRatesByCityPage() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
           <h3 className="text-2xl font-bold text-blue-900 mb-4">Get Real Quotes From Indian Tech Creators</h3>
           <p className="text-blue-800 mb-6">
-            Browse 100+ verified Indian tech creators with rates in INR, filterable by city, niche, and platform. No subscription fees.
+            Browse 100+ verified Indian tech creators with rates in INR, filterable by city, niche, and platform. There are no platform fees.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

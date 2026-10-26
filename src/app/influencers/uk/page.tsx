@@ -23,7 +23,7 @@ export const revalidate = 86400
 export const metadata: Metadata = {
   title: { absolute: '100+ UK Tech Influencers | Rates from GBP 200 | Infoishai' },
   description:
-    'Browse 100+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No subscription.',
+    'Browse 100+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No platform fees.',
   keywords: [
     'tech influencers UK',
     'British tech creators',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: '100+ UK Tech Influencers | Rates from GBP 200 | Infoishai',
     description:
-      'Browse 100+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No subscription.',
+      'Browse 100+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No platform fees.',
     url: 'https://infoishai.com/influencers/uk',
     siteName: 'Infoishai',
     type: 'website',
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '100+ UK Tech Influencers | Rates from GBP 200 | Infoishai',
     description:
-      'Browse 100+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No subscription.',
+      'Browse 100+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No platform fees.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/uk',
@@ -553,7 +553,7 @@ export default function UkInfluencersPage() {
           </h2>
           <p className="text-white/90 max-w-2xl mx-auto mb-8 text-base leading-relaxed">
             Join brands across Europe using Infoishai to connect with verified British tech
-            creators. Search by niche, platform, and audience size. Free to start.
+            creators. Search by niche, platform, and audience size. Free for brands and creators.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link

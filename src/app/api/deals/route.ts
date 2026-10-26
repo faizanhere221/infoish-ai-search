@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { getUserIdFromCreator, getUserIdFromBrand } from '@/lib/notifications'
 import { emitEvent } from '@/lib/events/emit'
 import { captureError } from '@/lib/error-tracking'
+import { PLATFORM_FEE_PERCENTAGE } from '@/utils/constants'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
@@ -166,8 +167,9 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerSupabase()
 
-    // Calculate platform fee (10%) — amount is stored in cents
-    const platformFee = Math.round(amount * 0.10)
+    // No platform fee (PLATFORM_FEE_PERCENTAGE is 0), so the creator payout
+    // equals the deal amount. Amount is stored in cents.
+    const platformFee = Math.round(amount * (PLATFORM_FEE_PERCENTAGE / 100))
     const creatorPayout = amount - platformFee
 
     const { data: deal, error } = await supabase

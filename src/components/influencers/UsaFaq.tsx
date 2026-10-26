@@ -22,7 +22,7 @@ const faqs = [
   {
     question: 'Do I need a budget to use Infoishai?',
     answer:
-      'Searching and messaging creators on Infoishai is free. You pay creators directly based on agreed rates. No subscription fees, no platform commissions on search. Infoishai tracks contracts and payments for each campaign.',
+      'Searching and messaging creators on Infoishai is free. You pay creators directly based on agreed rates. Infoishai is free for brands and creators. There are no platform fees. Infoishai tracks contracts and payments for each campaign.',
   },
   {
     question: 'What types of tech influencers are available in the USA?',

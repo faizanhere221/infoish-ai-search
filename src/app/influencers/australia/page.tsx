@@ -24,7 +24,7 @@ export const revalidate = 86400
 export const metadata: Metadata = {
   title: { absolute: '100+ Australian Tech Influencers | APAC Reach | Infoishai' },
   description:
-    'Browse 100+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No subscription.',
+    'Browse 100+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No platform fees.',
   keywords: [
     'tech influencers Australia',
     'Australian tech creators',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: '100+ Australian Tech Influencers | APAC Reach | Infoishai',
     description:
-      'Browse 100+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No subscription.',
+      'Browse 100+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No platform fees.',
     url: 'https://infoishai.com/influencers/australia',
     siteName: 'Infoishai',
     type: 'website',
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '100+ Australian Tech Influencers | APAC Reach | Infoishai',
     description:
-      'Browse 100+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No subscription.',
+      'Browse 100+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No platform fees.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/australia',
@@ -600,7 +600,7 @@ export default function AustraliaInfluencersPage() {
           </h2>
           <p className="text-white/90 max-w-2xl mx-auto mb-8 text-base leading-relaxed">
             Join brands across APAC using Infoishai to connect with verified Australian tech
-            creators. Search by niche, platform, and audience size. Free to start.
+            creators. Search by niche, platform, and audience size. Free for brands and creators.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link

@@ -436,7 +436,7 @@ export default function WaysTechCreatorsEarnMoneyPage() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
           <h3 className="text-2xl font-bold text-blue-900 mb-4">Get Discovered by Brands on Infoishai</h3>
           <p className="text-blue-800 mb-6">
-            Create your free creator profile, display your rates and audience metrics, and let verified brands message you directly — no platform fees on your earnings.
+            Create your free creator profile, display your rates and audience metrics, and let verified brands message you directly. There are no platform fees on your earnings.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

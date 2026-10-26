@@ -156,8 +156,10 @@ export const DEAL_STATUSES: Record<string, { label: string; color: string; bg: s
   refunded: { label: 'Refunded', color: 'text-gray-700', bg: 'bg-gray-100' },
 }
 
-// Platform fee
-export const PLATFORM_FEE_PERCENTAGE = 10
+// Platform fee on legacy deals. Infoishai is free for brands and creators,
+// so this is 0: the creator receives the full deal amount. Historical deals
+// rows keep the 10% fee they were created with; don't backfill them.
+export const PLATFORM_FEE_PERCENTAGE = 0
 
 // Limits
 export const MIN_FOLLOWERS = 3000

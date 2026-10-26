@@ -501,7 +501,7 @@ export function ForBrandsSection() {
     {
       icon: Search,
       title: 'Free Search',
-      description: 'Browse and message creators at no cost. No signup fees. No subscription.',
+      description: 'Browse and message creators at no cost. There are no platform fees.',
     },
     {
       icon: CheckCircle,
@@ -530,8 +530,7 @@ export function ForBrandsSection() {
               Every creator is active and accepting partnerships.
             </p>
             <p>
-              Search and message creators for free. No subscription fees. No platform commissions
-              on search. Run campaigns across 9 countries from a single dashboard.
+              Search and message creators for free. Infoishai is free for brands and creators. There are no platform fees. Run campaigns across 9 countries from a single dashboard.
             </p>
           </div>
         </div>
@@ -605,8 +604,7 @@ export function ForCreatorsSection() {
             </p>
             <p>
               Set your own rates. Choose the brands you work with. Manage deliverables and
-              timelines through the platform. No exclusivity requirements. No platform fees on
-              your earnings.
+              timelines through the platform. No exclusivity requirements. Infoishai is free for brands and creators. There are no platform fees.
             </p>
           </div>
         </div>
@@ -1117,7 +1115,7 @@ export function FAQSection() {
     },
     {
       question: 'How much does Infoishai cost?',
-      answer: 'Infoishai is free to join for both brands and creators. There are no subscription fees or platform charges.',
+      answer: 'Infoishai is free for brands and creators. There are no platform fees.',
     },
     {
       question: 'What types of tech influencers can I find?',
@@ -1222,7 +1220,7 @@ export function FinalCTASection() {
         </h2>
         <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
           Join 500+ brands using Infoishai to connect with verified tech influencers. 
-          Free to start, no credit card required.
+          Free for brands and creators. No credit card required.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link 
