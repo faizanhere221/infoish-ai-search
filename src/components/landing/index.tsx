@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import NewsletterForm from '@/components/NewsletterForm'
 import ProfileDropdown, { type ProfileDropdownProfile } from '@/components/ProfileDropdown'
-import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
+import { COUNTRY_LANDING_PAGES, NICHES, PLATFORMS } from '@/utils/constants'
 import {
   Sparkles, 
   Search, 
@@ -287,9 +287,9 @@ export function Navigation() {
 // ============================================================================
 export function HeroSection() {
   const stats = [
-    { value: '100+', label: 'Tech Creators' },
-    { value: '10+', label: 'Brands Trust Us' },
-    { value: '$10K+', label: 'Creator Earnings' },
+    { value: 'Free', label: 'For Brands and Creators' },
+    { value: String(NICHES.length), label: 'Tech Niches' },
+    { value: String(PLATFORMS.length), label: 'Platforms' },
   ]
 
   return (
@@ -306,7 +306,7 @@ export function HeroSection() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-pink/10 text-brand-purple-dark rounded-full text-sm font-medium mb-8">
               <Sparkles className="w-4 h-4" />
-              <span>#1 Tech Influencer Marketplace</span>
+              <span>Tech Influencer Marketplace</span>
             </div>
 
             {/* H1 - Main Keyword */}
@@ -653,12 +653,12 @@ export function ProblemSection() {
     {
       icon: Shield,
       title: 'Fake Followers',
-      description: '67% of influencers have fake followers. You need verified, authentic creators.',
+      description: 'Fake followers are common. You need verified, authentic creators.',
     },
     {
       icon: DollarSign,
       title: 'Payment Risk',
-      description: '45% of brand deals have payment disputes. Creators ghost or brands dont pay.',
+      description: 'Deals stall when nobody tracks who owes what. Infoishai keeps the record of every payment.',
     },
   ]
 
@@ -737,7 +737,6 @@ export function PlatformSection() {
       title: 'YouTube Tech Influencers',
       description: 'Product reviews, software tutorials, deep tech explanations, SaaS walkthroughs.',
       color: 'bg-red-500',
-      creators: '100+',
     },
     {
       icon: Twitter,
@@ -745,7 +744,6 @@ export function PlatformSection() {
       title: 'Twitter Tech Influencers',
       description: 'Product launches, SaaS growth discussions, AI tool recommendations, startup conversations.',
       color: 'bg-gray-900',
-      creators: '100+',
     },
     {
       icon: Linkedin,
@@ -753,7 +751,6 @@ export function PlatformSection() {
       title: 'LinkedIn Tech Creators',
       description: 'B2B thought leadership, enterprise software, professional tech content.',
       color: 'bg-blue-600',
-      creators: '100+',
     },
     {
       icon: Github,
@@ -761,7 +758,6 @@ export function PlatformSection() {
       title: 'Developer Influencers',
       description: 'Open source maintainers, dev tool reviews, technical tutorials.',
       color: 'bg-gray-800',
-      creators: '100+',
     },
     {
       icon: Mail,
@@ -769,7 +765,6 @@ export function PlatformSection() {
       title: 'Tech Newsletter Writers',
       description: 'Curated tech news, industry insights, developer resources.',
       color: 'bg-emerald-500',
-      creators: '100+',
     },
     {
       icon: Mic,
@@ -777,7 +772,6 @@ export function PlatformSection() {
       title: 'Tech Podcast Hosts',
       description: 'Interview shows, tech discussions, startup stories.',
       color: 'bg-purple-500',
-      creators: '100+',
     },
   ]
 
@@ -800,9 +794,6 @@ export function PlatformSection() {
                 <div className={`w-12 h-12 ${platform.color} rounded-xl flex items-center justify-center`}>
                   <platform.icon className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-sm font-medium text-brand-purple bg-brand-pink/10 px-3 py-1 rounded-full">
-                  {platform.creators} creators
-                </span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{platform.title}</h3>
               <p className="text-gray-600 text-sm mb-4">{platform.description}</p>
@@ -830,37 +821,31 @@ export function CategoriesSection() {
       title: 'AI Influencers',
       description: 'AI influencers create content about artificial intelligence tools, machine learning innovations, and emerging technologies.',
       icon: '🤖',
-      count: '100+',
     },
     {
       title: 'SaaS Influencers',
       description: 'SaaS influencers focus on productivity tools, software platforms, and startup growth strategies.',
       icon: '☁️',
-      count: '100+',
     },
     {
       title: 'Developer Influencers',
       description: 'Developer influencers create technical content for programmers and software engineers.',
       icon: '👨‍💻',
-      count: '100+',
     },
     {
       title: 'Startup Influencers',
       description: 'Startup influencers share insights about entrepreneurship, business growth, and building companies.',
       icon: '🚀',
-      count: '100+',
     },
     {
       title: 'DevOps Experts',
       description: 'DevOps creators cover cloud infrastructure, CI/CD, Kubernetes, and deployment strategies.',
       icon: '⚙️',
-      count: '100+',
     },
     {
       title: 'Cybersecurity Creators',
       description: 'Security experts sharing ethical hacking, security tools, and best practices.',
       icon: '🔐',
-      count: '100+',
     },
   ]
 
@@ -887,7 +872,6 @@ export function CategoriesSection() {
                 <span className="text-4xl">{category.icon}</span>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">{category.title}</h3>
-                  <span className="text-sm text-brand-purple">{category.count} creators</span>
                 </div>
               </div>
               <p className="text-gray-600 text-sm">{category.description}</p>
@@ -1219,7 +1203,7 @@ export function FinalCTASection() {
           Ready to Find Your Perfect Tech Creator?
         </h2>
         <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
-          Join 500+ brands using Infoishai to connect with verified tech influencers. 
+          Use Infoishai to connect with verified tech influencers. 
           Free for brands and creators. No credit card required.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -1276,7 +1260,7 @@ export function Footer() {
               <span className="text-xl font-bold text-white">Infoishai</span>
             </Link>
             <p className="text-sm mb-4 max-w-xs">
-              The #1 tech influencer marketplace connecting AI, SaaS, and tech brands with verified content creators.
+              A tech influencer marketplace connecting AI, SaaS, and tech brands with verified content creators.
             </p>
             <div className="flex items-center gap-4">
               <a

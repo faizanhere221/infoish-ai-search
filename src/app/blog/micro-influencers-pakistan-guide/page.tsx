@@ -324,7 +324,7 @@ export default function MicroInfluencersPakistanBlog() {
             </h2>
 
             <p className="text-gray-700 mb-6 text-lg leading-relaxed">
-              We analyzed <strong>100+ Pakistani influencers</strong> on Infoishai's platform. Here's what the data actually shows about <strong>influencer engagement rates in Pakistan</strong>:
+              We analyzed <strong>Pakistani influencers</strong> on Infoishai's platform. Here's what the data actually shows about <strong>influencer engagement rates in Pakistan</strong>:
             </p>
 
             <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 mb-8 border border-indigo-200">
@@ -493,7 +493,7 @@ export default function MicroInfluencersPakistanBlog() {
                   <div>
                     <h4 className="font-bold text-gray-900 mb-2 text-lg">Use an AI-Powered Platform (Fastest Method)</h4>
                     <p className="text-gray-700 mb-4">
-                      Platforms like <strong>Infoishai</strong> let you search <strong>100+ verified Pakistani influencers</strong> by niche, city, follower count, and engagement rate. Find the perfect micro-influencers in seconds instead of spending hours scrolling, or jump straight to the <Link href="/influencers/pakistan" className="text-blue-600 hover:text-blue-700 font-semibold">Pakistan tech influencer directory</Link>.
+                      Platforms like <strong>Infoishai</strong> let you search <strong>verified Pakistani influencers</strong> by niche, city, follower count, and engagement rate. Find the perfect micro-influencers in seconds instead of spending hours scrolling, or jump straight to the <Link href="/influencers/pakistan" className="text-blue-600 hover:text-blue-700 font-semibold">Pakistan tech influencer directory</Link>.
                     </p>
                     <Link 
                       href="/creators"
@@ -661,7 +661,7 @@ export default function MicroInfluencersPakistanBlog() {
           <section className="bg-gradient-to-r from-blue-600 to-violet-600 rounded-3xl p-8 sm:p-10 text-center text-white">
             <h3 className="text-2xl sm:text-3xl font-bold mb-4">Ready to Find Your Perfect Micro-Influencers?</h3>
             <p className="text-blue-100 mb-8 max-w-xl mx-auto text-lg">
-              Search <strong>100+ verified Pakistani influencers</strong> by niche, city, and engagement rate. Find your ideal micro-influencers in seconds, not hours.
+              Search <strong>verified Pakistani influencers</strong> by niche, city, and engagement rate. Find your ideal micro-influencers in seconds, not hours.
             </p>
             <Link 
               href="/creators"

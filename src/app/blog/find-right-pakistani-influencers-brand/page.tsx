@@ -364,7 +364,7 @@ export default function FindRightInfluencersPage() {
               Get Started Free
             </Link>
           </div>
-          <p className="text-sm text-green-700 mt-4">Access 100+ verified Pakistani influencers. No credit card required.</p>
+          <p className="text-sm text-green-700 mt-4">Access verified Pakistani influencers. No credit card required.</p>
         </div>
       </article>
     </div>

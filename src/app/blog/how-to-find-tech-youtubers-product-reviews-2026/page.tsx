@@ -572,7 +572,7 @@ Here is a link to the product: [URL]. Happy to set up a demo or a free account s
               YouTube is the highest-ROI channel for tech product reviews. The content compounds for over a year, the audience arrives pre-educated, and the format allows demonstrations no other platform supports.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Browse 100+ verified tech YouTubers on Infoishai. Filter by niche, country, subscriber count, and engagement rate in the{' '}
+              Browse verified tech YouTubers on Infoishai. Filter by niche, country, subscriber count, and engagement rate in the{' '}
               <Link href="/creators" className="text-blue-600 hover:text-blue-700 font-medium">creator directory</Link>, or{' '}
               <Link href="/signup/brand" className="text-blue-600 hover:text-blue-700 font-medium">sign up free as a brand</Link>.
             </p>
@@ -623,7 +623,7 @@ Here is a link to the product: [URL]. Happy to set up a demo or a free account s
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
           <h3 className="text-2xl font-bold text-blue-900 mb-4">Find Tech YouTubers for Your Next Product Review</h3>
           <p className="text-blue-800 mb-6">
-            Infoishai connects you with 100+ verified tech YouTubers across 9 countries, filterable by niche, subscriber count, and engagement rate. There are no platform fees.
+            Infoishai connects you with verified tech YouTubers across 9 countries, filterable by niche, subscriber count, and engagement rate. There are no platform fees.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -640,7 +640,7 @@ Here is a link to the product: [URL]. Happy to set up a demo or a free account s
               Browse Tech YouTubers
             </Link>
           </div>
-          <p className="text-sm text-blue-700 mt-4">No credit card required • 100+ verified creators • Instant results</p>
+          <p className="text-sm text-blue-700 mt-4">No credit card required • Verified creators • Instant results</p>
         </div>
 
         {/* Related Articles */}

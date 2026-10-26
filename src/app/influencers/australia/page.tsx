@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { NICHES, PLATFORMS } from '@/utils/constants'
 import Link from 'next/link'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
@@ -22,9 +23,9 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: '100+ Australian Tech Influencers | APAC Reach | Infoishai' },
+  title: { absolute: 'Australian Tech Influencers | APAC Reach | Infoishai' },
   description:
-    'Browse 100+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No platform fees.',
+    'Browse verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No platform fees.',
   keywords: [
     'tech influencers Australia',
     'Australian tech creators',
@@ -38,9 +39,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: '100+ Australian Tech Influencers | APAC Reach | Infoishai',
+    title: 'Australian Tech Influencers | APAC Reach | Infoishai',
     description:
-      'Browse 100+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No platform fees.',
+      'Browse verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No platform fees.',
     url: 'https://infoishai.com/influencers/australia',
     siteName: 'Infoishai',
     type: 'website',
@@ -48,9 +49,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '100+ Australian Tech Influencers | APAC Reach | Infoishai',
+    title: 'Australian Tech Influencers | APAC Reach | Infoishai',
     description:
-      'Browse 100+ verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No platform fees.',
+      'Browse verified Australian tech influencers. Filter by niche, platform, budget. Rates in AUD. Free messaging. No platform fees.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/australia',
@@ -115,9 +116,9 @@ const faqJsonLd = {
 }
 
 const stats = [
-  { value: '100+', label: 'Verified Australian Creators' },
-  { value: '10+', label: 'Tech Niches Covered' },
-  { value: '4.7/5', label: 'Average Creator Rating' },
+  { value: String(NICHES.length), label: 'Tech Niches' },
+  { value: String(PLATFORMS.length), label: 'Platforms Supported' },
+  { value: 'Direct', label: 'Messaging with Creators' },
   { value: 'Free', label: 'To Search and Connect' },
 ]
 
@@ -315,7 +316,7 @@ export default function AustraliaInfluencersPage() {
             Find Tech Influencers in Australia
           </h1>
           <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
-            Australian tech influencers provide access to the APAC region&apos;s highest-spending B2B market. A mid-tier Australian tech creator charges AUD 300-AUD 2,000 per sponsored video. Sydney, Melbourne, and Brisbane produce the most tech content. Infoishai lists 100+ verified Australian tech influencers with free search and messaging.
+            Australian tech influencers provide access to the APAC region&apos;s highest-spending B2B market. A mid-tier Australian tech creator charges AUD 300-AUD 2,000 per sponsored video. Sydney, Melbourne, and Brisbane produce the most tech content. Infoishai lists verified Australian tech influencers with free search and messaging.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified Australian tech creators across YouTube, Twitter/X, LinkedIn,

@@ -474,7 +474,7 @@ export default function TechInfluencerRates2026Page() {
               Define your target market and audience. Select the platforms matching your buyer. Set a quarterly budget based on your customer lifetime value. Find creators within your budget range.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              On Infoishai, you search 100+ verified tech influencers across 9 countries. Filter by niche, platform, audience size, and engagement rate. Message creators directly to discuss rates. Browse the{' '}
+              On Infoishai, you search verified tech influencers across 9 countries. Filter by niche, platform, audience size, and engagement rate. Message creators directly to discuss rates. Browse the{' '}
               <Link href="/creators" className="text-blue-600 hover:text-blue-700 font-medium">creator directory</Link>{' '}
               or{' '}
               <Link href="/signup/brand" className="text-blue-600 hover:text-blue-700 font-medium">sign up free as a brand</Link>.
@@ -526,7 +526,7 @@ export default function TechInfluencerRates2026Page() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
           <h3 className="text-2xl font-bold text-blue-900 mb-4">Find Tech Influencers Within Your Budget</h3>
           <p className="text-blue-800 mb-6">
-            Infoishai connects you with 100+ verified tech creators across 9 countries, filterable by platform, niche, and rate range. There are no platform fees.
+            Infoishai connects you with verified tech creators across 9 countries, filterable by platform, niche, and rate range. There are no platform fees.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -543,7 +543,7 @@ export default function TechInfluencerRates2026Page() {
               Browse Tech Creators
             </Link>
           </div>
-          <p className="text-sm text-blue-700 mt-4">No credit card required • 100+ verified creators • Instant results</p>
+          <p className="text-sm text-blue-700 mt-4">No credit card required • Verified creators • Instant results</p>
         </div>
 
         {/* Related Articles */}

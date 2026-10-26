@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { NICHES, PLATFORMS } from '@/utils/constants'
 import Link from 'next/link'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
@@ -21,9 +22,9 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: '100+ Canadian Tech Influencers | Rates in CAD | Infoishai' },
+  title: { absolute: 'Canadian Tech Influencers | Rates in CAD | Infoishai' },
   description:
-    'Browse 100+ verified Canadian tech influencers. Filter by niche, platform, budget. Compare rates in CAD. Free messaging. No platform fees.',
+    'Browse verified Canadian tech influencers. Filter by niche, platform, budget. Compare rates in CAD. Free messaging. No platform fees.',
   keywords: [
     'tech influencers Canada',
     'Canadian tech creators',
@@ -36,9 +37,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: '100+ Canadian Tech Influencers | Rates in CAD | Infoishai',
+    title: 'Canadian Tech Influencers | Rates in CAD | Infoishai',
     description:
-      'Browse 100+ verified Canadian tech influencers. Filter by niche, platform, budget. Compare rates in CAD. Free messaging. No platform fees.',
+      'Browse verified Canadian tech influencers. Filter by niche, platform, budget. Compare rates in CAD. Free messaging. No platform fees.',
     url: 'https://infoishai.com/influencers/canada',
     siteName: 'Infoishai',
     type: 'website',
@@ -46,9 +47,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '100+ Canadian Tech Influencers | Rates in CAD | Infoishai',
+    title: 'Canadian Tech Influencers | Rates in CAD | Infoishai',
     description:
-      'Browse 100+ verified Canadian tech influencers. Filter by niche, platform, budget. Compare rates in CAD. Free messaging. No platform fees.',
+      'Browse verified Canadian tech influencers. Filter by niche, platform, budget. Compare rates in CAD. Free messaging. No platform fees.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/canada',
@@ -113,9 +114,9 @@ const faqJsonLd = {
 }
 
 const stats = [
-  { value: '100+', label: 'Verified Canadian Creators' },
-  { value: '12+', label: 'Tech Niches Covered' },
-  { value: '4.7/5', label: 'Average Creator Rating' },
+  { value: String(NICHES.length), label: 'Tech Niches' },
+  { value: String(PLATFORMS.length), label: 'Platforms Supported' },
+  { value: 'Direct', label: 'Messaging with Creators' },
   { value: 'Free', label: 'To Search and Connect' },
 ]
 
@@ -313,7 +314,7 @@ export default function CanadaInfluencersPage() {
             Find Tech Influencers in Canada
           </h1>
           <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
-            Canadian tech influencers bridge North American and global audiences across YouTube, LinkedIn, and Twitter. A mid-tier Canadian tech creator charges CAD 400-CAD 2,500 per sponsored video. Toronto, Waterloo, and Vancouver lead in tech content creation. Infoishai lists 100+ verified Canadian tech creators searchable by niche and platform.
+            Canadian tech influencers bridge North American and global audiences across YouTube, LinkedIn, and Twitter. A mid-tier Canadian tech creator charges CAD 400-CAD 2,500 per sponsored video. Toronto, Waterloo, and Vancouver lead in tech content creation. Infoishai lists verified Canadian tech creators searchable by niche and platform.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified Canadian tech creators across YouTube, Twitter/X, LinkedIn, and

@@ -414,7 +414,7 @@ export default function AIPoweredInfluencerMarketingPage() {
               Get Started Free
             </Link>
           </div>
-          <p className="text-sm text-blue-700 mt-4">No credit card required • 100+ verified influencers • Instant results</p>
+          <p className="text-sm text-blue-700 mt-4">No credit card required • Verified influencers • Instant results</p>
         </div>
       </article>
     </div>

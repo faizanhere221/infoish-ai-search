@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Search Tech Influencers | YouTube & LinkedIn',
-  description: 'Browse 100+ verified tech influencers. Filter by niche, platform, location & price. Find your creator match.',
+  description: 'Browse verified tech influencers. Filter by niche, platform, location & price. Find your creator match.',
   keywords: [
     'tech influencer marketplace',
     'find tech influencers',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Search Tech Influencers | YouTube & LinkedIn Creators | Infoishai',
-    description: 'Browse 100+ verified tech influencers. Filter by niche, platform, location & price. Find your creator match.',
+    description: 'Browse verified tech influencers. Filter by niche, platform, location & price. Find your creator match.',
     url: 'https://infoishai.com/creators',
     siteName: 'Infoishai',
     type: 'website',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Search Tech Influencers | YouTube & LinkedIn Creators | Infoishai',
-    description: 'Browse 100+ verified tech influencers. Filter by niche, platform, location & price. Find your creator match.',
+    description: 'Browse verified tech influencers. Filter by niche, platform, location & price. Find your creator match.',
     images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {

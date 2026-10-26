@@ -7,7 +7,7 @@ export function OrganizationJsonLd() {
     name: 'Infoishai',
     url: BASE_URL,
     logo: `${BASE_URL}/logo.png`,
-    description: 'The #1 B2B tech influencer marketplace connecting brands with verified AI, SaaS, and developer content creators.',
+    description: 'A B2B tech influencer marketplace connecting brands with verified AI, SaaS, and developer content creators.',
     foundingDate: '2024',
     areaServed: ['US', 'GB', 'CA', 'IN', 'PK', 'AU', 'DE', 'NL', 'SG'],
     serviceType: 'Influencer Marketing Platform',

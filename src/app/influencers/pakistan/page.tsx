@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { NICHES, PLATFORMS } from '@/utils/constants'
 import Link from 'next/link'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
@@ -24,9 +25,9 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: '100+ Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai' },
+  title: { absolute: 'Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai' },
   description:
-    'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No platform fees.',
+    'Browse verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No platform fees.',
   keywords: [
     'tech influencers Pakistan',
     'Pakistani tech creators',
@@ -41,9 +42,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: '100+ Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai',
+    title: 'Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai',
     description:
-      'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No platform fees.',
+      'Browse verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No platform fees.',
     url: 'https://infoishai.com/influencers/pakistan',
     siteName: 'Infoishai',
     type: 'website',
@@ -51,9 +52,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '100+ Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai',
+    title: 'Pakistani Tech Influencers | Rates from PKR 10,000 | Infoishai',
     description:
-      'Browse 100+ verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No platform fees.',
+      'Browse verified Pakistani tech influencers. Filter by niche, platform, budget. Rates in PKR. Free messaging. No platform fees.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/pakistan',
@@ -118,9 +119,9 @@ const faqJsonLd = {
 }
 
 const stats = [
-  { value: '100+', label: 'Verified Pakistani Creators' },
-  { value: '12+', label: 'Tech Niches Covered' },
-  { value: '4.6/5', label: 'Average Creator Rating' },
+  { value: String(NICHES.length), label: 'Tech Niches' },
+  { value: String(PLATFORMS.length), label: 'Platforms Supported' },
+  { value: 'Direct', label: 'Messaging with Creators' },
   { value: 'Free', label: 'To Search and Connect' },
 ]
 
@@ -372,7 +373,7 @@ export default function PakistanInfluencersPage() {
             Find Tech Influencers in Pakistan
           </h1>
           <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
-            Pakistani tech influencers serve a rapidly growing market of 120 million internet users. A mid-tier Pakistani tech creator charges PKR 10,000-PKR 100,000 per sponsored video. Lahore, Karachi, and Islamabad lead in tech content creation. Infoishai lists 100+ verified Pakistani tech influencers searchable by niche and platform.
+            Pakistani tech influencers serve a rapidly growing market of 120 million internet users. A mid-tier Pakistani tech creator charges PKR 10,000-PKR 100,000 per sponsored video. Lahore, Karachi, and Islamabad lead in tech content creation. Infoishai lists verified Pakistani tech influencers searchable by niche and platform.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified Pakistani tech creators across YouTube, Instagram, Twitter/X,

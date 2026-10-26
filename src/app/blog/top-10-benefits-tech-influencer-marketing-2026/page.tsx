@@ -306,7 +306,7 @@ export default function Top10BenefitsTechInfluencerMarketingPage() {
 
             <p className="text-gray-700 leading-relaxed mt-6">
               <Link href="/creators" className="text-blue-600 hover:text-blue-700 font-medium">Infoishai</Link>{' '}
-              makes this process faster. Browse 100+ verified tech influencers, filter by niche, platform, location, and engagement rate, message creators directly, and manage the entire campaign from one place. You can also pair outreach with our free{' '}
+              makes this process faster. Browse verified tech influencers, filter by niche, platform, location, and engagement rate, message creators directly, and manage the entire campaign from one place. You can also pair outreach with our free{' '}
               <Link href="/tools" className="text-blue-600 hover:text-blue-700 font-medium">creator research tools</Link>{' '}
               to vet engagement and audience quality before you commit budget.
             </p>
@@ -317,7 +317,7 @@ export default function Top10BenefitsTechInfluencerMarketingPage() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
           <h3 className="text-2xl font-bold text-blue-900 mb-4">Find Tech Influencers on Infoishai</h3>
           <p className="text-blue-800 mb-6">
-            Ready to grow your brand with tech influencer marketing? Infoishai is the #1 tech influencer marketplace with 100+ verified tech creators, filters for niche, platform, and budget, direct messaging, and deal management. There are no platform fees.
+            Ready to grow your brand with tech influencer marketing? Infoishai is a tech influencer marketplace with verified tech creators, filters for niche, platform, and budget, direct messaging, and deal management. There are no platform fees.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -334,7 +334,7 @@ export default function Top10BenefitsTechInfluencerMarketingPage() {
               Sign Up Free as a Brand
             </Link>
           </div>
-          <p className="text-sm text-blue-700 mt-4">No credit card required • 100+ verified tech creators • Instant results</p>
+          <p className="text-sm text-blue-700 mt-4">No credit card required • Verified tech creators • Instant results</p>
         </div>
 
         {/* Related Articles */}

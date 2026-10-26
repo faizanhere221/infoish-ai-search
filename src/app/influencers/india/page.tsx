@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { NICHES, PLATFORMS } from '@/utils/constants'
 import Link from 'next/link'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
@@ -22,9 +23,9 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: '100+ Indian Tech Influencers | Rates from INR 5,000 | Infoishai' },
+  title: { absolute: 'Indian Tech Influencers | Rates from INR 5,000 | Infoishai' },
   description:
-    'Browse 100+ verified Indian tech influencers. Filter by niche, platform, budget. Compare rates in INR. Free messaging. No platform fees.',
+    'Browse verified Indian tech influencers. Filter by niche, platform, budget. Compare rates in INR. Free messaging. No platform fees.',
   keywords: [
     'tech influencers India',
     'Indian tech creators',
@@ -38,9 +39,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: '100+ Indian Tech Influencers | Rates from INR 5,000 | Infoishai',
+    title: 'Indian Tech Influencers | Rates from INR 5,000 | Infoishai',
     description:
-      'Browse 100+ verified Indian tech influencers. Filter by niche, platform, budget. Compare rates in INR. Free messaging. No platform fees.',
+      'Browse verified Indian tech influencers. Filter by niche, platform, budget. Compare rates in INR. Free messaging. No platform fees.',
     url: 'https://infoishai.com/influencers/india',
     siteName: 'Infoishai',
     type: 'website',
@@ -48,9 +49,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '100+ Indian Tech Influencers | Rates from INR 5,000 | Infoishai',
+    title: 'Indian Tech Influencers | Rates from INR 5,000 | Infoishai',
     description:
-      'Browse 100+ verified Indian tech influencers. Filter by niche, platform, budget. Compare rates in INR. Free messaging. No platform fees.',
+      'Browse verified Indian tech influencers. Filter by niche, platform, budget. Compare rates in INR. Free messaging. No platform fees.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/india',
@@ -115,9 +116,9 @@ const faqJsonLd = {
 }
 
 const stats = [
-  { value: '100+', label: 'Verified Indian Creators' },
-  { value: '15+', label: 'Tech Niches Covered' },
-  { value: '4.6/5', label: 'Average Creator Rating' },
+  { value: String(NICHES.length), label: 'Tech Niches' },
+  { value: String(PLATFORMS.length), label: 'Platforms Supported' },
+  { value: 'Direct', label: 'Messaging with Creators' },
   { value: 'Free', label: 'To Search and Connect' },
 ]
 
@@ -357,7 +358,7 @@ export default function IndiaInfluencersPage() {
             Find Tech Influencers in India
           </h1>
           <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
-            Indian tech influencers reach the world&apos;s largest developer population (5.8 million engineers) at rates 70-80% lower than US equivalents. A mid-tier Indian tech creator charges INR 5,000-INR 50,000 per sponsored video. Bangalore, Mumbai, and Delhi-NCR produce the most tech content. Infoishai lists 100+ verified Indian tech influencers.
+            Indian tech influencers reach the world&apos;s largest developer population (5.8 million engineers) at rates 70-80% lower than US equivalents. A mid-tier Indian tech creator charges INR 5,000-INR 50,000 per sponsored video. Bangalore, Mumbai, and Delhi-NCR produce the most tech content. Infoishai lists verified Indian tech influencers.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified Indian tech creators across YouTube, Twitter/X, LinkedIn, and

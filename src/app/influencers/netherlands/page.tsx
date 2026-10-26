@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { NICHES, PLATFORMS } from '@/utils/constants'
 import Link from 'next/link'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
@@ -23,9 +24,9 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: '100+ Dutch Tech Influencers | Benelux & EU Reach | Infoishai' },
+  title: { absolute: 'Dutch Tech Influencers | Benelux & EU Reach | Infoishai' },
   description:
-    'Browse 100+ verified Dutch tech influencers. Benelux and EU coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
+    'Browse verified Dutch tech influencers. Benelux and EU coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
   keywords: [
     'tech influencers Netherlands',
     'Dutch tech creators',
@@ -40,9 +41,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: '100+ Dutch Tech Influencers | Benelux & EU Reach | Infoishai',
+    title: 'Dutch Tech Influencers | Benelux & EU Reach | Infoishai',
     description:
-      'Browse 100+ verified Dutch tech influencers. Benelux and EU coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
+      'Browse verified Dutch tech influencers. Benelux and EU coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
     url: 'https://infoishai.com/influencers/netherlands',
     siteName: 'Infoishai',
     type: 'website',
@@ -50,9 +51,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '100+ Dutch Tech Influencers | Benelux & EU Reach | Infoishai',
+    title: 'Dutch Tech Influencers | Benelux & EU Reach | Infoishai',
     description:
-      'Browse 100+ verified Dutch tech influencers. Benelux and EU coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
+      'Browse verified Dutch tech influencers. Benelux and EU coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/netherlands',
@@ -117,9 +118,9 @@ const faqJsonLd = {
 }
 
 const stats = [
-  { value: '100+', label: 'Verified Dutch Creators' },
-  { value: '10+', label: 'Tech Niches Covered' },
-  { value: '4.7/5', label: 'Average Creator Rating' },
+  { value: String(NICHES.length), label: 'Tech Niches' },
+  { value: String(PLATFORMS.length), label: 'Platforms Supported' },
+  { value: 'Direct', label: 'Messaging with Creators' },
   { value: 'Free', label: 'To Search and Connect' },
 ]
 
@@ -317,7 +318,7 @@ export default function NetherlandsInfluencersPage() {
             Find Tech Influencers in the Netherlands
           </h1>
           <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
-            Dutch tech influencers serve the Benelux region and broader EU market from Europe&apos;s tech startup capital. A mid-tier Dutch tech creator charges EUR 250-EUR 1,500 per sponsored video. Amsterdam, Eindhoven, and Rotterdam lead in tech content. Infoishai lists 100+ verified Dutch tech influencers.
+            Dutch tech influencers serve the Benelux region and broader EU market from Europe&apos;s tech startup capital. A mid-tier Dutch tech creator charges EUR 250-EUR 1,500 per sponsored video. Amsterdam, Eindhoven, and Rotterdam lead in tech content. Infoishai lists verified Dutch tech influencers.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified Dutch tech creators across YouTube, LinkedIn, Twitter/X, and

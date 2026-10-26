@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { NICHES, PLATFORMS } from '@/utils/constants'
 import Link from 'next/link'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
@@ -21,9 +22,9 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: '100+ UK Tech Influencers | Rates from GBP 200 | Infoishai' },
+  title: { absolute: 'UK Tech Influencers | Rates from GBP 200 | Infoishai' },
   description:
-    'Browse 100+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No platform fees.',
+    'Browse verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No platform fees.',
   keywords: [
     'tech influencers UK',
     'British tech creators',
@@ -36,9 +37,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: '100+ UK Tech Influencers | Rates from GBP 200 | Infoishai',
+    title: 'UK Tech Influencers | Rates from GBP 200 | Infoishai',
     description:
-      'Browse 100+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No platform fees.',
+      'Browse verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No platform fees.',
     url: 'https://infoishai.com/influencers/uk',
     siteName: 'Infoishai',
     type: 'website',
@@ -46,9 +47,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '100+ UK Tech Influencers | Rates from GBP 200 | Infoishai',
+    title: 'UK Tech Influencers | Rates from GBP 200 | Infoishai',
     description:
-      'Browse 100+ verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No platform fees.',
+      'Browse verified UK tech influencers. Filter by niche, platform, budget. Compare rates in GBP. Message creators free. No platform fees.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/uk',
@@ -113,9 +114,9 @@ const faqJsonLd = {
 }
 
 const stats = [
-  { value: '100+', label: 'Verified UK Creators' },
-  { value: '12+', label: 'Tech Niches Covered' },
-  { value: '4.7/5', label: 'Average Creator Rating' },
+  { value: String(NICHES.length), label: 'Tech Niches' },
+  { value: String(PLATFORMS.length), label: 'Platforms Supported' },
+  { value: 'Direct', label: 'Messaging with Creators' },
   { value: 'Free', label: 'To Search and Connect' },
 ]
 
@@ -313,7 +314,7 @@ export default function UkInfluencersPage() {
             Find Tech Influencers in the United Kingdom
           </h1>
           <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
-            British tech influencers serve Europe&apos;s second-largest tech market. A mid-tier UK tech creator charges GBP 200-GBP 1,500 per sponsored video. London, Cambridge, and Manchester produce the most active tech content creators. Infoishai lists 100+ verified UK tech influencers. Brands search free and message creators directly.
+            British tech influencers serve Europe&apos;s second-largest tech market. A mid-tier UK tech creator charges GBP 200-GBP 1,500 per sponsored video. London, Cambridge, and Manchester produce the most active tech content creators. Infoishai lists verified UK tech influencers. Brands search free and message creators directly.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified British tech creators across YouTube, Twitter/X, LinkedIn, and

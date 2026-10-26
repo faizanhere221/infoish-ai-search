@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { NICHES, PLATFORMS } from '@/utils/constants'
 import Link from 'next/link'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
@@ -21,9 +22,9 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: '100+ US Tech Influencers | Free Search & Messaging | Infoishai' },
+  title: { absolute: 'US Tech Influencers | Free Search & Messaging | Infoishai' },
   description:
-    'Browse 100+ verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No platform fees.',
+    'Browse verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No platform fees.',
   keywords: [
     'tech influencers USA',
     'American tech creators',
@@ -36,9 +37,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: '100+ US Tech Influencers | Free Search & Messaging | Infoishai',
+    title: 'US Tech Influencers | Free Search & Messaging | Infoishai',
     description:
-      'Browse 100+ verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No platform fees.',
+      'Browse verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No platform fees.',
     url: 'https://infoishai.com/influencers/usa',
     siteName: 'Infoishai',
     type: 'website',
@@ -46,9 +47,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '100+ US Tech Influencers | Free Search & Messaging | Infoishai',
+    title: 'US Tech Influencers | Free Search & Messaging | Infoishai',
     description:
-      'Browse 100+ verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No platform fees.',
+      'Browse verified tech influencers in the USA. Filter by niche, platform, budget. Compare rates. Message creators free. No platform fees.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/usa',
@@ -113,9 +114,9 @@ const faqJsonLd = {
 }
 
 const stats = [
-  { value: '100+', label: 'Verified US Creators' },
-  { value: '15+', label: 'Tech Niches Covered' },
-  { value: '4.8/5', label: 'Average Creator Rating' },
+  { value: String(NICHES.length), label: 'Tech Niches' },
+  { value: String(PLATFORMS.length), label: 'Platforms Supported' },
+  { value: 'Direct', label: 'Messaging with Creators' },
   { value: 'Free', label: 'To Search and Connect' },
 ]
 
@@ -313,7 +314,7 @@ export default function UsaInfluencersPage() {
             Find Tech Influencers in the United States
           </h1>
           <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
-            American tech influencers reach the world&apos;s largest SaaS market ($195 billion) across YouTube, LinkedIn, Twitter, and TikTok. A mid-tier US tech creator charges $500-$3,000 per sponsored video. Infoishai lists 100+ verified US tech creators. Brands search free, filter by niche and platform, and message creators directly. There are no platform fees.
+            American tech influencers reach the world&apos;s largest SaaS market ($195 billion) across YouTube, LinkedIn, Twitter, and TikTok. A mid-tier US tech creator charges $500-$3,000 per sponsored video. Infoishai lists verified US tech creators. Brands search free, filter by niche and platform, and message creators directly. There are no platform fees.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified American tech creators across YouTube, Twitter/X, LinkedIn, and
@@ -545,7 +546,7 @@ export default function UsaInfluencersPage() {
             Start Finding US Tech Influencers Today
           </h2>
           <p className="text-white/90 max-w-2xl mx-auto mb-8 text-base leading-relaxed">
-            Join 500+ brands using Infoishai to connect with verified American tech creators. Search
+            Use Infoishai to connect with verified American tech creators. Search
             by niche, platform, and audience size. Free for brands and creators.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

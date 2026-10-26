@@ -601,7 +601,7 @@ export default function IndianTechInfluencerRatesByCityPage() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Compare Indian Tech Influencer Rates on Infoishai</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              City tables give you a budget range. Real profiles give you the final number. Infoishai lists 100+ verified tech content creators in India, with rates, platforms, and niches on each profile.
+              City tables give you a budget range. Real profiles give you the final number. Infoishai lists verified tech content creators in India, with rates, platforms, and niches on each profile.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
               Filter{' '}
@@ -633,7 +633,7 @@ export default function IndianTechInfluencerRatesByCityPage() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
           <h3 className="text-2xl font-bold text-blue-900 mb-4">Get Real Quotes From Indian Tech Creators</h3>
           <p className="text-blue-800 mb-6">
-            Browse 100+ verified Indian tech creators with rates in INR, filterable by city, niche, and platform. There are no platform fees.
+            Browse verified Indian tech creators with rates in INR, filterable by city, niche, and platform. There are no platform fees.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -650,7 +650,7 @@ export default function IndianTechInfluencerRatesByCityPage() {
               Browse Indian Tech Creators
             </Link>
           </div>
-          <p className="text-sm text-blue-700 mt-4">No credit card required &bull; 100+ verified Indian creators &bull; Free messaging</p>
+          <p className="text-sm text-blue-700 mt-4">No credit card required &bull; Verified Indian creators &bull; Free messaging</p>
         </div>
 
         {/* Related Articles */}

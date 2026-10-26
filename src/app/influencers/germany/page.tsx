@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { NICHES, PLATFORMS } from '@/utils/constants'
 import Link from 'next/link'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
@@ -23,9 +24,9 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: '100+ German Tech Influencers | DACH Region | Infoishai' },
+  title: { absolute: 'German Tech Influencers | DACH Region | Infoishai' },
   description:
-    'Browse 100+ verified German tech influencers. DACH region coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
+    'Browse verified German tech influencers. DACH region coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
   keywords: [
     'tech influencers Germany',
     'German tech creators',
@@ -40,9 +41,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: '100+ German Tech Influencers | DACH Region | Infoishai',
+    title: 'German Tech Influencers | DACH Region | Infoishai',
     description:
-      'Browse 100+ verified German tech influencers. DACH region coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
+      'Browse verified German tech influencers. DACH region coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
     url: 'https://infoishai.com/influencers/germany',
     siteName: 'Infoishai',
     type: 'website',
@@ -50,9 +51,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '100+ German Tech Influencers | DACH Region | Infoishai',
+    title: 'German Tech Influencers | DACH Region | Infoishai',
     description:
-      'Browse 100+ verified German tech influencers. DACH region coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
+      'Browse verified German tech influencers. DACH region coverage. Filter by niche, platform. Rates in EUR. Free messaging.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/germany',
@@ -117,9 +118,9 @@ const faqJsonLd = {
 }
 
 const stats = [
-  { value: '100+', label: 'Verified German Creators' },
-  { value: '12+', label: 'Tech Niches Covered' },
-  { value: '4.7/5', label: 'Average Creator Rating' },
+  { value: String(NICHES.length), label: 'Tech Niches' },
+  { value: String(PLATFORMS.length), label: 'Platforms Supported' },
+  { value: 'Direct', label: 'Messaging with Creators' },
   { value: 'Free', label: 'To Search and Connect' },
 ]
 
@@ -329,7 +330,7 @@ export default function GermanyInfluencersPage() {
             Find Tech Influencers in Germany
           </h1>
           <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
-            German tech influencers reach the DACH region (Germany, Austria, Switzerland), Europe&apos;s largest economy. A mid-tier German tech creator charges EUR 300-EUR 2,000 per sponsored video. Berlin, Munich, and Hamburg lead in tech content. Infoishai lists 100+ verified German tech influencers across YouTube, LinkedIn, XING, and Twitter.
+            German tech influencers reach the DACH region (Germany, Austria, Switzerland), Europe&apos;s largest economy. A mid-tier German tech creator charges EUR 300-EUR 2,000 per sponsored video. Berlin, Munich, and Hamburg lead in tech content. Infoishai lists verified German tech influencers across YouTube, LinkedIn, XING, and Twitter.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified German tech creators across YouTube, LinkedIn, Twitter/X, and

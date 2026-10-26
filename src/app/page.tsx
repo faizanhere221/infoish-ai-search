@@ -106,13 +106,6 @@ const structuredData = {
     priceCurrency: 'USD',
     description: 'Infoishai is free for brands and creators. There are no platform fees.',
   },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.9',
-    ratingCount: '500',
-    bestRating: '5',
-    worstRating: '1',
-  },
   provider: {
     '@type': 'Organization',
     name: 'Infoishai',

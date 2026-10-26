@@ -543,7 +543,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
           <h3 className="text-2xl font-bold text-blue-900 mb-4">Find the Right Tech Influencers on Infoishai</h3>
           <p className="text-blue-800 mb-6">
-            Whether you&apos;re running a B2B or B2C campaign, Infoishai connects you with 100+ verified tech creators, filterable by niche, platform, and budget. There are no platform fees.
+            Whether you&apos;re running a B2B or B2C campaign, Infoishai connects you with verified tech creators, filterable by niche, platform, and budget. There are no platform fees.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -560,7 +560,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
               Browse the Creator Directory
             </Link>
           </div>
-          <p className="text-sm text-blue-700 mt-4">No credit card required • 100+ verified tech creators • Instant results</p>
+          <p className="text-sm text-blue-700 mt-4">No credit card required • Verified tech creators • Instant results</p>
         </div>
 
         {/* Related Articles */}

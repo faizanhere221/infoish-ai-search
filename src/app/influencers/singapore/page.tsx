@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { NICHES, PLATFORMS } from '@/utils/constants'
 import Link from 'next/link'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
@@ -24,9 +25,9 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: '100+ Singapore Tech Influencers | ASEAN Gateway | Infoishai' },
+  title: { absolute: 'Singapore Tech Influencers | ASEAN Gateway | Infoishai' },
   description:
-    'Browse 100+ verified Singapore tech influencers. ASEAN coverage. Filter by niche, platform, budget. Rates in SGD. Free messaging.',
+    'Browse verified Singapore tech influencers. ASEAN coverage. Filter by niche, platform, budget. Rates in SGD. Free messaging.',
   keywords: [
     'tech influencers Singapore',
     'Singapore tech creators',
@@ -41,9 +42,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: '100+ Singapore Tech Influencers | ASEAN Gateway | Infoishai',
+    title: 'Singapore Tech Influencers | ASEAN Gateway | Infoishai',
     description:
-      'Browse 100+ verified Singapore tech influencers. ASEAN coverage. Filter by niche, platform, budget. Rates in SGD. Free messaging.',
+      'Browse verified Singapore tech influencers. ASEAN coverage. Filter by niche, platform, budget. Rates in SGD. Free messaging.',
     url: 'https://infoishai.com/influencers/singapore',
     siteName: 'Infoishai',
     type: 'website',
@@ -51,9 +52,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '100+ Singapore Tech Influencers | ASEAN Gateway | Infoishai',
+    title: 'Singapore Tech Influencers | ASEAN Gateway | Infoishai',
     description:
-      'Browse 100+ verified Singapore tech influencers. ASEAN coverage. Filter by niche, platform, budget. Rates in SGD. Free messaging.',
+      'Browse verified Singapore tech influencers. ASEAN coverage. Filter by niche, platform, budget. Rates in SGD. Free messaging.',
   },
   alternates: {
     canonical: 'https://infoishai.com/influencers/singapore',
@@ -118,9 +119,9 @@ const faqJsonLd = {
 }
 
 const stats = [
-  { value: '100+', label: 'Verified SG Creators' },
-  { value: '10+', label: 'Tech Niches Covered' },
-  { value: '4.8/5', label: 'Average Creator Rating' },
+  { value: String(NICHES.length), label: 'Tech Niches' },
+  { value: String(PLATFORMS.length), label: 'Platforms Supported' },
+  { value: 'Direct', label: 'Messaging with Creators' },
   { value: 'Free', label: 'To Search and Connect' },
 ]
 
@@ -325,7 +326,7 @@ export default function SingaporeInfluencersPage() {
             Find Tech Influencers in Singapore
           </h1>
           <p className="text-lg text-gray-800 font-medium leading-relaxed mb-6 pb-6 border-b border-gray-200">
-            Singapore tech influencers provide gateway access to the entire ASEAN market (680 million people). A mid-tier Singapore tech creator charges SGD 400-SGD 3,000 per sponsored video. Singapore&apos;s tech ecosystem spans fintech, cybersecurity, cloud, and AI. Infoishai lists 100+ verified Singapore tech influencers with free search.
+            Singapore tech influencers provide gateway access to the entire ASEAN market (680 million people). A mid-tier Singapore tech creator charges SGD 400-SGD 3,000 per sponsored video. Singapore&apos;s tech ecosystem spans fintech, cybersecurity, cloud, and AI. Infoishai lists verified Singapore tech influencers with free search.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
             Connect with verified Singaporean tech creators across YouTube, LinkedIn, Twitter/X,

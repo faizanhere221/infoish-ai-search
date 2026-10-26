@@ -20,13 +20,14 @@ import {
   Mic,
 } from 'lucide-react'
 import { Navigation, Footer } from '@/components/landing'
+import { NICHES, PLATFORMS } from '@/utils/constants'
 
 // ============================================================================
 // SEO METADATA
 // ============================================================================
 export const metadata: Metadata = {
   title: 'About Us | Free Tech Influencer Marketplace',
-  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search, trusted in 55+ countries.',
+  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search and messaging.',
   keywords: [
     'about infoishai',
     'tech influencer platform',
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'About Infoishai | Free Tech Influencer Marketplace',
-    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search, trusted in 55+ countries.',
+    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search and messaging.',
     url: 'https://infoishai.com/about',
     siteName: 'Infoishai',
     type: 'website',
@@ -47,7 +48,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'About Infoishai | Free Tech Influencer Marketplace',
-    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search, trusted in 55+ countries.',
+    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search and messaging.',
     images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
@@ -106,9 +107,9 @@ const team = [
 // STATS DATA
 // ============================================================================
 const stats = [
-  { value: '10+', label: 'Verified Creators', icon: Users },
-  { value: '6', label: 'Platforms Covered', icon: Globe },
-  { value: '15+', label: 'Tech Niches', icon: Target },
+  { value: 'Free', label: 'For Brands and Creators', icon: Users },
+  { value: String(PLATFORMS.length), label: 'Platforms Covered', icon: Globe },
+  { value: String(NICHES.length), label: 'Tech Niches', icon: Target },
 ]
 
 // ============================================================================
@@ -130,7 +131,7 @@ export default function AboutPage() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-pink/10 text-brand-purple-dark rounded-full text-sm font-medium mb-6">
               <Sparkles className="w-4 h-4" />
-              <span>#1 Tech Creator Marketplace</span>
+              <span>Tech Creator Marketplace</span>
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
@@ -262,11 +263,11 @@ export default function AboutPage() {
               </p>
               <p className="text-lg leading-relaxed mb-6">
                 So we built Infoishai: a marketplace specifically designed for tech creators and 
-                B2B brands. We started by analyzing thousands of tech influencers across platforms, 
+                B2B brands. We started by reviewing tech influencers across platforms, 
                 verifying their metrics, and understanding their audiences.
               </p>
               <p className="text-lg leading-relaxed">
-                Today, we have <strong>10+ verified tech creators</strong> across AI, SaaS, DevOps, 
+                Today, Infoishai lists <strong>verified tech creators</strong> across AI, SaaS, DevOps, 
                 cybersecurity, and more. We're just getting started on our mission to become the 
                 world's most trusted platform for tech influencer marketing.
               </p>
@@ -442,7 +443,7 @@ export default function AboutPage() {
             Ready to Find Your Perfect Tech Creator?
           </h2>
           <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
-            Join hundreds of brands using Infoishai to connect with verified tech influencers.
+            Use Infoishai to connect with verified tech influencers.
             Free for brands and creators. No credit card required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
