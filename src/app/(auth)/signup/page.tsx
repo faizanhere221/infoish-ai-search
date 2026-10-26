@@ -85,7 +85,7 @@ export default function SignupPage() {
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600">
                   <CheckCircle className="w-4 h-4 text-emerald-500" />
-                  Secure payment protection
+                  Track every deal and payment
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600">
                   <CheckCircle className="w-4 h-4 text-emerald-500" />
@@ -131,7 +131,7 @@ export default function SignupPage() {
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600">
                   <CheckCircle className="w-4 h-4 text-emerald-500" />
-                  Escrow payment protection
+                  Track contracts and payments
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600">
                   <CheckCircle className="w-4 h-4 text-emerald-500" />

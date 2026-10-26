@@ -53,7 +53,7 @@ export function DealStatus({ deal, userType, compact = false }: DealStatusProps)
       return 'Creator is working on this'
     }
     if (deal.status === 'delivered' && userType === 'brand') {
-      return 'Review and approve to release payment'
+      return 'Review and approve, then pay the creator'
     }
     if (deal.status === 'delivered' && userType === 'creator') {
       return 'Waiting for brand approval'

@@ -272,7 +272,7 @@ const steps = [
     number: '3',
     title: 'Launch Your Campaign',
     description:
-      "Agree on terms, create a brief, and let the creator produce content in their own voice. Track performance through UTM links and promo codes. Pay securely through Infoishai's escrow system.",
+      "Agree on terms, create a brief, and let the creator produce content in their own voice. Track performance through UTM links and promo codes. Pay the creator directly and track the payment in Infoishai.",
   },
 ]
 

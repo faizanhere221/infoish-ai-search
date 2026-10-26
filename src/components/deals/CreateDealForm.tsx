@@ -335,7 +335,7 @@ export function CreateDealForm({
         {/* Footer */}
         <div className="p-6 border-t border-gray-100 flex items-center justify-between">
           <p className="text-sm text-gray-500">
-            Payment held in escrow until you approve
+            You pay the creator directly once you approve the work
           </p>
           <div className="flex gap-3">
             <button

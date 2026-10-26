@@ -300,7 +300,7 @@ export default function DealsPage() {
                   <p className="font-medium text-purple-900">
                     {deliveredDeals.length} deal{deliveredDeals.length > 1 ? 's' : ''} need{deliveredDeals.length === 1 ? 's' : ''} your attention
                   </p>
-                  <p className="text-sm text-purple-700">Review delivered work and release payments</p>
+                  <p className="text-sm text-purple-700">Review delivered work and track payments</p>
                 </div>
               </div>
               <button

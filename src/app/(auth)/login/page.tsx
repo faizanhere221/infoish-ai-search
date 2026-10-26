@@ -128,7 +128,7 @@ export default function LoginPage() {
             <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
               <span className="text-sm font-bold">3</span>
             </div>
-            <span>Pay safely through escrow</span>
+            <span>Track payments to completion</span>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Login',
-  description: 'Sign in to Infoishai to manage your tech creator sponsorships, browse verified influencers, and track deals with escrow payment protection.',
+  description: 'Sign in to Infoishai to manage your tech creator sponsorships, browse verified influencers, and track deals and payments in one place.',
   robots: {
     index: false,
     follow: false,

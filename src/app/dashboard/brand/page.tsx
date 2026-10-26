@@ -207,7 +207,7 @@ export default function BrandDashboard() {
                 </div>
                 <div>
                   <p className="font-medium text-amber-900">{pendingReview.length} delivery waiting for your review</p>
-                  <p className="text-sm text-amber-700">Creators have submitted their work. Review and approve to release payment.</p>
+                  <p className="text-sm text-amber-700">Creators have submitted their work. Review and approve their work, then pay them directly.</p>
                 </div>
               </div>
               <Link 

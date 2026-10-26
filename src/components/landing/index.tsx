@@ -287,7 +287,7 @@ export function Navigation() {
 // ============================================================================
 export function HeroSection() {
   const stats = [
-    { value: '10+', label: 'Tech Creators' },
+    { value: '100+', label: 'Tech Creators' },
     { value: '10+', label: 'Brands Trust Us' },
     { value: '$10K+', label: 'Creator Earnings' },
   ]
@@ -738,7 +738,7 @@ export function PlatformSection() {
       title: 'YouTube Tech Influencers',
       description: 'Product reviews, software tutorials, deep tech explanations, SaaS walkthroughs.',
       color: 'bg-red-500',
-      creators: '800+',
+      creators: '100+',
     },
     {
       icon: Twitter,
@@ -746,7 +746,7 @@ export function PlatformSection() {
       title: 'Twitter Tech Influencers',
       description: 'Product launches, SaaS growth discussions, AI tool recommendations, startup conversations.',
       color: 'bg-gray-900',
-      creators: '600+',
+      creators: '100+',
     },
     {
       icon: Linkedin,
@@ -754,7 +754,7 @@ export function PlatformSection() {
       title: 'LinkedIn Tech Creators',
       description: 'B2B thought leadership, enterprise software, professional tech content.',
       color: 'bg-blue-600',
-      creators: '400+',
+      creators: '100+',
     },
     {
       icon: Github,
@@ -762,7 +762,7 @@ export function PlatformSection() {
       title: 'Developer Influencers',
       description: 'Open source maintainers, dev tool reviews, technical tutorials.',
       color: 'bg-gray-800',
-      creators: '200+',
+      creators: '100+',
     },
     {
       icon: Mail,
@@ -770,7 +770,7 @@ export function PlatformSection() {
       title: 'Tech Newsletter Writers',
       description: 'Curated tech news, industry insights, developer resources.',
       color: 'bg-emerald-500',
-      creators: '150+',
+      creators: '100+',
     },
     {
       icon: Mic,
@@ -831,37 +831,37 @@ export function CategoriesSection() {
       title: 'AI Influencers',
       description: 'AI influencers create content about artificial intelligence tools, machine learning innovations, and emerging technologies.',
       icon: '🤖',
-      count: '400+',
+      count: '100+',
     },
     {
       title: 'SaaS Influencers',
       description: 'SaaS influencers focus on productivity tools, software platforms, and startup growth strategies.',
       icon: '☁️',
-      count: '350+',
+      count: '100+',
     },
     {
       title: 'Developer Influencers',
       description: 'Developer influencers create technical content for programmers and software engineers.',
       icon: '👨‍💻',
-      count: '500+',
+      count: '100+',
     },
     {
       title: 'Startup Influencers',
       description: 'Startup influencers share insights about entrepreneurship, business growth, and building companies.',
       icon: '🚀',
-      count: '300+',
+      count: '100+',
     },
     {
       title: 'DevOps Experts',
       description: 'DevOps creators cover cloud infrastructure, CI/CD, Kubernetes, and deployment strategies.',
       icon: '⚙️',
-      count: '200+',
+      count: '100+',
     },
     {
       title: 'Cybersecurity Creators',
       description: 'Security experts sharing ethical hacking, security tools, and best practices.',
       icon: '🔐',
-      count: '150+',
+      count: '100+',
     },
   ]
 

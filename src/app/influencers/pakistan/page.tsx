@@ -118,7 +118,7 @@ const faqJsonLd = {
 }
 
 const stats = [
-  { value: '400+', label: 'Verified Pakistani Creators' },
+  { value: '100+', label: 'Verified Pakistani Creators' },
   { value: '12+', label: 'Tech Niches Covered' },
   { value: '4.6/5', label: 'Average Creator Rating' },
   { value: 'Free', label: 'To Search and Connect' },
@@ -313,7 +313,7 @@ const steps = [
     number: '3',
     title: 'Launch Your Campaign',
     description:
-      "Agree on terms, create a brief, and let the creator produce content in their own voice. Track performance through UTM links and promo codes. Pay securely through Infoishai's escrow system.",
+      "Agree on terms, create a brief, and let the creator produce content in their own voice. Track performance through UTM links and promo codes. Pay the creator directly and track the payment in Infoishai.",
   },
 ]
 
