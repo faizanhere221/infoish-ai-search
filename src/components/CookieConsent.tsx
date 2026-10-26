@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { CONSENT_COOKIE_NAME as COOKIE_NAME, loadGoogleAnalytics as loadAnalytics } from '@/lib/analytics'
 
-const COOKIE_NAME = 'cookie_consent'
-const GA_MEASUREMENT_ID = 'G-Y97NRDZSBB'
+// GA itself is bootstrapped by GA_BOOTSTRAP_SCRIPT in the root layout, which
+// also loads it on page load for returning visitors who already consented.
+// This component only shows the banner and loads GA on accept.
 
 function getCookie(name: string): string | null {
   const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
@@ -15,22 +17,6 @@ function setCookie(name: string, value: string) {
   document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${oneYear}; SameSite=Lax`
 }
 
-function loadAnalytics() {
-  if (document.getElementById('google-analytics-script')) {return}
-
-  const script = document.createElement('script')
-  script.id = 'google-analytics-script'
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`
-  script.async = true
-  document.head.appendChild(script)
-
-  window.dataLayer = window.dataLayer || []
-  function gtag(...args: unknown[]) { window.dataLayer!.push(args) }
-  window.gtag = gtag
-  gtag('js', new Date())
-  gtag('config', GA_MEASUREMENT_ID)
-}
-
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false)
   const [showPreferences, setShowPreferences] = useState(false)
@@ -39,6 +25,8 @@ export default function CookieConsent() {
   useEffect(() => {
     const existing = getCookie(COOKIE_NAME)
     if (existing === 'all') {
+      // Normally a no-op (the layout bootstrap already loaded GA), kept as a
+      // fallback in case that inline script didn't run.
       loadAnalytics()
       return
     }

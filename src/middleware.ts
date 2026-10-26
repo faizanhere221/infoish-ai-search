@@ -54,7 +54,9 @@ const CSP = [
   // script-src), so script-src itself needs blob: too or that worker
   // creation is a CSP violation that throws and halts page JS — including
   // CookieConsent mounting, which is how GA4 was failing to load at all.
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://www.googletagmanager.com https://www.google-analytics.com",
+  // GA4 hosts in script-src/img-src/connect-src follow Google's published
+  // GA4 CSP list (developers.google.com/tag-platform/security/guides/csp).
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://*.googletagmanager.com",
   "style-src 'self' 'unsafe-inline'",
   // Explicit worker-src so worker permissions don't rely on the script-src
   // fallback above.
@@ -63,23 +65,14 @@ const CSP = [
   // website.show" directory badge — an external, unoptimized SVG served
   // straight from their domain (next/image's `unoptimized` skips our own
   // image optimizer, so the browser fetches it directly).
-  // https://www.google-analytics.com / googletagmanager.com: GA4's no-JS
-  // pixel-tracking fallback (an <img> beacon) — script-src/connect-src
-  // already allow the normal fetch-based hit, but without these here too
-  // a browser that falls back to the pixel path gets silently blocked.
-  "img-src 'self' data: blob: https://lh3.googleusercontent.com https://ypdspiwxsojwjzbagaip.supabase.co https://www.website.show https://www.google-analytics.com https://www.googletagmanager.com",
+  // *.google-analytics.com / *.googletagmanager.com: GA4's <img> beacon
+  // fallback for hits that can't go out via fetch/sendBeacon.
+  "img-src 'self' data: blob: https://lh3.googleusercontent.com https://ypdspiwxsojwjzbagaip.supabase.co https://www.website.show https://*.google-analytics.com https://*.googletagmanager.com",
   "font-src 'self'",
-  // *.google-analytics.com / *.analytics.google.com: GA4 can send to
-  // numbered regional subdomains (region1.* etc., already explicitly
-  // allowed below) and to collect/debug subdomains that vary by property
-  // — wildcarding the two base domains covers all of them instead of
-  // chasing each one by name. stats.g.doubleclick.net: GA4's
-  // conversion-linking/ads-attribution beacon, hit even without a
-  // separate Google Ads integration wired up. www.googletagmanager.com:
-  // once gtag.js loads (allowed via script-src), it fetches its container
-  // config back from googletagmanager.com — without it here that fetch is
-  // blocked and GA4 never initializes, so zero collect requests go out.
-  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://www.googletagmanager.com https://ypdspiwxsojwjzbagaip.supabase.co",
+  // *.google-analytics.com / *.analytics.google.com: GA4 collect endpoints,
+  // including regional ones (region1.* etc.). *.googletagmanager.com:
+  // gtag.js fetches its container config back from there.
+  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://ypdspiwxsojwjzbagaip.supabase.co",
   "frame-ancestors 'none'",
 ].join('; ')
 

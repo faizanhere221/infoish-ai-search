@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 import * as Sentry from '@sentry/nextjs'
 import './globals.css'
+import { GA_BOOTSTRAP_SCRIPT } from '@/lib/analytics'
 import { OrganizationJsonLd, WebSiteJsonLd, SoftwareApplicationJsonLd } from '@/components/seo/JsonLd'
 import CookieConsent from '@/components/CookieConsent'
 import { NavigationTracker } from '@/components/NavigationTracker'
@@ -102,15 +104,17 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // GA4 is no longer rendered server-side here — CookieConsent.tsx loads it
-  // client-side only after the visitor consents (or immediately on mount for
-  // a returning visitor who already consented, via the cookie_consent
-  // cookie). Deciding this server-side would require calling cookies() in
-  // the root layout, which opts every single page out of static rendering —
-  // not worth it for a few hundred ms of earlier analytics loading.
+  // GA4 consent is decided client-side: GA_BOOTSTRAP_SCRIPT sets Consent Mode
+  // defaults to denied and loads gtag.js on every page load for a returning
+  // visitor whose cookie_consent is 'all'. CookieConsent.tsx loads it on
+  // accept. Deciding this server-side would require calling cookies() in the
+  // root layout, which opts every page out of static rendering.
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-white text-gray-900 antialiased`}>
+        <Script id="ga-bootstrap" strategy="beforeInteractive">
+          {GA_BOOTSTRAP_SCRIPT}
+        </Script>
         <CookieConsent />
         <NavigationTracker />
 
