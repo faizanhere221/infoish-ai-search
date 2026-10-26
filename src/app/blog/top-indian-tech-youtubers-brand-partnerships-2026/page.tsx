@@ -293,7 +293,7 @@ const faqs = [
   },
   {
     question: 'How do I find Indian tech YouTubers beyond the top 20?',
-    answer: 'Use a creator marketplace such as Infoishai, which lists 800+ Indian tech creators filterable by niche, platform, language, and city. Mid-tier channels with 50K to 500K subscribers often deliver better cost per engaged viewer than the top 20.',
+    answer: 'Use a creator marketplace such as Infoishai, which lists 100+ Indian tech creators filterable by niche, platform, language, and city. Mid-tier channels with 50K to 500K subscribers often deliver better cost per engaged viewer than the top 20.',
   },
 ]
 
@@ -402,7 +402,7 @@ export default function TopIndianTechYouTubersPage() {
             </p>
             <p className="text-gray-700 leading-relaxed">
               This list splits the top 20 Indian tech YouTubers into two groups: consumer gadget channels and developer channels. For each one you get the language, audience size, content focus, and the product types it fits. If you want to go past the top 20, browse{' '}
-              <Link href="/influencers/india" className="text-blue-600 hover:text-blue-700 font-medium">800+ verified tech influencers in India on Infoishai</Link>, filterable by niche, language, and budget.
+              <Link href="/influencers/india" className="text-blue-600 hover:text-blue-700 font-medium">100+ tech content creators in India on Infoishai</Link>, filterable by niche, language, and budget.
             </p>
           </section>
 
@@ -711,7 +711,7 @@ export default function TopIndianTechYouTubersPage() {
               The top 20 channels are a strong starting point for launch campaigns and brand awareness. For steady conversions on a fixed budget, build a bench of mid-tier creators in your exact niche.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Infoishai lists 2,000+ verified tech creators across 9 countries, including 800+ in India. Compare{' '}
+              Infoishai lists 2,000+ verified tech creators across 9 countries, including 100+ in India. Compare{' '}
               <Link href="/influencers/india" className="text-blue-600 hover:text-blue-700 font-medium">Indian tech influencers by niche, platform, and budget</Link>, message them for free, or{' '}
               <Link href="/campaigns" className="text-blue-600 hover:text-blue-700 font-medium">post a campaign</Link>{' '}
               and let creators apply to you. Search every country in the{' '}
@@ -741,7 +741,7 @@ export default function TopIndianTechYouTubersPage() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
           <h3 className="text-2xl font-bold text-blue-900 mb-4">Hire Verified Tech YouTubers in India</h3>
           <p className="text-blue-800 mb-6">
-            Browse 800+ verified Indian tech creators, filterable by niche, platform, language, and city. No subscription fees.
+            Browse 100+ verified Indian tech creators, filterable by niche, platform, language, and city. No subscription fees.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -758,7 +758,7 @@ export default function TopIndianTechYouTubersPage() {
               Browse Indian Tech Creators
             </Link>
           </div>
-          <p className="text-sm text-blue-700 mt-4">No credit card required &bull; 800+ verified Indian creators &bull; Free messaging</p>
+          <p className="text-sm text-blue-700 mt-4">No credit card required &bull; 100+ verified Indian creators &bull; Free messaging</p>
         </div>
 
         {/* Related Articles */}
