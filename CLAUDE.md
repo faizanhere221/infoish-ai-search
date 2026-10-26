@@ -173,7 +173,7 @@ Database-backed (Postgres, `rate_limits` table). Import from `src/lib/rate-limit
 
 ### Payments
 
-`stripe`/`@stripe/stripe-js` were removed in the audit and are not coming back without explicit instruction. **This is payment TRACKING, not payment processing — no money ever moves through the app, on either the old `deals` flow or the campaign workflow's `creator_payments`.** The brand pays the creator externally (bank transfer, Wise, PayPal, etc.) and marks the record as paid; the creator confirms they received it. Do not describe escrow/Stripe/automatic payouts as a working feature in UI copy.
+`stripe`/`@stripe/stripe-js` were removed in the audit and are not coming back without explicit instruction. **This is payment TRACKING, not payment processing — no money ever moves through the app, on either the old `deals` flow or the campaign workflow's `creator_payments`.** The brand pays the creator externally (bank transfer, Wise, PayPal, etc.) and marks the record as paid; the creator confirms they received it. In UI copy, describe it as: "Payments are made directly between brand and creator. Infoishai keeps the record." Never claim Infoishai holds or protects funds, and never describe Stripe or automatic payouts as a working feature.
 
 - `creator_payments`: one row per payment (`type`: full/upfront/final/milestone; `status`: scheduled → due → marked_paid → confirmed, or disputed/cancelled). `src/lib/payments/{engine,provider}.ts`. Milestone payments carry `deliverable_ids` (TEXT[], not uuid[] — ids here are app-generated VARCHAR(255), not real Postgres UUIDs) scoping which deliverables they're due against.
 - `payout_methods`: a creator's payout details, encrypted at rest (`src/lib/payments/crypto.ts`, `key_version` column so a future key rotation doesn't break old records). `GET /api/campaign-creators/[id]/payout-details` is the ONLY endpoint that returns the decrypted value, and only once the contract is `fully_signed` — everywhere else shows a masked preview. Don't add another endpoint that reveals raw details without matching that gate.
@@ -301,7 +301,7 @@ scripts/                # security-check.mjs, race-check.mjs (see Commands above
 - **Do not skip TypeScript types.** No `any` unless unavoidable, with a `// TODO: type this properly` comment.
 - **Do not use `console.log` for error handling.** Use `captureError()` for Sentry tracking.
 - **Do not recreate dead code** that was removed in the audit: Prisma, pg Pool, empty AI/social stubs, unused hooks, shadcn/ui config.
-- **Do not describe Stripe/escrow as a working feature** in any UI copy.
+- **Never claim Infoishai holds or protects funds**, and never describe Stripe or automatic payouts as a working feature, in any UI copy, email, metadata, or doc. Payments are made directly between brand and creator. Infoishai keeps the record.
 
 ## Known Limitations (work around, do not "fix" the architecture)
 

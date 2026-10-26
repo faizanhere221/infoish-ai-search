@@ -1,7 +1,7 @@
 # Brand-Side Expansion Audit
 
 Date: 2026-10-14
-Scope: read-only analysis against the planned feature list (reliable fast messaging, agency mode, creator invite links, campaign tracker, creator roster, shareable client progress link, negotiations, contracts, scheduling, deliverable approvals, analytics/reporting, escrow payments). No files were modified as part of this audit except this document.
+Scope: read-only analysis against the planned feature list (reliable fast messaging, agency mode, creator invite links, campaign tracker, creator roster, shareable client progress link, negotiations, contracts, scheduling, deliverable approvals, analytics/reporting, payments). No files were modified as part of this audit except this document.
 
 ---
 
@@ -192,7 +192,7 @@ Enum (`schema.sql:20-30`): `pending`, `accepted`, `paid`, `in_progress`, `delive
 
 Actual transitions driven by code (brand vs. creator actor noted):
 - `POST /api/deals` (brand) → creates at `pending`.
-- `accept` (creator, must own deal, requires `pending`) → **`in_progress`** — skips the enum's `accepted`/`paid` states entirely; no payment/escrow step is wired in.
+- `accept` (creator, must own deal, requires `pending`) → **`in_progress`** — skips the enum's `accepted`/`paid` states entirely; no payment step is wired in.
 - `decline` (creator, requires `pending`) → sets status to **`'declined'`**, which is **not a member of the `deal_status` enum** anywhere in `supabase/` — a schema/code mismatch; this write either fails in production or the live DB has an undocumented out-of-band enum value.
 - `deliver` (creator, requires `in_progress` or `revision`) → **`delivered`**, hard-blocked unless every `deliverables[].is_completed === true`.
 - `revision` (brand, requires `delivered`, enforces `revisions_used < revisions_allowed`) → **`revision`**, increments `revisions_used`.
@@ -287,7 +287,7 @@ Notable: `GET /api/conversations/[id]` and `GET`/`POST /api/conversations/[id]/m
 | Scheduling/timelines | **Partial (thin)** | `deals.deadline`/`delivery_days`; `campaigns.application_deadline`/`campaign_start_date`/`campaign_end_date`; `campaign_deliverables.deadline` | Multi-milestone/calendar scheduling if the planned per-creator tracker needs more than single dates |
 | Deliverable approvals | **Partial** | `deliverables[].is_completed`, UI-gated creator-only toggle, deal-level `approve` route | Per-deliverable brand approval/rejection distinct from deal-level approval; currently API does not even restrict the toggle to the creator (UI-only gate) |
 | Analytics/reporting | **Minimal** | `creators.profile_views`, `brands.total_deals`/`total_spent`, `creators.total_deals_completed`/`total_earnings` — simple counters only | Any real reporting/dashboard beyond raw counters; no time-series or export exists |
-| Escrow-style payments | **Missing** | `payments` table exists in schema but is **never read or written by any code**; `deals` has Stripe-shaped columns (`stripe_payment_intent_id`, `paid_at`, `released_at`) that are also never populated by a real payment flow; `stripe`/`@stripe/stripe-js` packages were removed in a prior audit | A full payment integration from scratch — no partial implementation to build on despite the schema looking ready |
+| Platform-held payments (since dropped: payments are made directly between brand and creator, and Infoishai keeps the record) | **Missing** | `payments` table exists in schema but is **never read or written by any code**; `deals` has Stripe-shaped columns (`stripe_payment_intent_id`, `paid_at`, `released_at`) that are also never populated by a real payment flow; `stripe`/`@stripe/stripe-js` packages were removed in a prior audit | A full payment integration from scratch — no partial implementation to build on despite the schema looking ready |
 
 ### 6.2 Top 10 bugs/risks, ranked by severity
 
@@ -308,6 +308,6 @@ Notable: `GET /api/conversations/[id]` and `GET`/`POST /api/conversations/[id]/m
 2. For the campaign tracker's lifecycle (access → draft → planned date → posted), should this live on the existing `deals`/`campaign_applications` tables (extending their status models) or as a new dedicated table? The current statuses don't map onto this lifecycle at all.
 3. For agency mode, is the near-term need "one login manages several client brands" (requires the org/multi-brand schema work described in §2.3), or is it closer to "one Infoishai-owned brand account, with client attribution tracked informally" (much smaller lift, e.g. a `client_label` free-text field on campaigns)?
 4. For the shareable read-only client progress link, what should it expose exactly — a single campaign's deliverable statuses? A creator-by-creator view across many campaigns for one client? This affects whether it is scoped per-campaign or per-"client" (and interacts with the agency-mode question above).
-5. For escrow payments: since `stripe` was explicitly removed in a prior audit and the `payments` table is fully unused, is Stripe Connect (or another specific provider) the intended path, or is this meant to be a purely internal ledger (no real money movement, consistent with the current "Deals only track computed numbers" model)?
+5. For payments: since `stripe` was explicitly removed in a prior audit and the `payments` table is fully unused, is Stripe Connect (or another specific provider) the intended path, or is this meant to be a purely internal ledger (no real money movement, consistent with the current "Deals only track computed numbers" model)?
 6. Should `deal_messages` and the dead `/api/messages` route simply be deleted, since neither is used and keeping them around risks a future author building on the wrong one?
 7. Is the creator roster meant to be per-brand (my own private list of creators + my negotiated rates with each) or platform-wide? This determines whether it extends `saved_creators` or needs a new table entirely.

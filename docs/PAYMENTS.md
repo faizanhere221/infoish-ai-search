@@ -17,7 +17,8 @@ Every API route calls these methods — none of them write to
 
 Today there is exactly one implementation, `ManualPaymentProvider`. Each
 method is a plain database update. There is no external API call, no money
-movement, nothing held in escrow. The brand says "I paid this" and the
+movement, Infoishai never holds funds. Payments are made directly between
+brand and creator, and Infoishai keeps the record. The brand says "I paid this" and the
 creator says "I received this" — that's the whole manual flow.
 
 The reason this is behind an interface at all, instead of routes just

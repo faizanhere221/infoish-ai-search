@@ -20,11 +20,11 @@ CREATE TYPE user_type AS ENUM ('creator', 'brand', 'admin');
 CREATE TYPE deal_status AS ENUM (
   'pending',      -- Brand sent proposal, waiting for creator
   'accepted',     -- Creator accepted, waiting for payment
-  'paid',         -- Brand paid, in escrow
+  'paid',         -- Brand marked the deal as paid (paid directly to the creator)
   'in_progress',  -- Creator working on deliverables
   'delivered',    -- Creator submitted work
   'revision',     -- Brand requested changes
-  'completed',    -- Brand approved, payment released
+  'completed',    -- Brand approved the delivered work
   'cancelled',    -- Deal cancelled
   'disputed'      -- In dispute resolution
 );
