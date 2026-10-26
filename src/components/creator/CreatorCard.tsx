@@ -129,7 +129,7 @@ export function CreatorCard({
                 <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                 {creator.avg_rating.toFixed(1)}
               </span>
-              <span className="text-gray-500">{creator.total_deals_completed} deals</span>
+              <span className="text-gray-500">{creator.completed_deals} deals</span>
               {totalFollowers > 0 && (
                 <span className="flex items-center gap-1 text-gray-500">
                   <Users className="w-4 h-4" />

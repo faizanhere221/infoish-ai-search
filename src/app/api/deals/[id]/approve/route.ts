@@ -90,7 +90,9 @@ export async function POST(
       const commissionResult = await calculateReferralCommission(supabase, {
         dealId: id,
         creatorId: deal.creator_id,
-        dealAmountCents: deal.amount_cents || 0,
+        // deals.amount is stored in cents (there is no amount_cents column;
+        // reading it always passed 0, so no commission was ever created).
+        dealAmountCents: Math.round(Number(deal.amount) || 0),
       })
       if (commissionResult.created) {
         captureMessage(`Referral commission created for deal ${id}: ${commissionResult.commissionAmountCents} cents to partner ${commissionResult.partnerId}`, 'info')
@@ -101,20 +103,21 @@ export async function POST(
       captureError(commissionError, { route: 'POST /api/deals/[id]/approve', context: 'referral commission (unexpected throw)' })
     }
 
-    // Update creator stats
+    // Update the creator's completed-deal count. Earnings are NOT stored
+    // here: they are computed from records (confirmed creator_payments +
+    // completed deals) by src/lib/creator-earnings.ts. This used to select
+    // total_deals_completed/total_earnings, which don't exist on the live
+    // table, so the select failed and nothing was ever updated.
     const { data: creator } = await supabase
       .from('creators')
-      .select('total_deals_completed, total_earnings')
+      .select('completed_deals')
       .eq('id', deal.creator_id)
       .single()
 
     if (creator) {
       await supabase
         .from('creators')
-        .update({
-          total_deals_completed: (creator.total_deals_completed || 0) + 1,
-          total_earnings: (creator.total_earnings || 0) + (deal.creator_payout_cents || 0),
-        })
+        .update({ completed_deals: (creator.completed_deals || 0) + 1 })
         .eq('id', deal.creator_id)
     }
 
@@ -130,7 +133,8 @@ export async function POST(
         .from('brands')
         .update({
           total_deals: (brand.total_deals || 0) + 1,
-          total_spent: (brand.total_spent || 0) + (deal.amount_cents || 0),
+          // total_spent is shown in dollars; deals.amount is cents.
+          total_spent: (Number(brand.total_spent) || 0) + (Number(deal.amount) || 0) / 100,
         })
         .eq('id', deal.brand_id)
     }

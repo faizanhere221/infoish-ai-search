@@ -2,14 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { onTimeRate, type DeliverableForReport } from '@/lib/reporting'
+import { getCreatorEarnings } from '@/lib/creator-earnings'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
 
 // GET /api/campaign-creators/my-stats — creator-only: campaigns completed,
-// total earned (from payout_amount only — never charge/profit, which this
-// creator never sees anywhere else either), and on-time rate across every
-// campaign they've worked.
+// total earned, and on-time rate across every campaign they've worked.
+// Total earned is money actually received (confirmed creator_payments +
+// completed legacy deals, see src/lib/creator-earnings.ts), not the agreed
+// payout_amount on every row, which counted unpaid and dropped work. Never
+// includes charge/profit.
 export async function GET(request: NextRequest) {
   try {
     const callerProfileId = request.headers.get('x-profile-id')
@@ -23,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     const { data: rows } = await supabase
       .from('campaign_creators')
-      .select('id, status, payout_amount, currency')
+      .select('id, status')
       .eq('creator_id', callerProfileId)
 
     const rowIds = (rows || []).map((r) => r.id)
@@ -36,17 +39,11 @@ export async function GET(request: NextRequest) {
 
     const campaignsCompleted = (rows || []).filter((r) => r.status === 'completed').length
 
-    // Grouped by currency — summing across currencies would silently
-    // produce a meaningless number for a creator paid in more than one.
-    const earnedByCurrency: Record<string, number> = {}
-    for (const r of rows || []) {
-      if (!r.payout_amount) {continue}
-      earnedByCurrency[r.currency] = (earnedByCurrency[r.currency] || 0) + r.payout_amount
-    }
+    const earnings = await getCreatorEarnings(supabase, callerProfileId)
 
     return NextResponse.json({
       campaigns_completed: campaignsCompleted,
-      total_earned_by_currency: earnedByCurrency,
+      total_earned_by_currency: earnings.byCurrency,
       on_time_rate: onTimeRate((deliverables || []) as DeliverableForReport[]),
     })
   } catch (error) {

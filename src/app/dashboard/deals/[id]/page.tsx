@@ -593,7 +593,7 @@ export default function DealDetailPage() {
                     <p className="text-xs text-gray-500">Rating</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-2 text-center">
-                    <p className="font-semibold text-gray-900">{deal.creator.total_deals_completed ?? 0}</p>
+                    <p className="font-semibold text-gray-900">{deal.creator.completed_deals ?? 0}</p>
                     <p className="text-xs text-gray-500">Deals</p>
                   </div>
                 </div>

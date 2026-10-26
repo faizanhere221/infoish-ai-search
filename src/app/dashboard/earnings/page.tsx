@@ -44,6 +44,9 @@ export default function EarningsPage() {
   const [disputingId, setDisputingId] = useState<string | null>(null)
   const [disputeReason, setDisputeReason] = useState('')
   const [error, setError] = useState<string | null>(null)
+  // Lifetime total received, computed server-side from confirmed payments +
+  // completed legacy deals (src/lib/creator-earnings.ts).
+  const [totalReceived, setTotalReceived] = useState<Record<string, number> | null>(null)
 
   const load = useCallback(async () => {
     const userStr = localStorage.getItem('auth_user')
@@ -62,10 +65,18 @@ export default function EarningsPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/campaign-creators/my-payments', { headers: { Authorization: `Bearer ${authToken}` } })
+      const headers = { Authorization: `Bearer ${authToken}` }
+      const [res, statsRes] = await Promise.all([
+        fetch('/api/campaign-creators/my-payments', { headers }),
+        fetch('/api/campaign-creators/my-stats', { headers }),
+      ])
       if (res.ok) {
         const data = await res.json()
         setPayments(data.payments || [])
+      }
+      if (statsRes.ok) {
+        const stats = await statsRes.json()
+        setTotalReceived(stats.total_earned_by_currency || {})
       }
     } finally {
       setLoading(false)
@@ -144,6 +155,15 @@ export default function EarningsPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Earnings</h1>
           <p className="text-gray-500 mt-1">Payments are made directly between brand and creator. Infoishai keeps the record.</p>
+          {totalReceived && (
+            <p className="mt-3 text-sm text-gray-700">
+              <span className="font-medium">Total received:</span>{" "}
+              {Object.keys(totalReceived).length > 0
+                ? Object.entries(totalReceived).map(([cur, amt]) => formatMoney(amt, cur)).join(", ")
+                : formatMoney(0, "USD")}
+              <span className="text-gray-500"> (confirmed payments and completed deals)</span>
+            </p>
+          )}
         </div>
 
         <div className="flex gap-2 mb-6">

@@ -25,9 +25,11 @@ export function MyStatsWidget() {
       .finally(() => setLoaded(true))
   }, [])
 
-  if (!loaded || !stats || stats.campaigns_completed === 0) {return null}
-
-  const earnedEntries = Object.entries(stats.total_earned_by_currency)
+  const earnedEntries = stats ? Object.entries(stats.total_earned_by_currency) : []
+  // Show once there is anything to report: a completed campaign, or money
+  // received (a confirmed payment or a completed legacy deal counts even
+  // before any campaign is marked completed).
+  if (!loaded || !stats || (stats.campaigns_completed === 0 && earnedEntries.length === 0)) {return null}
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6">

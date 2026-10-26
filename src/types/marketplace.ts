@@ -75,8 +75,9 @@ export interface CreatorProfile {
   is_founding_creator: boolean
   avg_rating: number
   total_reviews: number
-  total_deals_completed: number
-  total_earnings: number
+  // Matches the live creators table. There is no total_earnings column:
+  // lifetime earnings come from getCreatorEarnings() in src/lib/creator-earnings.ts.
+  completed_deals: number
   response_rate: number
   avg_response_time_hours: number
   profile_views: number
