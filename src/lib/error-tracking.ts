@@ -1,8 +1,40 @@
-// TODO: Replace console logging with Sentry. Install @sentry/nextjs and
-// configure DSN (NEXT_PUBLIC_SENTRY_DSN), then swap the bodies below for
-// Sentry.captureException / Sentry.captureMessage.
+// Reports to Sentry (initialized in sentry.server.config.ts,
+// sentry.edge.config.ts and src/instrumentation-client.ts) and keeps the
+// console log so Vercel function logs still show every error.
+import * as Sentry from '@sentry/nextjs'
 
 type ErrorContext = Record<string, unknown>
+
+// `route` (API routes) and `context` (client components) become searchable
+// Sentry tags; everything else in the context object goes in as extra data.
+const TAG_KEYS = ['route', 'context', 'step'] as const
+
+function toScopeContext(context?: ErrorContext) {
+  if (!context) {return undefined}
+  const tags: Record<string, string> = {}
+  const extra: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(context)) {
+    if ((TAG_KEYS as readonly string[]).includes(key) && typeof value === 'string') {
+      tags[key] = value
+    } else {
+      extra[key] = value
+    }
+  }
+  return { tags, extra }
+}
+
+// Supabase/PostgREST errors are plain objects ({ message, code, details,
+// hint }), not Error instances. Sentry groups those as an unreadable
+// "Object captured as exception", so wrap them in an Error that keeps the
+// message, and attach the original fields as extra data.
+function normalizeError(error: unknown): { err: unknown; extra?: Record<string, unknown> } {
+  if (error instanceof Error) {return { err: error }}
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+    const code = 'code' in error && typeof error.code === 'string' ? ` (${error.code})` : ''
+    return { err: new Error(`${error.message}${code}`), extra: { original_error: error } }
+  }
+  return { err: error }
+}
 
 // Next throws these as plain Errors with a special `digest` to signal
 // internal control flow, not an application failure: DYNAMIC_SERVER_USAGE
@@ -26,11 +58,33 @@ export function captureError(error: unknown, context?: ErrorContext): void {
   } else {
     console.error('[error-tracking]', error)
   }
+
+  try {
+    const { err, extra } = normalizeError(error)
+    const scope = toScopeContext(context)
+    Sentry.captureException(err, {
+      tags: scope?.tags,
+      extra: { ...scope?.extra, ...extra },
+    })
+  } catch {
+    // Reporting must never break the caller's own error handling.
+  }
 }
 
-export function captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info'): void {
+export function captureMessage(
+  message: string,
+  level: 'info' | 'warning' | 'error' = 'info',
+  context?: ErrorContext
+): void {
   const log = level === 'error' ? console.error : console.warn
   log(`[error-tracking:${level}]`, message)
+
+  try {
+    const scope = toScopeContext(context)
+    Sentry.captureMessage(message, { level, tags: scope?.tags, extra: scope?.extra })
+  } catch {
+    // Reporting must never break the caller.
+  }
 }
 
 // Wraps an API route handler so unhandled throws are captured and still
