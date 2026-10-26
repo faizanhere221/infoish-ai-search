@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 import { captureError } from '@/lib/error-tracking'
+import { normalizeProfileUrl, parseFollowerCount } from '@/lib/creators/platform-input'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,14 +14,54 @@ const PLATFORM_IDS = [
 
 const PlatformSchema = z.object({
   platform: z.enum(PLATFORM_IDS),
-  platform_username: z.string().max(100).optional().nullable(),
-  platform_url: z.string().max(2000).optional().nullable(),
-  followers: z.number().int().nonnegative().max(1_000_000_000).optional(),
+  // Kept as typed (with or without "@"), only trimmed — trailing spaces
+  // from copy-paste were being stored and shown on the profile.
+  platform_username: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((v) => (v ? v.trim() : '') || null)
+    .refine((v) => v === null || v.length <= 100, 'Username must be 100 characters or fewer'),
+  // "x.com/handle" gets https://; javascript: and other schemes are rejected.
+  platform_url: z
+    .unknown()
+    .optional()
+    .transform((v, ctx) => {
+      const result = normalizeProfileUrl(v)
+      if (!result.ok) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: result.error })
+        return z.NEVER
+      }
+      return result.url
+    }),
+  // Accepts 5076, "5,076", "5k", "1.2M" — the same parser the settings page uses.
+  followers: z
+    .unknown()
+    .optional()
+    .transform((v, ctx) => {
+      const count = parseFollowerCount(v)
+      if (count === null) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `"${String(v)}" is not a follower count` })
+        return z.NEVER
+      }
+      return count
+    }),
 })
 
 const UpdatePlatformsSchema = z.object({
   platforms: z.array(PlatformSchema).max(PLATFORM_IDS.length),
 })
+
+// "twitter: Profile URL must start with http:// or https://" — a message the
+// settings page can show as-is instead of a bare "Invalid request body".
+function describeIssue(body: unknown, error: z.ZodError): string {
+  const issue = error.issues[0]
+  if (!issue) {return 'Invalid request body'}
+  const index = typeof issue.path[1] === 'number' ? issue.path[1] : null
+  const rows = (body as { platforms?: { platform?: unknown }[] } | null)?.platforms
+  const platform = index !== null && Array.isArray(rows) ? rows[index]?.platform : null
+  return platform ? `${String(platform)}: ${issue.message}` : issue.message
+}
 
 // PUT - Update creator platforms
 export async function PUT(
@@ -34,7 +75,7 @@ export async function PUT(
     const parsed = UpdatePlatformsSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Invalid request body', details: parsed.error.flatten().fieldErrors },
+        { error: describeIssue(body, parsed.error), details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     }

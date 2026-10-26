@@ -35,6 +35,7 @@ import {
 import { usePartner } from '@/hooks/usePartner'
 import { ReportDialog } from '@/components/ReportDialog'
 import { formatMonthYear } from '@/lib/format-date'
+import { safeExternalHref } from '@/lib/creators/platform-input'
 
 interface CreatorProfile {
   id: string
@@ -668,9 +669,12 @@ export default function CreatorProfilePage() {
                             </p>
                           </div>
                         </div>
-                        {platform.platform_url && (
-                          <a 
-                            href={platform.platform_url}
+                        {/* safeExternalHref: older rows were saved unvalidated, e.g.
+                            "www.linkedin.com/in/..." (rendered as a broken relative
+                            link) — and a javascript: URL must never reach an href. */}
+                        {safeExternalHref(platform.platform_url) && (
+                          <a
+                            href={safeExternalHref(platform.platform_url) ?? undefined}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-2 text-gray-400 hover:text-violet-600"

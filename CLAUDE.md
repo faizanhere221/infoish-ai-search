@@ -25,11 +25,12 @@ npm run lint     # next lint (ESLint)
 
 There is no test suite (no Jest/Vitest/Playwright config, no `test` script). Verify changes with `npm run build` and `npm run lint`. For UI changes, also run the app and click through the flow.
 
-Two standalone black-box scripts cover authorization and concurrency regressions (not a substitute for the above, just the two areas unit/type checks can't see):
+Three standalone black-box scripts cover authorization, concurrency, and creator-profile persistence regressions (not a substitute for the above, just areas unit/type checks can't see):
 - `npm run test:security` (`scripts/security-check.mjs`) — asserts ownership checks actually hold over real HTTP: Creator B can't reach Creator A's or Brand A's data, 404s land where expected, no forbidden fields leak. Read-only. Reads tokens/ids from `.env.test.local` (gitignored; copy `.env.test.example` and fill in real dev-data ids).
 - `node scripts/race-check.mjs` — fires two concurrent requests at mark-paid/split to prove the DB-level locking actually prevents double-processing. **It writes data** — only ever point `RACE_PAYMENT_ID`/`RACE_SPLIT_PAYMENT_ID` at disposable test rows.
+- `node scripts/creator-profile-check.mjs --confirm=<username>` — saves every platform and a set of services through the same routes as `/settings`, reads them back via the owner and public APIs, covers input edge cases ("5,076", "5k", scheme-less URLs, `javascript:` URLs, removals), then restores the original data. **It writes data** — `TEST_CREATOR_TOKEN` must belong to a disposable test creator.
 
-Both just make HTTP calls against `BASE_URL` (default `http://localhost:3000`) — run them against an already-running dev server, don't start a new one for them.
+All three just make HTTP calls against `BASE_URL` (default `http://localhost:3000`) — run them against an already-running dev server, don't start a new one for them.
 
 ### Debugging Tip
 

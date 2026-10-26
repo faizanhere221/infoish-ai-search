@@ -3,15 +3,26 @@ import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 import { captureError } from '@/lib/error-tracking'
+import { parsePrice } from '@/lib/creators/platform-input'
 
 export const dynamic = 'force-dynamic'
 
 const ServiceSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
+  title: z.string().trim().min(1).max(200).optional(),
   description: z.string().max(2000).optional().nullable(),
-  content_type: z.string().max(100).optional().nullable(),
+  // creator_services.content_type is VARCHAR(50) on the live DB — a longer
+  // value passed validation here and then failed the insert with a 500.
+  content_type: z.string().max(50).optional().nullable(),
   platform: z.string().max(100).optional().nullable(),
-  price: z.number().nonnegative().max(1_000_000),
+  // Accepts 100, "100.50", "$1,000" — same parser as the settings page.
+  price: z.unknown().transform((v, ctx) => {
+    const price = parsePrice(v)
+    if (price === null) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `"${String(v)}" is not a valid price` })
+      return z.NEVER
+    }
+    return price
+  }),
   delivery_days: z.number().int().min(1).max(365).optional(),
   revisions_included: z.number().int().min(0).max(20).optional(),
   is_active: z.boolean().optional(),
@@ -33,7 +44,12 @@ export async function PUT(
     const parsed = UpdateServicesSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Invalid request body', details: parsed.error.flatten().fieldErrors },
+        {
+          error: typeof parsed.error.issues[0]?.path[1] === 'number'
+            ? `Service #${parsed.error.issues[0].path[1] + 1}: ${parsed.error.issues[0].message}`
+            : parsed.error.issues[0]?.message || 'Invalid request body',
+          details: parsed.error.flatten().fieldErrors,
+        },
         { status: 400 }
       )
     }
@@ -77,7 +93,11 @@ export async function PUT(
     const { services } = parsed.data
     let savedServices: Record<string, unknown>[] = []
     if (services.length > 0) {
-      const serviceRecords = services.map(s => ({
+      // One insert gives every row the same NOW() created_at, so reads ordered
+      // by created_at came back shuffled. Stagger by 1ms to keep list order.
+      const baseTime = Date.now()
+      const serviceRecords = services.map((s, index) => ({
+        created_at: new Date(baseTime + index).toISOString(),
         creator_id: id,
         title: s.title || 'Untitled Service',
         description: s.description ?? null,

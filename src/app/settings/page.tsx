@@ -18,6 +18,7 @@ import {
   Mail,
 } from 'lucide-react'
 import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES, SERVICE_TYPES } from '@/utils/constants'
+import { normalizeProfileUrl, parseFollowerCount, parsePrice } from '@/lib/creators/platform-input'
 import AvatarUpload from '@/components/AvatarUpload'
 import DashboardHeader from '@/components/DashboardHeader'
 import { PayoutMethodsSettings } from '@/components/payments/PayoutMethodsSettings'
@@ -47,6 +48,9 @@ interface Platform {
   platform_username: string | null
   platform_url: string | null
   followers: number
+  // Client-only: the raw text in the Followers box, so "5k" stays as typed
+  // while `followers` holds the parsed number. Never sent to the API.
+  followers_input?: string
 }
 
 interface Service {
@@ -59,6 +63,15 @@ interface Service {
   delivery_days: number
   revisions_included: number
   is_active: boolean
+  // Client-only raw Price text (see Platform.followers_input).
+  price_input?: string
+}
+
+// Lets GET /api/creators/[id]?include_inactive=1 recognize the owner, so
+// paused services load too (otherwise the next save would delete them).
+function ownerHeaders(): Record<string, string> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+  return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
 export default function SettingsPage() {
@@ -150,7 +163,10 @@ function SettingsPageInner() {
       // Always fetch the creator profile fresh by user_id rather than relying on
       // a cached `auth_profile` blob — that cache can be missing/stale and never
       // includes platforms/services anyway.
-      const res = await fetch(`/api/creators/${user.id}`, { cache: 'no-store' })
+      const res = await fetch(`/api/creators/${user.id}?include_inactive=1`, {
+        cache: 'no-store',
+        headers: ownerHeaders(),
+      })
       if (res.ok) {
         const data = await res.json()
         applyServerCreator(data.creator)
@@ -204,6 +220,29 @@ function SettingsPageInner() {
       }
       seenPlatforms.add(p.platform)
     }
+    const failValidation = (message: string, tab: SettingsTab) => {
+      setError(message)
+      setActiveTab(tab)
+      setSaving(false)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+    const platformName = (id: string) => PLATFORMS.find((x) => x.id === id)?.name || id
+    for (const p of platforms) {
+      if (p.followers_input !== undefined && parseFollowerCount(p.followers_input) === null) {
+        failValidation(`${platformName(p.platform)}: "${p.followers_input}" is not a follower count. Use a number like 5076, 5,076, or 5k.`, 'platforms')
+        return
+      }
+      const url = normalizeProfileUrl(p.platform_url)
+      if (!url.ok) {
+        failValidation(`${platformName(p.platform)}: ${url.error}`, 'platforms')
+        return
+      }
+    }
+    const badPrice = services.findIndex((s) => s.price_input !== undefined && parsePrice(s.price_input) === null)
+    if (badPrice !== -1) {
+      failValidation(`Service #${badPrice + 1}: "${services[badPrice].price_input}" is not a valid price.`, 'services')
+      return
+    }
 
     try {
       // Update profile
@@ -237,8 +276,11 @@ function SettingsPageInner() {
           platforms: platforms.map((p) => ({
             platform: p.platform,
             platform_username: p.platform_username?.trim() || null,
-            platform_url: p.platform_url?.trim() || null,
-            followers: Number.isFinite(p.followers) ? Math.max(0, Math.floor(p.followers)) : 0,
+            platform_url: (() => {
+              const url = normalizeProfileUrl(p.platform_url)
+              return url.ok ? url.url : null
+            })(),
+            followers: Number.isFinite(p.followers) ? Math.max(0, Math.round(p.followers)) : 0,
           })),
         }),
       })
@@ -285,7 +327,10 @@ function SettingsPageInner() {
 
       // Reload from the server so the UI reflects exactly what was persisted.
       // Only claim success once that read-back confirms it.
-      const freshRes = await fetch(`/api/creators/${profile.user_id}`, { cache: 'no-store' })
+      const freshRes = await fetch(`/api/creators/${profile.user_id}?include_inactive=1`, {
+        cache: 'no-store',
+        headers: ownerHeaders(),
+      })
       if (!freshRes.ok) {
         showSaveError('Your changes were sent, but reloading them failed. Refresh the page to check they saved.')
         return
@@ -713,8 +758,12 @@ function ServicesSettings({
   }
 
   const updateService = (index: number, field: keyof Service, value: Service[keyof Service]) => {
+    updateServiceFields(index, { [field]: value })
+  }
+
+  const updateServiceFields = (index: number, patch: Partial<Service>) => {
     const updated = [...services]
-    updated[index] = { ...updated[index], [field]: value }
+    updated[index] = { ...updated[index], ...patch }
     setServices(updated)
   }
 
@@ -783,7 +832,9 @@ function ServicesSettings({
                   <label className="block text-sm font-medium text-gray-700 mb-2">Platform *</label>
                   <select
                     value={service.platform}
-                    onChange={(e) => updateService(index, 'platform', e.target.value)}
+                    // Content types are per platform; keeping the old one left a
+                    // hidden value (the select showed "Select type") that still saved.
+                    onChange={(e) => updateServiceFields(index, { platform: e.target.value, content_type: '' })}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
                   >
                     {PLATFORMS.map((p) => (
@@ -810,14 +861,26 @@ function ServicesSettings({
                   <label className="block text-sm font-medium text-gray-700 mb-2">Price (USD) *</label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                    {/* Text, not type="number": a number input reports "" for
+                        "1,000" or "$100", which used to save as $0 with no error. */}
                     <input
-                      type="number"
-                      value={service.price || ''}
-                      onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
+                      type="text"
+                      inputMode="decimal"
+                      value={service.price_input ?? (service.price ? String(service.price) : '')}
+                      onChange={(e) => {
+                        const parsed = parsePrice(e.target.value)
+                        updateServiceFields(index, {
+                          price_input: e.target.value,
+                          ...(parsed !== null ? { price: parsed } : {}),
+                        })
+                      }}
                       placeholder="500"
                       className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
                     />
                   </div>
+                  {service.price_input !== undefined && parsePrice(service.price_input) === null && (
+                    <p className="mt-1 text-xs text-red-600">Enter a price like 100 or 1,000.</p>
+                  )}
                 </div>
 
                 <div>
@@ -825,6 +888,7 @@ function ServicesSettings({
                   <input
                     type="number"
                     value={service.delivery_days}
+                    min={1}
                     onChange={(e) => updateService(index, 'delivery_days', parseInt(e.target.value) || 7)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
                   />
@@ -835,7 +899,12 @@ function ServicesSettings({
                   <input
                     type="number"
                     value={service.revisions_included}
-                    onChange={(e) => updateService(index, 'revisions_included', parseInt(e.target.value) || 1)}
+                    min={0}
+                    // `parseInt(...) || 1` turned a typed 0 into 1, so "no revisions" never saved.
+                    onChange={(e) => {
+                      const n = parseInt(e.target.value, 10)
+                      updateService(index, 'revisions_included', Number.isFinite(n) ? Math.max(0, n) : 1)
+                    }}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
                   />
                 </div>
@@ -900,8 +969,12 @@ function PlatformsSettings({
   }
 
   const updatePlatform = (index: number, field: keyof Platform, value: Platform[keyof Platform]) => {
+    updatePlatformFields(index, { [field]: value })
+  }
+
+  const updatePlatformFields = (index: number, patch: Partial<Platform>) => {
     const updated = [...platforms]
-    updated[index] = { ...updated[index], [field]: value }
+    updated[index] = { ...updated[index], ...patch }
     setPlatforms(updated)
   }
 
@@ -972,13 +1045,25 @@ function PlatformsSettings({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Followers</label>
+                    {/* Text, not type="number": a number input reports "" for
+                        "5,076" or "5k", which used to save as 0 followers with no error. */}
                     <input
-                      type="number"
-                      value={platform.followers || ''}
-                      onChange={(e) => updatePlatform(index, 'followers', parseInt(e.target.value) || 0)}
-                      placeholder="10000"
+                      type="text"
+                      inputMode="numeric"
+                      value={platform.followers_input ?? (platform.followers ? String(platform.followers) : '')}
+                      onChange={(e) => {
+                        const parsed = parseFollowerCount(e.target.value)
+                        updatePlatformFields(index, {
+                          followers_input: e.target.value,
+                          ...(parsed !== null ? { followers: parsed } : {}),
+                        })
+                      }}
+                      placeholder="10,000 or 10k"
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
                     />
+                    {platform.followers_input !== undefined && parseFollowerCount(platform.followers_input) === null && (
+                      <p className="mt-1 text-xs text-red-600">Enter a number like 5076, 5,076, or 5k.</p>
+                    )}
                   </div>
 
                   <div>
@@ -990,6 +1075,10 @@ function PlatformsSettings({
                       placeholder="https://..."
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
                     />
+                    {(() => {
+                      const result = normalizeProfileUrl(platform.platform_url)
+                      return result.ok ? null : <p className="mt-1 text-xs text-red-600">{result.error}</p>
+                    })()}
                   </div>
                 </div>
 

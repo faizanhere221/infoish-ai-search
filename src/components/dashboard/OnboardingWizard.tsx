@@ -6,6 +6,7 @@ import { X, ArrowRight, Check, Loader2, AlertCircle } from 'lucide-react'
 import AvatarUpload from '@/components/AvatarUpload'
 import { PLATFORMS } from '@/utils/constants'
 import { calculateProfileCompletion } from '@/lib/profile-completion'
+import { parseFollowerCount, parsePrice } from '@/lib/creators/platform-input'
 
 interface WizardPlatform {
   platform: string
@@ -114,7 +115,12 @@ export default function OnboardingWizard({ creator, onSaved, onComplete, onDismi
   // /settings in another tab) with stale values. Re-read the current lists first.
   const fetchCurrentLists = async (): Promise<Pick<WizardCreator, 'creator_platforms' | 'creator_services'> | null> => {
     try {
-      const res = await fetch(`/api/creators/${creator.id}`, { cache: 'no-store' })
+      // include_inactive (owner only): the services PUT replaces the whole
+      // list, so merging without paused services would delete them.
+      const res = await fetch(`/api/creators/${creator.id}?include_inactive=1`, {
+        cache: 'no-store',
+        headers: authHeaders(),
+      })
       if (!res.ok) {return null}
       const data = await res.json()
       return {
@@ -143,7 +149,16 @@ export default function OnboardingWizard({ creator, onSaved, onComplete, onDismi
     }
 
     if (currentStep === 'platforms') {
-      if (addedPlatforms.length === 0) {
+      // Include a handle typed but not yet "Add"-ed — it used to be dropped silently.
+      const pending = pendingPlatform()
+      if (typeof pending === 'string') {
+        setError(pending)
+        return
+      }
+      const toSave = pending
+        ? [...addedPlatforms.filter((p) => p.platform !== pending.platform), pending]
+        : addedPlatforms
+      if (toSave.length === 0) {
         setError('Add at least one platform, or skip for now.')
         return
       }
@@ -152,11 +167,11 @@ export default function OnboardingWizard({ creator, onSaved, onComplete, onDismi
         setError('Could not load your current platforms. Please try again.')
         return
       }
-      const newIds = new Set(addedPlatforms.map((p) => p.platform))
+      const newIds = new Set(toSave.map((p) => p.platform))
       // The API replaces the whole list, so send existing platforms too.
       const merged = [
         ...current.creator_platforms.filter((p) => !newIds.has(p.platform)),
-        ...addedPlatforms,
+        ...toSave,
       ].map((p) => ({
         platform: p.platform,
         platform_username: p.platform_username || null,
@@ -168,7 +183,8 @@ export default function OnboardingWizard({ creator, onSaved, onComplete, onDismi
     }
 
     if (currentStep === 'rates') {
-      const price = parseFloat(ratePrice)
+      // parseFloat("1,000") is 1 — use the shared parser so "$1,000" saves as 1000.
+      const price = parsePrice(ratePrice)
       if (!rateTitle.trim() || !price || price <= 0) {
         setError('Enter a service name and a price above $0, or skip for now.')
         return
@@ -205,21 +221,29 @@ export default function OnboardingWizard({ creator, onSaved, onComplete, onDismi
     }
   }
 
+  /** The entry typed into the inputs, or an error message. Null when the inputs are empty. */
+  const pendingPlatform = (): WizardPlatform | string | null => {
+    if (!platformUsername.trim() && !platformFollowers.trim()) {return null}
+    if (!platformChoice || !platformUsername.trim()) {return 'Enter your handle for this platform.'}
+    // parseInt("5,076") is 5 and a number input reports "" for "5k", so both
+    // used to save the wrong count silently.
+    const followers = parseFollowerCount(platformFollowers)
+    if (followers === null) {return `"${platformFollowers}" is not a follower count. Use a number like 5076, 5,076, or 5k.`}
+    return { platform: platformChoice, platform_username: platformUsername.trim(), platform_url: null, followers }
+  }
+
   const addPlatform = () => {
-    if (!platformChoice || !platformUsername.trim()) {
+    const pending = pendingPlatform()
+    if (pending === null) {
       setError('Enter your handle for this platform.')
       return
     }
+    if (typeof pending === 'string') {
+      setError(pending)
+      return
+    }
     setError(null)
-    setAddedPlatforms((prev) => [
-      ...prev.filter((p) => p.platform !== platformChoice),
-      {
-        platform: platformChoice,
-        platform_username: platformUsername.trim(),
-        platform_url: null,
-        followers: parseInt(platformFollowers) || 0,
-      },
-    ])
+    setAddedPlatforms((prev) => [...prev.filter((p) => p.platform !== pending.platform), pending])
     setPlatformUsername('')
     setPlatformFollowers('')
   }
@@ -307,8 +331,8 @@ export default function OnboardingWizard({ creator, onSaved, onComplete, onDismi
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500"
               />
               <input
-                type="number"
-                min="0"
+                type="text"
+                inputMode="numeric"
                 value={platformFollowers}
                 onChange={(e) => setPlatformFollowers(e.target.value)}
                 placeholder="Followers"
@@ -347,8 +371,8 @@ export default function OnboardingWizard({ creator, onSaved, onComplete, onDismi
                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500"
               />
               <input
-                type="number"
-                min="1"
+                type="text"
+                inputMode="decimal"
                 value={ratePrice}
                 onChange={(e) => setRatePrice(e.target.value)}
                 placeholder="Price ($)"

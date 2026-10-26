@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 import { isCreatorPublic } from '@/lib/creators/visibility'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
+import { getVerifiedUserId } from '@/lib/verified-user'
 
 export const dynamic = 'force-dynamic'
 
@@ -105,13 +106,23 @@ export async function GET(
       .from('creator_platforms')
       .select('*')
       .eq('creator_id', creator.id)
+      .order('created_at', { ascending: true })
 
-    // Fetch services separately
-    const { data: services } = await supabase
+    // Fetch services separately. Public callers only see active services.
+    // The owner (verified JWT, since this GET is a public middleware route)
+    // can pass ?include_inactive=1 — settings and the onboarding wizard need
+    // the full list, because the services PUT replaces it: loading only
+    // active rows made a paused service vanish on reload and get deleted on
+    // the next save.
+    const wantsInactive = request.nextUrl.searchParams.get('include_inactive') === '1'
+    const includeInactive = wantsInactive && (await getVerifiedUserId(request)) === creator.user_id
+
+    let servicesQuery = supabase
       .from('creator_services')
       .select('*')
       .eq('creator_id', creator.id)
-      .eq('is_active', true)
+    if (!includeInactive) {servicesQuery = servicesQuery.eq('is_active', true)}
+    const { data: services } = await servicesQuery.order('created_at', { ascending: true })
 
     // Combine the data
     const creatorWithRelations = {
