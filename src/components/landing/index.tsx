@@ -405,8 +405,9 @@ export function AboutSection() {
             technical communities, and <strong>creators</strong> who want to monetize their expertise
             without chasing sponsors manually. As a <strong>B2B influencer platform</strong>, Infoishai
             removes the guesswork from influencer marketing — brands get searchable access to verified
-            creator profiles with real engagement data, while creators get a home to showcase their work,
-            set their own rates, and get paid safely.
+            creator profiles with real engagement data, while creators get a home to showcase their work
+            and set their own rates. Payments are made directly between brand and creator. Infoishai
+            keeps the record.
           </p>
           <p>
             Key benefits include verified metrics so you never work with fake followers, advanced
@@ -583,8 +584,8 @@ export function ForCreatorsSection() {
     },
     {
       icon: Zap,
-      title: 'Fast Payouts',
-      description: 'Get paid quickly once brands confirm your deliverables are complete.',
+      title: 'Payment Records',
+      description: 'Payments are made directly between brand and creator. Infoishai keeps the record.',
     },
   ]
 

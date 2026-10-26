@@ -77,6 +77,7 @@ export default function TermsOfService() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Payment Terms</h2>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <li>Payments are made directly between brand and creator. Infoishai keeps the record.</li>
               <li>Payment for deals is handled outside of automated card processing; brands and creators arrange payment directly (for example, bank transfer), and a brand may be asked to provide proof of payment</li>
               <li>Infoishai is not a party to the payment itself and does not hold or transmit funds between brands and creators</li>
               <li>Disputes over payment or deliverables should first be raised directly between the two parties through platform messaging; contact us if you need help resolving a dispute</li>
