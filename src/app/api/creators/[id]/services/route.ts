@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
+import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,17 +59,21 @@ export async function PUT(
       )
     }
 
-    // Delete existing services for this creator
-    const { error: deleteError } = await supabase
+    // Snapshot the current rows, insert the new list, and only then delete the
+    // old rows. The previous delete-then-insert wiped every service when the
+    // insert failed, and a failed delete was only logged, so the route still
+    // returned 200.
+    const { data: oldRows, error: oldError } = await supabase
       .from('creator_services')
-      .delete()
+      .select('id')
       .eq('creator_id', id)
 
-    if (deleteError) {
-      console.error('Error deleting existing services:', deleteError.message)
+    if (oldError) {
+      captureError(oldError, { route: 'PUT /api/creators/[id]/services', step: 'select', creatorId: id })
+      return NextResponse.json({ error: 'Failed to save services' }, { status: 500 })
     }
+    const oldIds = (oldRows || []).map((r) => r.id as string)
 
-    // Insert new services if any
     const { services } = parsed.data
     let savedServices: Record<string, unknown>[] = []
     if (services.length > 0) {
@@ -91,7 +96,7 @@ export async function PUT(
         .select()
 
       if (error) {
-        console.error('Error inserting services:', error.message)
+        captureError(error, { route: 'PUT /api/creators/[id]/services', step: 'insert', creatorId: id })
         return NextResponse.json(
           { error: 'Failed to save services' },
           { status: 500 }
@@ -101,12 +106,31 @@ export async function PUT(
       savedServices = data || []
     }
 
+    if (oldIds.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('creator_services')
+        .delete()
+        .in('id', oldIds)
+        .eq('creator_id', id)
+
+      if (deleteError) {
+        captureError(deleteError, { route: 'PUT /api/creators/[id]/services', step: 'delete', creatorId: id })
+        // Roll back the rows just inserted so the creator isn't left with
+        // the old and new lists side by side.
+        const newIds = savedServices.map((s) => s.id as string)
+        if (newIds.length > 0) {
+          await supabase.from('creator_services').delete().in('id', newIds).eq('creator_id', id)
+        }
+        return NextResponse.json({ error: 'Failed to save services' }, { status: 500 })
+      }
+    }
+
     revalidateCreatorPublicSurfaces(creator.username)
 
     return NextResponse.json({ message: 'Services updated successfully', services: savedServices })
 
   } catch (error) {
-    console.error('Error in services API:', error instanceof Error ? error.message : 'Unknown error')
+    captureError(error, { route: 'PUT /api/creators/[id]/services' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

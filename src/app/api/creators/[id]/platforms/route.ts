@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
+import { captureError } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
 
@@ -89,6 +90,9 @@ export async function PUT(
         platform_username: p.platform_username || null,
         platform_url: p.platform_url || null,
         followers: p.followers || 0,
+        // No DB trigger maintains updated_at, so set it here — otherwise an
+        // edit is indistinguishable from the signup-time row when debugging.
+        updated_at: new Date().toISOString(),
       }))
 
       const { data, error } = await supabase
@@ -97,7 +101,7 @@ export async function PUT(
         .select()
 
       if (error) {
-        console.error('Error saving platforms:', error.message)
+        captureError(error, { route: 'PUT /api/creators/[id]/platforms', step: 'upsert', creatorId: id })
         return NextResponse.json(
           { error: 'Failed to save platforms' },
           { status: 500 }
@@ -107,26 +111,47 @@ export async function PUT(
       savedPlatforms = data || []
     }
 
+    // Every step below must succeed or the request fails. Previously these
+    // errors were ignored, so a partial failure still returned 200 and the
+    // settings page showed "Saved!" for data that never landed.
     const keepPlatformIds = new Set(platforms.map((p) => p.platform))
-    const { data: existingRows } = await supabase
+    const { data: existingRows, error: existingError } = await supabase
       .from('creator_platforms')
       .select('id, platform')
       .eq('creator_id', id)
+
+    if (existingError) {
+      captureError(existingError, { route: 'PUT /api/creators/[id]/platforms', step: 'select', creatorId: id })
+      return NextResponse.json({ error: 'Failed to save platforms' }, { status: 500 })
+    }
 
     const idsToRemove = (existingRows || [])
       .filter((row) => !keepPlatformIds.has(row.platform))
       .map((row) => row.id)
 
     if (idsToRemove.length > 0) {
-      await supabase.from('creator_platforms').delete().in('id', idsToRemove)
+      const { error: deleteError } = await supabase
+        .from('creator_platforms')
+        .delete()
+        .in('id', idsToRemove)
+        .eq('creator_id', id)
+      if (deleteError) {
+        captureError(deleteError, { route: 'PUT /api/creators/[id]/platforms', step: 'delete', creatorId: id })
+        return NextResponse.json({ error: 'Failed to remove old platforms' }, { status: 500 })
+      }
     }
 
     // Update total followers on creator profile
     const totalFollowers = platforms.reduce((sum, p) => sum + (p.followers || 0), 0)
-    await supabase
+    const { error: totalError } = await supabase
       .from('creators')
       .update({ total_followers: totalFollowers })
       .eq('id', id)
+
+    if (totalError) {
+      captureError(totalError, { route: 'PUT /api/creators/[id]/platforms', step: 'total_followers', creatorId: id })
+      return NextResponse.json({ error: 'Platforms saved, but follower total failed to update' }, { status: 500 })
+    }
 
     revalidateCreatorPublicSurfaces(creator.username)
 
@@ -136,7 +161,7 @@ export async function PUT(
     })
 
   } catch (error) {
-    console.error('Error updating platforms:', error)
+    captureError(error, { route: 'PUT /api/creators/[id]/platforms' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

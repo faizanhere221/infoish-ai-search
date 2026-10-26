@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useCallback, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -91,6 +91,40 @@ function SettingsPageInner() {
   const [platforms, setPlatforms] = useState<Platform[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [userEmail, setUserEmail] = useState('')
+  // JSON of what the server last returned. Edits on the Platforms/Services
+  // tabs only live in this page's state until the top Save button runs, so
+  // compare against it to show "Unsaved changes" and warn before leaving.
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null)
+
+  const currentSnapshot = useMemo(
+    () => JSON.stringify({ profile, platforms, services }),
+    [profile, platforms, services]
+  )
+  const hasUnsavedChanges = savedSnapshot !== null && savedSnapshot !== currentSnapshot
+
+  const applyServerCreator = useCallback(
+    (creator: CreatorProfile & { creator_platforms?: Platform[]; creator_services?: Service[] }) => {
+      const { creator_platforms: freshPlatforms, creator_services: freshServices, ...rest } = creator
+      setProfile(rest)
+      setPlatforms(freshPlatforms || [])
+      setServices(freshServices || [])
+      setSavedSnapshot(
+        JSON.stringify({ profile: rest, platforms: freshPlatforms || [], services: freshServices || [] })
+      )
+      localStorage.setItem('auth_profile', JSON.stringify(creator))
+    },
+    []
+  )
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) {return}
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [hasUnsavedChanges])
 
   const tabs = [
     { id: 'profile' as SettingsTab, label: 'Profile', icon: User },
@@ -116,13 +150,10 @@ function SettingsPageInner() {
       // Always fetch the creator profile fresh by user_id rather than relying on
       // a cached `auth_profile` blob — that cache can be missing/stale and never
       // includes platforms/services anyway.
-      const res = await fetch(`/api/creators/${user.id}`)
+      const res = await fetch(`/api/creators/${user.id}`, { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
-        setProfile(data.creator)
-        setPlatforms(data.creator.creator_platforms || [])
-        setServices(data.creator.creator_services || [])
-        localStorage.setItem('auth_profile', JSON.stringify(data.creator))
+        applyServerCreator(data.creator)
       } else {
         setError('Failed to load your profile')
       }
@@ -133,7 +164,7 @@ function SettingsPageInner() {
       setError('Failed to load settings')
       setLoading(false)
     }
-  }, [router])
+  }, [router, applyServerCreator])
 
   useEffect(() => {
     loadData()
@@ -143,6 +174,7 @@ function SettingsPageInner() {
     if (!profile) {return}
 
     setSaving(true)
+    setSaved(false)
     setError(null)
 
     const authToken = localStorage.getItem('auth_token')
@@ -246,31 +278,37 @@ function SettingsPageInner() {
       }
 
       if (sectionErrors.length > 0) {
-        setError(sectionErrors.join(' '))
-        setSaving(false)
+        // Keep the unsaved edits on screen (no reload) so the creator can retry.
+        showSaveError(`Not all changes were saved. ${sectionErrors.join(' ')} Please try again.`)
         return
       }
 
-      // Reload from the server so the UI reflects exactly what was persisted
+      // Reload from the server so the UI reflects exactly what was persisted.
+      // Only claim success once that read-back confirms it.
       const freshRes = await fetch(`/api/creators/${profile.user_id}`, { cache: 'no-store' })
-      if (freshRes.ok) {
-        const fresh = await freshRes.json()
-        setProfile(fresh.creator)
-        setPlatforms(fresh.creator.creator_platforms || [])
-        setServices(fresh.creator.creator_services || [])
-        localStorage.setItem('auth_profile', JSON.stringify(fresh.creator))
-      } else {
-        localStorage.setItem('auth_profile', JSON.stringify(profile))
+      if (!freshRes.ok) {
+        showSaveError('Your changes were sent, but reloading them failed. Refresh the page to check they saved.')
+        return
       }
+      const fresh = await freshRes.json()
+      applyServerCreator(fresh.creator)
 
       setSaving(false)
       setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
+      setTimeout(() => setSaved(false), 4000)
     } catch (err) {
       console.error('Error saving:', err)
-      setError(err instanceof Error ? err.message : 'Failed to save changes')
-      setSaving(false)
+      showSaveError('Failed to save changes. Check your connection and try again.')
     }
+  }
+
+  const showSaveError = (message: string) => {
+    setError(message)
+    setSaved(false)
+    setSaving(false)
+    // The banner sits under the page header — scroll so it is visible from
+    // any tab, otherwise a failure further down the page looks like nothing happened.
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   if (loading) {
@@ -312,6 +350,10 @@ function SettingsPageInner() {
               </Link>
               <h1 className="text-xl font-bold text-gray-900">Settings</h1>
             </div>
+            <div className="flex items-center gap-3">
+            {hasUnsavedChanges && !saving && (
+              <span className="hidden sm:inline text-sm font-medium text-amber-600">Unsaved changes</span>
+            )}
             <button
               onClick={handleSave}
               disabled={saving}
@@ -331,6 +373,7 @@ function SettingsPageInner() {
                 'Save Changes'
               )}
             </button>
+            </div>
           </div>
         </div>
       </header>
@@ -341,6 +384,15 @@ function SettingsPageInner() {
           <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl">
             <AlertCircle className="w-5 h-5 text-red-500" />
             <p className="text-sm text-red-700">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {saved && !error && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <div role="status" className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-xl">
+            <Check className="w-5 h-5 text-green-600" />
+            <p className="text-sm text-green-700">Your profile, platforms, and services are saved.</p>
           </div>
         </div>
       )}
@@ -675,7 +727,9 @@ function ServicesSettings({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Services & Rates</h2>
-          <p className="text-sm text-gray-500 mt-1">Define the services you offer and set your rates.</p>
+          <p className="text-sm text-gray-500 mt-1">
+            List the services you offer and set your rates. Click Save Changes at the top to save them.
+          </p>
         </div>
         <button
           onClick={addService}
@@ -860,7 +914,9 @@ function PlatformsSettings({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Social Platforms</h2>
-          <p className="text-sm text-gray-500 mt-1">Add your social media accounts and follower counts.</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Add your social media accounts and follower counts. Click Save Changes at the top to save them.
+          </p>
         </div>
         <button
           onClick={addPlatform}

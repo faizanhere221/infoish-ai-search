@@ -109,6 +109,23 @@ export default function OnboardingWizard({ creator, onSaved, onComplete, onDismi
     }
   }
 
+  // The platforms/services APIs replace the whole list, so merging into the
+  // `creator` prop could overwrite edits made since it was loaded (e.g. in
+  // /settings in another tab) with stale values. Re-read the current lists first.
+  const fetchCurrentLists = async (): Promise<Pick<WizardCreator, 'creator_platforms' | 'creator_services'> | null> => {
+    try {
+      const res = await fetch(`/api/creators/${creator.id}`, { cache: 'no-store' })
+      if (!res.ok) {return null}
+      const data = await res.json()
+      return {
+        creator_platforms: data.creator?.creator_platforms || [],
+        creator_services: data.creator?.creator_services || [],
+      }
+    } catch {
+      return null
+    }
+  }
+
   const handleContinue = async () => {
     if (currentStep === 'avatar') {
       // Avatar uploads immediately on selection; Continue only makes sense once one exists.
@@ -130,10 +147,15 @@ export default function OnboardingWizard({ creator, onSaved, onComplete, onDismi
         setError('Add at least one platform, or skip for now.')
         return
       }
+      const current = await fetchCurrentLists()
+      if (!current) {
+        setError('Could not load your current platforms. Please try again.')
+        return
+      }
       const newIds = new Set(addedPlatforms.map((p) => p.platform))
       // The API replaces the whole list, so send existing platforms too.
       const merged = [
-        ...creator.creator_platforms.filter((p) => !newIds.has(p.platform)),
+        ...current.creator_platforms.filter((p) => !newIds.has(p.platform)),
         ...addedPlatforms,
       ].map((p) => ({
         platform: p.platform,
@@ -151,9 +173,14 @@ export default function OnboardingWizard({ creator, onSaved, onComplete, onDismi
         setError('Enter a service name and a price above $0, or skip for now.')
         return
       }
+      const current = await fetchCurrentLists()
+      if (!current) {
+        setError('Could not load your current services. Please try again.')
+        return
+      }
       // The API replaces the whole list, so send existing services too.
       const merged = [
-        ...creator.creator_services.map((s) => ({
+        ...current.creator_services.map((s) => ({
           title: s.title,
           description: s.description ?? null,
           content_type: s.content_type ?? null,
@@ -167,7 +194,7 @@ export default function OnboardingWizard({ creator, onSaved, onComplete, onDismi
           title: rateTitle.trim(),
           description: null,
           content_type: null,
-          platform: creator.creator_platforms[0]?.platform || addedPlatforms[0]?.platform || null,
+          platform: current.creator_platforms[0]?.platform || addedPlatforms[0]?.platform || null,
           price,
           delivery_days: 7,
           revisions_included: 1,

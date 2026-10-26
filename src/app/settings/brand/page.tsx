@@ -71,6 +71,18 @@ export default function BrandSettingsPage() {
       if (profileStr) {
         const savedProfile = JSON.parse(profileStr)
         setProfile(savedProfile)
+
+        // The cached auth_profile is only a snapshot from login. Read the
+        // brand back from the server so the form shows what is saved.
+        const res = await fetch(`/api/brands/${savedProfile.id}`, { cache: 'no-store' })
+        if (res.ok) {
+          const data = await res.json()
+          const fresh = { ...savedProfile, ...data.brand }
+          setProfile(fresh)
+          localStorage.setItem('auth_profile', JSON.stringify(fresh))
+        } else {
+          setError('Could not load your saved company profile. Refresh to try again.')
+        }
       }
 
       setLoading(false)
@@ -89,22 +101,42 @@ export default function BrandSettingsPage() {
     if (!profile) {return}
     
     setSaving(true)
+    setSaved(false)
     setError(null)
+
+    const token = localStorage.getItem('auth_token')
 
     try {
       const res = await fetch(`/api/brands/${profile.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profile),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        // Send only the editable fields. Required fields go as undefined
+        // rather than null so an empty optional value doesn't fail validation.
+        body: JSON.stringify({
+          company_name: profile.company_name || undefined,
+          company_website: profile.company_website,
+          logo_url: profile.logo_url,
+          description: profile.description,
+          industry: profile.industry,
+          company_size: profile.company_size,
+          country: profile.country || undefined,
+          contact_name: profile.contact_name || undefined,
+          contact_role: profile.contact_role,
+        }),
       })
 
       if (!res.ok) {
-        const errorData = await res.json()
+        const errorData = await res.json().catch(() => ({}))
         throw new Error(errorData.error || 'Failed to update profile')
       }
 
-      // Update localStorage
-      localStorage.setItem('auth_profile', JSON.stringify(profile))
+      const data = await res.json().catch(() => null)
+      const persisted = data?.brand ? { ...profile, ...data.brand } : profile
+      setProfile(persisted)
+      localStorage.setItem('auth_profile', JSON.stringify(persisted))
 
       setSaving(false)
       setSaved(true)
@@ -113,6 +145,7 @@ export default function BrandSettingsPage() {
       console.error('Error saving:', err)
       setError(err instanceof Error ? err.message : 'Failed to save changes')
       setSaving(false)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
@@ -428,6 +461,7 @@ function PaymentSettings() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     const profileStr = localStorage.getItem('auth_profile')
@@ -447,6 +481,7 @@ function PaymentSettings() {
     if (!brandId || !token) {return}
     setSaving(true)
     setSaved(false)
+    setSaveError(null)
     try {
       const res = await fetch(`/api/brands/${brandId}`, {
         method: 'PUT',
@@ -456,7 +491,12 @@ function PaymentSettings() {
       if (res.ok) {
         setSaved(true)
         setTimeout(() => setSaved(false), 2000)
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setSaveError(data.error || 'Failed to save payment instructions. Please try again.')
       }
+    } catch {
+      setSaveError('Failed to save payment instructions. Check your connection and try again.')
     } finally {
       setSaving(false)
     }
@@ -495,6 +535,12 @@ function PaymentSettings() {
       >
         {saved ? 'Saved' : saving ? 'Saving…' : 'Save'}
       </button>
+      {saveError && (
+        <p role="alert" className="flex items-center gap-2 text-sm text-red-700">
+          <AlertCircle className="w-4 h-4 text-red-500" />
+          {saveError}
+        </p>
+      )}
     </div>
   )
 }
