@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Metadata } from 'next'
-import { Home, Search, Sparkles, TrendingUp, Instagram, Hash } from 'lucide-react'
+import { Home, Search, Sparkles, TrendingUp, Users, Hash } from 'lucide-react'
 import { GoBackButton } from '@/components/seo/GoBackButton'
 
 export const metadata: Metadata = {
@@ -86,15 +86,15 @@ export default function NotFound() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             <Link
-              href="/tools/instagram-profile-analyzer"
+              href="/creators"
               className="flex items-center gap-3 p-4 bg-linear-to-br from-purple-50 to-pink-50 rounded-xl hover:shadow-md transition-all group border-2 border-transparent hover:border-purple-200"
             >
               <div className="w-12 h-12 bg-linear-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-                <Instagram className="w-6 h-6 text-white" />
+                <Users className="w-6 h-6 text-white" />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-gray-900 text-sm">Profile Analyzer</p>
-                <p className="text-xs text-gray-600">Analyze any profile</p>
+                <p className="font-semibold text-gray-900 text-sm">Find Creators</p>
+                <p className="text-xs text-gray-600">Browse tech creators</p>
               </div>
             </Link>
 

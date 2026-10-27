@@ -586,7 +586,7 @@ export default function MicroInfluencersPakistanBlog() {
                 <div>
                   <h4 className="font-bold text-gray-900 mb-2">Pro Tip: Verify Before You Pay</h4>
                   <p className="text-gray-700">
-                    Use our <Link href="/tools/instagram-profile-analyzer" className="text-blue-600 hover:underline font-semibold">Free Instagram Profile Analyzer</Link> to check any influencer's real engagement rate and detect fake followers before you reach out. It takes 30 seconds and could save you thousands.
+                    Follow our <Link href="/blog/free-instagram-profile-analyzer-complete-guide" className="text-blue-600 hover:underline font-semibold">10-minute Instagram profile check</Link> to work out any influencer's real engagement rate and spot fake followers before you reach out. It saves you from paying for an audience of bots.
                   </p>
                 </div>
               </div>

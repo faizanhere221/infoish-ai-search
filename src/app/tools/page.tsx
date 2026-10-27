@@ -3,37 +3,19 @@
 import React from 'react'
 import Link from 'next/link'
 import Header from '@/components/header'
-import { Instagram, Sparkles, ArrowRight, CheckCircle, Zap, Target, Hash } from 'lucide-react'
+import { Sparkles, ArrowRight, CheckCircle, Zap, Target, Hash } from 'lucide-react'
 
 export default function ToolsPage() {
   const tools = [
     {
-      id: 'instagram-analyzer',
-      name: 'Instagram Profile Analyzer',
-      description: 'Advanced analytics for any public Instagram profile with engagement metrics, consistency scoring, and personalized insights.',
-      icon: Instagram,
-      href: '/tools/instagram-profile-analyzer',
-      color: 'from-purple-500 to-pink-500',
-      bgColor: 'from-purple-50 to-pink-50',
-      stats: ['10+ Metrics', 'Free Forever', '10 Profiles/min'],
-      features: [
-        'Engagement Rate Analysis',
-        'Consistency Score',
-        'Best Post Identification',
-        'Follower Tier Classification'
-      ],
-      badge: 'Popular',
-      badgeColor: 'bg-purple-100 text-purple-700'
-    },
-    {
       id: 'instagram-hashtag-generator',
       name: 'Instagram Hashtag Generator',
-      description: 'AI-powered hashtag generator that creates perfect hashtags for Instagram Posts, Reels & Stories. Get 5-15 relevant hashtags instantly.',
+      description: 'AI-powered hashtag generator for Instagram Posts, Reels & Stories. Get 5 hashtags ready to post, or a pool of 10 to 15 to rotate across posts.',
       icon: Hash,
       href: '/tools/instagram-hashtag-generator',
       color: 'from-pink-500 to-purple-500',
       bgColor: 'from-pink-50 to-purple-50',
-      stats: ['AI-Powered', 'Free Forever', '5-15 Hashtags'],
+      stats: ['AI-Powered', 'Free Forever', '5 per Post'],
       features: [
         'Smart Content Detection',
         'Popular & Niche Hashtags',
@@ -81,8 +63,8 @@ export default function ToolsPage() {
               <div className="text-xs text-gray-600">No Sign-up</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 mb-1">10+</div>
-              <div className="text-xs text-gray-600">Metrics</div>
+              <div className="text-3xl font-bold text-green-600 mb-1">5</div>
+              <div className="text-xs text-gray-600">Hashtags per Post</div>
             </div>
           </div>
         </div>

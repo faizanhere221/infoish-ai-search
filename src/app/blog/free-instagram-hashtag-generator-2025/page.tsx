@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   keywords: [
     'instagram hashtag generator',
     'free hashtag generator',
-    'instagram hashtags 2025',
+    'instagram hashtags 2026',
     'hashtags for reels',
     'viral instagram hashtags',
     'trending hashtags instagram',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     'best hashtags for likes',
     'hashtag generator free online',
     'instagram growth hashtags',
-    'reels hashtags 2025',
+    'reels hashtags 2026',
     'pakistani instagram hashtags',
     'hashtag strategy instagram',
     'ai hashtag generator',
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
-  headline: 'Free Instagram Hashtag Generator 2025 (100% Free Forever)',
+  headline: 'Free Instagram Hashtag Generator 2026 (100% Free Forever)',
   description: 'Generate AI-powered Instagram hashtags for Posts, Reels & Stories. Free forever, no signup required.',
   author: {
     '@type': 'Organization',
@@ -67,7 +67,7 @@ const jsonLd = {
     }
   },
   datePublished: '2024-12-23',
-  dateModified: '2024-12-23',
+  dateModified: '2026-10-27',
   mainEntityOfPage: {
     '@type': 'WebPage',
     '@id': 'https://infoishai.com/blog/free-instagram-hashtag-generator-2025'
@@ -81,10 +81,10 @@ const faqSchema = {
   mainEntity: [
     {
       '@type': 'Question',
-      name: 'How many hashtags should I use on Instagram in 2025?',
+      name: 'How many hashtags should I use on Instagram in 2026?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'For posts: Use 8-12 hashtags. For Reels & Stories: Use 3-5 hashtags. Instagram experts recommend 5-15 tags in 2025 for optimal reach.'
+        text: 'Use up to 5 hashtags. Instagram now limits posts and Reels to 5 hashtags each. Pick the 3-5 most relevant tags for your topic instead of a long generic list.'
       }
     },
     {
@@ -169,7 +169,7 @@ export default function FreeInstagramHashtagGenerator2025() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>December 23, 2024</span>
+              <span>December 23, 2024 · Updated October 27, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
@@ -200,13 +200,13 @@ export default function FreeInstagramHashtagGenerator2025() {
           {/* Introduction */}
           <section className="mb-12">
             <p className="text-gray-700 leading-relaxed mb-6 text-lg">
-              Still pondering which <strong>hashtags to use on Instagram in 2025</strong>? You're not alone. Numerous creators, enterprises, and small businesses either pick random popular hashtags or constantly repeat the same ones—both methods diminish reach instead of enhancing it.
+              Still pondering which <strong>hashtags to use on Instagram in 2026</strong>? You're not alone. Numerous creators, enterprises, and small businesses either pick random popular hashtags or constantly repeat the same ones—both methods diminish reach instead of enhancing it.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
               Instagram has progressed. The algorithm is more intelligent. Competition is intensified. <strong>Hashtags are still relevant</strong>—if employed accurately.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
-              This is why we have developed a <strong>100% free Instagram Hashtag Generator for 2025</strong>. It aids in generating pertinent, AI-driven hashtags for <strong>Instagram Posts, Reels, and Stories</strong> swiftly.
+              This is why we have developed a <strong>100% free Instagram Hashtag Generator for 2026</strong>. It aids in generating pertinent, AI-driven hashtags for <strong>Instagram Posts, Reels, and Stories</strong> swiftly.
             </p>
 
             {/* Feature Badges */}
@@ -271,7 +271,7 @@ export default function FreeInstagramHashtagGenerator2025() {
 
           {/* Why Hashtags Still Matter */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Hashtags Still Matter in 2025</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Hashtags Still Matter in 2026</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
               Some claim hashtags are obsolete. <strong>They aren't.</strong>
             </p>
@@ -280,7 +280,7 @@ export default function FreeInstagramHashtagGenerator2025() {
             </p>
             
             <div className="bg-white rounded-lg p-8 shadow-sm border mb-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Reasons hashtags remain effective in 2025:</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-6">Reasons hashtags remain effective in 2026:</h3>
               
               <div className="space-y-6">
                 <div className="flex gap-4">
@@ -311,7 +311,7 @@ export default function FreeInstagramHashtagGenerator2025() {
                   <div className="flex-shrink-0 w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold">4</div>
                   <div>
                     <h4 className="text-lg font-semibold text-gray-900 mb-2">Increased Reach</h4>
-                    <p className="text-gray-700">Studies persistently show content with proper hashtags garners <strong>30–50% increased reach</strong> compared to those without.</p>
+                    <p className="text-gray-700">Relevant hashtags help Instagram show your post to people who search or browse that topic, <strong>beyond your current followers</strong>.</p>
                   </div>
                 </div>
               </div>
@@ -431,7 +431,7 @@ export default function FreeInstagramHashtagGenerator2025() {
               <div className="space-y-2 bg-gray-50 rounded-lg p-4">
                 <p className="text-gray-700 font-mono text-sm">"Virat Kohli century highlights"</p>
                 <p className="text-gray-700 font-mono text-sm">"Simple chicken pasta preparation"</p>
-                <p className="text-gray-700 font-mono text-sm">"Summer fashion trends 2025"</p>
+                <p className="text-gray-700 font-mono text-sm">"Summer fashion trends 2026"</p>
               </div>
               <p className="text-gray-600 mt-4 italic">More specificity leads to better tags generated.</p>
             </div>
@@ -472,19 +472,19 @@ export default function FreeInstagramHashtagGenerator2025() {
               </div>
               <div className="space-y-3">
                 <div className="flex items-center gap-4">
-                  <span className="bg-gray-100 px-3 py-1 rounded font-mono">5 hashtags</span>
-                  <span className="text-gray-600">→ For Stories & Reels</span>
+                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded font-mono">5 hashtags</span>
+                  <span className="text-gray-600">→ Posts & Reels (recommended, matches Instagram&apos;s limit)</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded font-mono">10 hashtags</span>
-                  <span className="text-gray-600">→ Routine posts (recommended)</span>
+                  <span className="bg-gray-100 px-3 py-1 rounded font-mono">10 hashtags</span>
+                  <span className="text-gray-600">→ Build a shortlist, then pick the best 5</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="bg-gray-100 px-3 py-1 rounded font-mono">15 hashtags</span>
-                  <span className="text-gray-600">→ For maximum reach</span>
+                  <span className="text-gray-600">→ Build a rotation pool for a content series</span>
                 </div>
               </div>
-              <p className="text-gray-600 mt-4">Instagram experts advise 5–15 tags in 2025.</p>
+              <p className="text-gray-600 mt-4">Instagram now limits posts and Reels to 5 hashtags. Use the 10 or 15 options to build a pool, then pick the 5 best fits for each post.</p>
             </div>
 
             {/* Step 4 */}
@@ -506,19 +506,19 @@ export default function FreeInstagramHashtagGenerator2025() {
 
           {/* Best Practices */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Best Practices for Instagram Hashtags in 2025</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Best Practices for Instagram Hashtags in 2026</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              Want the best results? Follow these proven rules for <strong>Instagram hashtag strategy in 2025</strong>:
+              Want the best results? Follow these proven rules for <strong>Instagram hashtag strategy in 2026</strong>:
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <div className="flex items-center gap-3 bg-green-50 p-4 rounded-lg">
                 <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                <span className="text-green-800">Use 5–10 tags per post</span>
+                <span className="text-green-800">Use up to 5 tags per post (Instagram&apos;s limit)</span>
               </div>
               <div className="flex items-center gap-3 bg-green-50 p-4 rounded-lg">
                 <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                <span className="text-green-800">Use 3–5 tags for Reels & Stories</span>
+                <span className="text-green-800">Use 3–5 tags for Reels</span>
               </div>
               <div className="flex items-center gap-3 bg-green-50 p-4 rounded-lg">
                 <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
@@ -582,10 +582,9 @@ export default function FreeInstagramHashtagGenerator2025() {
             
             <div className="space-y-4">
               <div className="bg-white rounded-lg p-6 shadow-sm border">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">How many hashtags should I use on Instagram in 2025?</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">How many hashtags should I use on Instagram in 2026?</h3>
                 <p className="text-gray-700">
-                  <strong>For posts:</strong> Use 8–12 hashtags<br />
-                  <strong>For Reels & Stories:</strong> Use 3–5 hashtags
+                  <strong>Up to 5.</strong> Instagram now limits posts and Reels to 5 hashtags each. Pick the 3–5 most relevant tags for your topic instead of a long generic list.
                 </p>
               </div>
               
@@ -636,13 +635,13 @@ export default function FreeInstagramHashtagGenerator2025() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Final Thoughts</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              <strong>Instagram hashtags</strong> may seem minor but significantly impact visibility, reach, and growth. In 2025, success doesn't come from using more hashtags—it stems from <strong>smarter selection</strong>.
+              <strong>Instagram hashtags</strong> may seem minor but significantly impact visibility, reach, and growth. In 2026, success doesn't come from using more hashtags—it stems from <strong>smarter selection</strong>.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
               Our <strong>free Instagram hashtag generator</strong> eliminates guesswork and saves time, enabling you to focus on creating stellar content while ensuring discovery occurs.
             </p>
             <p className="text-gray-700 leading-relaxed text-lg font-medium">
-              If you're serious about growing on Instagram in 2025—this tool is essential.
+              If you're serious about growing on Instagram in 2026, this tool is essential.
             </p>
           </section>
         </div>
@@ -651,13 +650,13 @@ export default function FreeInstagramHashtagGenerator2025() {
         <div className="bg-gradient-to-r from-gray-50 to-purple-50 border border-gray-200 rounded-lg p-8 mt-12">
           <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Additional Free Instagram Tools</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Link 
-              href="/tools/instagram-profile-analyzer"
+            <Link
+              href="/blog/free-instagram-profile-analyzer-complete-guide"
               className="bg-white rounded-lg p-6 shadow-sm border hover:shadow-md transition-shadow"
             >
-              <span className="text-sm text-pink-600 font-medium">Free Tool</span>
-              <h4 className="text-lg font-semibold text-gray-900 mt-2 mb-2">Instagram Profile Analyzer</h4>
-              <p className="text-gray-600 text-sm">Evaluate performance metrics such as engagement rate and reach.</p>
+              <span className="text-sm text-pink-600 font-medium">Free Guide</span>
+              <h4 className="text-lg font-semibold text-gray-900 mt-2 mb-2">How to Check an Instagram Profile</h4>
+              <p className="text-gray-600 text-sm">Calculate engagement rate and spot fake followers in 10 minutes.</p>
             </Link>
             
             <Link 

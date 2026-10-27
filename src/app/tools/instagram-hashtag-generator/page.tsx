@@ -19,11 +19,14 @@ interface GeneratedResult {
   tips: string[]
 }
 
+// Instagram's per-post hashtag limit for posts and Reels (late 2025). Larger sets are a pool to pick from.
+const POST_HASHTAG_LIMIT = 5
+
 export default function HashtagGenerator() {
   const [description, setDescription] = useState('')
   const [niche, setNiche] = useState('')
   const [audience, setAudience] = useState('')
-  const [count, setCount] = useState(10)
+  const [count, setCount] = useState(POST_HASHTAG_LIMIT)
   const [strategy, setStrategy] = useState<'balanced' | 'popular' | 'niche'>('balanced')
   
   const [isLoading, setIsLoading] = useState(false)
@@ -277,7 +280,8 @@ const generateHashtagsLocal = async (
     related_niches: Object.keys(topicHashtags).filter(t => t !== topic).slice(0, 5),
     tips: [
       `Post during peak hours for ${topic} content`,
-      'Mix 3-5 popular tags with 10-15 niche tags',
+      `Use up to ${POST_HASHTAG_LIMIT} hashtags per post: 1-2 popular tags and 3-4 niche tags`,
+      'Rotate the rest of your pool across future posts',
       'Update hashtags regularly to avoid spam flags',
       'Use location tags if relevant',
       'Monitor which hashtags drive engagement'
@@ -297,16 +301,16 @@ const generateHashtagsLocal = async (
     const newSelected = new Set(selectedHashtags)
     if (newSelected.has(index)) {
       newSelected.delete(index)
-    } else {
+    } else if (newSelected.size < POST_HASHTAG_LIMIT) {
       newSelected.add(index)
     }
     setSelectedHashtags(newSelected)
   }
 
-  const selectAll = () => {
+  const selectTop = () => {
     if (!result) {return}
-    const allIndices = new Set(result.hashtags.map((_, i) => i))
-    setSelectedHashtags(allIndices)
+    const topIndices = new Set(result.hashtags.slice(0, POST_HASHTAG_LIMIT).map((_, i) => i))
+    setSelectedHashtags(topIndices)
   }
 
   const deselectAll = () => {
@@ -387,7 +391,7 @@ const generateHashtagsLocal = async (
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Instagram Hashtag Generator</h1>
-                <p className="text-xs sm:text-sm text-gray-600">AI-powered hashtags for maximum reach</p>
+                <p className="text-xs sm:text-sm text-gray-600">Up to 5 hashtags per post, plus a pool to rotate</p>
               </div>
             </div>
 
@@ -502,7 +506,7 @@ const generateHashtagsLocal = async (
             {/* Hashtag Count Selection */}
 <div>
   <label className="block text-sm font-semibold text-gray-700 mb-3">
-    Number of Hashtags
+    Hashtags to Generate
   </label>
   <div className="grid grid-cols-3 gap-3">
     <button
@@ -520,7 +524,7 @@ const generateHashtagsLocal = async (
         </div>
       )}
       <div className="text-2xl font-bold mb-1">5</div>
-      <div className="text-xs opacity-90">Focused</div>
+      <div className="text-xs opacity-90">Ready to post</div>
     </button>
     
     <button
@@ -538,7 +542,7 @@ const generateHashtagsLocal = async (
         </div>
       )}
       <div className="text-2xl font-bold mb-1">10</div>
-      <div className="text-xs opacity-90">Balanced</div>
+      <div className="text-xs opacity-90">Pool to pick from</div>
     </button>
     
     <button
@@ -556,7 +560,7 @@ const generateHashtagsLocal = async (
         </div>
       )}
       <div className="text-2xl font-bold mb-1">15</div>
-      <div className="text-xs opacity-90">Maximum</div>
+      <div className="text-xs opacity-90">Larger pool</div>
     </button>
   </div>
   
@@ -565,9 +569,9 @@ const generateHashtagsLocal = async (
     <p className="text-xs text-purple-700 flex items-start gap-2">
       <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
       <span>
-        {count === 5 && "Perfect for Stories and Reels - Most impactful hashtags only"}
-        {count === 10 && "Recommended for Posts - Good balance of reach and relevance"}
-        {count === 15 && "Maximum reach - Best for competitive niches"}
+        {count === 5 && "Recommended. Instagram allows up to 5 hashtags per post or Reel, so you post these as they are."}
+        {count === 10 && "A pool of 10. Pick your best 5 for this post and save the rest for the next one."}
+        {count === 15 && "A pool of 15. Pick 5 per post and rotate the others across a week of content."}
       </span>
     </p>
   </div>
@@ -620,11 +624,11 @@ const generateHashtagsLocal = async (
             <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
               <div className="flex flex-wrap gap-3">
                 <button
-                  onClick={selectAll}
+                  onClick={selectTop}
                   className="flex-1 min-w-[140px] px-4 py-3 bg-purple-100 text-purple-700 font-semibold rounded-xl hover:bg-purple-200 transition-all flex items-center justify-center gap-2"
                 >
                   <Check className="w-4 h-4" />
-                  Select All ({result.hashtags.length})
+                  Select Top {Math.min(POST_HASHTAG_LIMIT, result.hashtags.length)}
                 </button>
                 <button
                   onClick={deselectAll}
@@ -646,7 +650,7 @@ const generateHashtagsLocal = async (
                   ) : (
                     <>
                       <Copy className="w-4 h-4" />
-                      Copy Selected ({selectedHashtags.size})
+                      Copy Selected ({selectedHashtags.size}/{POST_HASHTAG_LIMIT})
                     </>
                   )}
                 </button>
@@ -655,7 +659,7 @@ const generateHashtagsLocal = async (
                   className="flex-1 min-w-[140px] px-4 py-3 bg-white border-2 border-purple-500 text-purple-600 font-semibold rounded-xl hover:bg-purple-50 transition-all flex items-center justify-center gap-2 shadow-lg"
                 >
                   <Copy className="w-4 h-4" />
-                  Copy All
+                  {result.hashtags.length > POST_HASHTAG_LIMIT ? 'Copy Full Pool' : 'Copy All'}
                 </button>
                 <button
                   onClick={downloadHashtags}
@@ -681,6 +685,11 @@ const generateHashtagsLocal = async (
                 <Hash className="w-6 h-6 text-purple-600" />
                 Generated Hashtags ({result.hashtags.length})
               </h3>
+              {result.hashtags.length > POST_HASHTAG_LIMIT && (
+                <p className="text-sm text-gray-600 mb-4">
+                  Select up to {POST_HASHTAG_LIMIT} hashtags for this post. Keep the rest of the pool for later posts.
+                </p>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {result.hashtags.map((hashtag, index) => {
                   const isSelected = selectedHashtags.has(index)
@@ -814,7 +823,7 @@ const generateHashtagsLocal = async (
                 <div className="p-4 bg-gray-50 rounded-xl">
                   <h4 className="font-semibold text-gray-900 mb-2">3. Get AI-Powered Hashtags</h4>
                   <p className="text-sm text-gray-600">
-                    Receive personalized hashtags with difficulty ratings and engagement potential!
+                    Receive personalized hashtags with difficulty ratings and engagement potential. Post up to 5 per post or Reel.
                     
                   </p>
                 </div>

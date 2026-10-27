@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Free Instagram Hashtag Generator',
-  description: 'Generate 5-15 relevant, high-engagement hashtags for Instagram Posts, Reels & Stories instantly with our free AI-powered hashtag generator.',
+  description: 'Generate up to 5 relevant hashtags per Instagram post or Reel, plus a larger pool to rotate, with our free AI-powered hashtag generator.',
   robots: {
     index: true,
     follow: true,

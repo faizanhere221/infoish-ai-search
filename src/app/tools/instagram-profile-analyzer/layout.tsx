@@ -3,8 +3,9 @@ import { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Free Instagram Profile Analyzer',
   description: 'Analyze any public Instagram profile for free — engagement rate, consistency score, best posts, and follower tier classification in seconds.',
+  // noindex until the analyzer has a working backend again. The page stays reachable by URL.
   robots: {
-    index: true,
+    index: false,
     follow: true,
   },
   openGraph: {

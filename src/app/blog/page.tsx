@@ -24,6 +24,32 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '21',
+    title: "Top Tech Influencers in Singapore: ASEAN's B2B Creator Hub (2026)",
+    excerpt: 'Find top tech influencers in Singapore for B2B campaigns. Fintech, cloud, AI, and SaaS niches, YouTube and LinkedIn rates in SGD, and a vetting checklist.',
+    date: '2026-10-27',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '14 min read',
+    slug: 'top-tech-influencers-singapore-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
+    id: '22',
+    title: 'UK Tech Influencers for B2B Brands: Find and Hire the Right Creators (2026)',
+    excerpt: 'Find and hire UK tech influencers for B2B campaigns. Fintech, AI, and cybersecurity niches, LinkedIn and YouTube rates in GBP, and ASA and CMA rules.',
+    date: '2026-10-27',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '15 min read',
+    slug: 'uk-tech-influencers-b2b-brands-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '20',
     title: 'Indian Tech Influencer Rates by City: Bangalore vs Mumbai vs Delhi',
     excerpt: 'Indian tech influencer rates by city for 2026. Compare Bangalore, Mumbai, and Delhi-NCR pricing for YouTube, Instagram, LinkedIn, X, and newsletters in INR.',
@@ -221,8 +247,8 @@ const blogPosts: BlogPost[] = [
   {
     id: '2',
     title: 'Free Instagram Hashtag Generator — Get Viral Hashtags in Seconds',
-    excerpt: 'Generate AI-powered Instagram hashtags for Posts, Reels & Stories. Free forever, no signup required. Get 5-15 targeted hashtags instantly to boost reach and engagement.',
-    date: '2024-12-23',
+    excerpt: "Generate AI-powered Instagram hashtags for Posts, Reels & Stories. Free forever, no signup required. Updated for Instagram's 2026 limit of 5 hashtags per post.",
+    date: '2026-10-27',
     author: 'Infoishai Team',
     category: 'Tools',
     readTime: '8 min read',
@@ -235,7 +261,7 @@ const blogPosts: BlogPost[] = [
     id: '3',
     title: 'Free Instagram Profile Analyzer — Spot Fake Influencers Instantly',
     excerpt: 'Analyze any Instagram profile for free. Check engagement rates, detect fake followers, and verify influencers before you pay. Complete guide for Pakistani brands.',
-    date: '2024-12-23',
+    date: '2026-10-27',
     author: 'Infoishai Team',
     category: 'Tools',
     readTime: '12 min read',
@@ -246,9 +272,9 @@ const blogPosts: BlogPost[] = [
   },
   {
     id: '4',
-    title: 'Influencer Marketing in Pakistan: The Only Guide You\'ll Need (2025)',
-    excerpt: 'From finding the right creators to measuring ROI — everything Pakistani brands need to know about influencer marketing in 2025. Includes real budgets and proven strategies.',
-    date: '2024-12-16',
+    title: 'Influencer Marketing Pakistan 2026: Rates, Platforms, and ROI Data',
+    excerpt: 'Everything Pakistani brands need to know about influencer marketing in 2026. Typical rates from PKR 5,000 to PKR 5,00,000, a platform comparison, and ROI tracking steps.',
+    date: '2026-10-27',
     author: 'Laiba Razzaq',
     category: 'Marketing',
     readTime: '12 min read',
@@ -259,11 +285,11 @@ const blogPosts: BlogPost[] = [
   {
     id: '5',
     title: 'How to Find Pakistani Influencers (Without Wasting Hours on Instagram)',
-    excerpt: 'Stop scrolling through thousands of profiles. Here\'s the exact 5-step process Pakistani brands use to find verified influencers in under 10 minutes.',
-    date: '2024-12-18',
+    excerpt: 'Stop scrolling through thousands of profiles. A 5-step process to find and vet Pakistani influencers, with typical engagement benchmarks and PKR rates.',
+    date: '2026-10-27',
     author: 'Laiba Razzaq',
     category: 'Strategy',
-    readTime: '8 min read',
+    readTime: '10 min read',
     slug: 'find-right-pakistani-influencers-brand',
     featured: false,
     views: '3.2K'
@@ -339,8 +365,8 @@ export default function BlogPage() {
                 <Sparkles className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-lg">🎉 New Free Tools Released!</h3>
-                <p className="text-purple-100 text-sm">Hashtag Generator & Profile Analyzer - All 100% Free</p>
+                <h3 className="font-bold text-lg">🎉 Free Instagram Hashtag Generator</h3>
+                <p className="text-purple-100 text-sm">Updated for the 5-hashtag limit. 100% free, no signup.</p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -351,10 +377,10 @@ export default function BlogPage() {
                 Hashtag Generator
               </Link>
               <Link
-                href="/tools/instagram-profile-analyzer"
+                href="/creators"
                 className="bg-white/20 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-white/30 transition-colors"
               >
-                Profile Analyzer
+                Find Creators
               </Link>
             </div>
           </div>
@@ -565,16 +591,16 @@ export default function BlogPage() {
             </Link>
             
             <Link 
-              href="/tools/instagram-profile-analyzer"
+              href="/creators"
               className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl p-6 text-white hover:shadow-xl transition-all transform hover:scale-105"
             >
               <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                <TrendingUp className="w-6 h-6" />
+                <Users className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Profile Analyzer</h3>
-              <p className="text-pink-100 text-sm mb-4">Check engagement rates, detect fake followers, vet influencers.</p>
+              <h3 className="text-xl font-bold mb-2">Find Creators</h3>
+              <p className="text-pink-100 text-sm mb-4">Browse tech creators by platform and country, then message them for free.</p>
               <span className="inline-flex items-center gap-1 text-sm font-medium">
-                Try Free <ArrowRight className="w-4 h-4" />
+                Browse Free <ArrowRight className="w-4 h-4" />
               </span>
             </Link>
           </div>

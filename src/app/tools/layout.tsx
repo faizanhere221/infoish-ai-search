@@ -2,14 +2,14 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Free Marketing Tools for Tech Creators',
-  description: 'Free Instagram Profile Analyzer, AI Hashtag Generator, and more marketing tools. No signup required. Get instant audience insights and content ideas.',
+  description: 'Free AI Instagram Hashtag Generator for posts and Reels. No signup required. Get up to 5 hashtags per post plus a pool to rotate.',
   robots: {
     index: true,
     follow: true,
   },
   openGraph: {
     title: 'Free Marketing Tools for Tech Creators | Infoishai',
-    description: 'Free Instagram Profile Analyzer, AI Hashtag Generator, and more marketing tools. No signup required.',
+    description: 'Free AI Instagram Hashtag Generator for posts and Reels. No signup required.',
     url: 'https://infoishai.com/tools',
     siteName: 'Infoishai',
     type: 'website',
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Free Marketing Tools for Tech Creators | Infoishai',
-    description: 'Free Instagram Profile Analyzer, AI Hashtag Generator, and more marketing tools. No signup required.',
+    description: 'Free AI Instagram Hashtag Generator for posts and Reels. No signup required.',
     images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
@@ -30,7 +30,7 @@ const webApplicationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
   name: 'Infoishai Free Marketing Tools',
-  description: 'Free Instagram Profile Analyzer and AI Hashtag Generator for influencer marketing',
+  description: 'Free AI Instagram Hashtag Generator for influencer marketing',
   url: 'https://infoishai.com/tools',
   applicationCategory: 'BusinessApplication',
   offers: {
