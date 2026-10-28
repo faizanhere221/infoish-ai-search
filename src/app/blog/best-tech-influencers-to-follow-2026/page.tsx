@@ -480,7 +480,7 @@ export default function BestTechInfluencersToFollowPage() {
               How We Chose These Tech Influencers
             </h2>
             <AnswerBox>
-              We picked creators who publish about tech as their main focus, posted new work in 2026, and have a large, public audience we verified. Every count on this page was checked in October 2026 against a public tracker or the publisher&apos;s own page, then rounded. Anyone without a verifiable count was left off.
+              We picked creators who publish about tech as their main focus, posted new work in 2026, and have a large, public audience we verified. Every count shown on this page was checked against public trackers in October 2026 and rounded. Where sources disagreed, we describe the audience size instead of giving a number. Anyone without a verifiable count was left off.
             </AnswerBox>
             <div className="bg-white rounded-lg p-6 shadow-sm border mb-6">
               <ul className="space-y-3">
