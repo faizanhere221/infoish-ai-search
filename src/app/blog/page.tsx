@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '23',
+    title: 'Best Tech Influencers to Follow in 2026',
+    excerpt: 'The best tech influencers to follow in 2026. 20 YouTubers, X accounts, newsletters, and podcasts in consumer tech, AI, programming, and startups, with verified audience sizes.',
+    date: '2026-10-28',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '12 min read',
+    slug: 'best-tech-influencers-to-follow-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '21',
     title: "Top Tech Influencers in Singapore: ASEAN's B2B Creator Hub (2026)",
     excerpt: 'Find top tech influencers in Singapore for B2B campaigns. Fintech, cloud, AI, and SaaS niches, YouTube and LinkedIn rates in SGD, and a vetting checklist.',
