@@ -151,7 +151,7 @@ const aiCreators: Creator[] = [
     name: 'Andrej Karpathy',
     person: 'Andrej Karpathy',
     platform: 'X (Twitter)',
-    audience: 'more than 2M followers',
+    audience: 'millions of followers on X',
     url: 'https://x.com/karpathy',
     linkLabel: 'x.com/karpathy',
     about:
