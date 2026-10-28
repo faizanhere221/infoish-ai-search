@@ -78,7 +78,7 @@ const blogPosts: BlogPost[] = [
   {
     id: '19',
     title: 'Top 20 Indian Tech YouTubers for Brand Partnerships in 2026',
-    excerpt: 'The top 20 Indian tech YouTubers for brand partnerships in 2026. Gadget reviewers and coding channels, with language, audience size, best-fit products, and rates.',
+    excerpt: 'The top 20 Indian tech YouTubers for brand partnerships in 2026. Gadget and coding channels in Hindi, English, Telugu, and Tamil, with verified subscriber counts and brand fit.',
     date: '2026-10-26',
     author: 'Infoishai Team',
     category: 'Strategy',
