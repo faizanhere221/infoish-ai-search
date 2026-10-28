@@ -4,7 +4,7 @@ import Script from 'next/script'
 import * as Sentry from '@sentry/nextjs'
 import './globals.css'
 import { GA_BOOTSTRAP_SCRIPT } from '@/lib/analytics'
-import { OrganizationJsonLd, WebSiteJsonLd, SoftwareApplicationJsonLd } from '@/components/seo/JsonLd'
+import { OrganizationJsonLd, WebSiteJsonLd } from '@/components/seo/JsonLd'
 import CookieConsent from '@/components/CookieConsent'
 import { NavigationTracker } from '@/components/NavigationTracker'
 
@@ -120,7 +120,6 @@ export default function RootLayout({
 
         <OrganizationJsonLd />
         <WebSiteJsonLd />
-        <SoftwareApplicationJsonLd />
 
         <a
           href="#main-content"

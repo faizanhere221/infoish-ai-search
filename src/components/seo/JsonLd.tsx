@@ -50,29 +50,6 @@ export function WebSiteJsonLd() {
   )
 }
 
-export function SoftwareApplicationJsonLd() {
-  const schema = {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: 'Infoishai',
-    applicationCategory: 'BusinessApplication',
-    operatingSystem: 'Web',
-    url: BASE_URL,
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-    },
-  }
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  )
-}
-
 export function PersonJsonLd({
   name,
   username,
