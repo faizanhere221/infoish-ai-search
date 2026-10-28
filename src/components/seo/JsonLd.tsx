@@ -1,21 +1,22 @@
 const BASE_URL = 'https://infoishai.com'
 
+// Other JSON-LD blocks reference the Organization by this @id instead of
+// repeating it, so only one Organization renders per page.
+export const ORGANIZATION_ID = `${BASE_URL}/#organization`
+const WEBSITE_ID = `${BASE_URL}/#website`
+
 export function OrganizationJsonLd() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': ORGANIZATION_ID,
     name: 'Infoishai',
     url: BASE_URL,
     logo: `${BASE_URL}/logo.png`,
-    description: 'A B2B tech influencer marketplace connecting brands with verified AI, SaaS, and developer content creators.',
-    foundingDate: '2024',
+    description: 'A free B2B marketplace connecting tech brands with tech content creators on YouTube, X, LinkedIn, newsletters, and podcasts.',
     areaServed: ['US', 'GB', 'CA', 'IN', 'PK', 'AU', 'DE', 'NL', 'SG'],
-    serviceType: 'Influencer Marketing Platform',
-    sameAs: [
-      'https://twitter.com/infoishai',
-      'https://linkedin.com/company/infoishai',
-      'https://youtube.com/@infoishai',
-    ],
+    // Only profiles the site itself links to. Add X/YouTube here once confirmed.
+    sameAs: ['https://www.linkedin.com/company/infoishai'],
     contactPoint: {
       '@type': 'ContactPoint',
       email: 'support@infoishai.com',
@@ -35,13 +36,10 @@ export function WebSiteJsonLd() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': WEBSITE_ID,
     name: 'Infoishai',
     url: BASE_URL,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `${BASE_URL}/creators?search={search_term_string}`,
-      'query-input': 'required name=search_term_string',
-    },
+    publisher: { '@id': ORGANIZATION_ID },
   }
 
   return (

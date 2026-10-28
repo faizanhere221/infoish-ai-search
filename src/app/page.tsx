@@ -18,6 +18,7 @@ import {
   NewsletterSection,
   Footer
 } from '@/components/landing'
+import { ORGANIZATION_ID } from '@/components/seo/JsonLd'
 
 // ============================================================================
 // SEO METADATA - Optimized for "find tech influencers marketplace"
@@ -106,17 +107,9 @@ const structuredData = {
     priceCurrency: 'USD',
     description: 'Infoishai is free for brands and creators. There are no platform fees.',
   },
-  provider: {
-    '@type': 'Organization',
-    name: 'Infoishai',
-    url: 'https://infoishai.com',
-    logo: 'https://infoishai.com/logo.png',
-    sameAs: [
-      'https://twitter.com/infoishai',
-      'https://linkedin.com/company/infoishai',
-      'https://youtube.com/@infoishai',
-    ],
-  },
+  // Reference the site-wide Organization from the root layout rather than
+  // repeating it, so the homepage renders a single Organization block.
+  provider: { '@id': ORGANIZATION_ID },
 }
 
 const faqData = {
