@@ -1,8 +1,18 @@
 import { MetadataRoute } from 'next'
 import { createServerSupabase } from '@/lib/db'
-import { getExcludedCreatorUserIdsList } from '@/lib/creators/visibility'
+import { isCreatorPublic } from '@/lib/creators/visibility'
+
+// Every request reads live rows. Without these, Next caches the Supabase
+// fetches in its Data Cache (which survives rebuilds), so a creator hidden
+// after the last cache fill stayed in the sitemap while their profile
+// already returned 404.
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 const baseUrl = 'https://infoishai.com'
+
+// Postgrest `in` filters travel in the URL, so look users up in chunks.
+const USER_LOOKUP_CHUNK = 200
 
 async function getCampaignRoutes(): Promise<MetadataRoute.Sitemap> {
   try {
@@ -30,18 +40,29 @@ async function getCampaignRoutes(): Promise<MetadataRoute.Sitemap> {
 async function getCreatorRoutes(): Promise<MetadataRoute.Sitemap> {
   try {
     const supabase = createServerSupabase()
-    const excludedUserIds = await getExcludedCreatorUserIdsList(supabase)
     const { data: creators } = await supabase
       .from('creators')
-      .select('username, updated_at')
+      .select('username, updated_at, user_id, hidden_from_marketplace')
       .eq('verification_status', 'verified')
-      .eq('hidden_from_marketplace', false)
-      .not('user_id', 'in', excludedUserIds)
       .limit(5000)
 
     if (!creators) {return []}
 
-    return creators.map((creator) => ({
+    // Same rule as the profile page (src/app/creators/[username]/layout.tsx):
+    // a URL is listed only if isCreatorPublic() would let its profile render.
+    const userIds = Array.from(new Set(creators.map((c) => c.user_id)))
+    const owners = new Map<string, { deleted_at: string | null; is_active: boolean }>()
+    for (let i = 0; i < userIds.length; i += USER_LOOKUP_CHUNK) {
+      const { data: users, error } = await supabase
+        .from('users')
+        .select('id, deleted_at, is_active')
+        .in('id', userIds.slice(i, i + USER_LOOKUP_CHUNK))
+      // Fail closed: if visibility can't be confirmed, list no creators.
+      if (error) {return []}
+      for (const u of users ?? []) {owners.set(u.id, u)}
+    }
+
+    return creators.filter((creator) => isCreatorPublic(owners.get(creator.user_id) ?? null, creator)).map((creator) => ({
       url: `${baseUrl}/creators/${creator.username}`,
       lastModified: creator.updated_at ? new Date(creator.updated_at) : new Date(),
       changeFrequency: 'weekly' as const,

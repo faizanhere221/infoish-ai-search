@@ -990,6 +990,22 @@ async function main() {
     })
   }
 
+  // The sitemap must list only profiles that actually render. Sitemap URLs
+  // use the production origin, so each one is re-pointed at BASE_URL. Needs
+  // no env vars: it walks whatever creators the sitemap currently lists.
+  await check('Every creator URL in /sitemap.xml returns 200', async () => {
+    const res = await request('/sitemap.xml')
+    if (res.status !== 200) {return { pass: false, detail: `sitemap status ${res.status}` }}
+    const xml = await res.text()
+    const paths = [...xml.matchAll(/<loc>https?:\/\/[^/<]+(\/creators\/[^<]+)<\/loc>/g)].map((m) => m[1])
+    const bad = []
+    for (const p of paths) {
+      const r = await request(p, { redirect: 'manual' })
+      if (r.status !== 200) {bad.push(`${r.status} ${p}`)}
+    }
+    return { pass: bad.length === 0, detail: `${paths.length} creator URLs${bad.length ? `, non-200: ${bad.join(', ')}` : ''}` }
+  })
+
   // Positive controls — if these fail, every 404 above might just mean the
   // route is broken for everyone, not that access control actually works.
   await check('[control] Brand A CAN read the conversation', async () => {
