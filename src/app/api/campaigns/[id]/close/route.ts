@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
+import { revalidateCampaignPublicSurfaces } from '@/lib/campaigns/revalidate'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -52,6 +53,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       captureError(error, { route: 'POST /api/campaigns/[id]/close' })
       return NextResponse.json({ error: 'Failed to close campaign' }, { status: 500 })
     }
+
+    revalidateCampaignPublicSurfaces(id)
 
     return NextResponse.json({
       message: 'Campaign closed successfully',

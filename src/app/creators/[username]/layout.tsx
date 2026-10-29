@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { createServerSupabase } from '@/lib/db'
-import { isCreatorPublic } from '@/lib/creators/visibility'
+import { getPublicCreatorProfile } from '@/lib/creators/public-profile'
 import { PersonJsonLd } from '@/components/seo/JsonLd'
 
 type Props = {
@@ -14,36 +13,15 @@ export async function generateMetadata({ params }: { params: { username: string 
   const url = `https://infoishai.com/creators/${username}`
 
   try {
-    const supabase = createServerSupabase()
-    const { data: creator } = await supabase
-      .from('creators')
-      .select('user_id, display_name, username, bio, niches, total_followers, country, hidden_from_marketplace, profile_photo_url')
-      .eq('username', username)
-      .single()
-
+    // Same cached loader as the page: a missing, deleted, suspended, or
+    // admin-hidden creator returns null, and notFound() turns the whole
+    // route into a real 404 (not a "not found" message with a 200 status).
+    const creator = await getPublicCreatorProfile(username)
     if (!creator) {
-      return {
-        title: 'Creator Not Found',
-        robots: { index: false, follow: true },
-      }
-    }
-
-    // A deleted, suspended, or admin-hidden creator's profile 404s for
-    // real (not just a "not found" message with a 200 status) —
-    // notFound() here triggers that for the whole route, since this runs
-    // as part of the same render pass as the page itself.
-    const { data: ownerUser } = await supabase
-      .from('users')
-      .select('deleted_at, is_active')
-      .eq('id', creator.user_id)
-      .single()
-    if (!isCreatorPublic(ownerUser, creator)) {
       notFound()
     }
 
-    const niches = Array.isArray(creator.niches) && creator.niches.length > 0
-      ? creator.niches.join(', ')
-      : 'tech'
+    const niches = creator.niches.length > 0 ? creator.niches.join(', ') : 'tech'
     const title = `${creator.display_name} (@${creator.username}) | ${niches} Creator`
     const description = creator.bio
       ? creator.bio.slice(0, 155)
@@ -90,12 +68,7 @@ export async function generateMetadata({ params }: { params: { username: string 
 }
 
 export default async function CreatorProfileLayout({ children, params }: Props) {
-  const supabase = createServerSupabase()
-  const { data: creator } = await supabase
-    .from('creators')
-    .select('display_name, username, bio, profile_photo_url')
-    .eq('username', params.username)
-    .single()
+  const creator = await getPublicCreatorProfile(params.username)
 
   return (
     <>

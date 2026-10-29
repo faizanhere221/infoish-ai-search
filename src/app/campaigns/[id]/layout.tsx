@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { createServerSupabase } from '@/lib/db'
+import { getPublicCampaign } from '@/lib/campaigns/public'
 
 export const revalidate = 3600
 
@@ -13,14 +13,10 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   const url = `https://infoishai.com/campaigns/${id}`
 
   try {
-    const supabase = createServerSupabase()
-    const { data: campaign } = await supabase
-      .from('campaigns')
-      .select('title, description, status, visibility')
-      .eq('id', id)
-      .single()
+    // Same cached loader as the page: null for anything not published+public.
+    const campaign = await getPublicCampaign(id)
 
-    if (!campaign || campaign.status !== 'published' || campaign.visibility !== 'public') {
+    if (!campaign) {
       return {
         title: { absolute: 'Campaign | Infoishai' },
         robots: { index: false, follow: true },

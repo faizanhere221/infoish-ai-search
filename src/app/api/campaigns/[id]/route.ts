@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
+import { revalidateCampaignPublicSurfaces } from '@/lib/campaigns/revalidate'
 import { z } from 'zod'
 import {
   CAMPAIGN_OBJECTIVES,
@@ -222,6 +223,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    revalidateCampaignPublicSurfaces(id)
+
     return NextResponse.json({
       message: 'Campaign updated successfully',
       campaign: savedDeliverables !== undefined ? { ...campaign, deliverables: savedDeliverables } : campaign,
@@ -277,6 +280,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Failed to cancel campaign' }, { status: 500 })
     }
 
+    revalidateCampaignPublicSurfaces(id)
     return NextResponse.json({ message: 'Campaign cancelled', campaign: cancelled })
   } catch (error) {
     captureError(error, { route: 'DELETE /api/campaigns/[id]' })
