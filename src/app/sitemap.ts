@@ -37,19 +37,21 @@ async function getCampaignRoutes(): Promise<MetadataRoute.Sitemap> {
   }
 }
 
+const hasText = (value: string | null | undefined): boolean => !!value && value.trim().length > 0
+
 async function getCreatorRoutes(): Promise<MetadataRoute.Sitemap> {
   try {
     const supabase = createServerSupabase()
     const { data: creators } = await supabase
       .from('creators')
-      .select('username, updated_at, user_id, hidden_from_marketplace')
-      .eq('verification_status', 'verified')
+      .select('id, username, updated_at, user_id, hidden_from_marketplace, bio, display_name, profile_photo_url')
       .limit(5000)
 
     if (!creators) {return []}
 
     // Same rule as the profile page (src/app/creators/[username]/layout.tsx):
     // a URL is listed only if isCreatorPublic() would let its profile render.
+    // Verification status doesn't matter; profile completeness does.
     const userIds = Array.from(new Set(creators.map((c) => c.user_id)))
     const owners = new Map<string, { deleted_at: string | null; is_active: boolean }>()
     for (let i = 0; i < userIds.length; i += USER_LOOKUP_CHUNK) {
@@ -62,7 +64,30 @@ async function getCreatorRoutes(): Promise<MetadataRoute.Sitemap> {
       for (const u of users ?? []) {owners.set(u.id, u)}
     }
 
-    return creators.filter((creator) => isCreatorPublic(owners.get(creator.user_id) ?? null, creator)).map((creator) => ({
+    const publicCreators = creators.filter((creator) => isCreatorPublic(owners.get(creator.user_id) ?? null, creator))
+
+    // A complete profile has a bio, an avatar or display name, and at least
+    // one platform with a handle. Thin profiles stay out of the sitemap.
+    const withHandle = new Set<string>()
+    const creatorIds = publicCreators.map((c) => c.id)
+    for (let i = 0; i < creatorIds.length; i += USER_LOOKUP_CHUNK) {
+      const { data: platforms, error } = await supabase
+        .from('creator_platforms')
+        .select('creator_id, platform_username')
+        .in('creator_id', creatorIds.slice(i, i + USER_LOOKUP_CHUNK))
+      if (error) {return []}
+      for (const p of platforms ?? []) {
+        if (hasText(p.platform_username)) {withHandle.add(p.creator_id)}
+      }
+    }
+
+    return publicCreators
+      .filter((creator) =>
+        hasText(creator.bio) &&
+        (hasText(creator.profile_photo_url) || hasText(creator.display_name)) &&
+        withHandle.has(creator.id)
+      )
+      .map((creator) => ({
       url: `${baseUrl}/creators/${creator.username}`,
       lastModified: creator.updated_at ? new Date(creator.updated_at) : new Date(),
       changeFrequency: 'weekly' as const,

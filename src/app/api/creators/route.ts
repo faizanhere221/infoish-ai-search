@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { updateReferralOnProfileComplete } from '@/lib/referral'
 import { getExcludedCreatorUserIdsList } from '@/lib/creators/visibility'
+import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -226,6 +227,9 @@ export async function POST(request: NextRequest) {
     } catch (referralError) {
       console.error('Error updating referral on profile complete:', referralError)
     }
+
+    // A new profile can be complete enough for the sitemap and country pages.
+    revalidateCreatorPublicSurfaces(creator.username)
 
     return NextResponse.json({
       message: 'Creator profile created successfully',
