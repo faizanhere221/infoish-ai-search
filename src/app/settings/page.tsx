@@ -16,6 +16,7 @@ import {
   DollarSign,
   Wallet,
   Mail,
+  Share2,
 } from 'lucide-react'
 import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES, SERVICE_TYPES } from '@/utils/constants'
 import { normalizeProfileUrl, parseFollowerCount, parsePrice } from '@/lib/creators/platform-input'
@@ -23,8 +24,13 @@ import AvatarUpload from '@/components/AvatarUpload'
 import DashboardHeader from '@/components/DashboardHeader'
 import { PayoutMethodsSettings } from '@/components/payments/PayoutMethodsSettings'
 import { EmailPreferencesSettings } from '@/components/settings/EmailPreferencesSettings'
+import { ShareProfileSettings } from '@/components/settings/ShareProfileSettings'
+import { getProfileCompleteness } from '@/lib/profile-completion'
 
-type SettingsTab = 'profile' | 'services' | 'platforms' | 'payouts' | 'notifications' | 'security'
+type SettingsTab = 'profile' | 'services' | 'platforms' | 'share' | 'payouts' | 'notifications' | 'security'
+
+const SETTINGS_TABS: SettingsTab[] = ['profile', 'services', 'platforms', 'share', 'payouts', 'notifications', 'security']
+const isSettingsTab = (value: string | null): value is SettingsTab => !!value && (SETTINGS_TABS as string[]).includes(value)
 
 interface CreatorProfile {
   id: string
@@ -89,12 +95,15 @@ export default function SettingsPage() {
 function SettingsPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const initialTab = searchParams.get('tab') as SettingsTab | null
-  const [activeTab, setActiveTab] = useState<SettingsTab>(
-    initialTab && ['profile', 'services', 'platforms', 'payouts', 'notifications', 'security'].includes(initialTab)
-      ? initialTab
-      : 'profile'
-  )
+  const tabParam = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState<SettingsTab>(isSettingsTab(tabParam) ? tabParam : 'profile')
+
+  // Follow ?tab= changes after mount too: the checklist's "Fix it" links
+  // point at /settings?tab=..., and clicking one from the Share tab keeps
+  // this page mounted.
+  useEffect(() => {
+    if (isSettingsTab(tabParam)) {setActiveTab(tabParam)}
+  }, [tabParam])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -143,6 +152,7 @@ function SettingsPageInner() {
     { id: 'profile' as SettingsTab, label: 'Profile', icon: User },
     { id: 'platforms' as SettingsTab, label: 'Platforms', icon: Briefcase },
     { id: 'services' as SettingsTab, label: 'Services & Rates', icon: DollarSign },
+    { id: 'share' as SettingsTab, label: 'Share Profile', icon: Share2 },
     { id: 'payouts' as SettingsTab, label: 'Payouts', icon: Wallet },
     { id: 'notifications' as SettingsTab, label: 'Notifications', icon: Mail },
     { id: 'security' as SettingsTab, label: 'Security', icon: Shield },
@@ -488,6 +498,13 @@ function SettingsPageInner() {
                 <PlatformsSettings 
                   platforms={platforms}
                   setPlatforms={setPlatforms}
+                />
+              )}
+              {activeTab === 'share' && profile && (
+                <ShareProfileSettings
+                  username={profile.username}
+                  completeness={getProfileCompleteness({ ...profile, creator_platforms: platforms, creator_services: services })}
+                  hasUnsavedChanges={hasUnsavedChanges}
                 />
               )}
               {activeTab === 'payouts' && <PayoutMethodsSettings />}

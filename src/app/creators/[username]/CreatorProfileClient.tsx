@@ -35,6 +35,7 @@ import { usePartner } from '@/hooks/usePartner'
 import { ReportDialog } from '@/components/ReportDialog'
 import { formatMonthYear } from '@/lib/format-date'
 import { safeExternalHref } from '@/lib/creators/platform-input'
+import { track } from '@/lib/analytics'
 import type { PublicCreatorProfile, PublicCreatorService } from '@/lib/creators/public-profile'
 
 type Service = PublicCreatorService
@@ -204,9 +205,19 @@ export default function CreatorProfileClient({ creator }: { creator: PublicCreat
   useEffect(() => {
     if (!creator || isOwnProfile || viewTrackedRef.current) {return}
     viewTrackedRef.current = true
-    fetch(`/api/creators/${creator.id}/view`, { method: 'POST' }).catch((err) => {
+    // ?ref=badge marks a visit from the creator's shared badge or link. Read
+    // from window.location, not useSearchParams(), which would opt this
+    // server-rendered page out of static rendering.
+    const ref = new URLSearchParams(window.location.search).get('ref')
+    fetch(`/api/creators/${creator.id}/view`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ref ? { ref } : {}),
+    }).catch((err) => {
       console.error('Error tracking profile view:', err)
     })
+    // GA4 copy of the same signal; only sent if the visitor accepted analytics cookies.
+    if (ref === 'badge') {track('badge_referral', { creator_username: creator.username })}
   }, [creator, isOwnProfile])
 
   const activeServices = creator.creator_services?.filter(s => s.is_active) || []

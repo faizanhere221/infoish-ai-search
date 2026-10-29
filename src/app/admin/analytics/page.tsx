@@ -37,6 +37,11 @@ interface AnalyticsData {
     total_messages_in_period: number
     action_counts: Record<string, number>
   }
+  badge_referrals?: {
+    total_visits: number
+    top_creators: { creator_id: string; username: string | null; display_name: string | null; visits: number }[]
+    missing_table: boolean
+  }
 }
 
 // ─── Quick presets ─────────────────────────────────────────────────────────────
@@ -414,6 +419,50 @@ export default function AnalyticsPage() {
               </>
             )}
           </div>
+
+          {/* Badge referrals: profile visits from creators' shared badge/links (?ref=badge) */}
+          {data.badge_referrals && (
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-white font-semibold">Badge Referrals</h2>
+                <span className="text-xs text-slate-400">
+                  {data.badge_referrals.total_visits.toLocaleString()} visits in this period
+                </span>
+              </div>
+              {data.badge_referrals.missing_table ? (
+                <div className="text-amber-400 text-sm">
+                  Not recording yet. Run <code className="bg-black/30 px-1 rounded">supabase/badge_referrals_migration.sql</code> in the Supabase SQL Editor.
+                </div>
+              ) : data.badge_referrals.top_creators.length === 0 ? (
+                <div className="text-slate-500 text-sm">No badge or shared-link visits in this period</div>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-slate-400 border-b border-slate-700">
+                      <th className="py-2 font-medium">Creator</th>
+                      <th className="py-2 font-medium text-right">Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.badge_referrals.top_creators.map((c) => (
+                      <tr key={c.creator_id} className="border-b border-slate-800 last:border-0">
+                        <td className="py-2 text-slate-200">
+                          {c.username ? (
+                            <a href={`/creators/${c.username}`} target="_blank" rel="noopener noreferrer" className="hover:text-violet-300">
+                              {c.display_name || c.username} <span className="text-slate-500">@{c.username}</span>
+                            </a>
+                          ) : (
+                            <span className="text-slate-500">Unknown creator</span>
+                          )}
+                        </td>
+                        <td className="py-2 text-right text-violet-300 font-semibold">{c.visits.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
 
           {/* Action frequency */}
           {Object.keys(data.engagement.action_counts).length > 0 && (

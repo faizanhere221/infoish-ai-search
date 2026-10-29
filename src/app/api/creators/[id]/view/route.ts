@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { rateLimit } from '@/lib/rate-limit'
+import { captureMessage } from '@/lib/error-tracking'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
+
+// Referral sources recorded in creator_referral_visits. Anything else in
+// the body is ignored, so this can't be used to write arbitrary labels.
+const TRACKED_REFS = new Set(['badge'])
 
 // POST - Increment a creator's public profile view count (public, no auth).
 // Fire-and-forget from the client; failures are non-fatal to the caller.
@@ -43,6 +48,17 @@ export async function POST(
       // Most likely cause: profile_views column doesn't exist yet.
       console.error('Error incrementing profile_views (migration applied?):', error.message)
       return NextResponse.json({ tracked: false })
+    }
+
+    // A visit through the creator's shared badge or link (?ref=badge) is
+    // also recorded per creator, so admin analytics shows who sends
+    // traffic. Best-effort: a missing table (badge_referrals_migration.sql
+    // not run yet) never fails the view count.
+    const body = await request.json().catch(() => ({}))
+    const ref = (body as { ref?: unknown })?.ref
+    if (typeof ref === 'string' && TRACKED_REFS.has(ref)) {
+      const { error: refError } = await supabase.from('creator_referral_visits').insert({ creator_id: params.id, ref })
+      if (refError) {captureMessage(`creator_referral_visits insert failed: ${refError.message}`, 'warning')}
     }
 
     return NextResponse.json({ tracked: true })

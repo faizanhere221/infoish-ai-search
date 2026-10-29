@@ -82,6 +82,33 @@ export async function GET(request: NextRequest) {
     // --- Messages ---
     const msgsByDay = buildDayMap(msgRows ?? [], r => r.created_at)
 
+    // --- Badge referrals (?ref=badge profile visits) per creator ---
+    // creator_referral_visits comes from badge_referrals_migration.sql; until
+    // it runs, this section reports missing_table instead of failing.
+    const { data: referralRows, error: referralError } = await supabase
+      .from('creator_referral_visits')
+      .select('creator_id')
+      .eq('ref', 'badge')
+      .gte('created_at', from)
+      .lte('created_at', to)
+      .limit(20000)
+    const visitsByCreator: Record<string, number> = {}
+    for (const r of referralRows ?? []) {
+      visitsByCreator[r.creator_id] = (visitsByCreator[r.creator_id] ?? 0) + 1
+    }
+    const topReferrerIds = Object.entries(visitsByCreator).sort((a, b) => b[1] - a[1]).slice(0, 20)
+    const { data: referrerCreators } = topReferrerIds.length
+      ? await supabase.from('creators').select('id, username, display_name').in('id', topReferrerIds.map(([id]) => id))
+      : { data: [] as { id: string; username: string; display_name: string }[] }
+    const badgeReferrals = {
+      total_visits: (referralRows ?? []).length,
+      top_creators: topReferrerIds.map(([id, visits]) => {
+        const c = (referrerCreators ?? []).find((rc) => rc.id === id)
+        return { creator_id: id, username: c?.username ?? null, display_name: c?.display_name ?? null, visits }
+      }),
+      missing_table: !!referralError,
+    }
+
     // --- Activity actions ---
     const actionCounts: Record<string, number> = {}
     for (const a of (activityRows ?? [])) {
@@ -120,6 +147,7 @@ export async function GET(request: NextRequest) {
         total_messages_in_period: (msgRows ?? []).length,
         action_counts: actionCounts,
       },
+      badge_referrals: badgeReferrals,
     })
   } catch (err) {
     console.error('Admin analytics error:', err)
