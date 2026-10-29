@@ -6,10 +6,14 @@
 -- migration runs.
 --
 -- Run in the Supabase SQL Editor. Idempotent.
+--
+-- creator_id is VARCHAR(255), not UUID: creators.id is VARCHAR(255) on the
+-- live database (schema.sql says UUID, but the live column differs), and a
+-- foreign key must match the referenced column's type exactly.
 
 CREATE TABLE IF NOT EXISTS creator_referral_visits (
   id BIGSERIAL PRIMARY KEY,
-  creator_id UUID NOT NULL REFERENCES creators(id) ON DELETE CASCADE,
+  creator_id VARCHAR(255) NOT NULL REFERENCES creators(id) ON DELETE CASCADE,
   ref VARCHAR(32) NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

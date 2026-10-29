@@ -32,6 +32,8 @@ Three standalone black-box scripts cover authorization, concurrency, and creator
 
 All three just make HTTP calls against `BASE_URL` (default `http://localhost:3000`) — run them against an already-running dev server, don't start a new one for them.
 
+**Never sign or mint JWTs with `JWT_SECRET`** (no `jwt.sign` in a scratch script, no forged admin/user tokens) to test an authenticated route, even locally. If a token in `.env.test.local` is missing or expired, stop and ask the user for a fresh one.
+
 ### Debugging Tip
 
 When something looks impossible from reading the code (stale data, phantom errors, a route that behaves differently than its source), suspect a stale `.next` cache before anything else: `rm -rf .next && npm run build`. If a build fails with `Cannot find module for page: ...`, a leftover `next dev`/`next start` process from an earlier session is holding a lock on `.next`. Find it with `netstat -ano | grep LISTENING` (ports 3000 and other `next start -p <port>` ports) and kill it before rebuilding.
@@ -90,6 +92,8 @@ Once a creator is attached to a campaign (shortlisted by the brand or hired from
 ### Database Schema
 
 `supabase/schema.sql` is the base schema. Everything added since lives in standalone `supabase/*_migration.sql` files. There is no migration runner. The current schema is `schema.sql` plus every migration file — but a migration file existing doesn't guarantee it was actually run; when in doubt, check the live table with a read-only query rather than trusting the file list. New schema changes should follow the same pattern: write a new `supabase/<feature>_migration.sql` and tell the user to run it in the Supabase SQL Editor. Permission classifiers may block direct DDL from the agent. When that happens, write the migration file and tell the user to run it.
+
+**Always check live column types before writing a foreign key** or any column that must match another table. Ask the user to run (or run read-only) `SELECT table_name, column_name, data_type, character_maximum_length FROM information_schema.columns WHERE table_schema = 'public' AND table_name IN (...)` and copy the type exactly. Ids are `VARCHAR(255)` on the live database (`creators.id`, `users.id`, and the rest), even where `schema.sql` says `UUID`, so a `UUID` foreign key fails. Treat ids as plain strings in code too: no `.uuid()` validation, no UUID casts.
 
 **Every new table migration must include `ALTER TABLE <table> ENABLE ROW LEVEL SECURITY;` and `GRANT SELECT, INSERT, UPDATE, DELETE ON public.<table> TO service_role;`** — Supabase stopped auto-granting Data API access to new tables in `public` as of their Oct 30 change (see `supabase/grants_migration.sql`), so a table without that explicit grant is unreachable by this app's own service-role key. Never grant to `anon` or `authenticated`: this app's RLS policies are decorative (see Known Limitations #1 below), so a grant to either of those roles would be real, unauthenticated, direct table access with nothing in front of it.
 
