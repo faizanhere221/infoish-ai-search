@@ -142,24 +142,6 @@ const mistakes = [
   { title: 'Sending mass outreach', description: 'Tech YouTubers talk to each other. Identical emails to multiple creators in the same niche on the same day get shared and mocked publicly. Personalise every message.' },
 ]
 
-const howToJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'HowTo',
-  name: 'How to Find Tech YouTubers for Product Reviews in 2026',
-  description: 'Find tech YouTubers for your product review. Step-by-step guide to searching, vetting, and hiring YouTube creators in AI, SaaS, and developer niches. Free database.',
-  step: [
-    { '@type': 'HowToStep', name: 'Define What You Need Before Searching', text: 'Clarify your product, budget, and goals so you can search for YouTubers with the right fit.' },
-    { '@type': 'HowToStep', name: 'Where to Search for Tech YouTubers', text: 'Use YouTube search itself, influencer marketplaces, competitor analysis, recommended sidebar results, and community recommendations.' },
-    { '@type': 'HowToStep', name: 'Vet YouTubers Before Reaching Out', text: 'Check subscriber authenticity, engagement quality, and content style before contacting a creator.' },
-    { '@type': 'HowToStep', name: 'Tech YouTubers by Country', text: 'Identify which countries have the strongest tech YouTuber communities for your target audience.' },
-    { '@type': 'HowToStep', name: 'YouTube Sponsorship Rates for Tech Reviews', text: 'Understand typical pricing tiers for dedicated videos, integrations, and shorts.' },
-    { '@type': 'HowToStep', name: 'Write the Outreach Email', text: 'Draft a personalized, specific outreach email that gets a response from busy creators.' },
-    { '@type': 'HowToStep', name: 'Brief the Creator for a Strong Review', text: 'Give the YouTuber a clear brief covering key product points while leaving room for their own voice.' },
-    { '@type': 'HowToStep', name: 'Track Performance After Publication', text: 'Use UTM links and promo codes to measure views, clicks, and conversions from the review.' },
-    { '@type': 'HowToStep', name: 'Build a YouTube Creator Programme', text: 'Turn one-off reviews into an ongoing programme with repeat creators who already know your product.' },
-  ],
-}
-
 export default function TechYoutubersProductReviewsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -170,10 +152,6 @@ export default function TechYoutubersProductReviewsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
       />
 
       <Header />

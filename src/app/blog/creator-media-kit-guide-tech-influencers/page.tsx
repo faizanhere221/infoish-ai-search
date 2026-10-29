@@ -197,18 +197,6 @@ const tools = [
   { name: 'Notion', description: 'Build a media kit as a Notion page and share the link directly. Notion pages look clean and update in real time when your stats change.' },
 ]
 
-const howToJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'HowTo',
-  name: 'How to Build a Creator Media Kit: Guide for Tech Influencers',
-  description: 'Build a media kit as a tech creator. Free template with audience stats, rate cards, and past results. Land more brand deals with a professional one-pager.',
-  step: sections.map((section) => ({
-    '@type': 'HowToStep',
-    name: `Section ${section.number}: ${section.title}`,
-    text: section.body,
-  })),
-}
-
 export default function CreatorMediaKitGuidePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -219,10 +207,6 @@ export default function CreatorMediaKitGuidePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
       />
 
       <Header />
