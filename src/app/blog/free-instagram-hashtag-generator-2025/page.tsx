@@ -9,8 +9,8 @@ import { Metadata } from 'next'
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: 'Free Instagram Hashtag Generator — Get Viral Hashtags in Seconds',
-  description: 'Generate trending Instagram hashtags for Reels, Posts & Stories. AI-powered, 100% free forever. No signup required — boost your reach instantly.',
+  title: 'Free Instagram Hashtag Generator: Get Viral Hashtags in Seconds',
+  description: 'Generate trending Instagram hashtags for Reels, Posts & Stories. AI-powered, 100% free forever. No signup required: boost your reach instantly.',
   keywords: [
     'instagram hashtag generator',
     'free hashtag generator',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     'instagram hashtags for followers'
   ],
   openGraph: {
-    title: 'Free Instagram Hashtag Generator — Get Viral Hashtags in Seconds',
+    title: 'Free Instagram Hashtag Generator: Get Viral Hashtags in Seconds',
     description: 'AI-powered hashtag generator for Instagram Reels, Posts & Stories. 100% free, no signup. Boost your reach instantly.',
     type: 'article',
     publishedTime: '2024-12-23T00:00:00.000Z',
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free Instagram Hashtag Generator — Viral Hashtags in Seconds',
+    title: 'Free Instagram Hashtag Generator: Viral Hashtags in Seconds',
     description: 'AI-powered hashtags for Reels, Posts & Stories. 100% free forever.',
     images: ['https://infoishai.com/twitter-image.jpg'],
   },
@@ -154,11 +154,11 @@ export default function FreeInstagramHashtagGenerator2025() {
           </div>
           
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-             Free Instagram Hashtag Generator — Get Viral Hashtags in Seconds
+             Free Instagram Hashtag Generator: Get Viral Hashtags in Seconds
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            Stop guessing which hashtags work. Our AI analyzes millions of posts to generate the perfect hashtag mix for your Reels, Posts, and Stories. 100% free, forever — no signup required.
+            Stop guessing which hashtags work. Our AI suggests a hashtag mix for your Reels, Posts, and Stories. 100% free, forever, no signup required.
 
           </p>
           
@@ -200,10 +200,10 @@ export default function FreeInstagramHashtagGenerator2025() {
           {/* Introduction */}
           <section className="mb-12">
             <p className="text-gray-700 leading-relaxed mb-6 text-lg">
-              Still pondering which <strong>hashtags to use on Instagram in 2026</strong>? You're not alone. Numerous creators, enterprises, and small businesses either pick random popular hashtags or constantly repeat the same ones—both methods diminish reach instead of enhancing it.
+              Still pondering which <strong>hashtags to use on Instagram in 2026</strong>? You're not alone. Numerous creators, enterprises, and small businesses either pick random popular hashtags or constantly repeat the same ones: both methods diminish reach instead of enhancing it.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
-              Instagram has progressed. The algorithm is more intelligent. Competition is intensified. <strong>Hashtags are still relevant</strong>—if employed accurately.
+              Instagram has progressed. The algorithm is more intelligent. Competition is intensified. <strong>Hashtags are still relevant</strong>, if employed accurately.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
               This is why we have developed a <strong>100% free Instagram Hashtag Generator for 2026</strong>. It aids in generating pertinent, AI-driven hashtags for <strong>Instagram Posts, Reels, and Stories</strong> swiftly.
@@ -319,7 +319,7 @@ export default function FreeInstagramHashtagGenerator2025() {
 
             <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6">
               <p className="text-yellow-900 leading-relaxed font-medium">
-                💡 The key isn't using MORE hashtags—it's selecting the RIGHT ones.
+                💡 The key isn't using MORE hashtags. It's selecting the RIGHT ones.
               </p>
             </div>
           </section>
@@ -414,7 +414,7 @@ export default function FreeInstagramHashtagGenerator2025() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">How to Use the Instagram Hashtag Generator (Step-by-Step)</h2>
             <p className="text-gray-700 leading-relaxed mb-8">
-              Using this <strong>free hashtag generator</strong> is straightforward—even for beginners.
+              Using this <strong>free hashtag generator</strong> is straightforward, even for beginners.
             </p>
             
             {/* Step 1 */}
@@ -540,7 +540,7 @@ export default function FreeInstagramHashtagGenerator2025() {
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
               <p className="text-blue-900 leading-relaxed">
-                <strong>✨ Good news:</strong> Our generator automatically excludes banned tags—ensuring safety for your account.
+                <strong>✨ Good news:</strong> Our generator automatically excludes banned tags, ensuring safety for your account.
               </p>
             </div>
           </section>
@@ -617,7 +617,7 @@ export default function FreeInstagramHashtagGenerator2025() {
               <h2 className="text-3xl font-bold mb-4">Ready to Boost Your Instagram Reach?</h2>
               <p className="text-purple-100 mb-6 text-lg">
                 Stop guessing. Stop copying random hashtags.<br />
-                Let AI do the work—in seconds.
+                Let AI do the work in seconds.
               </p>
               <Link 
                 href="/tools/instagram-hashtag-generator"
@@ -635,7 +635,7 @@ export default function FreeInstagramHashtagGenerator2025() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Final Thoughts</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              <strong>Instagram hashtags</strong> may seem minor but significantly impact visibility, reach, and growth. In 2026, success doesn't come from using more hashtags—it stems from <strong>smarter selection</strong>.
+              <strong>Instagram hashtags</strong> may seem minor but significantly impact visibility, reach, and growth. In 2026, success doesn't come from using more hashtags. It stems from <strong>smarter selection</strong>.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
               Our <strong>free Instagram hashtag generator</strong> eliminates guesswork and saves time, enabling you to focus on creating stellar content while ensuring discovery occurs.

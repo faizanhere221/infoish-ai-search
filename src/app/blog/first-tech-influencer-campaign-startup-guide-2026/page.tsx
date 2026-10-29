@@ -90,7 +90,7 @@ const faqSchema = {
       name: 'How long does it take to see results from a tech influencer campaign?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Short-form content (TikTok, Instagram Reels) shows results within 48 to 72 hours. YouTube videos show initial results at 7 days but continue generating signups for 12 to 18 months. LinkedIn posts peak within 3 to 5 days. Evaluate short-form at 1 week, YouTube at 30 to 90 days, and overall campaign ROI at 90 days.'
+        text: 'Short-form content (TikTok, Instagram Reels) shows results within 48 to 72 hours. YouTube videos show initial results at 7 days but keep generating signups for months. LinkedIn posts peak within 3 to 5 days. Evaluate short-form at 1 week, YouTube at 30 to 90 days, and overall campaign ROI at 90 days.'
       }
     },
     {
@@ -120,34 +120,34 @@ const budgetTiers = [
 
 const platformChoices = [
   { name: 'YouTube', description: 'Choose if your product needs demonstration (SaaS, developer platforms, AI), your sales cycle benefits from detailed reviews, or you want content that generates signups for 12-18 months.' },
-  { name: 'LinkedIn', description: 'Choose if your product targets B2B buyers, your buyers are executives or decision-makers, or you want fast results — LinkedIn posts peak in 3-5 days.' },
+  { name: 'LinkedIn', description: 'Choose if your product targets B2B buyers, your buyers are executives or decision-makers, or you want fast results: LinkedIn posts peak in 3-5 days.' },
   { name: 'Instagram or TikTok', description: 'Choose if your product is consumer-facing, your audience is 18-30, or you want high-volume awareness at lower per-creator cost.' },
   { name: 'Twitter/X', description: 'Choose if your product targets developers, your audience is active in tech Twitter communities, or you want organic amplification through retweets and quote tweets.' },
 ]
 
 const briefElements = [
-  { title: 'Product summary', description: 'Two sentences explaining what your product does and who benefits — written the way a user would describe it, not the way your pitch deck does.' },
+  { title: 'Product summary', description: 'Two sentences explaining what your product does and who benefits: written the way a user would describe it, not the way your pitch deck does.' },
   { title: 'Key features to show', description: 'List 3 features that differentiate your product. Three focused demonstrations convert better than a scattered overview of 10.' },
   { title: 'Target viewer', description: 'One sentence describing the ideal viewer, so the creator can frame the content for the right audience.' },
   { title: 'Call to action', description: 'One link and one promo code. Multiple CTAs confuse viewers and dilute action.' },
-  { title: 'Deliverables', description: 'Specify exactly what the creator delivers — format, length, and where the link goes.' },
+  { title: 'Deliverables', description: 'Specify exactly what the creator delivers: format, length, and where the link goes.' },
   { title: 'Timeline', description: 'Draft delivery date, a 3-5 day revision window, and target publication date. Allow 10-14 days total.' },
   { title: 'Payment terms', description: '50% upfront, 50% on publication (or 100% on publication if the creator agrees). State the payment method.' },
 ]
 
 const managementDays = [
-  { range: 'Day 1-3', description: 'Send the brief and product access to confirmed creators. Answer questions immediately — the faster you respond, the faster creators start working.' },
-  { range: 'Day 5-7', description: 'Check in once with each creator. Do not micromanage or ask for daily updates — one midpoint check-in is enough.' },
-  { range: 'Day 10-12', description: 'Receive draft content. Review for accuracy, completeness, and tone. Send one round of feedback limited to 3-5 specific points — the creator\'s voice is why their audience trusts them.' },
+  { range: 'Day 1-3', description: 'Send the brief and product access to confirmed creators. Answer questions immediately. The faster you respond, the faster creators start working.' },
+  { range: 'Day 5-7', description: 'Check in once with each creator. Do not micromanage or ask for daily updates. One midpoint check-in is enough.' },
+  { range: 'Day 10-12', description: 'Receive draft content. Review for accuracy, completeness, and tone. Send one round of feedback limited to 3-5 specific points. The creator\'s voice is why their audience trusts them.' },
   { range: 'Day 12-14', description: 'Creator publishes the final content. Verify the link and promo code are correct and the content is live.' },
-  { range: 'Day 14-15', description: 'Engage with the content — comment, reshare, quote-tweet. Your engagement in the first 24 hours signals the algorithm the content is generating conversation.' },
+  { range: 'Day 14-15', description: 'Engage with the content: comment, reshare, quote-tweet. Your engagement in the first 24 hours signals the algorithm the content is generating conversation.' },
 ]
 
 const measurementCheckpoints = [
-  { time: '48-72 hours', description: 'Check TikTok and Instagram Reel performance — these formats peak within 2-3 days. Count views, engagement, and link clicks against your target CPA.' },
-  { time: '7 days', description: 'Check LinkedIn post and Twitter/X thread performance — these formats peak within 5-7 days. Count impressions, engagement, and conversions from the UTM link and promo code.' },
+  { time: '48-72 hours', description: 'Check TikTok and Instagram Reel performance. These formats peak within 2-3 days. Count views, engagement, and link clicks against your target CPA.' },
+  { time: '7 days', description: 'Check LinkedIn post and Twitter/X thread performance. These formats peak within 5-7 days. Count impressions, engagement, and conversions from the UTM link and promo code.' },
   { time: '30 days', description: 'Check YouTube video performance, which builds momentum over weeks. Count cumulative signups and calculate CPA: total spend on the creator divided by total conversions.' },
-  { time: '90 days', description: 'Calculate true campaign ROI across all creators and platforms. Compare against your other acquisition channels — YouTube keeps generating conversions past 90 days, so include those.' },
+  { time: '90 days', description: 'Calculate true campaign ROI across all creators and platforms. Compare against your other acquisition channels. YouTube keeps generating conversions past 90 days, so include those.' },
 ]
 
 const checklist = [
@@ -229,7 +229,7 @@ export default function FirstTechInfluencerCampaignPage() {
           </h1>
 
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            You have a product, a small budget, and no campaign experience. Here is the step-by-step process to run your first tech influencer campaign — starting at $500.
+            You have a product, a small budget, and no campaign experience. Here is the step-by-step process to run your first tech influencer campaign, starting at $500.
           </p>
 
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">
@@ -282,7 +282,7 @@ export default function FirstTechInfluencerCampaignPage() {
               ))}
             </div>
             <p className="text-gray-700 leading-relaxed">
-              Write your goal in one sentence: &quot;Generate 200 free trial signups from 3 YouTube reviews in 30 days.&quot; A specific goal shapes every decision that follows — which creators to choose, which platforms to target, and how to measure success.
+              Write your goal in one sentence: &quot;Generate 200 free trial signups from 3 YouTube reviews in 30 days.&quot; A specific goal shapes every decision that follows: which creators to choose, which platforms to target, and how to measure success.
             </p>
           </section>
 
@@ -319,7 +319,7 @@ export default function FirstTechInfluencerCampaignPage() {
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-6">
               <p className="text-gray-800">
-                One rule for budgeting your first campaign: never spend more than you are willing to lose. Your first campaign is a learning exercise — you are buying data on what works. If the first $1,000 shows positive results, scale with confidence. If results are flat, adjust the approach without financial damage.
+                One rule for budgeting your first campaign: never spend more than you are willing to lose. Your first campaign is a learning exercise. You are buying data on what works. If the first $1,000 shows positive results, scale with confidence. If results are flat, adjust the approach without financial damage.
               </p>
             </div>
             <p className="text-gray-700 leading-relaxed">
@@ -337,7 +337,7 @@ export default function FirstTechInfluencerCampaignPage() {
               Step 3: Choose Your Platform
             </h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              Your goal and product type determine the right platform. Pick one platform for your first campaign — do not run a multi-platform campaign until you have data from a single-platform test.
+              Your goal and product type determine the right platform. Pick one platform for your first campaign: do not run a multi-platform campaign until you have data from a single-platform test.
             </p>
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               {platformChoices.map((platform) => (
@@ -382,7 +382,7 @@ export default function FirstTechInfluencerCampaignPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700"><strong>Check engagement rate.</strong> On YouTube, a healthy likes-to-views ratio is 4-8%. On Instagram, above 4% is strong. On LinkedIn, check comments per post.</span>
+                  <span className="text-gray-700"><strong>Check engagement rate.</strong> Compare likes and comments per view with the creator&apos;s own recent posts and with similar creators. On LinkedIn, check comments per post.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -427,10 +427,10 @@ Product link: [URL]. Happy to set up a free account for testing before you commi
               Send this to your top 8 to 10 candidates. Expect 3 to 5 responses. Of those, 3 to 4 typically move forward.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Do not send identical emails. Change the opening line for each creator and reference a specific piece of their content — creators ignore mass outreach.
+              Do not send identical emails. Change the opening line for each creator and reference a specific piece of their content. Creators ignore mass outreach.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              Do not negotiate rates via email. If a creator&apos;s rate is within your budget, agree and move to the brief. If it&apos;s 20% above, counter once. If it&apos;s 50% above, move to the next candidate — do not waste time on extended negotiations for your first campaign.
+              Do not negotiate rates via email. If a creator&apos;s rate is within your budget, agree and move to the brief. If it&apos;s 20% above, counter once. If it&apos;s 50% above, move to the next candidate: do not waste time on extended negotiations for your first campaign.
             </p>
           </section>
 
@@ -479,7 +479,7 @@ Product link: [URL]. Happy to set up a free account for testing before you commi
               </div>
             </div>
             <p className="text-gray-700 leading-relaxed">
-              Write down your target CPA before the campaign starts — &quot;We want signups at under $15 each.&quot; This number becomes the benchmark for evaluating every creator&apos;s performance.
+              Write down your target CPA before the campaign starts: &quot;We want signups at under $15 each.&quot; This number becomes the benchmark for evaluating every creator&apos;s performance.
             </p>
           </section>
 
@@ -549,7 +549,7 @@ Renew for next campaign (yes/no):`}
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Result B: Mixed results</h3>
-                <p className="text-gray-700">Some creators performed, others did not — normal for a first campaign. Renew the ones who performed, replace the underperformers, and keep the budget the same. Two campaigns of data give you enough confidence to scale.</p>
+                <p className="text-gray-700">Some creators performed and others did not. This is normal for a first campaign. Renew the ones who performed, replace the underperformers, and keep the budget the same. Two campaigns of data give you enough confidence to scale.</p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Result C: No results</h3>
@@ -565,7 +565,7 @@ Renew for next campaign (yes/no):`}
               Startups have one advantage large companies do not: authenticity. A founder reaching out personally to a creator carries more weight than a marketing agency sending a templated email. Creators want to work with startups because the content feels genuine, the product story is real, and the founder&apos;s passion comes through.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              Use this advantage. Send outreach from your personal email, not a &quot;partnerships@&quot; address. Mention your founding story in the brief. Give creators early access to features before they launch publicly. This costs nothing — the conversion rate on outreach from founders is 2 to 3x higher than outreach from agencies.
+              Use this advantage. Send outreach from your personal email, not a &quot;partnerships@&quot; address. Mention your founding story in the brief. Give creators early access to features before they launch publicly. This costs nothing. The conversion rate on outreach from founders is 2 to 3x higher than outreach from agencies.
             </p>
           </section>
 
@@ -634,7 +634,7 @@ Renew for next campaign (yes/no):`}
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">How long does it take to see results from a tech influencer campaign?</h3>
                 <p className="text-gray-700">
-                  Short-form content (TikTok, Instagram Reels) shows results within 48 to 72 hours. YouTube videos show initial results at 7 days but continue generating signups for 12 to 18 months. LinkedIn posts peak within 3 to 5 days. Evaluate short-form at 1 week, YouTube at 30 to 90 days, and overall campaign ROI at 90 days.
+                  Short-form content (TikTok, Instagram Reels) shows results within 48 to 72 hours. YouTube videos show initial results at 7 days but keep generating signups for months. LinkedIn posts peak within 3 to 5 days. Evaluate short-form at 1 week, YouTube at 30 to 90 days, and overall campaign ROI at 90 days.
                 </p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">

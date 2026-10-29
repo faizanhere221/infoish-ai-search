@@ -89,7 +89,7 @@ const faqSchema = {
 }
 
 const problems = [
-  { title: 'Scrambling for stats', description: 'Brands ask "what are your stats?" and you scramble to pull numbers from five different dashboards. A media kit has everything in one document — you send the PDF and the conversation moves forward.' },
+  { title: 'Scrambling for stats', description: 'Brands ask "what are your stats?" and you scramble to pull numbers from five different dashboards. A media kit has everything in one document: you send the PDF and the conversation moves forward.' },
   { title: 'Competing without polish', description: 'You compete against creators who present themselves professionally. A clean media kit signals you have done this before, and brands feel confident you will deliver on time and on brief.' },
   { title: 'Undervaluing your work', description: 'You undervalue your work because you do not have your data organised. Seeing your numbers laid out clearly gives you confidence to price at market rates instead of guessing from memory.' },
 ]
@@ -118,7 +118,7 @@ const sections = [
       'Twitter/X: 18,000 followers | 12,000 avg impressions/thread | 3.1% engagement rate',
       'Newsletter: 5,200 subscribers | 44% open rate | 8% click rate',
     ],
-    note: 'List platforms largest first. Include only platforms where you actively post — a weak platform dilutes the strong ones. Update these numbers monthly.',
+    note: 'List platforms largest first. Include only platforms where you actively post. A weak platform dilutes the strong ones. Update these numbers monthly.',
   },
   {
     number: 3,
@@ -131,7 +131,7 @@ const sections = [
       'Gender split (e.g., "Male 72%, Female 26%, Other 2%")',
       'Professional roles if available (e.g., "Software engineers 38%, Product managers 18%, Startup founders 15%")',
     ],
-    note: 'Professional role data is the most valuable metric for tech creators — a brand selling a project management tool wants to know your audience includes product managers and team leads.',
+    note: 'Professional role data is the most valuable metric for tech creators. A brand selling a project management tool wants to know your audience includes product managers and team leads.',
   },
   {
     number: 4,
@@ -159,7 +159,7 @@ const sections = [
       'DevTools Inc: LinkedIn post + Twitter thread. 12,000 impressions, 95 link clicks.',
       'BuildFast: YouTube integration. 18,000 views, 120 trial activations.',
     ],
-    note: 'No sponsored content yet? List products you have reviewed or featured, even unpaid. Do not fabricate results — brands verify, and an inflated number gets caught.',
+    note: 'No sponsored content yet? List products you have reviewed or featured, even unpaid. Do not fabricate results. Brands verify, and an inflated number gets caught.',
   },
   {
     number: 6,
@@ -179,7 +179,7 @@ const sections = [
     icon: Mail,
     body: 'Your email address, your website or link-in-bio URL, and your Infoishai profile link (if you have one).',
     examples: [],
-    note: 'Do not list your phone number — email is the standard channel. Use a domain-based email if you have one: creator@alexchen.com looks more professional than a personal Gmail address.',
+    note: 'Do not list your phone number. Email is the standard channel. Use a domain-based email if you have one: creator@alexchen.com looks more professional than a personal Gmail address.',
   },
 ]
 
@@ -187,7 +187,7 @@ const leaveOut = [
   { title: 'Your life story', description: 'Nobody reads a three-paragraph bio on a media kit. One tagline is enough.' },
   { title: 'Irrelevant metrics', description: 'Do not list total lifetime views, total subscribers across all platforms combined, or "potential reach." Brands care about average performance per piece of content.' },
   { title: 'Screenshots of analytics dashboards', description: 'Clean numbers in a formatted layout are easier to read than blurry screenshots. If a brand wants to verify, they ask during negotiation.' },
-  { title: 'Personal photos or headshots', description: 'Optional. If you include one, make it professional and small — the data is the focus, not the portrait.' },
+  { title: 'Personal photos or headshots', description: 'Optional. If you include one, make it professional and small: the data is the focus, not the portrait.' },
   { title: 'Logos of every tool you have ever mentioned', description: 'Media kits with 30 brand logos look cluttered. List 3-5 relevant past partnerships with results. Quality over quantity.' },
 ]
 
@@ -406,7 +406,7 @@ export default function CreatorMediaKitGuidePage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">If you use an Infoishai profile, update your metrics when they change — brands see current data every time they view your profile.</span>
+                  <span className="text-gray-700">If you use an Infoishai profile, update your metrics when they change. Brands see current data every time they view your profile.</span>
                 </li>
               </ul>
             </div>
@@ -419,7 +419,7 @@ export default function CreatorMediaKitGuidePage() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Get Discovered by Tech Brands</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Set your rates with confidence — read{' '}
+              Set your rates with confidence: read{' '}
               <Link href="/blog/tech-creator-sponsorship-rates-2026" className="text-blue-600 hover:text-blue-700 font-medium">
                 How Much Should Tech Creators Charge for Sponsorships?
               </Link>
@@ -456,9 +456,9 @@ export default function CreatorMediaKitGuidePage() {
 
         {/* CTA Section */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-8 text-center mt-12">
-          <h3 className="text-2xl font-bold text-blue-900 mb-4">Skip the PDF — Let Your Profile Do the Work</h3>
+          <h3 className="text-2xl font-bold text-blue-900 mb-4">Skip the PDF: Let Your Profile Do the Work</h3>
           <p className="text-blue-800 mb-6">
-            Create your free Infoishai profile with audience stats, content samples, and rates in one searchable place — no design tools required.
+            Create your free Infoishai profile with audience stats, content samples, and rates in one searchable place, no design tools required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

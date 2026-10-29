@@ -101,7 +101,7 @@ export default function HowToFindTechInfluencersPage() {
           </h1>
 
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            The complete guide to discovering, vetting, and partnering with tech content creators for your next campaign — from where to search and what to look for, to rates and outreach templates.
+            The complete guide to discovering, vetting, and partnering with tech content creators for your next campaign, from where to search and what to look for, to rates and outreach templates.
           </p>
 
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">
@@ -129,7 +129,7 @@ export default function HowToFindTechInfluencersPage() {
               Finding the right tech influencer for your B2B product can feel like searching for a needle in a haystack. With thousands of creators across YouTube, Twitter, LinkedIn, and podcasts, how do you identify the perfect partner for your brand?
             </p>
             <p className="text-gray-700 leading-relaxed">
-              In this comprehensive guide, we'll walk you through everything you need to know about finding tech influencers in 2026 — from where to search, what to look for, and how to build successful partnerships.
+              In this comprehensive guide, we'll walk you through everything you need to know about finding tech influencers in 2026: where to search, what to look for, and how to build successful partnerships.
             </p>
             <p className="text-gray-700 leading-relaxed mt-6">
               This guide is the how. For the who, see our list of{' '}
@@ -148,7 +148,7 @@ export default function HowToFindTechInfluencersPage() {
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-800"><strong>Trust factor:</strong> 82% of developers trust peer recommendations over traditional advertising</span>
+                  <span className="text-gray-800"><strong>Trust factor:</strong> Developers tend to trust recommendations from people they follow more than traditional advertising</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
@@ -160,13 +160,13 @@ export default function HowToFindTechInfluencersPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-800"><strong>Higher ROI:</strong> B2B influencer campaigns see 3-5x ROI compared to traditional ads</span>
+                  <span className="text-gray-800"><strong>Measurable results:</strong> Tracked links, promo codes, and signup surveys show which creators drive trials and pipeline</span>
                 </li>
               </ul>
             </div>
 
             <p className="text-gray-700 leading-relaxed">
-              Companies like HubSpot, Notion, and Linear have built massive user bases through strategic creator partnerships. The question isn't whether to do tech influencer marketing — it's how to do it right.
+              Many software companies now run creator programs alongside their other marketing. The question isn&apos;t whether to do tech influencer marketing. It&apos;s how to do it right.
             </p>
           </section>
 
@@ -261,11 +261,11 @@ export default function HowToFindTechInfluencersPage() {
                 <p className="text-gray-700 mb-2">A creator with 50K engaged subscribers beats one with 500K passive followers. Check:</p>
                 <ul className="list-disc list-inside text-gray-700 space-y-1 ml-2">
                   <li><strong>Comment quality:</strong> Are viewers asking questions? Sharing experiences?</li>
-                  <li><strong>Like-to-view ratio:</strong> Healthy is 2-5% on YouTube</li>
+                  <li><strong>Like-to-view ratio:</strong> Compare it with the creator&apos;s own recent videos and with similar channels in the niche</li>
                   <li><strong>Reply rate:</strong> Does the creator engage with their audience?</li>
                 </ul>
                 <p className="text-gray-700 mt-3">
-                  Research from the Pakistani market confirms <Link href="/blog/micro-influencers-pakistan-guide" className="text-blue-600 hover:text-blue-700 font-medium">micro-influencers deliver stronger engagement</Link> than accounts with large followings — the same pattern holds true for tech and B2B creators.
+                  Smaller creators often have closer, more engaged audiences than accounts with large followings. Our guide to <Link href="/blog/micro-influencers-pakistan-guide" className="text-blue-600 hover:text-blue-700 font-medium">micro-influencers</Link> covers why, and the same logic applies to tech and B2B creators.
                 </p>
               </div>
 
@@ -645,7 +645,7 @@ export default function HowToFindTechInfluencersPage() {
             </Link>
             <Link href="/blog/ai-powered-influencer-marketing-tools-game-changer" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
               <span className="text-sm text-blue-600 font-medium">Technology</span>
-              <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">AI Tools That Help Brands Find Influencers 10x Faster</h4>
+              <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">AI Tools That Help Brands Find Influencers Faster</h4>
               <p className="text-gray-600 text-sm mt-2">AI-powered discovery, fraud checks, and audience analysis explained.</p>
             </Link>
             <Link href="/blog/micro-influencers-pakistan-guide" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">

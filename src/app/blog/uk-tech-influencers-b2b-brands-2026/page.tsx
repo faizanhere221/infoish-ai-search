@@ -480,7 +480,7 @@ export default function UKTechInfluencersB2BBrandsPage() {
               </p>
             </div>
             <p className="text-gray-700 leading-relaxed mb-6">
-              The ranges below are typical, based on publicly available rate cards and industry reports. Use them to set a budget, then confirm each creator&apos;s rate card.
+              The ranges below are Infoishai editorial estimates, not survey data. Use them to set a budget, then confirm each creator&apos;s rate card.
             </p>
 
             <div className="overflow-x-auto mb-6">

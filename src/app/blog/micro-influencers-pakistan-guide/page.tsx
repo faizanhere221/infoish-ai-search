@@ -27,8 +27,8 @@ import {
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: 'Micro-Influencers in Pakistan: 3x More Engagement Than Celebrities (Data + Rates)',
-  description: 'Pakistani micro-influencers deliver 3x higher engagement at PKR 5,000 to PKR 25,000 per post. See real rate comparisons, engagement data, and a step-by-step guide to finding verified micro-influencers for your brand.',
+  title: 'Micro-Influencers in Pakistan: Why They Beat Celebrities (+ Rates)',
+  description: 'Pakistani micro-influencers often get more engagement than celebrities, at PKR 5,000 to PKR 25,000 per post. See rate comparisons and a step-by-step guide to finding verified micro-influencers for your brand.',
   keywords: [
     'micro influencers pakistan',
     'pakistani micro influencers',
@@ -52,8 +52,8 @@ export const metadata: Metadata = {
     'verified pakistani influencers'
   ],
   openGraph: {
-    title: 'Micro-Influencers in Pakistan: 3x More Engagement Than Celebrities (Data + Rates)',
-    description: 'Pakistani micro-influencers deliver 3x higher engagement at PKR 5,000 to PKR 25,000 per post. See real rate comparisons, engagement data, and a step-by-step guide to finding verified micro-influencers for your brand.',
+    title: 'Micro-Influencers in Pakistan: Why They Beat Celebrities (+ Rates)',
+    description: 'Pakistani micro-influencers often get more engagement than celebrities, at PKR 5,000 to PKR 25,000 per post. See rate comparisons and a step-by-step guide to finding verified micro-influencers for your brand.',
     type: 'article',
     publishedTime: '2025-12-27T00:00:00.000Z',
     authors: ['Infoishai Team'],
@@ -62,8 +62,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Micro-Influencers in Pakistan: 3x More Engagement Than Celebrities (Data + Rates)',
-    description: 'Pakistani micro-influencers deliver 3x higher engagement at PKR 5,000 to PKR 25,000 per post. See real rate comparisons, engagement data, and a step-by-step guide to finding verified micro-influencers for your brand.',
+    title: 'Micro-Influencers in Pakistan: Why They Beat Celebrities (+ Rates)',
+    description: 'Pakistani micro-influencers often get more engagement than celebrities, at PKR 5,000 to PKR 25,000 per post. See rate comparisons and a step-by-step guide to finding verified micro-influencers for your brand.',
     images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
@@ -74,8 +74,8 @@ export const metadata: Metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
-  headline: 'Micro-Influencers in Pakistan: 3x More Engagement Than Celebrities (Data + Rates)',
-  description: 'Pakistani micro-influencers deliver 3x higher engagement at PKR 5,000 to PKR 25,000 per post. See real rate comparisons, engagement data, and a step-by-step guide to finding verified micro-influencers for your brand.',
+  headline: 'Micro-Influencers in Pakistan: Why They Beat Celebrities (+ Rates)',
+  description: 'Pakistani micro-influencers often get more engagement than celebrities, at PKR 5,000 to PKR 25,000 per post. See rate comparisons and a step-by-step guide to finding verified micro-influencers for your brand.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2025-12-27',
   dateModified: '2026-10-11',
@@ -151,7 +151,7 @@ export default function MicroInfluencersPakistanBlog() {
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            Here's something most Pakistani brands don't realize: an influencer with 15,000 followers will likely sell more products than a celebrity with 2 million. The numbers back this up. Let's break down exactly why this happens — and show you how to find these hidden gems for your next campaign.
+            Here's something most Pakistani brands don't realize: an influencer with 15,000 followers often sells more products than a celebrity with 2 million. Let's break down exactly why this happens, and show you how to find these hidden gems for your next campaign.
           </p>
           
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">
@@ -178,7 +178,7 @@ export default function MicroInfluencersPakistanBlog() {
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-700">Micro-influencers (10K-100K followers) deliver <strong>3x higher engagement</strong> than celebrities</span>
+                <span className="text-gray-700">Micro-influencers (10K-100K followers) often get <strong>more engagement per follower</strong> than celebrities</span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -202,7 +202,7 @@ export default function MicroInfluencersPakistanBlog() {
           <ol className="space-y-2 text-gray-700">
             <li><a href="#what-are-micro-influencers" className="hover:text-blue-600 transition-colors">1. What Are Micro-Influencers? (The Numbers)</a></li>
             <li><a href="#why-they-work" className="hover:text-blue-600 transition-colors">2. Why Micro-Influencers Work Better in Pakistan</a></li>
-            <li><a href="#real-data" className="hover:text-blue-600 transition-colors">3. Real Data: Engagement Rates Comparison</a></li>
+            <li><a href="#real-data" className="hover:text-blue-600 transition-colors">3. Engagement by Follower Tier</a></li>
             <li><a href="#pricing" className="hover:text-blue-600 transition-colors">4. How Much Do Pakistani Micro-Influencers Charge?</a></li>
             <li><a href="#best-niches" className="hover:text-blue-600 transition-colors">5. Best Niches for Micro-Influencer Marketing</a></li>
             <li><a href="#how-to-find" className="hover:text-blue-600 transition-colors">6. How to Find Micro-Influencers in Pakistan</a></li>
@@ -297,7 +297,7 @@ export default function MicroInfluencersPakistanBlog() {
                   </div>
                   <div>
                     <h4 className="font-bold text-gray-900 mb-2 text-lg">Hyper-Targeted Audiences</h4>
-                    <p className="text-gray-600">A micro-influencer in Lahore talking about budget skincare reaches exactly who you want — not random followers from 10 different countries who'll never buy your product.</p>
+                    <p className="text-gray-600">A micro-influencer in Lahore talking about budget skincare reaches exactly who you want, not random followers from 10 different countries who'll never buy your product.</p>
                   </div>
                 </div>
               </div>
@@ -320,56 +320,21 @@ export default function MicroInfluencersPakistanBlog() {
           <section id="real-data" className="mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
               <BarChart3 className="w-8 h-8 text-indigo-600 flex-shrink-0" />
-              <span>3. Real Data: Engagement Rates Comparison</span>
+              <span>3. Engagement by Follower Tier</span>
             </h2>
 
             <p className="text-gray-700 mb-6 text-lg leading-relaxed">
-              Here are typical <strong>influencer engagement rates in Pakistan</strong> by follower tier, based on publicly available industry reports. Use them as a rough guide, not a guarantee:
+              Smaller accounts often get more likes and comments per follower than very large ones, because their audiences feel closer to the creator. The pattern varies by niche, so always compare a creator with others of the same size in the same niche.
             </p>
 
             <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 mb-8 border border-indigo-200">
-              <h4 className="font-bold text-gray-900 mb-6 text-lg">📊 Average Engagement Rates by Influencer Type</h4>
-              <div className="space-y-5">
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="font-medium text-gray-700">Nano (1K-10K followers)</span>
-                    <span className="font-bold text-green-600 text-lg">7.2%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4">
-                    <div className="bg-gradient-to-r from-green-400 to-green-500 h-4 rounded-full" style={{ width: '72%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="font-medium text-gray-700">Micro (10K-100K followers) ⭐</span>
-                    <span className="font-bold text-blue-600 text-lg">4.8%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4">
-                    <div className="bg-gradient-to-r from-blue-400 to-blue-500 h-4 rounded-full" style={{ width: '48%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="font-medium text-gray-700">Macro (100K-1M followers)</span>
-                    <span className="font-bold text-orange-600 text-lg">2.1%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4">
-                    <div className="bg-gradient-to-r from-orange-400 to-orange-500 h-4 rounded-full" style={{ width: '21%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="font-medium text-gray-700">Mega/Celebrity (1M+ followers)</span>
-                    <span className="font-bold text-red-600 text-lg">1.2%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4">
-                    <div className="bg-gradient-to-r from-red-400 to-red-500 h-4 rounded-full" style={{ width: '12%' }}></div>
-                  </div>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mt-6 italic">
-                *Typical ranges based on publicly available industry reports on Instagram engagement. Individual accounts vary.
-              </p>
+              <h4 className="font-bold text-gray-900 mb-4 text-lg">📊 How to Compare Engagement Fairly</h4>
+              <ul className="space-y-3 text-gray-700">
+                <li><strong>Same tier:</strong> compare a micro-influencer with other micro-influencers, not with a celebrity.</li>
+                <li><strong>Same niche:</strong> food and beauty audiences engage differently from business and tech audiences.</li>
+                <li><strong>Recent posts:</strong> look at the last 10 to 15 posts, not one viral hit.</li>
+                <li><strong>Real comments:</strong> specific questions and replies count for more than emoji strings.</li>
+              </ul>
             </div>
 
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-8">
@@ -378,7 +343,7 @@ export default function MicroInfluencersPakistanBlog() {
                 <div>
                   <h4 className="font-bold text-gray-900 mb-2">What This Actually Means for Your Budget</h4>
                   <p className="text-gray-700">
-                    A <strong>micro-influencer with 50,000 followers</strong> and 4.8% engagement reaches ~2,400 genuinely interested people per post. A <strong>celebrity with 2 million followers</strong> at 1.2% engagement reaches ~24,000 — but costs <strong>20x more</strong> and those viewers are far less likely to take action.
+                    Suppose a <strong>micro-influencer with 50,000 followers</strong> gets 5% engagement: about 2,500 people interact with each post. A <strong>celebrity with 2 million followers</strong> at 1% engagement gets about 20,000 interactions, but the post costs <strong>far more</strong> and those viewers are often less likely to act. Run this math with each creator&apos;s real numbers.
                   </p>
                 </div>
               </div>
@@ -393,7 +358,7 @@ export default function MicroInfluencersPakistanBlog() {
             </h2>
 
             <p className="text-gray-700 mb-6 text-lg leading-relaxed">
-              Here are typical <strong>influencer pricing</strong> ranges in Pakistan for 2026, based on publicly available rate cards and industry reports. Actual quotes vary by creator:
+              Here are typical <strong>influencer pricing</strong> ranges in Pakistan for 2026. These are Infoishai editorial estimates, not survey data, and actual quotes vary by creator:
             </p>
 
             <div className="overflow-x-auto mb-8 rounded-xl border border-gray-200">
@@ -454,7 +419,7 @@ export default function MicroInfluencersPakistanBlog() {
             </h2>
 
             <p className="text-gray-700 mb-6 text-lg leading-relaxed">
-              Not all niches perform equally. Based on publicly available industry reports, these are typically the <strong>top-performing categories for influencer marketing in Pakistan</strong>:
+              Not all niches perform equally. In our experience, these are often the <strong>top-performing categories for influencer marketing in Pakistan</strong>:
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -462,7 +427,7 @@ export default function MicroInfluencersPakistanBlog() {
                 { name: 'Fashion & Clothing', emoji: '👗', desc: 'Especially modest fashion, eastern wear, and affordable style tips for Pakistani women' },
                 { name: 'Food & Restaurants', emoji: '🍔', desc: 'Food bloggers in Lahore, Karachi, and Islamabad drive serious foot traffic to restaurants' },
                 { name: 'Beauty & Skincare', emoji: '💄', desc: 'Massive demand for local brand reviews, tutorials, and affordable skincare routines' },
-                { name: 'Tech & Gadgets', emoji: '📱', desc: 'Unboxings, honest reviews, mobile accessories — very engaged male audience' },
+                { name: 'Tech & Gadgets', emoji: '📱', desc: 'Unboxings, honest reviews, mobile accessories: very engaged male audience' },
                 { name: 'Fitness & Health', emoji: '💪', desc: 'Home workouts, gym reviews, nutrition tips are booming post-pandemic' },
                 { name: 'Parenting & Family', emoji: '👶', desc: 'Growing niche with highly engaged and loyal mom audiences' },
               ].map((niche, i) => (
@@ -512,7 +477,7 @@ export default function MicroInfluencersPakistanBlog() {
                   <div>
                     <h4 className="font-bold text-gray-900 mb-2 text-lg">Search Instagram Hashtags Manually</h4>
                     <p className="text-gray-700">
-                      Search location-based hashtags like <strong>#LahoreFoodie</strong>, <strong>#PakistaniBeautyBlogger</strong>, <strong>#KarachiFashion</strong>, or <strong>#IslamabadEats</strong>. This is free but extremely time-consuming — you'll need to check each profile individually for engagement quality.
+                      Search location-based hashtags like <strong>#LahoreFoodie</strong>, <strong>#PakistaniBeautyBlogger</strong>, <strong>#KarachiFashion</strong>, or <strong>#IslamabadEats</strong>. This is free but extremely time-consuming: you'll need to check each profile individually for engagement quality.
                     </p>
                   </div>
                 </div>

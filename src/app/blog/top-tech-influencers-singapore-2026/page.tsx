@@ -477,7 +477,7 @@ export default function TopTechInfluencersSingaporePage() {
               </p>
             </div>
             <p className="text-gray-700 leading-relaxed mb-6">
-              The table below shows typical ranges based on publicly available rate cards and industry reports. Treat them as a budgeting guide, not fixed prices. Niche, engagement, and usage rights move every quote.
+              The table below shows Infoishai editorial estimates, not survey data. Treat them as a budgeting guide, not fixed prices. Niche, engagement, and usage rights move every quote.
             </p>
 
             <div className="overflow-x-auto mb-6">

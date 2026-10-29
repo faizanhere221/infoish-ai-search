@@ -111,8 +111,8 @@ const strategies: Strategy[] = [
     paragraphs: [
       'This strategy uses volume over reach. Instead of paying one creator with 500K followers, you partner with 15 to 20 micro-influencers with 5K to 50K followers each.',
       'The economics work in your favour. A micro-influencer with 20K followers on TikTok charges $200 to $500 per video. For $5,000, you get 10 to 20 pieces of content from 10 to 20 different creators. Each creator brings their own audience with minimal overlap.',
-      'The results compound. Twenty separate videos create twenty separate discovery points. Each video has its own chance to trend. If even two out of twenty go semi-viral (100K+ views), your campaign ROI multiplies.',
-      'Micro-influencers in the tech space deliver 3x higher engagement rates than accounts with large followings. Their audiences are loyal and act on recommendations at higher rates.',
+      'The results compound. Twenty separate videos create twenty separate discovery points. Each video has its own chance to trend. If even two out of twenty take off, the whole campaign pays off.',
+      'Micro-influencers in the tech space often have more engaged audiences than accounts with large followings. Their audiences are loyal and tend to act on recommendations.',
     ],
     execution: [
       'Identify 30 to 40 micro-influencers in your niche. Filter for creators who already post about similar products. On Infoishai, you search creators by niche, audience size, and engagement rate to build your list.',
@@ -157,7 +157,7 @@ const strategies: Strategy[] = [
     paragraphs: [
       'Instagram Reels work for consumer tech products with visual appeal. Design tools, photo editors, travel apps, fitness trackers, and lifestyle-adjacent tech products perform well on Instagram.',
       'The Instagram audience skews slightly older than TikTok (25 to 40 vs 18 to 30). If your product targets working professionals or creatively inclined users, Instagram delivers a more qualified audience.',
-      "Reels get distributed beyond the creator's follower base through Instagram's Explore page. A well-performing Reel reaches 3 to 5x the creator's follower count in views.",
+      "Reels get distributed beyond the creator's follower base through Instagram's Explore page. A well-performing Reel often gets views well beyond the creator's follower count.",
       'Partner with creators who have a visual brand aesthetic matching your product. A minimalist productivity app pairs well with a creator known for clean, organized content. A creative design tool pairs with a creator who showcases visual projects.',
       'Request both a Reel and a Story mention. The Reel provides long-term discoverability. The Story provides a swipe-up link (or link sticker) for immediate action. The combination drives both awareness and conversions from a single partnership.',
     ],
@@ -171,7 +171,7 @@ const strategies: Strategy[] = [
     paragraphs: [
       'Consumers search for "best X apps" and "top X tools" before downloading. Ranking inside a creator\'s "best of" list is one of the highest-converting B2C placements.',
       'A YouTube video titled "Top 10 Productivity Apps in 2026" or a blog post titled "Best Free Photo Editors" attracts viewers with direct purchase intent. They are already looking for a product. They arrived at the video to make a decision.',
-      'Your product appearing as a recommendation inside this type of content converts at 3 to 5x the rate of a standalone sponsored video. The viewer perceives the recommendation as editorial rather than advertising.',
+      'Your product appearing as a recommendation inside this type of content tends to convert better than a standalone sponsored video. The viewer perceives the recommendation as editorial rather than advertising.',
       'Identify creators who regularly publish "best of" and comparison content in your category. Reach out and offer product access, a commission on referrals, or a flat sponsorship fee for inclusion. Many creators accept a hybrid model: a smaller flat fee plus a per-signup commission.',
       'The long-tail value is significant. "Best productivity apps 2026" videos rank on YouTube and Google for the entire year. Your product gets recommended to every viewer who searches this term.',
     ],
@@ -248,7 +248,7 @@ export default function B2CInfluencerMarketingStrategiesPage() {
           </h1>
 
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            B2C influencer marketing is how consumer tech brands acquire users in 2026 — a platform-by-platform playbook with real budgets, creator selection criteria, and performance benchmarks.
+            B2C influencer marketing is how consumer tech brands acquire users in 2026. Here is a platform-by-platform playbook with real budgets, creator selection criteria, and performance benchmarks.
           </p>
 
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">
@@ -307,7 +307,7 @@ export default function B2CInfluencerMarketingStrategiesPage() {
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Low price point</h3>
                 <p className="text-gray-700">
-                  Most consumer tech products cost $0 to $20 per month. The purchase risk is small. Buyers do not need lengthy reviews or multiple touchpoints — one compelling piece of content is often enough to trigger a download or signup.
+                  Most consumer tech products cost $0 to $20 per month. The purchase risk is small. Buyers do not need lengthy reviews or multiple touchpoints. One compelling piece of content is often enough to trigger a download or signup.
                 </p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
@@ -487,7 +487,7 @@ export default function B2CInfluencerMarketingStrategiesPage() {
                   <Users className="w-5 h-5 text-purple-600" />
                   Day-1 and Day-7 retention
                 </h3>
-                <p className="text-gray-700">Not all signups are equal. Track whether users acquired through influencer content retain at higher or lower rates than users from paid ads. Influencer-acquired users typically show 15 to 25% higher Day-7 retention because they arrived with product understanding.</p>
+                <p className="text-gray-700">Not all signups are equal. Track whether users acquired through influencer content retain at higher or lower rates than users from paid ads. Users who arrive from a creator&apos;s demo already understand the product, so compare their retention with your other channels.</p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
@@ -521,7 +521,7 @@ export default function B2CInfluencerMarketingStrategiesPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-red-500 font-bold text-xl">❌</span>
-                  <span className="text-gray-700"><strong>Giving creators a script:</strong> B2C audiences detect scripted content instantly. The view duration drops, engagement drops, and the algorithm buries the video. Give creators talking points and creative freedom — their voice is why their audience trusts them.</span>
+                  <span className="text-gray-700"><strong>Giving creators a script:</strong> B2C audiences detect scripted content instantly. The view duration drops, engagement drops, and the algorithm buries the video. Give creators talking points and creative freedom: their voice is why their audience trusts them.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-red-500 font-bold text-xl">❌</span>
@@ -533,7 +533,7 @@ export default function B2CInfluencerMarketingStrategiesPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-red-500 font-bold text-xl">❌</span>
-                  <span className="text-gray-700"><strong>Measuring results too early:</strong> check TikTok performance at 72 hours. Check YouTube at 30, 60, and 90 days. Evaluating a YouTube campaign at 7 days misses 70% of the value the content will generate.</span>
+                  <span className="text-gray-700"><strong>Measuring results too early:</strong> check TikTok performance at 72 hours. Check YouTube at 30, 60, and 90 days. Evaluating a YouTube campaign at 7 days misses most of the value the content will generate.</span>
                 </li>
               </ul>
             </div>

@@ -173,7 +173,7 @@ export default function TechCreatorsGuideBrandDealsPage() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Tech Brands Are Spending More on Creator Partnerships</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              The influencer marketing industry reached $24 billion in 2025, according to Statista. Tech and B2B brands are increasing their share of the spend.
+              The influencer marketing industry reached an estimated $24 billion in 2024, according to Statista.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
               The reason is straightforward. A SaaS company selling a $50/month tool needs more than a banner ad to convert a customer. Buyers want to see the product in action. They want a trusted voice walking them through the setup, the features, and the results.
@@ -254,7 +254,7 @@ export default function TechCreatorsGuideBrandDealsPage() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Step 3: Understand Your Audience Data</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              Brands pay for access to your audience, not for your follower count. Know your numbers. Pull your analytics from each platform — YouTube Studio, Twitter/X Analytics, LinkedIn Analytics, and your newsletter platform all provide this data.
+              Brands pay for access to your audience, not for your follower count. Know your numbers. Pull your analytics from each platform. YouTube Studio, Twitter/X Analytics, LinkedIn Analytics, and your newsletter platform all provide this data.
             </p>
 
             <div className="bg-white rounded-lg p-8 shadow-sm border mb-6">
@@ -483,7 +483,7 @@ My media kit is attached. I am open to discussing formats and timelines.
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-800"><strong>Follow the brief, but add your perspective.</strong> If the product has a weakness, mention the workaround — honesty makes the review perform better.</span>
+                  <span className="text-gray-800"><strong>Follow the brief, but add your perspective.</strong> If the product has a weakness, mention the workaround. Honesty makes the review perform better.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
@@ -555,7 +555,7 @@ My media kit is attached. I am open to discussing formats and timelines.
               Start with one action today. Update your bio to clearly state your niche and audience. Pull your analytics and build a one-page media kit. Identify three brands you already use and draft a pitch.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              The demand for tech creators is high in 2026. Brands are shifting budgets from paid ads to creator partnerships. Your content and audience are valuable — position yourself to capture those deals. You can also pair your outreach with our free{' '}
+              The demand for tech creators is high in 2026. Brands are shifting budgets from paid ads to creator partnerships. Your content and audience are valuable: position yourself to capture those deals. You can also pair your outreach with our free{' '}
               <Link href="/tools" className="text-blue-600 hover:text-blue-700 font-medium">creator research tools</Link>{' '}
               to audit your own engagement rate before you pitch.
             </p>
@@ -624,7 +624,7 @@ My media kit is attached. I am open to discussing formats and timelines.
             <Link href="/blog/how-to-find-tech-influencers-b2b-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
               <span className="text-sm text-blue-600 font-medium">Strategy</span>
               <h4 className="font-bold text-gray-900 mt-2 text-lg group-hover:text-blue-600 transition-colors">How to Find Tech Influencers for Your B2B Product in 2026</h4>
-              <p className="text-gray-600 text-sm mt-2">Where to search, what to look for, rates, and outreach templates — from the brand side.</p>
+              <p className="text-gray-600 text-sm mt-2">Where to search, what to look for, rates, and outreach templates, from the brand side.</p>
             </Link>
             <Link href="/blog/top-10-benefits-tech-influencer-marketing-2026" className="group bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all">
               <span className="text-sm text-blue-600 font-medium">Marketing</span>

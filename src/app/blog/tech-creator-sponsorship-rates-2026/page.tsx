@@ -124,7 +124,7 @@ const platformBenchmarks: PlatformBenchmark[] = [
 ]
 
 const increaseFactors = [
-  { title: 'High engagement rate', description: 'Above 6% on YouTube, 5% on Instagram, or 3% on LinkedIn — charge at the top of your tier or 10-20% above range. Engagement predicts conversion performance.' },
+  { title: 'High engagement rate', description: 'Well above similar creators in your niche on the same platform: charge at the top of your tier or 10-20% above range. Engagement predicts conversion performance.' },
   { title: 'Niche specialisation', description: 'A creator covering "DevOps monitoring tools" commands higher rates per viewer than "general tech." If your niche is specialised, charge 15-30% above general tech rates.' },
   { title: 'Proven conversion data', description: 'Data showing past campaigns drove specific results removes the guesswork for brands. They pay more for predictable results.' },
   { title: 'Production quality', description: 'Professional lighting, clean audio, polished editing, and branded thumbnails signal a professional operation brands can repurpose content from.' },
@@ -133,9 +133,9 @@ const increaseFactors = [
 ]
 
 const decreaseFactors = [
-  { title: 'Low engagement relative to follower count', description: 'Below 2% on YouTube or 1.5% on Instagram — fix the engagement problem first (content quality, posting consistency, audience interaction), then revisit pricing.' },
-  { title: 'No past brand partnerships', description: 'Your first 2-3 sponsorships set your track record. Pricing at the lower end is reasonable early on — raise rates after 3-5 successful campaigns.' },
-  { title: 'Off-niche brand', description: 'A brand outside your niche will convert poorly with your audience. Charge less to reflect the weak match, or better, decline — off-niche sponsorships damage audience trust.' },
+  { title: 'Low engagement relative to follower count', description: 'Well below similar creators in your niche: fix the engagement problem first (content quality, posting consistency, audience interaction), then revisit pricing.' },
+  { title: 'No past brand partnerships', description: 'Your first 2-3 sponsorships set your track record. Pricing at the lower end is reasonable early on: raise rates after 3-5 successful campaigns.' },
+  { title: 'Off-niche brand', description: 'A brand outside your niche will convert poorly with your audience. Charge less to reflect the weak match, or better, decline: off-niche sponsorships damage audience trust.' },
 ]
 
 export default function TechCreatorSponsorshipRatesPage() {
@@ -209,7 +209,7 @@ export default function TechCreatorSponsorshipRatesPage() {
               This happens to most tech creators because nobody teaches pricing. University does not cover creator economics. YouTube tutorials focus on getting sponsors, not pricing the work.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              This guide gives you specific numbers — rate benchmarks by platform, audience size, and niche, pricing formulas you apply to your own analytics, and rules for when to charge more, when to hold firm, and when to walk away. Your content has value. Price it accordingly.
+              This guide gives you specific numbers: rate benchmarks by platform, audience size, and niche, pricing formulas you apply to your own analytics, and rules for when to charge more, when to hold firm, and when to walk away. Your content has value. Price it accordingly.
             </p>
           </section>
 
@@ -271,7 +271,7 @@ export default function TechCreatorSponsorshipRatesPage() {
               Rate Benchmarks by Platform and Audience Size
             </h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              These are the market rates for tech creators in 2026. If you charge below these ranges, you are underpricing your work.
+              These are Infoishai editorial estimates of typical 2026 rates, not survey data. If you charge well below these ranges, you are likely underpricing your work.
             </p>
             <div className="overflow-x-auto mb-6 rounded-xl border border-gray-200">
               <table className="w-full border-collapse bg-white">
@@ -389,15 +389,15 @@ export default function TechCreatorSponsorshipRatesPage() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Negotiate when...</h3>
                 <ul className="space-y-2 text-gray-700 text-sm">
-                  <li>The brand offers a long-term partnership (3-6 months, multiple videos) — a 10-15% discount per piece is justified by steady income.</li>
+                  <li>The brand offers a long-term partnership (3-6 months, multiple videos). A 10-15% discount per piece is justified by steady income.</li>
                   <li>The brand adds value beyond cash: affiliate commissions, product access, event invitations, or exposure to a new audience.</li>
                 </ul>
               </div>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Hold firm when...</h3>
                 <ul className="space-y-2 text-gray-700 text-sm">
-                  <li>The brand asks for a single piece of content with no long-term commitment — full rate, no discount.</li>
-                  <li>The budget offered is below 50% of your rate — that&apos;s not negotiating, it&apos;s undervaluing your work. Decline and move on.</li>
+                  <li>The brand asks for a single piece of content with no long-term commitment: full rate, no discount.</li>
+                  <li>The budget offered is below 50% of your rate: that&apos;s not negotiating, it&apos;s undervaluing your work. Decline and move on.</li>
                 </ul>
               </div>
             </div>
@@ -406,11 +406,11 @@ export default function TechCreatorSponsorshipRatesPage() {
               <ul className="space-y-3">
                 <li className="flex items-start gap-3">
                   <span className="text-red-500 font-bold text-xl">❌</span>
-                  <span className="text-gray-700">The brand demands a full script, final approval over every word, or restrictions on honest opinions — these constraints produce content your audience rejects.</span>
+                  <span className="text-gray-700">The brand demands a full script, final approval over every word, or restrictions on honest opinions. These constraints produce content your audience rejects.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-red-500 font-bold text-xl">❌</span>
-                  <span className="text-gray-700">The brand refuses any form of tracking. Brands that do not measure results do not renew — you want partners who track performance because good data gets you rehired.</span>
+                  <span className="text-gray-700">The brand refuses any form of tracking. Brands that do not measure results do not renew. You want partners who track performance because good data gets you rehired.</span>
                 </li>
               </ul>
             </div>
@@ -433,7 +433,7 @@ export default function TechCreatorSponsorshipRatesPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700"><strong>Raise 15-25%</strong> when your engagement rate increases meaningfully (e.g., 4% to 6%) — brands pay for engagement, not views.</span>
+                  <span className="text-gray-700"><strong>Raise 15-25%</strong> when your engagement rate increases meaningfully (e.g., 4% to 6%). Brands pay for engagement, not views.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -468,7 +468,7 @@ export default function TechCreatorSponsorshipRatesPage() {
               </p>
             </div>
             <p className="text-gray-700 leading-relaxed mb-6">
-              Price your work based on the value you deliver, not the hours you spend producing the content. A 12-minute video takes 8 to 15 hours to research, script, record, and edit. At $2,000, your hourly rate is $130 to $250. That is fair. At $500, your hourly rate drops to $33 to $62 — below market for the skill set and audience access you provide.
+              Price your work based on the value you deliver, not the hours you spend producing the content. A 12-minute video takes 8 to 15 hours to research, script, record, and edit. At $2,000, your hourly rate is $130 to $250. That is fair. At $500, your hourly rate drops to $33 to $62: below market for the skill set and audience access you provide.
             </p>
             <p className="text-gray-700 leading-relaxed">
               Know your numbers. Price with confidence. Walk away from deals that undervalue your work.

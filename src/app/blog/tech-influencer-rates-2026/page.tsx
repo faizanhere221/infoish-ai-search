@@ -141,12 +141,12 @@ const countryRates: CountryRate[] = [
 ]
 
 const pricingFactors = [
-  { name: 'Audience size', description: 'The most visible factor, but the relationship is not linear — the premium flattens as audience size grows because engagement rates typically decline at larger scales.' },
-  { name: 'Engagement rate', description: 'The factor most brands underweight. A creator with 30K followers and 8% engagement has more active engagers than one with 300K followers and 0.5% engagement — and charges less.' },
+  { name: 'Audience size', description: 'The most visible factor, but the relationship is not linear. The premium flattens as audience size grows because engagement rates typically decline at larger scales.' },
+  { name: 'Engagement rate', description: 'The factor most brands underweight. A creator with 30K followers and 8% engagement has more active engagers than one with 300K followers and 0.5% engagement, and charges less.' },
   { name: 'Platform', description: 'YouTube costs the most because production effort is highest. Twitter/X costs the least. LinkedIn commands a premium because the audience has high purchasing authority.' },
   { name: 'Niche specialisation', description: 'A creator covering "Kubernetes monitoring tools" charges more per viewer than one covering "general tech" because the audience match is tighter and conversion is higher.' },
   { name: 'Content format', description: 'A dedicated video costs more than an integration mention. A thread costs more than a single tweet. Longer, production-intensive formats cost more but deliver deeper engagement.' },
-  { name: 'Creator location', description: 'Geography creates the largest pricing spread. An Indian creator charges 70-80% less than an American creator with the same audience size, and the quality gap is narrowing every year.' },
+  { name: 'Creator location', description: 'Geography creates the largest pricing spread. An Indian creator charges 70-80% less than an American creator with the same audience size.' },
 ]
 
 const budgetTiers = [
@@ -224,7 +224,7 @@ export default function TechInfluencerRates2026Page() {
               Tech influencer rates in 2026 depend on six variables: platform, audience size, engagement rate, niche specialisation, content format, and the creator&apos;s country. A YouTube video from a US creator with 100K subscribers costs $2,000 to $4,000. The same audience size from an Indian creator costs $250 to $600. A LinkedIn post from a UK thought leader with 50K followers costs £800 to £2,000. A Twitter/X thread from a Pakistani creator with 30K followers costs PKR 8,000 to PKR 15,000.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              This guide consolidates typical rate ranges across 6 platforms and 9 countries, based on publicly available rate cards and industry reports. Treat them as typical ranges, not fixed prices.
+              This guide consolidates typical rate ranges across 6 platforms and 9 countries. These are Infoishai editorial estimates, not survey data, so treat them as typical ranges, not fixed prices.
             </p>
           </section>
 
@@ -265,8 +265,8 @@ export default function TechInfluencerRates2026Page() {
             <div className="space-y-6">
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">YouTube</h3>
-                <p className="text-gray-700 mb-2">The most expensive platform. Production effort is highest, content is longest, and lifespan is longest (12-18 months of organic views). Integration/mention rates run at 25-35% of dedicated video rates. YouTube Shorts range from $100 to $4,000 depending on subscriber tier.</p>
-                <p className="text-gray-700">YouTube offers the strongest ROI over time because videos continue generating views long after publication — a $3,000 video that drives 200 signups in month one and another 600 over the next year has a true cost per signup of $3.75.</p>
+                <p className="text-gray-700 mb-2">The most expensive platform. Production effort is highest, content is longest, and lifespan is longest (videos keep getting organic views for months). Integration/mention rates run at 25-35% of dedicated video rates. YouTube Shorts range from $100 to $4,000 depending on subscriber tier.</p>
+                <p className="text-gray-700">YouTube content keeps paying off because videos continue generating views long after publication. A $3,000 video that drives 200 signups in month one and another 600 over the next year has a true cost per signup of $3.75.</p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">LinkedIn</h3>
@@ -287,13 +287,13 @@ export default function TechInfluencerRates2026Page() {
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Newsletter</h3>
-                <p className="text-gray-700 mb-2">Underpriced relative to performance. Tech newsletters see 35-50% open rates from a pre-qualified audience. Dedicated issues run at 200-300% of mention rates. Standard pricing uses CPM, ranging $25-$75 in 2026.</p>
+                <p className="text-gray-700 mb-2">Often underpriced for the attention it gets. Every reader opted in, so a sponsored mention reaches an engaged audience. Dedicated issues run at 200-300% of mention rates. Standard pricing uses CPM, ranging $25-$75 in 2026.</p>
                 <p className="text-gray-700">Works best for SaaS tools, developer platforms, and products targeting niche professional audiences.</p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Podcast</h3>
                 <p className="text-gray-700 mb-2">Rates depend on download volume and ad placement. Mid-roll spots run at 125-150% of pre-roll rates. Host-read interviews run at 200-300% of mid-roll rates.</p>
-                <p className="text-gray-700">Best for complex B2B products needing extended explanation — a podcast listener hears 60 seconds of uninterrupted product messaging.</p>
+                <p className="text-gray-700">Best for complex B2B products needing extended explanation. A podcast listener hears 60 seconds of uninterrupted product messaging.</p>
               </div>
             </div>
           </section>
@@ -455,11 +455,11 @@ export default function TechInfluencerRates2026Page() {
             <div className="space-y-4">
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">LinkedIn rates are rising fastest</h3>
-                <p className="text-gray-700">LinkedIn&apos;s growing adoption among tech professionals drives demand for LinkedIn influencers. Rates increased 25-35% from 2025 to 2026, outpacing every other platform.</p>
+                <p className="text-gray-700">LinkedIn&apos;s growing adoption among tech professionals drives demand for LinkedIn influencers. Rates for experienced B2B voices on LinkedIn are rising as more brands compete for them.</p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Indian and Pakistani creator rates are rising</h3>
-                <p className="text-gray-700">As international brands enter these markets, competition for top creators increases. Rates rose 15-20% from 2025 to 2026 in both markets, though the gap versus Western rates remains 70-90%.</p>
+                <p className="text-gray-700">As international brands enter these markets, competition for top creators increases. Rates are rising in both markets, though they remain well below Western rates.</p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Performance-based pricing is growing</h3>

@@ -211,7 +211,7 @@ export default function FindRightInfluencersPage() {
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">Step 4: Rule out red flags</h3>
                 <ul className="space-y-2 text-gray-700">
-                  <li>• Engagement under 1% on an account with more than 10K followers</li>
+                  <li>• Engagement far below similar accounts of the same size</li>
                   <li>• A sudden jump of thousands of followers with no viral post to explain it</li>
                   <li>• Generic comments (&quot;Nice 🔥&quot;, &quot;Wow&quot;) from accounts with no posts of their own</li>
                   <li>• Most of the audience outside Pakistan when you sell in Pakistan</li>
@@ -235,11 +235,11 @@ export default function FindRightInfluencersPage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Engagement and Pricing Benchmarks</h2>
             <div className="bg-blue-50 border-l-4 border-blue-600 rounded-r-lg p-6 mb-8">
               <p className="text-gray-800 leading-relaxed">
-                Smaller Pakistani creators usually show higher engagement. Nano creators average around 7%, micro creators around 5%, and celebrity accounts near 1%. A sponsored Instagram post costs about PKR 5,000 to PKR 10,000 at 10K to 25K followers and PKR 300,000 or more at 1M+ followers.
+                Smaller Pakistani creators often get more engagement per follower than celebrity accounts. A sponsored Instagram post costs about PKR 5,000 to PKR 10,000 at 10K to 25K followers and PKR 300,000 or more at 1M+ followers.
               </p>
             </div>
             <p className="text-gray-700 leading-relaxed mb-6">
-              These are typical ranges based on publicly available rate cards and industry reports. Use them as a starting point, not a guarantee. Actual numbers vary by niche, city, and content format.
+              Rates are rough editorial estimates, not survey data. Use them as a starting point, not a guarantee. Actual numbers vary by niche, city, and content format.
             </p>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Typical Instagram engagement by follower tier</h3>
@@ -249,29 +249,29 @@ export default function FindRightInfluencersPage() {
                   <tr className="bg-gray-50">
                     <th className="px-4 py-3 text-left font-semibold text-gray-900 border-b">Tier</th>
                     <th className="px-4 py-3 text-left font-semibold text-gray-900 border-b">Followers</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-900 border-b">Typical Engagement</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900 border-b">Engagement per follower</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-b">
                     <td className="px-4 py-3 font-medium text-gray-900">Nano</td>
                     <td className="px-4 py-3 text-gray-700">1K - 10K</td>
-                    <td className="px-4 py-3 text-gray-700">About 7%</td>
+                    <td className="px-4 py-3 text-gray-700">Often the highest</td>
                   </tr>
                   <tr className="border-b">
                     <td className="px-4 py-3 font-medium text-gray-900">Micro</td>
                     <td className="px-4 py-3 text-gray-700">10K - 100K</td>
-                    <td className="px-4 py-3 text-gray-700">About 5%</td>
+                    <td className="px-4 py-3 text-gray-700">Often high</td>
                   </tr>
                   <tr className="border-b">
                     <td className="px-4 py-3 font-medium text-gray-900">Macro</td>
                     <td className="px-4 py-3 text-gray-700">100K - 1M</td>
-                    <td className="px-4 py-3 text-gray-700">About 2%</td>
+                    <td className="px-4 py-3 text-gray-700">Moderate</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-medium text-gray-900">Mega / Celebrity</td>
                     <td className="px-4 py-3 text-gray-700">1M+</td>
-                    <td className="px-4 py-3 text-gray-700">About 1%</td>
+                    <td className="px-4 py-3 text-gray-700">Often the lowest</td>
                   </tr>
                 </tbody>
               </table>
@@ -324,7 +324,7 @@ export default function FindRightInfluencersPage() {
             </div>
             <p className="text-gray-700 leading-relaxed">
               For more detail on smaller creators, read{' '}
-              <Link href="/blog/micro-influencers-pakistan-guide" className="text-blue-600 hover:text-blue-700 font-semibold">why micro-influencers outperform celebrities in Pakistan</Link>.
+              <Link href="/blog/micro-influencers-pakistan-guide" className="text-blue-600 hover:text-blue-700 font-semibold">why micro-influencers often beat celebrities in Pakistan</Link>.
             </p>
           </section>
 
@@ -385,7 +385,7 @@ export default function FindRightInfluencersPage() {
               </ul>
 
               <p className="text-gray-700 leading-relaxed mt-6">
-                Before you default to the biggest name available, it's worth understanding <Link href="/blog/micro-influencers-pakistan-guide" className="text-blue-600 hover:text-blue-700 font-semibold">why micro-influencers outperform celebrities in Pakistan</Link> on engagement and ROI. Smaller creators often deliver better results for a fraction of the budget. You also have the full <Link href="/influencers/pakistan" className="text-blue-600 hover:text-blue-700 font-semibold">Pakistani tech influencer directory</Link> or check current <Link href="/blog/tech-influencer-rates-2026" className="text-blue-600 hover:text-blue-700 font-semibold">tech influencer rates for 2026</Link> before you budget your campaign.
+                Before you default to the biggest name available, it's worth understanding <Link href="/blog/micro-influencers-pakistan-guide" className="text-blue-600 hover:text-blue-700 font-semibold">why micro-influencers often beat celebrities in Pakistan</Link> on engagement and ROI. Smaller creators often deliver better results for a fraction of the budget. You also have the full <Link href="/influencers/pakistan" className="text-blue-600 hover:text-blue-700 font-semibold">Pakistani tech influencer directory</Link> or check current <Link href="/blog/tech-influencer-rates-2026" className="text-blue-600 hover:text-blue-700 font-semibold">tech influencer rates for 2026</Link> before you budget your campaign.
               </p>
 
               <div className="mt-6">

@@ -260,7 +260,7 @@ const blogPosts: BlogPost[] = [
   {
     id: '7',
     title: 'How to Find Tech Influencers for Your B2B Product in 2026',
-    excerpt: 'The complete guide to discovering, vetting, and partnering with tech content creators for your next campaign — where to search, what to look for, rates, and outreach templates.',
+    excerpt: 'The complete guide to discovering, vetting, and partnering with tech content creators for your next campaign: where to search, what to look for, rates, and outreach templates.',
     date: '2026-07-06',
     author: 'Infoishai Team',
     category: 'Strategy',
@@ -273,7 +273,7 @@ const blogPosts: BlogPost[] = [
   {
     id: '0',
     title: 'Micro-Influencers in Pakistan: Why They Outperform Celebrities (+ How to Find Them)',
-    excerpt: 'Micro-influencers deliver 3x higher engagement than celebrities at a fraction of the cost. Real pricing data (PKR 5,000-25,000/post), engagement benchmarks, and how to find verified micro-creators.',
+    excerpt: 'Micro-influencers often get more engagement than celebrities at a fraction of the cost. Typical pricing (PKR 5,000-25,000/post) and how to find verified micro-creators.',
     date: '2025-12-27',
     author: 'Infoishai Team',
     category: 'Strategy',
@@ -285,7 +285,7 @@ const blogPosts: BlogPost[] = [
   },
   {
     id: '2',
-    title: 'Free Instagram Hashtag Generator — Get Viral Hashtags in Seconds',
+    title: 'Free Instagram Hashtag Generator: Get Viral Hashtags in Seconds',
     excerpt: "Generate AI-powered Instagram hashtags for Posts, Reels & Stories. Free forever, no signup required. Updated for Instagram's 2026 limit of 5 hashtags per post.",
     date: '2026-10-27',
     author: 'Infoishai Team',
@@ -298,7 +298,7 @@ const blogPosts: BlogPost[] = [
   },
   {
     id: '3',
-    title: 'Free Instagram Profile Analyzer — Spot Fake Influencers Instantly',
+    title: 'Free Instagram Profile Analyzer: Spot Fake Influencers Instantly',
     excerpt: 'Analyze any Instagram profile for free. Check engagement rates, detect fake followers, and verify influencers before you pay. Complete guide for Pakistani brands.',
     date: '2026-10-27',
     author: 'Infoishai Team',
@@ -335,8 +335,8 @@ const blogPosts: BlogPost[] = [
   },
   {
     id: '6',
-    title: 'AI Tool That Help Pakistani Brands Find Influencers 10x Faster',
-    excerpt: 'Still manually scrolling Instagram to find influencers? Pakistani brands are switching to AI-powered tools that discover verified creators in seconds — not hours.',
+    title: 'AI Tool That Help Pakistani Brands Find Influencers Faster',
+    excerpt: 'Still manually scrolling Instagram to find influencers? Pakistani brands are switching to AI-powered tools that discover verified creators in seconds, not hours.',
     date: '2024-12-20',
     author: 'Laiba Razzaq',
     category: 'Technology',

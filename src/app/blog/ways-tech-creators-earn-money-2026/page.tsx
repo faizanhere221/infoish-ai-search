@@ -106,7 +106,7 @@ const streams: IncomeStream[] = [
     minAudience: 'None (works at any size)',
     timeToFirstDollar: '1 to 4 weeks',
     body: [
-      'Affiliate marketing pays you a commission every time someone signs up for a product through your unique referral link. You review a SaaS tool, include your affiliate link, and earn 15 to 30% of the subscription fee — often recurring monthly for the customer\'s lifetime.',
+      'Affiliate marketing pays you a commission every time someone signs up for a product through your unique referral link. You review a SaaS tool, include your affiliate link, and earn 15 to 30% of the subscription fee, often recurring monthly for the customer\'s lifetime.',
       'The math compounds. Refer 50 paying customers at $50/month with a 20% commission and you earn $500/month in passive income from one product. Promote 5 similar products and affiliate income alone reaches $2,500/month.',
       'Strong tech affiliate programmes: hosting platforms (20-30% commissions), SaaS tools (15-25%), design software (10-20%), developer platforms (15-30%), and online course platforms (20-40%).',
       'Start here: sign up for affiliate programmes from 3 to 5 tools you already use and recommend, and add links to your existing content. No minimum audience required.',
@@ -120,7 +120,7 @@ const streams: IncomeStream[] = [
     minAudience: '5K to 10K engaged followers',
     timeToFirstDollar: '2 to 8 weeks',
     body: [
-      'The most visible income stream. A brand pays you a flat fee to create content featuring their product — dedicated YouTube reviews, LinkedIn posts, Twitter/X threads, Instagram Reels, newsletter mentions, and podcast spots all qualify.',
+      'The most visible income stream. A brand pays you a flat fee to create content featuring their product: dedicated YouTube reviews, LinkedIn posts, Twitter/X threads, Instagram Reels, newsletter mentions, and podcast spots all qualify.',
       'Rates for tech creators in 2026 range from $500 (micro-influencer YouTube video) to $25,000+ (top-tier dedicated review). Mid-tier creators with 50K-200K subscribers earn $2,000-$5,000 per YouTube sponsorship.',
       'Two paths exist: inbound (brands find you) and outbound (you pitch brands). Most creators start with outbound and shift to inbound as their channel grows.',
     ],
@@ -147,7 +147,7 @@ const streams: IncomeStream[] = [
     minAudience: '1,000 email subscribers',
     timeToFirstDollar: '2 to 4 weeks (after building a list)',
     body: [
-      'Tech newsletters are one of the highest-value formats — every reader opted in, and open rates of 35-50% are standard for curated tech newsletters.',
+      'Tech newsletters are one of the highest-value formats. Every reader opted in, so a sponsor reaches people who chose to hear from you.',
       'Sponsorship model: keep the newsletter free and sell sponsorship slots. A newsletter with 5,000 subscribers charges $300-$600 per sponsored mention; weekly with one sponsor per issue generates $1,200-$2,400/month.',
       'Subscription model: charge readers directly, $5-$15/month or $50-$150/year. 200 paying subscribers at $10/month generates $2,000/month. Substack, Beehiiv, and ConvertKit all support paid subscriptions.',
       'Start a free newsletter, build to 1,000 subscribers, then add sponsorships or a paid tier. The email list is an asset you own, unlike social media followers.',
@@ -164,7 +164,7 @@ const streams: IncomeStream[] = [
       'Your audience follows you because you know something they want to learn. Package that knowledge into a course, template pack, or digital guide and sell it directly.',
       'Tech course topics that sell well: full-stack app development ($49-$199), data science bootcamps ($79-$299), DevOps fundamentals ($99-$249), freelancing playbooks ($29-$99).',
       'Sell through Gumroad, Teachable, Udemy, or your own website. A creator with 50K subscribers converting 0.5% of viewers at $99 sells 250 courses for $24,750 in revenue.',
-      'Digital products (templates, cheat sheets, boilerplates, Notion templates) sell at lower price points ($9-$49) but require less production effort — 100 copies/month at $19 generates $1,900/month.',
+      'Digital products (templates, cheat sheets, boilerplates, Notion templates) sell at lower price points ($9-$49) but require less production effort: 100 copies/month at $19 generates $1,900/month.',
     ],
   },
   {
@@ -175,7 +175,7 @@ const streams: IncomeStream[] = [
     minAudience: '10,000 followers (credibility threshold)',
     timeToFirstDollar: '1 to 2 weeks (if positioned correctly)',
     body: [
-      'As your reputation grows, companies hire you for more than content — they hire you for your expertise.',
+      'As your reputation grows, companies hire you for more than content. They hire you for your expertise.',
       'Formats: one-on-one advisory calls ($100-$500/hour), product feedback sessions ($500-$2,000/session), developer advocacy retainers ($2,000-$5,000/month), startup advisory roles ($1,000-$3,000/month plus equity).',
       '4 advisory calls per month at $300/hour earns $1,200/month from a few hours of work. 2 advisory retainers at $2,000/month earns $4,000/month.',
       'Consulting income scales with reputation, not audience size. A creator with 15K highly engaged followers in a specialised niche commands higher rates than a general creator with 200K followers.',
@@ -191,7 +191,7 @@ const streams: IncomeStream[] = [
     body: [
       'Community-funded models let your audience support you directly. GitHub Sponsors works for developers sharing open-source code, tools, or educational resources. Patreon and Buy Me a Coffee work for broader tech content.',
       'Offer tiers: $3/month for early access, $10/month for exclusive tutorials, $25/month for monthly Q&A calls. 200 supporters at an average of $8/month earns $1,600/month.',
-      'Works best for creators who build personal relationships with their audience — an active comment section and a connected viewer base generate meaningful income.',
+      'Works best for creators who build personal relationships with their audience. An active comment section and a connected viewer base generate meaningful income.',
     ],
   },
   {
@@ -205,7 +205,7 @@ const streams: IncomeStream[] = [
       'Tech conferences, corporate events, and webinars pay speakers. As a creator with an established audience, you bring both expertise and an audience to the event.',
       'Speaking fees: local meetups and webinars ($0-$500), regional conferences ($500-$2,000), national conferences ($2,000-$5,000), corporate keynotes ($5,000-$15,000).',
       'Start with free speaking at local meetups and virtual events, build a portfolio, and pitch paid conferences after 3-5 appearances.',
-      'Speaking income is episodic, not recurring — use it to grow your audience and attract sponsorship leads rather than as a primary income stream.',
+      'Speaking income is episodic, not recurring: use it to grow your audience and attract sponsorship leads rather than as a primary income stream.',
     ],
   },
   {
@@ -217,7 +217,7 @@ const streams: IncomeStream[] = [
     timeToFirstDollar: 'Variable',
     body: [
       'Brands and media companies pay to reuse your content on their own channels. A brand sponsoring a YouTube review may pay an additional $500-$2,000 for the right to use clips on their website, social channels, or paid ads.',
-      'Content licensing adds income without additional production work — the content already exists, and you sell permission to use it in new contexts.',
+      'Content licensing adds income without additional production work. The content already exists, and you sell permission to use it in new contexts.',
       'Negotiate licensing terms upfront. Many creators include basic licensing in the sponsorship fee; charging separately for extended usage rights (paid ads, website embeds, email campaigns) adds 20-50% on top of the base fee.',
     ],
   },
@@ -229,18 +229,18 @@ const streams: IncomeStream[] = [
     minAudience: '10,000 followers',
     timeToFirstDollar: '2 to 6 months (development time)',
     body: [
-      'Some tech creators build and sell their own software products — the highest-ceiling income stream, but it requires development skills and significant time investment.',
+      'Some tech creators build and sell their own software products. This is the highest-ceiling income stream, but it requires development skills and significant time investment.',
       'Examples: a web dev creator builds a boilerplate template marketplace, a productivity creator builds a Notion integration, an AI-tools creator builds a custom AI wrapper product.',
       'Your existing audience is your distribution channel. A creator with 100K subscribers launching a $29/month tool converting 0.5% of their audience gets 500 paying customers and $14,500/month in recurring revenue.',
-      'This model combines creator income with startup income — the audience replaces paid marketing, and the product generates recurring revenue independent of content production.',
+      'This model combines creator income with startup income. The audience replaces paid marketing, and the product generates recurring revenue independent of content production.',
     ],
   },
 ]
 
 const stackProgression = [
-  { range: '0 - 5K followers', description: 'Start with affiliates (stream 1). Sign up for 3-5 affiliate programmes and add links to all content — your first creator income with zero minimum audience.' },
+  { range: '0 - 5K followers', description: 'Start with affiliates (stream 1). Sign up for 3-5 affiliate programmes and add links to all content. This is your first creator income, with no minimum audience.' },
   { range: '5K - 20K followers', description: 'Add brand sponsorships (stream 2) and YouTube ad revenue (stream 3). Create an Infoishai profile to receive inbound sponsorship inquiries.' },
-  { range: '20K - 50K followers', description: 'Add a paid newsletter (stream 4) or a digital product (stream 5) — start building assets that generate income independent of individual content pieces.' },
+  { range: '20K - 50K followers', description: 'Add a paid newsletter (stream 4) or a digital product (stream 5): start building assets that generate income independent of individual content pieces.' },
   { range: '50K - 100K followers', description: 'Add consulting (stream 6) and community funding (stream 7). Your reputation now supports premium-priced services.' },
   { range: '100K+ followers', description: 'Add speaking (stream 8), licensing (stream 9), and consider building your own tool (stream 10). Your brand and audience support diversified income across 5+ streams.' },
 ]
@@ -313,7 +313,7 @@ export default function WaysTechCreatorsEarnMoneyPage() {
               Tech content creation is a career. Not a hobby with occasional perks. Creators who treat the work professionally build multiple income streams generating $3,000 to $50,000+ per month.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              The key word is &quot;multiple.&quot; The highest-earning tech creators do not rely on one source. They combine 3 to 5 income streams so no single source accounts for more than 40% of their total revenue. If a brand pauses sponsorships for a quarter, affiliate income and newsletter revenue keep the bills paid. Here are 10 ways tech creators earn money in 2026, ranked by accessibility (easiest to start first).
+              The key word is &quot;multiple.&quot; Successful tech creators rarely rely on one source. They combine several income streams so no single source accounts for more than 40% of their total revenue. If a brand pauses sponsorships for a quarter, affiliate income and newsletter revenue keep the bills paid. Here are 10 ways tech creators earn money in 2026, ranked by accessibility (easiest to start first).
             </p>
           </section>
 
@@ -350,7 +350,7 @@ export default function WaysTechCreatorsEarnMoneyPage() {
                   {stream.number === 2 && (
                     <p className="text-gray-700 leading-relaxed mt-3">
                       To accelerate inbound deals, create a profile on{' '}
-                      <Link href="/signup/creator" className="text-blue-600 hover:text-blue-700 font-medium">Infoishai</Link>. Brands search for creators by niche, platform, and audience size — your profile appears when a brand looks for someone in your category, and you receive direct messages with campaign details and budgets. No pitching required. For rate benchmarks, read{' '}
+                      <Link href="/signup/creator" className="text-blue-600 hover:text-blue-700 font-medium">Infoishai</Link>. Brands search for creators by niche, platform, and audience size. Your profile appears when a brand looks for someone in your category, and you receive direct messages with campaign details and budgets. No pitching required. For rate benchmarks, read{' '}
                       <Link href="/blog/tech-creator-sponsorship-rates-2026" className="text-blue-600 hover:text-blue-700 font-medium">
                         How Much Should Tech Creators Charge for Sponsorships?
                       </Link>, and for step-by-step guidance, read{' '}

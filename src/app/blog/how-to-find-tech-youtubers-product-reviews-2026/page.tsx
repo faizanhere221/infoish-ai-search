@@ -94,7 +94,7 @@ const faqSchema = {
       name: 'Why is YouTube the best platform for tech product reviews?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "YouTube videos rank on both YouTube search and Google search, giving your product review dual discoverability. Videos compound over time, generating views for 12 to 18 months. The long-form format (8-20 minutes) allows detailed product demonstrations that short-form platforms cannot match. 72% of tech buyers watch YouTube reviews before making purchase decisions."
+        text: "YouTube videos rank on both YouTube search and Google search, giving your product review dual discoverability. Videos keep getting views for months after they go live. The long-form format (8-20 minutes) allows detailed product demonstrations that short-form platforms cannot match. In a 2023 Gartner survey of B2B buyers, YouTube was the social media channel buyers most often said influenced a recent purchase."
       }
     },
     {
@@ -111,18 +111,18 @@ const faqSchema = {
 const vettingChecks = [
   { title: 'Average views per video, not subscriber count', description: 'A channel with 200K subscribers averaging 5,000 views per video is underperforming. A channel with 40K subscribers averaging 20,000 views is overperforming. Look at the last 10-15 videos and calculate the average.' },
   { title: 'Views on review content specifically', description: "Some YouTubers get high views on tutorials but low views on reviews. If review videos underperform compared to the channel average, the audience resists sponsored content." },
-  { title: 'Likes-to-views ratio', description: 'A healthy ratio is 4-8 likes per 100 views. Below 2% signals low engagement. This ratio correlates with how actively the audience acts on recommendations.' },
+  { title: 'Likes-to-views ratio', description: 'Compare it with the creator&apos;s own recent videos and with similar channels. A ratio well below similar channels signals low engagement.' },
   { title: 'Comment quality', description: 'Open the last 5 review videos and read the top 20 comments on each. "Where do I sign up" beats "another sponsored video."' },
   { title: 'Upload frequency', description: 'A creator posting weekly has a more engaged, returning audience than one posting monthly. Consistent schedules keep subscribers active.' },
-  { title: 'Content relevance', description: 'Watch 3-5 videos. Niche alignment matters more than channel size — a creator reviewing 15 SaaS tools beats a large general-tech channel for a SaaS product.' },
+  { title: 'Content relevance', description: 'Watch 3-5 videos. Niche alignment matters more than channel size: a creator reviewing 15 SaaS tools beats a large general-tech channel for a SaaS product.' },
   { title: 'Audience demographics', description: 'Ask for YouTube Studio analytics screenshots: audience location, age, and gender split. Do not assume demographics based on the creator\'s home country.' },
 ]
 
 const countryData = [
   { name: 'USA', description: 'The largest volume of English-language tech content and the pricing benchmark for the industry. Best for targeting the American market or building global brand awareness.', href: '/influencers/usa' },
-  { name: 'Canada', description: 'Among the strongest performers on Infoishai — North American audience reach at 20-25% lower rates than US creators, often with a mixed US/Canadian audience.', href: '/influencers/canada' },
+  { name: 'Canada', description: 'A good value option: North American audience reach at 20-25% lower rates than US creators, often with a mixed US/Canadian audience.', href: '/influencers/canada' },
   { name: 'UK', description: 'Reaches the European market through English-language content. Strong in fintech, SaaS, and developer niches, at rates 15-20% below US equivalents.', href: '/influencers/uk' },
-  { name: 'India', description: "YouTube's largest market by user count. Rates are 70-80% below US equivalents, with both English and Hindi content available. A $2,000 budget buys 8-10 creator partnerships.", href: '/influencers/india' },
+  { name: 'India', description: "A very large YouTube audience. Rates are 70-80% below US equivalents, with both English and Hindi content available. A $2,000 budget buys 8-10 creator partnerships.", href: '/influencers/india' },
   { name: 'Pakistan', description: 'The lowest rates in any English-speaking market (80-90% below US). Strong in freelancing, coding education, and career content.', href: '/influencers/pakistan' },
   { name: 'Australia', description: 'Bridges Western and APAC markets with audiences spanning Australia, New Zealand, and Southeast Asia. Rates comparable to UK levels.', href: '/influencers/australia' },
 ]
@@ -137,7 +137,7 @@ const rateTiers = [
 const mistakes = [
   { title: 'Choosing by subscriber count alone', description: 'A 500K-subscriber channel averaging 3,000 views per video delivers less reach than a 40K-subscriber channel averaging 25,000 views. Always check average views, not the subscriber number on the channel page.' },
   { title: 'Requiring a script', description: 'Tech audiences detect scripted content within 10 seconds. Watch time drops, comments turn negative, and the algorithm suppresses the video. Give talking points, not a script.' },
-  { title: 'Expecting results in 7 days', description: 'A review generating 50 signups in week one often generates 300 more over the next 6 months. Evaluating performance at day 7 misses 80% of the value.' },
+  { title: 'Expecting results in 7 days', description: 'A review keeps sending signups for months, so judging it at day 7 misses most of its value.' },
   { title: 'Skipping competitor research', description: 'If competitors have YouTube reviews and you do not, you lose every comparison search. "Product A vs Product B" queries surface only their review.' },
   { title: 'Sending mass outreach', description: 'Tech YouTubers talk to each other. Identical emails to multiple creators in the same niche on the same day get shared and mocked publicly. Personalise every message.' },
 ]
@@ -204,7 +204,7 @@ export default function TechYoutubersProductReviewsPage() {
           </h1>
 
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            72% of B2B software buyers watch a YouTube review before purchasing. Here is how to find, vet, and hire the right tech YouTuber to review your product.
+            B2B buyers turn to YouTube before they buy. Here is how to find, vet, and hire the right tech YouTuber to review your product.
           </p>
 
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">
@@ -229,7 +229,7 @@ export default function TechYoutubersProductReviewsPage() {
           {/* Intro */}
           <section className="mb-12">
             <p className="text-gray-700 leading-relaxed mb-6">
-              YouTube is where tech buyers go before they buy. 72% of B2B software buyers watch at least one YouTube review before making a purchase decision. For consumer tech products, the number is higher.
+              YouTube is where tech buyers go before they buy. In a <a href="https://www.gartner.com/en/newsroom/press-releases/2023-06-08-gartner-marketing-survey-finds-b2b-buyers-value-third-party-interactions-more-than-digital-supplier-interactions" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 font-medium">2023 Gartner survey</a> of B2B buyers, YouTube was the social media channel most often cited as influencing a recent purchase decision.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
               A product review from a trusted tech YouTuber does something no ad does. The creator installs your product, walks through the setup, tests features live on camera, and shares honest opinions. The viewer watches 10 to 15 minutes of unscripted demonstration and makes a decision based on what they saw.
@@ -256,7 +256,7 @@ export default function TechYoutubersProductReviewsPage() {
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Depth of demonstration</h3>
-                <p className="text-gray-700">A 30-second ad cannot show how a developer tool works. A 12-minute review can. The viewer sees the product installed, configured, and tested in a real workflow — shortening sales cycles and reducing churn because users arrive with realistic expectations.</p>
+                <p className="text-gray-700">A 30-second ad cannot show how a developer tool works. A 12-minute review can. The viewer sees the product installed, configured, and tested in a real workflow, shortening sales cycles and reducing churn because users arrive with realistic expectations.</p>
               </div>
             </div>
             <p className="text-gray-700 leading-relaxed mt-6">
@@ -309,7 +309,7 @@ export default function TechYoutubersProductReviewsPage() {
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Influencer marketplaces</h3>
-                <p className="text-gray-700">On Infoishai, filter tech YouTubers by niche, country, subscriber count, and engagement rate — narrowing thousands of channels to a shortlist in minutes.</p>
+                <p className="text-gray-700">On Infoishai, filter tech YouTubers by niche, country, subscriber count, and engagement rate, narrowing thousands of channels to a shortlist in minutes.</p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Competitor analysis</h3>
@@ -317,11 +317,11 @@ export default function TechYoutubersProductReviewsPage() {
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Recommended sidebar</h3>
-                <p className="text-gray-700">Watch a review in your niche and check the recommended sidebar — this reveals mid-tier and smaller channels search alone would miss.</p>
+                <p className="text-gray-700">Watch a review in your niche and check the recommended sidebar. This reveals mid-tier and smaller channels search alone would miss.</p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border md:col-span-2">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Community recommendations</h3>
-                <p className="text-gray-700">Post in relevant subreddits, Slack, or Discord communities asking for tech YouTuber recommendations — a pre-vetted list with built-in social proof.</p>
+                <p className="text-gray-700">Post in relevant subreddits, Slack, or Discord communities asking for tech YouTuber recommendations. You get a pre-vetted list with built-in social proof.</p>
               </div>
             </div>
             <p className="text-gray-700 leading-relaxed mt-6">
@@ -341,7 +341,7 @@ export default function TechYoutubersProductReviewsPage() {
                 {vettingChecks.map((check, i) => (
                   <li key={check.title} className="flex items-start gap-3">
                     <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700"><strong>Check {i + 1} — {check.title}:</strong> {check.description}</span>
+                    <span className="text-gray-700"><strong>{i + 1}. {check.title}:</strong> {check.description}</span>
                   </li>
                 ))}
               </ul>
@@ -408,7 +408,7 @@ export default function TechYoutubersProductReviewsPage() {
               </table>
             </div>
             <p className="text-gray-700 leading-relaxed mb-2">
-              Integration/mention rates: 25 to 35% of dedicated video rates. YouTube Shorts rates: 20 to 40% of long-form video rates.
+              Integration/mention rates: 25 to 35% of dedicated video rates. YouTube Shorts rates: 20 to 40% of long-form video rates. These are Infoishai editorial estimates, not survey data, so confirm each creator&apos;s rate card.
             </p>
             <p className="text-gray-700 leading-relaxed">
               For the complete rate guide covering all platforms and 9 countries, read{' '}
@@ -443,7 +443,7 @@ Here is a link to the product: [URL]. Happy to set up a demo or a free account s
 [Website]`}
             </div>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Three rules for outreach to tech YouTubers. First, reference a specific video to prove you watched their content. Second, state the budget upfront — YouTubers ignore emails without budget ranges. Third, offer product access before commitment to reduce their risk.
+              Three rules for outreach to tech YouTubers. First, reference a specific video to prove you watched their content. Second, state the budget upfront. YouTubers ignore emails without budget ranges. Third, offer product access before commitment to reduce their risk.
             </p>
             <p className="text-gray-700 leading-relaxed">
               Send outreach from a company email domain, not Gmail or Yahoo. Follow up once after 7 days; no response means the creator is not interested.
@@ -479,7 +479,7 @@ Here is a link to the product: [URL]. Happy to set up a demo or a free account s
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700"><strong>What not to say:</strong> do not ask the creator to hide the sponsorship, avoid competitors, or follow a word-for-word script — audiences detect scripted content and the algorithm buries it.</span>
+                  <span className="text-gray-700"><strong>What not to say:</strong> do not ask the creator to hide the sponsorship, avoid competitors, or follow a word-for-word script. Audiences detect scripted content and the algorithm buries it.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -509,7 +509,7 @@ Here is a link to the product: [URL]. Happy to set up a demo or a free account s
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">At 90-180 days</h3>
-                <p className="text-gray-700 text-sm">Cumulative signups, ongoing daily views, and search ranking. Reviews generate 40-60% of total signups after the first 30 days.</p>
+                <p className="text-gray-700 text-sm">Cumulative signups, ongoing daily views, and search ranking. Reviews keep generating signups well after the first 30 days.</p>
               </div>
             </div>
             <p className="text-gray-700 leading-relaxed mt-6">
@@ -538,7 +538,7 @@ Here is a link to the product: [URL]. Happy to set up a demo or a free account s
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700"><strong>Create a creator advisory board.</strong> Share your roadmap with top performers in a private Slack channel or quarterly call — creators who feel like insiders produce better content.</span>
+                  <span className="text-gray-700"><strong>Create a creator advisory board.</strong> Share your roadmap with top performers in a private Slack channel or quarterly call. Creators who feel like insiders produce better content.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -570,7 +570,7 @@ Here is a link to the product: [URL]. Happy to set up a demo or a free account s
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Start Finding Tech YouTubers Today</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              YouTube is the highest-ROI channel for tech product reviews. The content compounds for over a year, the audience arrives pre-educated, and the format allows demonstrations no other platform supports.
+              YouTube is a strong channel for tech product reviews. The content compounds for over a year, the audience arrives pre-educated, and the format allows demonstrations no other platform supports.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
               Browse verified tech YouTubers on Infoishai. Filter by niche, country, subscriber count, and engagement rate in the{' '}
@@ -607,7 +607,7 @@ Here is a link to the product: [URL]. Happy to set up a demo or a free account s
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Why is YouTube the best platform for tech product reviews?</h3>
                 <p className="text-gray-700">
-                  YouTube videos rank on both YouTube search and Google search, giving your product review dual discoverability. Videos compound over time, generating views for 12 to 18 months. The long-form format (8-20 minutes) allows detailed product demonstrations that short-form platforms cannot match. 72% of tech buyers watch YouTube reviews before making purchase decisions.
+                  YouTube videos rank on both YouTube search and Google search, giving your product review dual discoverability. Videos keep getting views for months after they go live. The long-form format (8-20 minutes) allows detailed product demonstrations that short-form platforms cannot match. In a 2023 Gartner survey of B2B buyers, YouTube was the social media channel buyers most often said influenced a recent purchase.
                 </p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">

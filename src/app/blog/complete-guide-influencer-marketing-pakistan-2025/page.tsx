@@ -102,7 +102,7 @@ export default function CompleteGuideInfluencerMarketing() {
           </h1>
 
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            From finding the right creators to measuring ROI — everything Pakistani brands need to know about influencer marketing in 2026. Includes real budgets, platform comparisons, and proven strategies.
+            From finding the right creators to measuring ROI, here is everything Pakistani brands need to know about influencer marketing in 2026. Includes real budgets, platform comparisons, and proven strategies.
           </p>
           
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">
@@ -175,7 +175,7 @@ export default function CompleteGuideInfluencerMarketing() {
                   <span className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">3</span>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Affordable Marketing</h3>
-                    <p className="text-gray-700">Affordable influencer marketing in Pakistan offers a much higher ROI.</p>
+                    <p className="text-gray-700">Influencer rates in Pakistan are lower than in Western markets, so a fixed budget covers more creators.</p>
                   </div>
                 </li>
                 
@@ -197,7 +197,7 @@ export default function CompleteGuideInfluencerMarketing() {
               A sponsored Instagram post in Pakistan costs PKR 5,000 to PKR 10,000 at 10K to 25K followers and PKR 20,000 to PKR 40,000 at 50K to 100K. Celebrity creators with 1M+ followers start at PKR 300,000 per post, and Reels from top creators pass PKR 5,00,000.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
-              These are typical ranges based on publicly available rate cards and industry reports. Actual quotes vary by niche, city, and content format.
+              These are Infoishai editorial estimates, not survey data. Actual quotes vary by niche, city, and content format.
             </p>
 
             <div className="overflow-x-auto mb-8">
@@ -342,7 +342,7 @@ export default function CompleteGuideInfluencerMarketing() {
               
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                 <p className="text-blue-900 leading-relaxed">
-                  Want the full breakdown on <Link href="/blog/find-right-pakistani-influencers-brand" className="text-blue-700 hover:text-blue-800 font-semibold underline">how to find Pakistani influencers</Link>? Tools like Infoishai can simplify it — <Link href="/creators" className="text-blue-700 hover:text-blue-800 font-semibold underline">browse tech influencers</Link> filtered by category, city, and platform, or go straight to the <Link href="/influencers/pakistan" className="text-blue-700 hover:text-blue-800 font-semibold underline">Pakistan tech influencer directory</Link>.
+                  Want the full breakdown on <Link href="/blog/find-right-pakistani-influencers-brand" className="text-blue-700 hover:text-blue-800 font-semibold underline">how to find Pakistani influencers</Link>? Tools like Infoishai can simplify it: <Link href="/creators" className="text-blue-700 hover:text-blue-800 font-semibold underline">browse tech influencers</Link> filtered by category, city, and platform, or go straight to the <Link href="/influencers/pakistan" className="text-blue-700 hover:text-blue-800 font-semibold underline">Pakistan tech influencer directory</Link>.
                 </p>
               </div>
             </div>

@@ -75,7 +75,7 @@ const faqSchema = {
       name: 'Does influencer marketing work for B2B tech companies?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. 72% of B2B marketers report positive ROI from influencer marketing. B2B tech brands use creators for product reviews, tutorials, and thought leadership content that educates buyers and shortens sales cycles.'
+        text: 'Yes. B2B tech brands use creators for product reviews, tutorials, and thought leadership content that educates buyers and shortens sales cycles.'
       }
     },
     {
@@ -129,7 +129,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
           </h1>
 
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            B2B and B2C influencer marketing work differently for tech brands. Compare strategies, budgets, platforms, and ROI metrics — a data-backed guide with examples.
+            B2B and B2C influencer marketing work differently for tech brands. Compare strategies, budgets, platforms, and ROI metrics, with examples.
           </p>
 
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8">
@@ -157,7 +157,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
               Tech companies sell to two types of buyers: businesses and consumers. A cloud hosting provider sells to CTOs and engineering managers. A note-taking app sells to students and individual users. Some companies sell to both.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              The approach to influencer marketing changes based on who you sell to. B2B influencer marketing and B2C influencer marketing share the same principle — partnering with trusted creators to reach your audience — but the execution looks different at every level: the platforms, the content formats, the metrics, the budgets, and the timelines. This guide breaks down both approaches side by side, so you know which strategy fits your tech product and how to run each type effectively.
+              The approach to influencer marketing changes based on who you sell to. B2B influencer marketing and B2C influencer marketing share the same principle, partnering with trusted creators to reach your audience, but the execution looks different at every level: the platforms, the content formats, the metrics, the budgets, and the timelines. This guide breaks down both approaches side by side, so you know which strategy fits your tech product and how to run each type effectively.
             </p>
           </section>
 
@@ -203,7 +203,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
               <div className="space-y-5">
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-1">YouTube</h4>
-                  <p className="text-gray-700">The top platform for B2B tech. Long-form product reviews, tutorials, and comparison videos reach thousands of decision-makers, and rank on Google — driving organic traffic for months after a sponsored review goes live.</p>
+                  <p className="text-gray-700">The top platform for B2B tech. Long-form product reviews, tutorials, and comparison videos reach thousands of decision-makers, and rank on Google, driving organic traffic for months after a sponsored review goes live.</p>
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-1">LinkedIn</h4>
@@ -211,7 +211,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-1">Newsletters</h4>
-                  <p className="text-gray-700">Underused and highly effective. Tech newsletters with 5K-50K subscribers have open rates between 30% and 50%. A mention reaches engaged professionals who trust the curator.</p>
+                  <p className="text-gray-700">Underused and effective. Every reader opted in, so a mention reaches engaged professionals who trust the curator.</p>
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-1">Podcasts</h4>
@@ -229,11 +229,11 @@ export default function B2BvsB2CInfluencerMarketingPage() {
               <div className="space-y-5">
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-1">TikTok</h4>
-                  <p className="text-gray-700">Drives the highest volume for B2C tech products in 2026. Short videos showing app features and quick results reach millions, and the platform favors accounts of all sizes, making micro-influencer campaigns cost-effective.</p>
+                  <p className="text-gray-700">Drives high volume for B2C tech products. Short videos showing app features and quick results reach millions, and the platform favors accounts of all sizes, making micro-influencer campaigns cost-effective.</p>
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-1">Instagram</h4>
-                  <p className="text-gray-700">Works well for visually oriented tech products — photo and video editing apps, design tools, and lifestyle-adjacent tech — via Reels and Stories.</p>
+                  <p className="text-gray-700">Works well for visually oriented tech products (photo and video editing apps, design tools, and lifestyle-adjacent tech) via Reels and Stories.</p>
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-1">YouTube Shorts &amp; long-form</h4>
@@ -241,7 +241,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-1">Twitter/X</h4>
-                  <p className="text-gray-700">Works for B2C tech products with strong community appeal — apps, games, and browser extensions spread through viral tweets and recommendation threads.</p>
+                  <p className="text-gray-700">Works for B2C tech products with strong community appeal: apps, games, and browser extensions spread through viral tweets and recommendation threads.</p>
                 </div>
               </div>
             </div>
@@ -264,7 +264,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-800"><strong>Case studies:</strong> The creator explains how they used your product to solve a specific problem and shares the results — answering the &quot;does this work in the real world&quot; question.</span>
+                  <span className="text-gray-800"><strong>Case studies:</strong> The creator explains how they used your product to solve a specific problem and shares the results, answering the &quot;does this work in the real world&quot; question.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -278,7 +278,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-800"><strong>Short-form demos:</strong> The app in action in 30-60 seconds — no lengthy explanations, just the result and a download link.</span>
+                  <span className="text-gray-800"><strong>Short-form demos:</strong> The app in action in 30-60 seconds, no lengthy explanations, just the result and a download link.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
@@ -290,7 +290,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-800"><strong>Unboxing and first impressions:</strong> Works for consumer hardware and gadgets — the creator&apos;s genuine reaction drives purchasing decisions.</span>
+                  <span className="text-gray-800"><strong>Unboxing and first impressions:</strong> Works for consumer hardware and gadgets. The creator&apos;s genuine reaction drives purchasing decisions.</span>
                 </li>
               </ul>
             </div>
@@ -386,7 +386,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
 
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
               <p className="text-gray-800">
-                B2C campaigns often involve more creators at lower individual rates. A B2C brand sending a product to 20 micro-influencers at $200 each spends $4,000 and gets 20 pieces of content across multiple platforms. A B2B brand spending $4,000 on one detailed YouTube review gets one piece of content with a longer shelf life. Both models deliver ROI — the math depends on your product price, sales cycle, and customer lifetime value.
+                B2C campaigns often involve more creators at lower individual rates. A B2C brand sending a product to 20 micro-influencers at $200 each spends $4,000 and gets 20 pieces of content across multiple platforms. A B2B brand spending $4,000 on one detailed YouTube review gets one piece of content with a longer shelf life. Both models deliver ROI. The math depends on your product price, sales cycle, and customer lifetime value.
               </p>
             </div>
           </section>
@@ -405,10 +405,10 @@ export default function B2BvsB2CInfluencerMarketingPage() {
                   B2B Metrics
                 </h3>
                 <ul className="space-y-2 text-gray-700 text-sm">
-                  <li><strong>Demo requests / trial signups</strong> — tracked via UTM links and unique promo codes per creator.</li>
-                  <li><strong>Sales pipeline influence</strong> — tag leads from influencer campaigns in your CRM and track progression.</li>
-                  <li><strong>Content engagement quality</strong> — a 45% average watch time beats raw view count.</li>
-                  <li><strong>Cost per qualified lead</strong> — $50-$200 through influencer marketing is competitive for B2B tech.</li>
+                  <li><strong>Demo requests / trial signups</strong>: tracked via UTM links and unique promo codes per creator.</li>
+                  <li><strong>Sales pipeline influence</strong>: tag leads from influencer campaigns in your CRM and track progression.</li>
+                  <li><strong>Content engagement quality</strong>: a high average watch time beats a raw view count.</li>
+                  <li><strong>Cost per qualified lead</strong>: compare it with what your other B2B channels cost per qualified lead.</li>
                 </ul>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
@@ -417,10 +417,10 @@ export default function B2BvsB2CInfluencerMarketingPage() {
                   B2C Metrics
                 </h3>
                 <ul className="space-y-2 text-gray-700 text-sm">
-                  <li><strong>App downloads / signups</strong> — tracked via platform-specific links and referral codes.</li>
-                  <li><strong>Reach and impressions</strong> — matter more since the conversion funnel is shorter.</li>
-                  <li><strong>Cost per install / acquisition</strong> — $1-$5 per install is strong for B2C tech apps.</li>
-                  <li><strong>Social engagement</strong> — likes, shares, comments, and saves indicate content resonance.</li>
+                  <li><strong>App downloads / signups</strong>: tracked via platform-specific links and referral codes.</li>
+                  <li><strong>Reach and impressions</strong>: these matter more since the conversion funnel is shorter.</li>
+                  <li><strong>Cost per install / acquisition</strong>: compare it with your paid acquisition cost per install.</li>
+                  <li><strong>Social engagement</strong>: likes, shares, comments, and saves indicate content resonance.</li>
                 </ul>
               </div>
             </div>
@@ -435,7 +435,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Choosing B2B Tech Influencers</h3>
                 <ul className="list-disc list-inside text-gray-700 space-y-1 ml-2">
                   <li><strong>Domain expertise:</strong> a creator who has reviewed 30 SaaS tools carries more authority than a first-timer.</li>
-                  <li><strong>Audience composition:</strong> developers, marketers, founders, engineers, or product managers — ask for demographic data.</li>
+                  <li><strong>Audience composition:</strong> developers, marketers, founders, engineers, or product managers. Ask for demographic data.</li>
                   <li><strong>Content depth:</strong> watch past reviews; 3 minutes on surface features won&apos;t convert a buyer who needs detail.</li>
                   <li><strong>Trust over reach:</strong> 15,000 highly engaged followers deliver more pipeline value than 300,000 passive subscribers.</li>
                 </ul>
@@ -504,7 +504,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Getting Started With Your Campaign</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Define your buyer — B2B or B2C. If both, determine which segment drives more revenue and start there.
+              Define your buyer: B2B or B2C. If both, determine which segment drives more revenue and start there.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
               Find creators who match your audience. On{' '}
@@ -525,7 +525,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Does influencer marketing work for B2B tech companies?</h3>
                 <p className="text-gray-700">
-                  Yes. 72% of B2B marketers report positive ROI from influencer marketing. B2B tech brands use creators for product reviews, tutorials, and thought leadership content that educates buyers and shortens sales cycles.
+                  Yes. B2B tech brands use creators for product reviews, tutorials, and thought leadership content that educates buyers and shortens sales cycles.
                 </p>
               </div>
 

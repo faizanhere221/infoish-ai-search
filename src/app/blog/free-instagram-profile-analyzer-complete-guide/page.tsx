@@ -9,7 +9,7 @@ import { Metadata } from 'next'
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: 'Free Instagram Profile Analyzer — Spot Fake Influencers Instantly',
+  title: 'Free Instagram Profile Analyzer: Spot Fake Influencers Instantly',
   description: 'Analyze any Instagram profile for free. Check engagement rates, detect fake followers, and verify influencers before you pay. Complete guide for Pakistani brands.',
   keywords: [
     'instagram profile analyzer',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     'free instagram analyzer'
   ],
   openGraph: {
-    title: 'Free Instagram Profile Analyzer — Spot Fake Influencers Instantly',
+    title: 'Free Instagram Profile Analyzer: Spot Fake Influencers Instantly',
     description: 'Check engagement rates, detect fake followers, and verify influencers before paying. Free tool for Pakistani brands.',
     type: 'article',
     publishedTime: '2025-12-23T00:00:00.000Z',
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free Instagram Profile Analyzer — Spot Fake Influencers',
+    title: 'Free Instagram Profile Analyzer: Spot Fake Influencers',
     description: 'Detect fake followers and verify influencers before you pay. Free for Pakistani brands.',
     images: ['https://infoishai.com/twitter-image.jpg'],
   },
@@ -110,7 +110,7 @@ export default function FreeInstagramProfileAnalyzerGuide() {
           </div>
           
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            Free Instagram Profile Analyzer — Spot Fake Influencers Instantly
+            Free Instagram Profile Analyzer: Spot Fake Influencers Instantly
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
@@ -147,7 +147,7 @@ export default function FreeInstagramProfileAnalyzerGuide() {
             
             <div className="bg-red-50 border-l-4 border-red-500 p-6 mb-6">
               <p className="text-red-900 leading-relaxed font-medium">
-                Publicly available industry reports point to a common pattern: some accounts with more than 50,000 followers show engagement rates under 0.5%. That is a strong sign of bought followers or fake engagement.
+                A common warning sign: a large account whose posts get very few likes and comments for its follower count. That pattern often points to bought followers or fake engagement.
               </p>
             </div>
             
@@ -158,7 +158,7 @@ export default function FreeInstagramProfileAnalyzerGuide() {
 
           {/* What is Engagement Rate */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">What Constitutes Instagram Engagement Rate—and Its Importance</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">What Constitutes Instagram Engagement Rate and Its Importance</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
               <strong>Instagram engagement rate</strong> denotes the extent of interaction between an influencer's audience and their content.
             </p>
@@ -227,7 +227,7 @@ export default function FreeInstagramProfileAnalyzerGuide() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Instagram Engagement Rate Benchmarks (Pakistan)</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              Typical ranges from publicly available industry reports, for accounts with <strong>10k–50k followers</strong>:
+              How to read an engagement rate. Compare the account with similar accounts in the same niche and follower range:
             </p>
             
             {/* Benchmark Table */}
@@ -235,35 +235,35 @@ export default function FreeInstagramProfileAnalyzerGuide() {
               <table className="w-full border-collapse bg-white rounded-lg overflow-hidden shadow-sm">
                 <thead>
                   <tr className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                    <th className="px-6 py-4 text-left font-semibold">Engagement Rate</th>
+                    <th className="px-6 py-4 text-left font-semibold">Engagement vs similar accounts</th>
                     <th className="px-6 py-4 text-left font-semibold">Rating</th>
                     <th className="px-6 py-4 text-left font-semibold">Recommendation</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-b">
-                    <td className="px-6 py-4 font-medium text-gray-900">Below 2%</td>
+                    <td className="px-6 py-4 font-medium text-gray-900">Far below similar accounts</td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">Minimal</span>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">Avoid - likely fake followers</td>
+                    <td className="px-6 py-4 text-gray-600">Check for fake followers before you pay</td>
                   </tr>
                   <tr className="border-b bg-gray-50">
-                    <td className="px-6 py-4 font-medium text-gray-900">2–4%</td>
+                    <td className="px-6 py-4 font-medium text-gray-900">In line with similar accounts</td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">Standard</span>
                     </td>
                     <td className="px-6 py-4 text-gray-600">Average performance</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="px-6 py-4 font-medium text-gray-900">4–6%</td>
+                    <td className="px-6 py-4 font-medium text-gray-900">Above similar accounts</td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">Good</span>
                     </td>
                     <td className="px-6 py-4 text-gray-600">Recommended for campaigns</td>
                   </tr>
                   <tr>
-                    <td className="px-6 py-4 font-medium text-gray-900">6%+</td>
+                    <td className="px-6 py-4 font-medium text-gray-900">Well above similar accounts</td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">Exceptional</span>
                     </td>
@@ -286,19 +286,15 @@ export default function FreeInstagramProfileAnalyzerGuide() {
                 <ul className="space-y-3">
                   <li className="flex justify-between items-center">
                     <span className="text-green-700">Beauty & Makeup</span>
-                    <span className="font-semibold text-green-800">3–6%</span>
                   </li>
                   <li className="flex justify-between items-center">
                     <span className="text-green-700">Food & Cooking</span>
-                    <span className="font-semibold text-green-800">3–6%</span>
                   </li>
                   <li className="flex justify-between items-center">
                     <span className="text-green-700">Fashion</span>
-                    <span className="font-semibold text-green-800">2–5%</span>
                   </li>
                   <li className="flex justify-between items-center">
                     <span className="text-green-700">Fitness</span>
-                    <span className="font-semibold text-green-800">2–5%</span>
                   </li>
                 </ul>
               </div>
@@ -312,19 +308,15 @@ export default function FreeInstagramProfileAnalyzerGuide() {
                 <ul className="space-y-3">
                   <li className="flex justify-between items-center">
                     <span className="text-gray-700">Business & Finance</span>
-                    <span className="font-semibold text-gray-800">0.8–2%</span>
                   </li>
                   <li className="flex justify-between items-center">
                     <span className="text-gray-700">Technology</span>
-                    <span className="font-semibold text-gray-800">1–3%</span>
                   </li>
                   <li className="flex justify-between items-center">
                     <span className="text-gray-700">Education</span>
-                    <span className="font-semibold text-gray-800">1–2.5%</span>
                   </li>
                   <li className="flex justify-between items-center">
                     <span className="text-gray-700">Real Estate</span>
-                    <span className="font-semibold text-gray-800">0.5–1.5%</span>
                   </li>
                 </ul>
               </div>
@@ -332,7 +324,7 @@ export default function FreeInstagramProfileAnalyzerGuide() {
             
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
               <p className="text-blue-900 leading-relaxed">
-                <strong>Pro Tip:</strong> Context is crucial—consistently compare influencers within the same sector for accurate evaluation.
+                <strong>Pro Tip:</strong> Context is crucial: consistently compare influencers within the same sector for accurate evaluation.
               </p>
             </div>
           </section>
@@ -348,7 +340,7 @@ export default function FreeInstagramProfileAnalyzerGuide() {
               {[
                 {
                   number: 1,
-                  title: "Engagement below 1% with over 10k followers",
+                  title: "Very low engagement for the follower count",
                   description: "This serves as a primary warning indicator."
                 },
                 {
@@ -379,12 +371,12 @@ export default function FreeInstagramProfileAnalyzerGuide() {
                 {
                   number: 7,
                   title: "Variable engagement levels",
-                  description: "One post receives 5,000 likes while the next gets just 200—indicative of purchased engagement."
+                  description: "One post receives 5,000 likes while the next gets just 200, a sign of purchased engagement."
                 },
                 {
                   number: 8,
                   title: "Low story views",
-                  description: "Stories should reach between 5-20% of followers."
+                  description: "Story views far below the follower count are a warning sign."
                 },
                 {
                   number: 9,
@@ -482,11 +474,11 @@ export default function FreeInstagramProfileAnalyzerGuide() {
                 <h3 className="text-2xl font-semibold text-gray-900">Assess Engagement Rate</h3>
               </div>
               <p className="text-gray-700 leading-relaxed mb-4">
-                For accounts holding between 10k–50k followers, anything below a rate of 2% is unacceptable.
+                An engagement rate far below similar accounts in the same niche is a red flag.
               </p>
               <div className="flex items-center gap-2 text-green-700 bg-green-50 px-4 py-2 rounded-lg inline-block">
                 <CheckCircle className="w-5 h-5" />
-                <span className="font-medium">Positive indicator: Engagement above 3%</span>
+                <span className="font-medium">Positive indicator: engagement in line with or above similar accounts</span>
               </div>
             </div>
 
@@ -499,7 +491,7 @@ export default function FreeInstagramProfileAnalyzerGuide() {
                 <h3 className="text-2xl font-semibold text-gray-900">Examine Comment Quality</h3>
               </div>
               <p className="text-gray-700 leading-relaxed">
-                Seek meaningful dialogues and influencer responses—not just general spam.
+                Seek meaningful dialogues and influencer responses, not just general spam.
               </p>
             </div>
 
@@ -576,7 +568,7 @@ export default function FreeInstagramProfileAnalyzerGuide() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">How to Set Prices for Instagram Influencer Campaigns</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              For those having between <strong>10k–50k followers</strong>:
+              Rough editorial price estimates for accounts with <strong>10k–50k followers</strong>, not survey data:
             </p>
             
             <div className="overflow-x-auto mb-8">
@@ -620,7 +612,7 @@ export default function FreeInstagramProfileAnalyzerGuide() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Final Reflections</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              <strong>Instagram influencer marketing in Pakistan</strong> possesses great potential—but only if approached through data-driven evaluation. Relying solely on follower numbers can be misleading. <strong>Engagement rates reveal actual truths.</strong>
+              <strong>Instagram influencer marketing in Pakistan</strong> possesses great potential, but only if approached through data-driven evaluation. Relying solely on follower numbers can be misleading. <strong>Engagement rates reveal actual truths.</strong>
             </p>
             
             <div className="bg-white rounded-lg p-8 shadow-sm border mb-8">
