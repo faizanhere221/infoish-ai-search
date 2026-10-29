@@ -360,6 +360,7 @@ export function HeroSection() {
               width={1376}
               height={768}
               className="w-full h-auto rounded-2xl shadow-xl"
+              sizes="(min-width: 1280px) 600px, (min-width: 1024px) 50vw, 100vw"
               priority
             />
           </div>

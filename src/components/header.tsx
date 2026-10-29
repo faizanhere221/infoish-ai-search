@@ -195,8 +195,12 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
     return '/dashboard/brand'
   }
 
+  // The loading header must reserve the same space as the full one below
+  // (fixed header + h-16 spacer); without the spacer, page content jumps
+  // down 64px on hydration, which Lighthouse scores as layout shift.
   if (isLoading) {
     return (
+      <>
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
           ? 'bg-white/95 backdrop-blur-xl shadow-lg'
@@ -213,6 +217,8 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-pink to-brand-purple" />
       </header>
+      <div className="h-16"></div>
+      </>
     )
   }
 

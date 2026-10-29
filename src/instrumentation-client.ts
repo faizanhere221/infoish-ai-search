@@ -27,11 +27,9 @@ try {
     // GET /api/conversations/*/messages every 3-10s, and a span would
     // otherwise be created for every single poll tick, burning trace quota on
     // requests that are never interesting on their own.
+    // Session Replay is not listed here: it's added lazily below, only for
+    // signed-in visitors, so public pages don't ship rrweb at all.
     integrations: [
-      // Replays only ever capture around an actual error (see
-      // replaysSessionSampleRate below) and always mask page content —
-      // this is diagnostic tooling, not a record of what a user typed or saw.
-      Sentry.replayIntegration({ maskAllText: true, maskAllInputs: true, blockAllMedia: true }),
       Sentry.browserTracingIntegration({
         shouldCreateSpanForRequest: (url) => !isPolledEndpoint(url),
       }),
@@ -55,6 +53,35 @@ try {
   });
 } catch (e) {
   console.error('Sentry init failed:', e);
+}
+
+// Error replays are only useful inside the logged-in app (dashboard,
+// messages, campaign workflow), and anonymous visitors on public pages
+// should never download rrweb. So the replay integration is fetched only
+// when an auth token is present, once the browser is idle, keeping it off
+// the critical path for LCP/TBT. A visitor who signs in mid-session picks it
+// up on their next full page load.
+function hasAuthToken(): boolean {
+  try {
+    return !!window.localStorage.getItem('auth_token');
+  } catch {
+    return false;
+  }
+}
+
+if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && hasAuthToken()) {
+  const loadReplay = () => {
+    import('./lib/sentry-replay')
+      .then((m) => m.addSentryReplay())
+      .catch(() => {
+        // Replay is optional diagnostics; never let a failed chunk load surface.
+      });
+  };
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(loadReplay, { timeout: 5000 });
+  } else {
+    setTimeout(loadReplay, 3000);
+  }
 }
 
 // captureRouterTransitionStart is a Next.js 15 App Router hook — this repo
