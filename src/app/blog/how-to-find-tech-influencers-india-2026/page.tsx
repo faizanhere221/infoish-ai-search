@@ -46,7 +46,7 @@ const jsonLd = {
   description: 'Step-by-step guide to finding, vetting, and hiring Indian tech influencers. Covers rates, platforms, niches, language options, and outreach.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-07-28',
-  dateModified: '2026-07-28',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -160,23 +160,6 @@ const cities = [
   { name: 'Chennai', description: 'Strong in IT services and enterprise computing, with content in English and Tamil. The gateway to South Indian tech audiences.' },
 ]
 
-const howToJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'HowTo',
-  name: 'How to Find Tech Influencers in India: Complete Brand Guide',
-  description: 'Find tech influencers in India for your brand. Covers vetting, rates (INR 5,000 to INR 5,00,000), platforms, niches, English vs Hindi creators, and outreach tips.',
-  step: [
-    { '@type': 'HowToStep', name: 'Define Your Target Audience Within India', text: 'Identify which regions, languages, and buyer personas within India your campaign should reach before searching for creators.' },
-    { '@type': 'HowToStep', name: 'Know Which Platforms Indian Tech Influencers Use', text: 'Understand where Indian tech creators are most active, including YouTube, Instagram, LinkedIn, Twitter/X, Telegram, and Discord.' },
-    { '@type': 'HowToStep', name: 'Search by Niche, Not by Follower Count', text: 'Filter creators by tech niche and relevance to your product rather than by raw audience size.' },
-    { '@type': 'HowToStep', name: 'Vet Creators Before Reaching Out', text: 'Check engagement quality, audience authenticity, and past brand collaborations before contacting a creator.' },
-    { '@type': 'HowToStep', name: 'Understand Indian Tech Influencer Rates', text: 'Learn typical sponsorship pricing in India, from INR 5,000 to INR 5,00,000 depending on platform and audience size.' },
-    { '@type': 'HowToStep', name: 'Choose Between English and Hindi Creators', text: 'Decide whether English-language or Hindi-language creators better fit your target audience and campaign goals.' },
-    { '@type': 'HowToStep', name: 'Target the Right Cities', text: 'Focus outreach on tech hubs like Bangalore, Mumbai, Delhi-NCR, and Chennai based on your product and audience.' },
-    { '@type': 'HowToStep', name: 'Write the Outreach Message', text: 'Craft a clear, personalized outreach message that gets a response from Indian tech creators.' },
-  ],
-}
-
 export default function HowToFindTechInfluencersIndiaPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -187,10 +170,6 @@ export default function HowToFindTechInfluencersIndiaPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
       />
 
       <Header />
@@ -231,7 +210,7 @@ export default function HowToFindTechInfluencersIndiaPage() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>July 28, 2026</span>
+              <span>July 28, 2026 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

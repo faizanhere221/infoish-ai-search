@@ -50,7 +50,7 @@ const jsonLd = {
   description: 'Step-by-step guide to finding, vetting, and hiring tech YouTubers for product reviews. Covers niches, rates, outreach, and vetting across 9 countries.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-08-05',
-  dateModified: '2026-08-05',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -214,7 +214,7 @@ export default function TechYoutubersProductReviewsPage() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>August 5, 2026</span>
+              <span>August 5, 2026 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

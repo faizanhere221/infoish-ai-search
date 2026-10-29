@@ -46,7 +46,7 @@ const jsonLd = {
   description: 'Step-by-step guide for startups running their first tech influencer campaign. Covers budgets, creator selection, briefs, outreach, tracking, and scaling.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-08-10',
-  dateModified: '2026-08-10',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -239,7 +239,7 @@ export default function FirstTechInfluencerCampaignPage() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>August 10, 2026</span>
+              <span>August 10, 2026 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

@@ -45,7 +45,7 @@ const jsonLd = {
   description: 'Pricing guide for tech creators setting sponsorship rates. Covers formulas, benchmarks, and rate cards for YouTube, LinkedIn, Twitter/X, and newsletters.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-08-12',
-  dateModified: '2026-08-12',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -188,7 +188,7 @@ export default function TechCreatorSponsorshipRatesPage() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>August 12, 2026</span>
+              <span>August 12, 2026 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

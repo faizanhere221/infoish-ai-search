@@ -46,7 +46,7 @@ const jsonLd = {
   description: 'How to find and vet Pakistani influencers in 5 steps. Typical engagement benchmarks by tier, PKR rates for posts and Reels, red flags to avoid, and a free manual check.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2025-10-18',
-  dateModified: '2026-10-27',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -110,7 +110,7 @@ export default function FindRightInfluencersPage() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>October 18, 2025 · Updated October 27, 2026</span>
+              <span>October 18, 2025 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

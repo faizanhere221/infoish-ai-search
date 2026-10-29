@@ -47,7 +47,7 @@ const jsonLd = {
   description: 'B2B and B2C influencer marketing work differently for tech brands. Compare strategies, platforms, and ROI.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-07-15',
-  dateModified: '2026-07-15',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -139,7 +139,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>July 15, 2026</span>
+              <span>July 15, 2026 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

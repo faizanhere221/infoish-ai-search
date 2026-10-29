@@ -111,7 +111,7 @@ export default function HowToFindTechInfluencersPage() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>July 6, 2026</span>
+              <span>July 6, 2026 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

@@ -48,7 +48,7 @@ const jsonLd = {
   description: 'The complete guide to influencer marketing in Pakistan for 2026. Typical rates from PKR 5,000 to PKR 5,00,000, a YouTube, Instagram, and TikTok comparison, and ROI tracking steps.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2025-10-16',
-  dateModified: '2026-10-27',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -112,7 +112,7 @@ export default function CompleteGuideInfluencerMarketing() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>October 16, 2025 · Updated October 27, 2026</span>
+              <span>October 16, 2025 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

@@ -51,7 +51,7 @@ const jsonLd = {
   description: 'Find and hire UK tech influencers for B2B campaigns. Fintech, AI, and cybersecurity niches, LinkedIn and YouTube rates in GBP, and ASA and CMA rules.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-10-27',
-  dateModified: '2026-10-27',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -294,7 +294,7 @@ export default function UKTechInfluencersB2BBrandsPage() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>October 27, 2026</span>
+              <span>October 27, 2026 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

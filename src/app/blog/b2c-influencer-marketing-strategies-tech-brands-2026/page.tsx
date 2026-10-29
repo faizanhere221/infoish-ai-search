@@ -44,7 +44,7 @@ const jsonLd = {
   description: 'B2C influencer marketing strategies for tech brands. Platform playbook with budgets, creator selection, and ROI benchmarks.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-07-27',
-  dateModified: '2026-07-27',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -258,7 +258,7 @@ export default function B2CInfluencerMarketingStrategiesPage() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>July 27, 2026</span>
+              <span>July 27, 2026 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

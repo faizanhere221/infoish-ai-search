@@ -44,7 +44,7 @@ const jsonLd = {
   description: 'Why do tech brands invest in influencer marketing in 2026? Here are 10 proven benefits with real data, examples, and strategies.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-07-08',
-  dateModified: '2026-07-08',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -224,7 +224,7 @@ export default function Top10BenefitsTechInfluencerMarketingPage() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>July 8, 2026</span>
+              <span>July 8, 2026 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

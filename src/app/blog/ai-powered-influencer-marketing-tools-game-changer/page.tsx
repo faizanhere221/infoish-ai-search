@@ -46,7 +46,7 @@ const jsonLd = {
   description: 'Discover the best AI-powered influencer marketing tools for Pakistani brands in 2026. Find verified creators, check fake followers, and launch campaigns faster.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2025-10-20',
-  dateModified: '2026-10-11',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -110,7 +110,7 @@ export default function AIPoweredInfluencerMarketingPage() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>October 20, 2025</span>
+              <span>October 20, 2025 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

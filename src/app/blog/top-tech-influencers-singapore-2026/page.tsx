@@ -51,7 +51,7 @@ const jsonLd = {
   description: 'Find top tech influencers in Singapore for B2B campaigns. Fintech, cloud, AI, and SaaS niches, YouTube and LinkedIn rates in SGD, and a vetting checklist.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-10-27',
-  dateModified: '2026-10-27',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -281,7 +281,7 @@ export default function TopTechInfluencersSingaporePage() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>October 27, 2026</span>
+              <span>October 27, 2026 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

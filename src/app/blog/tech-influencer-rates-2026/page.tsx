@@ -47,7 +47,7 @@ const jsonLd = {
   description: 'Complete guide to tech influencer rates by platform, country, and audience size for 2026. Covers YouTube, LinkedIn, Twitter/X, Instagram, newsletters, and podcasts.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-08-04',
-  dateModified: '2026-08-04',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -206,7 +206,7 @@ export default function TechInfluencerRates2026Page() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>August 4, 2026</span>
+              <span>August 4, 2026 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

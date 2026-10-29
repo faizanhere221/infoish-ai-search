@@ -78,7 +78,7 @@ const jsonLd = {
   description: 'Pakistani micro-influencers often get more engagement than celebrities, at PKR 5,000 to PKR 25,000 per post. See rate comparisons and a step-by-step guide to finding verified micro-influencers for your brand.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2025-12-27',
-  dateModified: '2026-10-11',
+  dateModified: '2026-10-29',
   author: {
     '@type': 'Person',
     name: 'Infoishai Team'
@@ -161,7 +161,7 @@ export default function MicroInfluencersPakistanBlog() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>December 27, 2025</span>
+              <span>December 27, 2025 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />

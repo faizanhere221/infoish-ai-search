@@ -67,7 +67,7 @@ const jsonLd = {
     }
   },
   datePublished: '2024-12-23',
-  dateModified: '2026-10-27',
+  dateModified: '2026-10-29',
   mainEntityOfPage: {
     '@type': 'WebPage',
     '@id': 'https://infoishai.com/blog/free-instagram-hashtag-generator-2025'
@@ -169,7 +169,7 @@ export default function FreeInstagramHashtagGenerator2025() {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>December 23, 2024 · Updated October 27, 2026</span>
+              <span>December 23, 2024 · Updated October 29, 2026</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
