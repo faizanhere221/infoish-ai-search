@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '25',
+    title: 'Top US Tech Influencers for B2B Reviews (2026)',
+    excerpt: '15 US-based creators who review B2B software, SaaS, developer tools, AI tools, and IT and security products, with verified audience sizes and brand fit.',
+    date: '2026-10-29',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '12 min read',
+    slug: 'us-tech-influencers-b2b-reviews-2026',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '24',
     title: 'Tech Influencers: The Complete Guide (2026)',
     excerpt: 'Everything brands need to know about tech influencers: types, platforms, finding and vetting creators, pricing, briefs, contracts, payment, measurement, and FTC and ASA disclosure rules.',

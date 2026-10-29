@@ -80,6 +80,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Blog
     { url: `${baseUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/blog/us-tech-influencers-b2b-reviews-2026`, lastModified: new Date('2026-10-29'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/tech-influencers-complete-guide`, lastModified: new Date('2026-10-29'), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${baseUrl}/blog/best-tech-influencers-to-follow-2026`, lastModified: new Date('2026-10-28'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/top-tech-influencers-singapore-2026`, lastModified: new Date('2026-10-27'), changeFrequency: 'monthly', priority: 0.7 },
@@ -97,7 +98,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/blog/b2b-vs-b2c-influencer-marketing-tech-2026`, lastModified: new Date('2026-07-15'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/tech-creators-guide-how-to-get-brand-deals-2026`, lastModified: new Date('2026-07-15'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/top-10-benefits-tech-influencer-marketing-2026`, lastModified: new Date('2026-07-08'), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${baseUrl}/blog/how-to-find-tech-influencers-b2b-2026`, lastModified: new Date('2026-07-06'), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/blog/how-to-find-tech-influencers-b2b-2026`, lastModified: new Date('2026-10-29'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/free-instagram-profile-analyzer-complete-guide`, lastModified: new Date('2026-10-27'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/free-instagram-hashtag-generator-2025`, lastModified: new Date('2026-10-27'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/complete-guide-influencer-marketing-pakistan-2025`, lastModified: new Date('2026-10-27'), changeFrequency: 'monthly', priority: 0.7 },
