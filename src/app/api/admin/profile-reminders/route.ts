@@ -33,6 +33,14 @@ export async function GET(request: NextRequest) {
         optedOut: audience.optedOut,
         alreadySent: audience.alreadySent,
       },
+      // For the "Send test to me" picker: the creators the reminder would go to.
+      candidates: audience.recipients.map((r) => ({
+        user_id: r.userId,
+        username: r.username,
+        display_name: r.displayName,
+        percentage: r.percentage,
+        missing_count: r.missing.length,
+      })),
     })
   } catch (error) {
     captureError(error, { route: 'GET /api/admin/profile-reminders' })

@@ -13,6 +13,7 @@ const CHUNK = 200
 export interface ReminderRecipient {
   userId: string
   email: string
+  username: string
   displayName: string | null
   percentage: number
   missing: CompletenessItem[]
@@ -41,7 +42,7 @@ async function inChunks<T>(ids: string[], load: (chunk: string[]) => Promise<T[]
 export async function getReminderAudience(supabase: Supabase): Promise<ReminderAudience> {
   const { data: creators, error } = await supabase
     .from('creators')
-    .select('id, user_id, display_name, bio, profile_photo_url, niches, country, hidden_from_marketplace')
+    .select('id, user_id, username, display_name, bio, profile_photo_url, niches, country, hidden_from_marketplace')
     .limit(5000)
   if (error) {throw error}
   if (!creators?.length) {return { recipients: [], incomplete: 0, optedOut: 0, alreadySent: 0 }}
@@ -101,6 +102,7 @@ export async function getReminderAudience(supabase: Supabase): Promise<ReminderA
     audience.recipients.push({
       userId: user.id,
       email: user.email,
+      username: creator.username,
       displayName: creator.display_name,
       percentage: completeness.percentage,
       // Required items first, so the email leads with what blocks listing.
@@ -109,6 +111,49 @@ export async function getReminderAudience(supabase: Supabase): Promise<ReminderA
   }
 
   return audience
+}
+
+function unsubscribeUrlFor(userId: string): string {
+  return `${APP_URL}/api/email/unsubscribe?token=${signUnsubscribeToken(userId, 'profile_tips')}`
+}
+
+// The reminder exactly as `r` would receive it. The unsubscribe link is
+// passed in so a test copy can carry the admin's own link instead.
+function buildReminderEmail(r: ReminderRecipient, unsubscribeUrl: string) {
+  return profileReminderTemplate({
+    displayName: r.displayName,
+    percentage: r.percentage,
+    missing: r.missing.map((m) => ({ label: m.label, required: m.required })),
+    settingsUrl: `${APP_URL}${r.missing[0]?.link ?? '/settings'}`,
+    manageSettingsUrl: `${APP_URL}/settings?tab=notifications`,
+    unsubscribeUrl,
+  })
+}
+
+// Sends one copy of `r`'s reminder to an admin's own inbox. It never touches
+// r's once-only key (reminderKey) or logs under r's user id, so the creator
+// still gets their real reminder later. A fresh key per send means repeat
+// tests always go out.
+export async function sendProfileReminderTest(
+  r: ReminderRecipient,
+  admin: { userId: string; email: string }
+): Promise<{ sent: boolean; reason?: string }> {
+  const unsubscribeUrl = unsubscribeUrlFor(admin.userId)
+  const template = buildReminderEmail(r, unsubscribeUrl)
+  const result = await sendEmail({
+    to: admin.email,
+    subject: `[Test for @${r.username}] ${template.subject}`,
+    html: template.html,
+    text: template.text,
+    category: 'profile_tips',
+    template: 'profile_reminder_test',
+    idempotencyKey: `profile_reminder_test:${admin.userId}:${r.userId}:${Date.now()}`,
+    userId: admin.userId,
+    // An admin waiting on a test should never have it silently deferred.
+    deferrable: false,
+    unsubscribeUrl,
+  })
+  return { sent: result.sent || result.reason === 'no_api_key', reason: result.reason }
 }
 
 // Sends to as many recipients as today's email quota allows. Anyone left
@@ -120,15 +165,8 @@ export async function sendProfileReminders(recipients: ReminderRecipient[]): Pro
   let failed = 0
 
   for (const r of batch) {
-    const unsubscribeUrl = `${APP_URL}/api/email/unsubscribe?token=${signUnsubscribeToken(r.userId, 'profile_tips')}`
-    const template = profileReminderTemplate({
-      displayName: r.displayName,
-      percentage: r.percentage,
-      missing: r.missing.map((m) => ({ label: m.label, required: m.required })),
-      settingsUrl: `${APP_URL}${r.missing[0]?.link ?? '/settings'}`,
-      manageSettingsUrl: `${APP_URL}/settings?tab=notifications`,
-      unsubscribeUrl,
-    })
+    const unsubscribeUrl = unsubscribeUrlFor(r.userId)
+    const template = buildReminderEmail(r, unsubscribeUrl)
     const result = await sendEmail({
       to: r.email,
       subject: template.subject,

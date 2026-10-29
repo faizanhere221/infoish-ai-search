@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import {
-  Search, X, RefreshCw, Filter, ChevronLeft, ChevronRight, AlertTriangle, Send,
+  Search, X, RefreshCw, Filter, ChevronLeft, ChevronRight, AlertTriangle, Send, Mail,
 } from 'lucide-react'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
 
@@ -27,6 +27,14 @@ interface ReminderPreview {
   incomplete: number
   optedOut: number
   alreadySent: number
+}
+
+interface ReminderCandidate {
+  user_id: string
+  username: string
+  display_name: string | null
+  percentage: number
+  missing_count: number
 }
 
 interface DailyUsage {
@@ -105,6 +113,9 @@ function AdminEmailContent() {
   const [resendTarget, setResendTarget] = useState<EmailLogRow | null>(null)
   const [actionError, setActionError] = useState('')
   const [reminderPreview, setReminderPreview] = useState<ReminderPreview | null>(null)
+  const [testCandidates, setTestCandidates] = useState<ReminderCandidate[] | null>(null)
+  const [testCreatorId, setTestCreatorId] = useState('')
+  const [sendingTest, setSendingTest] = useState(false)
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [actionNotice, setActionNotice] = useState('')
 
@@ -169,6 +180,51 @@ function AdminEmailContent() {
     }
   }
 
+  // "Send test to me": the reminder as one eligible creator would get it,
+  // delivered to the logged-in admin. The creator is not marked as reminded.
+  const openTestPicker = async () => {
+    setActionError('')
+    setActionNotice('')
+    setLoadingPreview(true)
+    try {
+      const res = await fetch('/api/admin/profile-reminders')
+      if (!res.ok) {throw new Error((await res.json().catch(() => ({})))?.error || 'Failed to load creators')}
+      const candidates = ((await res.json()).candidates ?? []) as ReminderCandidate[]
+      if (candidates.length === 0) {
+        setActionNotice('No creators are in the reminder list, so there is nothing to preview.')
+        return
+      }
+      setTestCandidates(candidates)
+      setTestCreatorId(candidates[0].user_id)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to load creators')
+    } finally {
+      setLoadingPreview(false)
+    }
+  }
+
+  const sendTest = async () => {
+    if (!testCreatorId) {return}
+    setActionError('')
+    setSendingTest(true)
+    try {
+      const res = await fetch('/api/admin/profile-reminders/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ creator_user_id: testCreatorId }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {throw new Error(data?.error || 'Failed to send test')}
+      setTestCandidates(null)
+      setActionNotice(`Test email sent to ${data.to}.`)
+      await fetchEmails(true)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to send test')
+    } finally {
+      setSendingTest(false)
+    }
+  }
+
   const confirmReminders = async (reason: string) => {
     setActionError('')
     try {
@@ -207,6 +263,14 @@ function AdminEmailContent() {
           >
             <Send className="w-4 h-4" />
             {loadingPreview ? 'Checking...' : 'Send profile reminders'}
+          </button>
+          <button
+            onClick={openTestPicker}
+            disabled={loadingPreview}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-violet-200 bg-white text-violet-700 text-sm font-medium hover:bg-violet-50 disabled:opacity-50"
+          >
+            <Mail className="w-4 h-4" />
+            Send test to me
           </button>
           <button onClick={() => fetchEmails(true)} disabled={refreshing} className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-500">
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -332,6 +396,46 @@ function AdminEmailContent() {
             ? `No creators to remind (${reminderPreview.alreadySent} already reminded, ${reminderPreview.optedOut} opted out).`
             : `${reminderPreview.eligible} creators are waiting, but today's email quota is used up. Try again tomorrow.`}
           <button onClick={() => setReminderPreview(null)} className="underline">Close</button>
+        </div>
+      )}
+      {testCandidates && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="test-reminder-title">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6">
+            <h2 id="test-reminder-title" className="text-lg font-semibold text-gray-900">Send a test reminder to yourself</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Pick a creator. You get the email exactly as they would, at your own address. The creator is not marked as reminded.
+            </p>
+            <label htmlFor="test-creator" className="block text-sm font-medium text-gray-700 mt-4 mb-1">Creator</label>
+            <select
+              id="test-creator"
+              value={testCreatorId}
+              onChange={(e) => setTestCreatorId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            >
+              {testCandidates.map((c) => (
+                <option key={c.user_id} value={c.user_id}>
+                  {c.display_name || c.username} (@{c.username}): {c.percentage}% complete, {c.missing_count} missing
+                </option>
+              ))}
+            </select>
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => setTestCandidates(null)}
+                disabled={sendingTest}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={sendTest}
+                disabled={sendingTest || !testCreatorId}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 disabled:opacity-50"
+              >
+                <Send className="w-4 h-4" />
+                {sendingTest ? 'Sending...' : 'Send test'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
       {actionNotice && (
