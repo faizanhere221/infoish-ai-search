@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
+import { revalidateBrandCampaignSurfaces } from '@/lib/campaigns/revalidate'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
@@ -103,6 +104,10 @@ export async function PUT(
         { error: 'Failed to update brand' },
         { status: 500 }
       )
+    }
+
+    if ('company_name' in parsed.data || 'logo_url' in parsed.data) {
+      await revalidateBrandCampaignSurfaces(supabase, id)
     }
 
     return NextResponse.json({

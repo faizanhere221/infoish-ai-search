@@ -4,6 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { logActivity } from '@/lib/activity'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
+import { revalidateBrandCampaignSurfaces } from '@/lib/campaigns/revalidate'
 import { checkDeletionBlockers, checkLinkedRecords, hardDeleteUser } from '@/lib/admin-user-deletion'
 import bcrypt from 'bcryptjs'
 import { randomUUID } from 'node:crypto'
@@ -494,6 +495,7 @@ export async function DELETE(
         .from('brands')
         .update({ company_name: 'Deleted user', logo_url: null })
         .eq('id', profile.id)
+      await revalidateBrandCampaignSurfaces(supabase, profile.id)
     }
 
     logAdminAction({
