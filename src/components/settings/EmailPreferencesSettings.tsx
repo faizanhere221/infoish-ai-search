@@ -10,9 +10,10 @@ const CATEGORY_LABELS: Record<string, { label: string; description: string }> = 
   work: { label: 'Work updates', description: 'Drafts to review, changes requested, deliverables posted.' },
   payments: { label: 'Payments', description: 'A payment marked paid, confirmed, or disputed.' },
   daily_summary: { label: 'Daily summary', description: 'One email a day with everything that happened and anything overdue.' },
+  profile_tips: { label: 'Profile tips', description: 'Occasional reminders about what your profile is missing.' },
 }
 
-const ORDER = ['messages', 'offers', 'contracts', 'work', 'payments', 'daily_summary']
+const ORDER = ['messages', 'offers', 'contracts', 'work', 'payments', 'daily_summary', 'profile_tips']
 
 export function EmailPreferencesSettings() {
   const [preferences, setPreferences] = useState<Record<string, boolean> | null>(null)

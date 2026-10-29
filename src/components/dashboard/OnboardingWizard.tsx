@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { X, ArrowRight, Check, Loader2, AlertCircle } from 'lucide-react'
 import AvatarUpload from '@/components/AvatarUpload'
 import { PLATFORMS } from '@/utils/constants'
-import { calculateProfileCompletion } from '@/lib/profile-completion'
+import { getProfileCompleteness, hasText } from '@/lib/profile-completion'
 import { parseFollowerCount, parsePrice } from '@/lib/creators/platform-input'
 
 interface WizardPlatform {
@@ -57,9 +57,14 @@ export default function OnboardingWizard({ creator, onSaved, onComplete, onDismi
   // Only walk the creator through what's actually missing — computed once
   // from the data we were given, so steps don't vanish mid-flow as data saves.
   const [steps] = useState<StepId[]>(() => {
-    const completion = calculateProfileCompletion(creator)
-    const missing = new Set(completion.items.filter((i) => !i.isComplete).map((i) => i.id))
-    return (['avatar', 'bio', 'platforms', 'rates'] as StepId[]).filter((s) => missing.has(s))
+    const missingIds = new Set(getProfileCompleteness(creator).missing.map((i) => i.id))
+    const missing: Record<StepId, boolean> = {
+      avatar: !hasText(creator.profile_photo_url),
+      bio: missingIds.has('bio'),
+      platforms: missingIds.has('platform_handle'),
+      rates: missingIds.has('services'),
+    }
+    return (['avatar', 'bio', 'platforms', 'rates'] as StepId[]).filter((s) => missing[s])
   })
   const [index, setIndex] = useState(0)
   const [saving, setSaving] = useState(false)

@@ -14,7 +14,7 @@ import { PendingOffersWidget } from '@/components/campaigns/PendingOffersWidget'
 import { ResultsTodoWidget } from '@/components/campaigns/ResultsTodoWidget'
 import { MyStatsWidget } from '@/components/campaigns/MyStatsWidget'
 import { PaymentsTodoWidget } from '@/components/payments/PaymentsTodoWidget'
-import { calculateProfileCompletion } from '@/lib/profile-completion'
+import { getProfileCompleteness } from '@/lib/profile-completion'
 
 interface Platform {
   id?: string
@@ -44,6 +44,7 @@ interface CreatorProfile {
   bio: string | null
   profile_photo_url: string | null
   niches: string[]
+  country?: string | null
   verification_status: string
   is_available: boolean
   profile_views?: number
@@ -124,8 +125,8 @@ export default function CreatorDashboard() {
   const platforms = profile.creator_platforms || []
   const totalFollowers = platforms.reduce((sum, p) => sum + (p.followers || 0), 0)
 
-  const completion = calculateProfileCompletion(profile)
-  const showOnboarding = completion.percentage < ONBOARDING_THRESHOLD && !onboardingDismissed
+  const completeness = getProfileCompleteness(profile)
+  const showOnboarding = completeness.percentage < ONBOARDING_THRESHOLD && !onboardingDismissed
 
   const dismissOnboarding = () => {
     localStorage.setItem(`onboarding_dismissed_${profile.id}`, 'true')
@@ -202,7 +203,7 @@ export default function CreatorDashboard() {
         />
       )}
 
-      <ProfileCompletionCard completion={completion} />
+      <ProfileCompletionCard completeness={completeness} />
 
       <DashboardStats profileViews={profile.profile_views ?? 0} totalFollowers={totalFollowers} />
 

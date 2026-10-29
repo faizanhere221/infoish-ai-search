@@ -91,7 +91,7 @@ function SettingsPageInner() {
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab') as SettingsTab | null
   const [activeTab, setActiveTab] = useState<SettingsTab>(
-    initialTab && ['profile', 'services', 'platforms', 'payouts', 'security'].includes(initialTab)
+    initialTab && ['profile', 'services', 'platforms', 'payouts', 'notifications', 'security'].includes(initialTab)
       ? initialTab
       : 'profile'
   )

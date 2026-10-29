@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { createServerSupabase } from '@/lib/db'
 import { isCreatorPublic } from '@/lib/creators/visibility'
+import { getProfileCompleteness } from '@/lib/profile-completion'
 
 // Every request reads live rows. Without these, Next caches the Supabase
 // fetches in its Data Cache (which survives rebuilds), so a creator hidden
@@ -37,8 +38,6 @@ async function getCampaignRoutes(): Promise<MetadataRoute.Sitemap> {
   }
 }
 
-const hasText = (value: string | null | undefined): boolean => !!value && value.trim().length > 0
-
 async function getCreatorRoutes(): Promise<MetadataRoute.Sitemap> {
   try {
     const supabase = createServerSupabase()
@@ -66,9 +65,9 @@ async function getCreatorRoutes(): Promise<MetadataRoute.Sitemap> {
 
     const publicCreators = creators.filter((creator) => isCreatorPublic(owners.get(creator.user_id) ?? null, creator))
 
-    // A complete profile has a bio, an avatar or display name, and at least
-    // one platform with a handle. Thin profiles stay out of the sitemap.
-    const withHandle = new Set<string>()
+    // Only complete profiles (getProfileCompleteness().isComplete, the same
+    // rule the dashboard checklist and share badge use) go in the sitemap.
+    const handlesByCreator = new Map<string, { platform_username: string | null }[]>()
     const creatorIds = publicCreators.map((c) => c.id)
     for (let i = 0; i < creatorIds.length; i += USER_LOOKUP_CHUNK) {
       const { data: platforms, error } = await supabase
@@ -77,15 +76,13 @@ async function getCreatorRoutes(): Promise<MetadataRoute.Sitemap> {
         .in('creator_id', creatorIds.slice(i, i + USER_LOOKUP_CHUNK))
       if (error) {return []}
       for (const p of platforms ?? []) {
-        if (hasText(p.platform_username)) {withHandle.add(p.creator_id)}
+        handlesByCreator.set(p.creator_id, [...(handlesByCreator.get(p.creator_id) ?? []), p])
       }
     }
 
     return publicCreators
       .filter((creator) =>
-        hasText(creator.bio) &&
-        (hasText(creator.profile_photo_url) || hasText(creator.display_name)) &&
-        withHandle.has(creator.id)
+        getProfileCompleteness({ ...creator, creator_platforms: handlesByCreator.get(creator.id) ?? [] }).isComplete
       )
       .map((creator) => ({
       url: `${baseUrl}/creators/${creator.username}`,

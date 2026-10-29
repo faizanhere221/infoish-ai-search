@@ -14,6 +14,7 @@ const DEFAULT_PREFERENCES: Record<string, boolean> = {
   work: true,
   payments: true,
   daily_summary: true,
+  profile_tips: true,
 }
 
 const UpdateSchema = z.object(

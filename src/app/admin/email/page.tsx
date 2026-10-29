@@ -20,6 +20,15 @@ interface EmailLogRow {
   created_at: string
 }
 
+interface ReminderPreview {
+  eligible: number
+  sendableToday: number
+  budgetRemaining: number
+  incomplete: number
+  optedOut: number
+  alreadySent: number
+}
+
 interface DailyUsage {
   day: string
   sent_count: number
@@ -95,6 +104,9 @@ function AdminEmailContent() {
 
   const [resendTarget, setResendTarget] = useState<EmailLogRow | null>(null)
   const [actionError, setActionError] = useState('')
+  const [reminderPreview, setReminderPreview] = useState<ReminderPreview | null>(null)
+  const [loadingPreview, setLoadingPreview] = useState(false)
+  const [actionNotice, setActionNotice] = useState('')
 
   const fetchEmails = useCallback(async (isRefresh = false) => {
     if (isRefresh) {setRefreshing(true)} else {setLoading(true)}
@@ -140,6 +152,42 @@ function AdminEmailContent() {
     }
   }
 
+  // Profile reminders: load the preview first, so the confirm dialog says
+  // exactly how many creators get the email before anything is sent.
+  const openReminderPreview = async () => {
+    setActionError('')
+    setActionNotice('')
+    setLoadingPreview(true)
+    try {
+      const res = await fetch('/api/admin/profile-reminders')
+      if (!res.ok) {throw new Error((await res.json().catch(() => ({})))?.error || 'Failed to load preview')}
+      setReminderPreview((await res.json()).preview)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to load preview')
+    } finally {
+      setLoadingPreview(false)
+    }
+  }
+
+  const confirmReminders = async (reason: string) => {
+    setActionError('')
+    try {
+      const res = await fetch('/api/admin/profile-reminders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {throw new Error(data?.error || 'Failed to send reminders')}
+      const r = data.result as { sent: number; failed: number; leftForLater: number }
+      setReminderPreview(null)
+      setActionNotice(`Profile reminders: ${r.sent} sent, ${r.failed} failed, ${r.leftForLater} left for a later day.`)
+      await fetchEmails(true)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to send reminders')
+    }
+  }
+
   const todayUsage = dailyUsage[dailyUsage.length - 1]?.sent_count ?? 0
   const clearFilters = () => { setStatus(''); setCategory(''); setUserSearch(''); setPage(1) }
   const hasFilters = Boolean(status || category || userSearch)
@@ -151,9 +199,19 @@ function AdminEmailContent() {
           <h1 className="text-xl font-bold text-gray-900">Email</h1>
           <p className="text-sm text-gray-400 mt-0.5">{total.toLocaleString()} log entries</p>
         </div>
-        <button onClick={() => fetchEmails(true)} disabled={refreshing} className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-500">
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={openReminderPreview}
+            disabled={loadingPreview}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 disabled:opacity-50"
+          >
+            <Send className="w-4 h-4" />
+            {loadingPreview ? 'Checking...' : 'Send profile reminders'}
+          </button>
+          <button onClick={() => fetchEmails(true)} disabled={refreshing} className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-500">
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {missingTable && (
@@ -186,7 +244,7 @@ function AdminEmailContent() {
           </select>
           <select value={category} onChange={e => { setCategory(e.target.value); setPage(1) }} className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
             <option value="">All Categories</option>
-            {['messages', 'offers', 'contracts', 'work', 'payments', 'daily_summary', 'security'].map(c => <option key={c} value={c}>{c.replace('_', ' ')}</option>)}
+            {['messages', 'offers', 'contracts', 'work', 'payments', 'daily_summary', 'profile_tips', 'security'].map(c => <option key={c} value={c}>{c.replace('_', ' ')}</option>)}
           </select>
           {hasFilters && (
             <button onClick={clearFilters} className="flex items-center gap-1 px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg bg-white">
@@ -258,6 +316,26 @@ function AdminEmailContent() {
           onConfirm={confirmResend}
           onClose={() => { setResendTarget(null); setActionError('') }}
         />
+      )}
+      {reminderPreview && reminderPreview.sendableToday > 0 && (
+        <ReasonDialog
+          title="Send Profile Reminders"
+          description={`${reminderPreview.sendableToday} of ${reminderPreview.eligible} eligible creators will get the one-time "finish your profile" email today (${reminderPreview.budgetRemaining} sends left in today's quota). Already reminded: ${reminderPreview.alreadySent}. Opted out: ${reminderPreview.optedOut}.`}
+          confirmLabel={`Send to ${reminderPreview.sendableToday}`}
+          onConfirm={confirmReminders}
+          onClose={() => setReminderPreview(null)}
+        />
+      )}
+      {reminderPreview && reminderPreview.sendableToday === 0 && (
+        <div className="fixed bottom-4 right-4 z-50 bg-gray-800 text-white px-4 py-2.5 rounded-lg shadow-lg text-sm flex items-center gap-3">
+          {reminderPreview.eligible === 0
+            ? `No creators to remind (${reminderPreview.alreadySent} already reminded, ${reminderPreview.optedOut} opted out).`
+            : `${reminderPreview.eligible} creators are waiting, but today's email quota is used up. Try again tomorrow.`}
+          <button onClick={() => setReminderPreview(null)} className="underline">Close</button>
+        </div>
+      )}
+      {actionNotice && (
+        <div className="fixed bottom-4 right-4 z-50 bg-emerald-600 text-white px-4 py-2.5 rounded-lg shadow-lg text-sm">{actionNotice}</div>
       )}
       {actionError && (
         <div className="fixed bottom-4 right-4 z-50 bg-red-600 text-white px-4 py-2.5 rounded-lg shadow-lg text-sm">{actionError}</div>

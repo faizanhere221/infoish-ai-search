@@ -12,6 +12,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   work: 'work update',
   payments: 'payment',
   daily_summary: 'daily summary',
+  profile_tips: 'profile tip',
   all: 'all',
 }
 
