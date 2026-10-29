@@ -2,6 +2,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
+import PillarGuideLink from '@/components/blog/PillarGuideLink'
 import { ArrowLeft, Calendar, User, Clock } from 'lucide-react'
 import { Metadata } from 'next'
 
@@ -503,6 +504,7 @@ export default function CompleteGuideInfluencerMarketing() {
           </div>
           <p className="text-sm text-green-700 mt-4">Find your perfect influencer match in under 30 seconds. No credit card required.</p>
         </div>
+        <PillarGuideLink />
       </article>
     </div>
   )

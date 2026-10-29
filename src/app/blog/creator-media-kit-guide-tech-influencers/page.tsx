@@ -2,6 +2,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
+import PillarGuideLink from '@/components/blog/PillarGuideLink'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, FileText, BarChart3, Globe, DollarSign, Award, PlayCircle, Mail, XCircle, Wrench, RefreshCw } from 'lucide-react'
 import { Metadata } from 'next'
 
@@ -476,6 +477,8 @@ export default function CreatorMediaKitGuidePage() {
           </div>
           <p className="text-sm text-blue-700 mt-4">No credit card required • No exclusivity requirements • Set your own rates</p>
         </div>
+
+        <PillarGuideLink />
 
         {/* Related Articles */}
         <div className="mt-16 pt-12 border-t border-gray-200">

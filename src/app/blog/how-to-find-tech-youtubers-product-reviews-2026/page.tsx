@@ -2,6 +2,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
+import PillarGuideLink from '@/components/blog/PillarGuideLink'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, Search, DollarSign, Globe, Mail, FileText, BarChart3, Users, AlertTriangle } from 'lucide-react'
 import { Metadata } from 'next'
 
@@ -642,6 +643,8 @@ Here is a link to the product: [URL]. Happy to set up a demo or a free account s
           </div>
           <p className="text-sm text-blue-700 mt-4">No credit card required • Verified creators • Instant results</p>
         </div>
+
+        <PillarGuideLink />
 
         {/* Related Articles */}
         <div className="mt-16 pt-12 border-t border-gray-200">

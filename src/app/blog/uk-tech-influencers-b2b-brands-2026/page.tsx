@@ -2,6 +2,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
+import PillarGuideLink from '@/components/blog/PillarGuideLink'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, MapPin, Landmark, Brain, ShieldCheck, Code, Building2 } from 'lucide-react'
 import { Metadata } from 'next'
 
@@ -729,6 +730,8 @@ export default function UKTechInfluencersB2BBrandsPage() {
           </div>
           <p className="text-sm text-blue-700 mt-4">No credit card required &bull; Verified creators &bull; Free messaging</p>
         </div>
+
+        <PillarGuideLink />
 
         {/* Related Articles */}
         <div className="mt-16 pt-12 border-t border-gray-200">

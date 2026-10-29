@@ -2,6 +2,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
+import PillarGuideLink from '@/components/blog/PillarGuideLink'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, ExternalLink, Smartphone, Brain, Code, Rocket, Target } from 'lucide-react'
 import { Metadata } from 'next'
 import type { ReactNode } from 'react'
@@ -728,6 +729,8 @@ export default function BestTechInfluencersToFollowPage() {
             </Link>
           </div>
         </div>
+
+        <PillarGuideLink />
 
         {/* Related Articles */}
         <div className="mt-16 pt-12 border-t border-gray-200">

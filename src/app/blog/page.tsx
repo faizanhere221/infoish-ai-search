@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '24',
+    title: 'Tech Influencers: The Complete Guide (2026)',
+    excerpt: 'Everything brands need to know about tech influencers: types, platforms, finding and vetting creators, pricing, briefs, contracts, payment, measurement, and FTC and ASA disclosure rules.',
+    date: '2026-10-29',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '18 min read',
+    slug: 'tech-influencers-complete-guide',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '23',
     title: 'Best Tech Influencers to Follow in 2026',
     excerpt: 'The best tech influencers to follow in 2026. 20 YouTubers, X accounts, newsletters, and podcasts in consumer tech, AI, programming, and startups, with verified audience sizes.',

@@ -2,6 +2,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
+import PillarGuideLink from '@/components/blog/PillarGuideLink'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, DollarSign, Globe, TrendingUp, AlertTriangle } from 'lucide-react'
 import { Metadata } from 'next'
 
@@ -545,6 +546,8 @@ export default function TechInfluencerRates2026Page() {
           </div>
           <p className="text-sm text-blue-700 mt-4">No credit card required • Verified creators • Instant results</p>
         </div>
+
+        <PillarGuideLink />
 
         {/* Related Articles */}
         <div className="mt-16 pt-12 border-t border-gray-200">

@@ -2,6 +2,7 @@
 
 import Header from '@/components/header'
 import Link from 'next/link'
+import PillarGuideLink from '@/components/blog/PillarGuideLink'
 import { ArrowLeft, ArrowRight, Calendar, User, Clock, CheckCircle, Target, DollarSign, Layers, Search, Mail, FileText, BarChart3, Settings, TrendingUp, ListChecks } from 'lucide-react'
 import { Metadata } from 'next'
 
@@ -669,6 +670,8 @@ Renew for next campaign (yes/no):`}
           </div>
           <p className="text-sm text-blue-700 mt-4">No credit card required • Verified creators • Instant results</p>
         </div>
+
+        <PillarGuideLink />
 
         {/* Related Articles */}
         <div className="mt-16 pt-12 border-t border-gray-200">
