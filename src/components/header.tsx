@@ -249,7 +249,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                 )}
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-xl font-bold text-gray-900">Infoishai</h1>
+                <span className="block text-xl font-bold text-gray-900">Infoishai</span>
                 <p className="text-xs text-gray-500 -mt-0.5">AI Influencer Search</p>
               </div>
             </Link>
