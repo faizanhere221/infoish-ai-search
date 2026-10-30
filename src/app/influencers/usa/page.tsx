@@ -61,7 +61,7 @@ const collectionJsonLd = {
   '@type': 'CollectionPage',
   name: 'Tech Influencers in USA',
   description:
-    'Browse and hire verified American tech influencers across YouTube, Twitter/X, LinkedIn, and other platforms',
+    'Browse and hire verified American tech influencers across YouTube, X (Twitter), LinkedIn, and other platforms',
   url: 'https://infoishai.com/influencers/usa',
   isPartOf: {
     '@type': 'WebSite',
@@ -91,7 +91,7 @@ const faqJsonLd = {
       name: 'How do I find tech influencers in the USA?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Search the Infoishai creator directory and filter by United States. Browse verified tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche (AI, SaaS, developer tools) and audience size to find the right creator for your campaign.',
+        text: 'Search the Infoishai creator directory and filter by United States. Browse verified tech influencers across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Filter by niche (AI, SaaS, developer tools) and audience size to find the right creator for your campaign.',
       },
     },
     {
@@ -99,7 +99,7 @@ const faqJsonLd = {
       name: 'How much do American tech influencers charge?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'US tech influencer rates vary by platform and audience size. YouTube: $1,000 to $5,000 per video (50K-200K subscribers). LinkedIn: $500 to $2,000 per post. Twitter/X: $200 to $1,000 per thread.',
+        text: 'US tech influencer rates vary by platform and audience size. YouTube: $1,000 to $5,000 per video (50K-200K subscribers). LinkedIn: $500 to $2,000 per post. X (Twitter): $200 to $1,000 per thread.',
       },
     },
     {
@@ -174,7 +174,7 @@ const platforms = [
   },
   {
     icon: Twitter,
-    name: 'Twitter/X',
+    name: 'X (Twitter)',
     description:
       'Tech threads, product announcements, and community discussions. Best for developer tools and open-source projects.',
   },
@@ -202,8 +202,8 @@ const rateTable = [
   { platform: 'YouTube (dedicated video)', audience: '10K-50K subscribers', rate: '$500 - $2,000' },
   { platform: 'YouTube (dedicated video)', audience: '50K-200K subscribers', rate: '$2,000 - $5,000' },
   { platform: 'YouTube (dedicated video)', audience: '200K+ subscribers', rate: '$5,000 - $15,000' },
-  { platform: 'Twitter/X (thread)', audience: '10K-50K followers', rate: '$100 - $500' },
-  { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: '$500 - $1,500' },
+  { platform: 'X (Twitter) thread', audience: '10K-50K followers', rate: '$100 - $500' },
+  { platform: 'X (Twitter) thread', audience: '50K-200K followers', rate: '$500 - $1,500' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: '$300 - $1,000' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: '$1,000 - $2,500' },
 ]
@@ -246,7 +246,7 @@ const steps = [
     number: '1',
     title: 'Search the Creator Directory',
     description:
-      'Browse US-based tech influencers on Infoishai. Filter by niche (AI, SaaS, developer tools, cloud), platform (YouTube, LinkedIn, Twitter/X, TikTok, Instagram), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
+      'Browse US-based tech influencers on Infoishai. Filter by niche (AI, SaaS, developer tools, cloud), platform (YouTube, LinkedIn, X (Twitter), TikTok, Instagram), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
   },
   {
     number: '2',
@@ -314,7 +314,7 @@ export default function UsaInfluencersPage() {
             American tech influencers reach the world&apos;s largest SaaS market ($195 billion) across YouTube, LinkedIn, Twitter, and TikTok. A mid-tier US tech creator charges $500-$3,000 per sponsored video. Infoishai lists verified US tech creators. Brands search free, filter by niche and platform, and message creators directly. There are no platform fees.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-            Connect with verified American tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Browse by niche, audience size, and engagement rate. Free to search.
+            Connect with verified American tech creators across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Browse by niche, audience size, and engagement rate. Free to search.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link

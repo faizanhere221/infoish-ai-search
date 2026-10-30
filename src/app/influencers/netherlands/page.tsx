@@ -65,7 +65,7 @@ const collectionJsonLd = {
   '@type': 'CollectionPage',
   name: 'Tech Influencers in Netherlands',
   description:
-    'Browse and hire verified Dutch tech influencers across YouTube, LinkedIn, Twitter/X, and other platforms',
+    'Browse and hire verified Dutch tech influencers across YouTube, LinkedIn, X (Twitter), and other platforms',
   url: 'https://infoishai.com/influencers/netherlands',
   isPartOf: {
     '@type': 'WebSite',
@@ -95,7 +95,7 @@ const faqJsonLd = {
       name: 'How do I find tech influencers in the Netherlands?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Search the Infoishai creator directory and filter by Netherlands. Browse verified Dutch tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche (AI, SaaS, fintech, developer tools), language (Dutch or English), and audience size to find the right creator for your campaign.',
+        text: 'Search the Infoishai creator directory and filter by Netherlands. Browse verified Dutch tech influencers across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Filter by niche (AI, SaaS, fintech, developer tools), language (Dutch or English), and audience size to find the right creator for your campaign.',
       },
     },
     {
@@ -103,7 +103,7 @@ const faqJsonLd = {
       name: 'How much do Dutch tech influencers charge?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Dutch tech influencer rates vary by platform and audience size. YouTube: EUR 800 to EUR 4,000 per video (50K-200K subscribers). LinkedIn: EUR 400 to EUR 1,800 per post. Twitter/X: EUR 150 to EUR 800 per thread.',
+        text: 'Dutch tech influencer rates vary by platform and audience size. YouTube: EUR 800 to EUR 4,000 per video (50K-200K subscribers). LinkedIn: EUR 400 to EUR 1,800 per post. X (Twitter): EUR 150 to EUR 800 per thread.',
       },
     },
     {
@@ -184,7 +184,7 @@ const platforms = [
   },
   {
     icon: Twitter,
-    name: 'Twitter/X',
+    name: 'X (Twitter)',
     description:
       'Active Dutch tech community covering startups, developer tools, AI, and fintech. Dutch tech Twitter operates primarily in English, making the content accessible across Europe. Best for developer-focused products, startup launches, and open-source projects.',
   },
@@ -206,8 +206,8 @@ const rateTable = [
   { platform: 'YouTube (dedicated video)', audience: '10K-50K subscribers', rate: '€500 - €2,000' },
   { platform: 'YouTube (dedicated video)', audience: '50K-200K subscribers', rate: '€2,000 - €5,000' },
   { platform: 'YouTube (dedicated video)', audience: '200K+ subscribers', rate: '€5,000 - €12,000' },
-  { platform: 'Twitter/X (thread)', audience: '10K-50K followers', rate: '€80 - €400' },
-  { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: '€400 - €1,200' },
+  { platform: 'X (Twitter) thread', audience: '10K-50K followers', rate: '€80 - €400' },
+  { platform: 'X (Twitter) thread', audience: '50K-200K followers', rate: '€400 - €1,200' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: '€300 - €1,000' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: '€1,000 - €2,500' },
 ]
@@ -250,7 +250,7 @@ const steps = [
     number: '1',
     title: 'Search the Creator Directory',
     description:
-      'Browse Dutch tech influencers on Infoishai. Filter by niche (fintech, SaaS, developer tools, AI, logistics tech, deep tech), platform (YouTube, LinkedIn, Twitter/X, TikTok, Instagram), language (Dutch, English), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
+      'Browse Dutch tech influencers on Infoishai. Filter by niche (fintech, SaaS, developer tools, AI, logistics tech, deep tech), platform (YouTube, LinkedIn, X (Twitter), TikTok, Instagram), language (Dutch, English), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
   },
   {
     number: '2',
@@ -318,7 +318,7 @@ export default function NetherlandsInfluencersPage() {
             Dutch tech influencers serve the Benelux region and broader EU market from Europe&apos;s tech startup capital. A mid-tier Dutch tech creator charges EUR 250-EUR 1,500 per sponsored video. Amsterdam, Eindhoven, and Rotterdam lead in tech content. Infoishai lists verified Dutch tech influencers.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-            Connect with verified Dutch tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Reach the Benelux region and wider European market. Browse by niche,
+            Connect with verified Dutch tech creators across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Reach the Benelux region and wider European market. Browse by niche,
             audience size, and engagement rate. Free to search.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">

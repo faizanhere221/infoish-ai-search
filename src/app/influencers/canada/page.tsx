@@ -61,7 +61,7 @@ const collectionJsonLd = {
   '@type': 'CollectionPage',
   name: 'Tech Influencers in Canada',
   description:
-    'Browse and hire verified Canadian tech influencers across YouTube, Twitter/X, LinkedIn, and other platforms',
+    'Browse and hire verified Canadian tech influencers across YouTube, X (Twitter), LinkedIn, and other platforms',
   url: 'https://infoishai.com/influencers/canada',
   isPartOf: {
     '@type': 'WebSite',
@@ -91,7 +91,7 @@ const faqJsonLd = {
       name: 'How do I find tech influencers in Canada?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Search the Infoishai creator directory and filter by Canada. Browse verified Canadian tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche (AI, SaaS, developer tools) and audience size to find the right creator for your campaign.',
+        text: 'Search the Infoishai creator directory and filter by Canada. Browse verified Canadian tech influencers across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Filter by niche (AI, SaaS, developer tools) and audience size to find the right creator for your campaign.',
       },
     },
     {
@@ -99,7 +99,7 @@ const faqJsonLd = {
       name: 'How much do Canadian tech influencers charge?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Canadian tech influencer rates vary by platform and audience size. YouTube: CAD $800 to CAD $4,500 per video (50K-200K subscribers). LinkedIn: CAD $400 to CAD $1,800 per post. Twitter/X: CAD $150 to CAD $900 per thread.',
+        text: 'Canadian tech influencer rates vary by platform and audience size. YouTube: CAD $800 to CAD $4,500 per video (50K-200K subscribers). LinkedIn: CAD $400 to CAD $1,800 per post. X (Twitter): CAD $150 to CAD $900 per thread.',
       },
     },
     {
@@ -174,7 +174,7 @@ const platforms = [
   },
   {
     icon: Twitter,
-    name: 'Twitter/X',
+    name: 'X (Twitter)',
     description:
       'Active Canadian tech community with strong presence in AI, developer tools, and startup discussions. Canadian tech threads often trend in both Canadian and US feeds. Best for developer tools, open source, and quick product highlights.',
   },
@@ -202,8 +202,8 @@ const rateTable = [
   { platform: 'YouTube (dedicated video)', audience: '10K-50K subscribers', rate: 'CAD $500 - $1,800' },
   { platform: 'YouTube (dedicated video)', audience: '50K-200K subscribers', rate: 'CAD $1,800 - $4,500' },
   { platform: 'YouTube (dedicated video)', audience: '200K+ subscribers', rate: 'CAD $4,500 - $12,000' },
-  { platform: 'Twitter/X (thread)', audience: '10K-50K followers', rate: 'CAD $80 - $400' },
-  { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: 'CAD $400 - $1,200' },
+  { platform: 'X (Twitter) thread', audience: '10K-50K followers', rate: 'CAD $80 - $400' },
+  { platform: 'X (Twitter) thread', audience: '50K-200K followers', rate: 'CAD $400 - $1,200' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: 'CAD $250 - $800' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: 'CAD $800 - $1,800' },
 ]
@@ -246,7 +246,7 @@ const steps = [
     number: '1',
     title: 'Search the Creator Directory',
     description:
-      'Browse Canadian tech influencers on Infoishai. Filter by niche (AI, SaaS, developer tools, fintech, gaming), platform (YouTube, LinkedIn, Twitter/X, TikTok, Instagram), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
+      'Browse Canadian tech influencers on Infoishai. Filter by niche (AI, SaaS, developer tools, fintech, gaming), platform (YouTube, LinkedIn, X (Twitter), TikTok, Instagram), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
   },
   {
     number: '2',
@@ -314,7 +314,7 @@ export default function CanadaInfluencersPage() {
             Canadian tech influencers bridge North American and global audiences across YouTube, LinkedIn, and Twitter. A mid-tier Canadian tech creator charges CAD 400-CAD 2,500 per sponsored video. Toronto, Waterloo, and Vancouver lead in tech content creation. Infoishai lists verified Canadian tech creators searchable by niche and platform.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-            Connect with verified Canadian tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Browse by niche, audience size, and engagement rate. Free to search.
+            Connect with verified Canadian tech creators across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Browse by niche, audience size, and engagement rate. Free to search.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link

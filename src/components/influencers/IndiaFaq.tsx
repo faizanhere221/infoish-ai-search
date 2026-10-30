@@ -7,7 +7,7 @@ const faqs = [
   {
     question: 'How do I find tech influencers in India?',
     answer:
-      'Search the Infoishai creator directory and filter by India. Browse verified Indian tech influencers across YouTube, Instagram, Twitter/X, and LinkedIn. Filter by niche, language, and audience size.',
+      'Search the Infoishai creator directory and filter by India. Browse verified Indian tech influencers across YouTube, Instagram, X (Twitter), and LinkedIn. Filter by niche, language, and audience size.',
   },
   {
     question: 'How much do Indian tech influencers charge?',

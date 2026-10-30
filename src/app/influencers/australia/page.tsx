@@ -63,7 +63,7 @@ const collectionJsonLd = {
   '@type': 'CollectionPage',
   name: 'Tech Influencers in Australia',
   description:
-    'Browse and hire verified Australian tech influencers across YouTube, Twitter/X, LinkedIn, and other platforms',
+    'Browse and hire verified Australian tech influencers across YouTube, X (Twitter), LinkedIn, and other platforms',
   url: 'https://infoishai.com/influencers/australia',
   isPartOf: {
     '@type': 'WebSite',
@@ -93,7 +93,7 @@ const faqJsonLd = {
       name: 'How do I find tech influencers in Australia?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Search the Infoishai creator directory and filter by Australia. Browse verified Australian tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche (AI, SaaS, developer tools, fintech) and audience size to find the right creator for your campaign.',
+        text: 'Search the Infoishai creator directory and filter by Australia. Browse verified Australian tech influencers across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Filter by niche (AI, SaaS, developer tools, fintech) and audience size to find the right creator for your campaign.',
       },
     },
     {
@@ -101,7 +101,7 @@ const faqJsonLd = {
       name: 'How much do Australian tech influencers charge?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Australian tech influencer rates vary by platform and audience size. YouTube: AUD $1,000 to AUD $5,000 per video (50K-200K subscribers). LinkedIn: AUD $500 to AUD $2,000 per post. Twitter/X: AUD $200 to AUD $1,000 per thread.',
+        text: 'Australian tech influencer rates vary by platform and audience size. YouTube: AUD $1,000 to AUD $5,000 per video (50K-200K subscribers). LinkedIn: AUD $500 to AUD $2,000 per post. X (Twitter): AUD $200 to AUD $1,000 per thread.',
       },
     },
     {
@@ -182,7 +182,7 @@ const platforms = [
   },
   {
     icon: Twitter,
-    name: 'Twitter/X',
+    name: 'X (Twitter)',
     description:
       'Active Australian tech community with strong engagement in developer tools, startup discussions, and AI. Australian tech Twitter overlaps with both US and UK tech conversations. Best for developer-focused products and startup launches.',
   },
@@ -204,8 +204,8 @@ const rateTable = [
   { platform: 'YouTube (dedicated video)', audience: '10K-50K subscribers', rate: 'AUD $600 - $2,000' },
   { platform: 'YouTube (dedicated video)', audience: '50K-200K subscribers', rate: 'AUD $2,000 - $5,000' },
   { platform: 'YouTube (dedicated video)', audience: '200K+ subscribers', rate: 'AUD $5,000 - $14,000' },
-  { platform: 'Twitter/X (thread)', audience: '10K-50K followers', rate: 'AUD $100 - $500' },
-  { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: 'AUD $500 - $1,500' },
+  { platform: 'X (Twitter) thread', audience: '10K-50K followers', rate: 'AUD $100 - $500' },
+  { platform: 'X (Twitter) thread', audience: '50K-200K followers', rate: 'AUD $500 - $1,500' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: 'AUD $300 - $1,000' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: 'AUD $1,000 - $2,500' },
 ]
@@ -248,7 +248,7 @@ const steps = [
     number: '1',
     title: 'Search the Creator Directory',
     description:
-      'Browse Australian tech influencers on Infoishai. Filter by niche (SaaS, fintech, AI, developer tools, cybersecurity, mining tech), platform (YouTube, LinkedIn, Twitter/X, TikTok, Instagram), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
+      'Browse Australian tech influencers on Infoishai. Filter by niche (SaaS, fintech, AI, developer tools, cybersecurity, mining tech), platform (YouTube, LinkedIn, X (Twitter), TikTok, Instagram), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
   },
   {
     number: '2',
@@ -316,7 +316,7 @@ export default function AustraliaInfluencersPage() {
             Australian tech influencers provide access to the APAC region&apos;s highest-spending B2B market. A mid-tier Australian tech creator charges AUD 300-AUD 2,000 per sponsored video. Sydney, Melbourne, and Brisbane produce the most tech content. Infoishai lists verified Australian tech influencers with free search and messaging.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-            Connect with verified Australian tech creators across YouTube, LinkedIn, Twitter/X, TikTok,
+            Connect with verified Australian tech creators across YouTube, LinkedIn, X (Twitter), TikTok,
             and Instagram. Browse by niche, audience size, and engagement rate. Free to search.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">

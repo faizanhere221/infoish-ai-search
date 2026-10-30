@@ -9,7 +9,7 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: 'How Much Should Tech Creators Charge for Sponsorships? (2026)',
-  description: 'Tech creator sponsorship rates for 2026. Pricing formulas by platform, audience size, and niche. Rate cards for YouTube, LinkedIn, Twitter/X, and newsletters.',
+  description: 'Tech creator sponsorship rates for 2026. Pricing formulas by platform, audience size, and niche. Rate cards for YouTube, LinkedIn, X (Twitter), and newsletters.',
   keywords: [
     'tech creator sponsorship rates',
     'how much to charge for sponsorships',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'How Much Should Tech Creators Charge for Sponsorships in 2026?',
-    description: 'Pricing guide for tech creators setting sponsorship rates. Covers formulas, benchmarks, and rate cards for YouTube, LinkedIn, Twitter/X, and newsletters.',
+    description: 'Pricing guide for tech creators setting sponsorship rates. Covers formulas, benchmarks, and rate cards for YouTube, LinkedIn, X (Twitter), and newsletters.',
     type: 'article',
     publishedTime: '2026-08-12T00:00:00.000Z',
     authors: ['Infoishai Team'],
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'How Much Should Tech Creators Charge for Sponsorships in 2026?',
-    description: 'Pricing guide for tech creators setting sponsorship rates. Covers formulas, benchmarks, and rate cards for YouTube, LinkedIn, Twitter/X, and newsletters.',
+    description: 'Pricing guide for tech creators setting sponsorship rates. Covers formulas, benchmarks, and rate cards for YouTube, LinkedIn, X (Twitter), and newsletters.',
     images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
@@ -42,7 +42,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
   headline: 'How Much Should Tech Creators Charge for Sponsorships in 2026?',
-  description: 'Pricing guide for tech creators setting sponsorship rates. Covers formulas, benchmarks, and rate cards for YouTube, LinkedIn, Twitter/X, and newsletters.',
+  description: 'Pricing guide for tech creators setting sponsorship rates. Covers formulas, benchmarks, and rate cards for YouTube, LinkedIn, X (Twitter), and newsletters.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-08-12',
   dateModified: '2026-10-29',
@@ -101,7 +101,7 @@ const cpvBenchmarks = [
   { platform: 'Instagram Reels', rate: '$0.01 - $0.05 per view' },
   { platform: 'TikTok', rate: '$0.005 - $0.02 per view' },
   { platform: 'LinkedIn posts', rate: '$0.05 - $0.15 per view' },
-  { platform: 'Twitter/X threads', rate: '$0.02 - $0.08 per view' },
+  { platform: 'X (Twitter) threads', rate: '$0.02 - $0.08 per view' },
   { platform: 'Newsletter mentions', rate: '$25 - $75 per 1,000 subscribers (CPM)' },
 ]
 
@@ -117,7 +117,7 @@ interface PlatformBenchmark {
 const platformBenchmarks: PlatformBenchmark[] = [
   { platform: 'YouTube', format: 'Dedicated video', tier1: '$500-$2,000 (10K-50K)', tier2: '$2,000-$5,000 (50K-200K)', tier3: '$5,000-$25,000 (200K-500K+)', addOn: 'Integrations: 25-35%. Shorts: 20-40%.' },
   { platform: 'LinkedIn', format: 'Sponsored post', tier1: '$200-$800 (10K-30K)', tier2: '$800-$3,000 (30K-100K)', tier3: '$3,000-$6,000 (100K+)', addOn: 'Articles: 150-200% of post rate.' },
-  { platform: 'Twitter/X', format: 'Sponsored thread', tier1: '$100-$500 (10K-50K)', tier2: '$500-$1,500 (50K-200K)', tier3: '$1,500-$4,000 (200K+)', addOn: 'Single tweets: 20-30% of thread rate.' },
+  { platform: 'X (Twitter)', format: 'Sponsored thread', tier1: '$100-$500 (10K-50K)', tier2: '$500-$1,500 (50K-200K)', tier3: '$1,500-$4,000 (200K+)', addOn: 'Single tweets: 20-30% of thread rate.' },
   { platform: 'Instagram', format: 'Reel', tier1: '$200-$800 (10K-50K)', tier2: '$800-$2,000 (50K-200K)', tier3: '$2,000-$5,000 (200K-500K)', addOn: 'Stories: 15-25%. Bundle: 120-130%.' },
   { platform: 'Newsletter', format: 'Sponsored mention', tier1: '$100-$400 (2K-5K subs)', tier2: '$400-$1,200 (5K-20K subs)', tier3: '$1,200-$2,500 (20K-50K subs)', addOn: 'Dedicated issue: 200-300% of mention.' },
   { platform: 'Podcast', format: 'Mid-roll spot', tier1: '$200-$800 (1K-5K downloads)', tier2: '$800-$1,500 (5K-10K downloads)', tier3: '$1,500-$4,000 (10K-50K downloads)', addOn: 'Host-read interviews: 200-300% of mid-roll.' },

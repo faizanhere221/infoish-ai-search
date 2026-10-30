@@ -7,12 +7,12 @@ const faqs = [
   {
     question: 'How do I find tech influencers in Canada?',
     answer:
-      'Search the Infoishai creator directory and filter by Canada. Browse verified Canadian tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche and audience size to find the right creator for your campaign.',
+      'Search the Infoishai creator directory and filter by Canada. Browse verified Canadian tech influencers across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Filter by niche and audience size to find the right creator for your campaign.',
   },
   {
     question: 'How much do Canadian tech influencers charge?',
     answer:
-      'Canadian rates vary by platform. YouTube: CAD $800 to $4,500 per video for creators with 50K to 200K subscribers. LinkedIn: CAD $400 to $1,800 per post. Twitter/X: CAD $150 to $900 per thread.',
+      'Canadian rates vary by platform. YouTube: CAD $800 to $4,500 per video for creators with 50K to 200K subscribers. LinkedIn: CAD $400 to $1,800 per post. X (Twitter): CAD $150 to $900 per thread.',
   },
   {
     question: 'Why are Canadian creator rates lower than US rates?',

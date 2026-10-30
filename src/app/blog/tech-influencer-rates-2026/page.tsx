@@ -10,7 +10,7 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: 'Tech Influencer Rates 2026: What Every Brand Should Know',
-  description: 'Tech influencer rates by platform, country, and audience size for 2026. YouTube, LinkedIn, Twitter/X, Instagram pricing with data from 9 markets. Free rate guide.',
+  description: 'Tech influencer rates by platform, country, and audience size for 2026. YouTube, LinkedIn, X (Twitter), Instagram pricing with data from 9 markets. Free rate guide.',
   keywords: [
     'tech influencer rates',
     'tech influencer pricing',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Tech Influencer Rates 2026: What Every Brand Should Know',
-    description: 'Complete guide to tech influencer rates by platform, country, and audience size for 2026. Covers YouTube, LinkedIn, Twitter/X, Instagram, newsletters, and podcasts.',
+    description: 'Complete guide to tech influencer rates by platform, country, and audience size for 2026. Covers YouTube, LinkedIn, X (Twitter), Instagram, newsletters, and podcasts.',
     type: 'article',
     publishedTime: '2026-08-04T00:00:00.000Z',
     authors: ['Infoishai Team'],
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Tech Influencer Rates 2026: What Every Brand Should Know',
-    description: 'Complete guide to tech influencer rates by platform, country, and audience size for 2026. Covers YouTube, LinkedIn, Twitter/X, Instagram, newsletters, and podcasts.',
+    description: 'Complete guide to tech influencer rates by platform, country, and audience size for 2026. Covers YouTube, LinkedIn, X (Twitter), Instagram, newsletters, and podcasts.',
     images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
@@ -44,7 +44,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
   headline: 'Tech Influencer Rates 2026: What Every Brand Should Know',
-  description: 'Complete guide to tech influencer rates by platform, country, and audience size for 2026. Covers YouTube, LinkedIn, Twitter/X, Instagram, newsletters, and podcasts.',
+  description: 'Complete guide to tech influencer rates by platform, country, and audience size for 2026. Covers YouTube, LinkedIn, X (Twitter), Instagram, newsletters, and podcasts.',
   image: 'https://infoishai.com/og-image.jpg',
   datePublished: '2026-08-04',
   dateModified: '2026-10-29',
@@ -75,7 +75,7 @@ const faqSchema = {
       name: 'How much do tech influencers charge in 2026?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Tech influencer rates in 2026 vary by platform and audience size. YouTube: $500 to $15,000 per video. LinkedIn: $300 to $3,000 per post. Twitter/X: $100 to $1,500 per thread. Instagram Reels: $200 to $2,000. Newsletters: $200 to $2,500 per mention. Rates vary significantly by country, with Indian and Pakistani creators charging 70-90% less than US equivalents.'
+        text: 'Tech influencer rates in 2026 vary by platform and audience size. YouTube: $500 to $15,000 per video. LinkedIn: $300 to $3,000 per post. X (Twitter): $100 to $1,500 per thread. Instagram Reels: $200 to $2,000. Newsletters: $200 to $2,500 per mention. Rates vary significantly by country, with Indian and Pakistani creators charging 70-90% less than US equivalents.'
       }
     },
     {
@@ -116,7 +116,7 @@ interface PlatformRate {
 const platformRates: PlatformRate[] = [
   { platform: 'YouTube', format: 'Dedicated video', tier1: '$500-$2,000 (10K-50K)', tier2: '$2,000-$5,000 (50K-200K)', tier3: '$5,000-$25,000+ (200K+)' },
   { platform: 'LinkedIn', format: 'Sponsored post', tier1: '$200-$800 (10K-30K)', tier2: '$800-$3,000 (30K-100K)', tier3: '$3,000-$6,000 (100K+)' },
-  { platform: 'Twitter/X', format: 'Sponsored thread', tier1: '$100-$500 (10K-50K)', tier2: '$500-$1,500 (50K-200K)', tier3: '$1,500-$4,000 (200K+)' },
+  { platform: 'X (Twitter)', format: 'Sponsored thread', tier1: '$100-$500 (10K-50K)', tier2: '$500-$1,500 (50K-200K)', tier3: '$1,500-$4,000 (200K+)' },
   { platform: 'Instagram', format: 'Reel', tier1: '$200-$800 (10K-50K)', tier2: '$800-$2,000 (50K-200K)', tier3: '$2,000-$12,000 (200K-500K+)' },
   { platform: 'Newsletter', format: 'Sponsored mention', tier1: '$100-$400 (2K-5K subs)', tier2: '$400-$1,200 (5K-20K subs)', tier3: '$1,200-$5,000 (20K+ subs)' },
   { platform: 'Podcast', format: 'Pre-roll spot', tier1: '$200-$800 (1K-5K downloads)', tier2: '$800-$1,500 (5K-10K downloads)', tier3: '$1,500-$4,000 (10K-50K downloads)' },
@@ -143,7 +143,7 @@ const countryRates: CountryRate[] = [
 const pricingFactors = [
   { name: 'Audience size', description: 'The most visible factor, but the relationship is not linear. The premium flattens as audience size grows because engagement rates typically decline at larger scales.' },
   { name: 'Engagement rate', description: 'The factor most brands underweight. A creator with 30K followers and 8% engagement has more active engagers than one with 300K followers and 0.5% engagement, and charges less.' },
-  { name: 'Platform', description: 'YouTube costs the most because production effort is highest. Twitter/X costs the least. LinkedIn commands a premium because the audience has high purchasing authority.' },
+  { name: 'Platform', description: 'YouTube costs the most because production effort is highest. X (Twitter) costs the least. LinkedIn commands a premium because the audience has high purchasing authority.' },
   { name: 'Niche specialisation', description: 'A creator covering "Kubernetes monitoring tools" charges more per viewer than one covering "general tech" because the audience match is tighter and conversion is higher.' },
   { name: 'Content format', description: 'A dedicated video costs more than an integration mention. A thread costs more than a single tweet. Longer, production-intensive formats cost more but deliver deeper engagement.' },
   { name: 'Creator location', description: 'Geography creates the largest pricing spread. An Indian creator charges 70-80% less than an American creator with the same audience size.' },
@@ -221,7 +221,7 @@ export default function TechInfluencerRates2026Page() {
           {/* Intro */}
           <section className="mb-12">
             <p className="text-gray-700 leading-relaxed mb-6">
-              Tech influencer rates in 2026 depend on six variables: platform, audience size, engagement rate, niche specialisation, content format, and the creator&apos;s country. A YouTube video from a US creator with 100K subscribers costs $2,000 to $4,000. The same audience size from an Indian creator costs $250 to $600. A LinkedIn post from a UK thought leader with 50K followers costs £800 to £2,000. A Twitter/X thread from a Pakistani creator with 30K followers costs PKR 8,000 to PKR 15,000.
+              Tech influencer rates in 2026 depend on six variables: platform, audience size, engagement rate, niche specialisation, content format, and the creator&apos;s country. A YouTube video from a US creator with 100K subscribers costs $2,000 to $4,000. The same audience size from an Indian creator costs $250 to $600. A LinkedIn post from a UK thought leader with 50K followers costs £800 to £2,000. A X (Twitter) thread from a Pakistani creator with 30K followers costs PKR 8,000 to PKR 15,000.
             </p>
             <p className="text-gray-700 leading-relaxed">
               This guide consolidates typical rate ranges across 6 platforms and 9 countries. These are Infoishai editorial estimates, not survey data, so treat them as typical ranges, not fixed prices.
@@ -274,7 +274,7 @@ export default function TechInfluencerRates2026Page() {
                 <p className="text-gray-700">Right for enterprise SaaS, B2B platforms, and professional tools. A single post from a 60K-follower thought leader reaches 5,000-15,000 professionals.</p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Twitter/X</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">X (Twitter)</h3>
                 <p className="text-gray-700 mb-2">The most affordable platform in Western markets. Production effort is lower, but engagement per impression is high in tech communities. Single tweet rates run at 20-30% of thread rates.</p>
                 <p className="text-gray-700">Works best for developer tools, open-source projects, AI products, and startup launches. Retweet dynamics create organic amplification well beyond follower count.</p>
               </div>
@@ -498,7 +498,7 @@ export default function TechInfluencerRates2026Page() {
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">How much do tech influencers charge in 2026?</h3>
                 <p className="text-gray-700">
-                  Tech influencer rates in 2026 vary by platform and audience size. YouTube: $500 to $15,000 per video. LinkedIn: $300 to $3,000 per post. Twitter/X: $100 to $1,500 per thread. Instagram Reels: $200 to $2,000. Newsletters: $200 to $2,500 per mention. Rates vary significantly by country, with Indian and Pakistani creators charging 70-90% less than US equivalents.
+                  Tech influencer rates in 2026 vary by platform and audience size. YouTube: $500 to $15,000 per video. LinkedIn: $300 to $3,000 per post. X (Twitter): $100 to $1,500 per thread. Instagram Reels: $200 to $2,000. Newsletters: $200 to $2,500 per mention. Rates vary significantly by country, with Indian and Pakistani creators charging 70-90% less than US equivalents.
                 </p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">

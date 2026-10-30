@@ -208,7 +208,7 @@ export function AboutSection() {
             Infoishai is a <strong>tech influencer marketplace</strong> built to connect ambitious brands
             with creators who actually understand technology. Unlike generic influencer directories, we
             focus exclusively on <strong>tech content creators</strong> — YouTubers, LinkedIn thought
-            leaders, Twitter/X voices, and TikTok and Instagram creators covering AI, SaaS, developer
+            leaders, X (Twitter) voices, and TikTok and Instagram creators covering AI, SaaS, developer
             tools, cloud infrastructure, and cybersecurity.
           </p>
           <p>
@@ -336,7 +336,7 @@ export function ForBrandsSection() {
           <div className="max-w-3xl mx-auto space-y-5 text-lg text-gray-600 leading-relaxed">
             <p>
               Infoishai gives your brand direct access to verified tech influencers across
-              YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Search creators by niche,
+              YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Search creators by niche,
               platform, audience size, country, and engagement rate. Every profile is verified.
               Every creator is active and accepting partnerships.
             </p>
@@ -918,7 +918,7 @@ export function FAQSection() {
     },
     {
       question: 'What types of tech influencers can I find?',
-      answer: 'You can find influencers across niches including AI/ML, SaaS, developer tools, cloud computing, cybersecurity, and more. Platforms include YouTube, LinkedIn, Twitter/X, TikTok, and Instagram.',
+      answer: 'You can find influencers across niches including AI/ML, SaaS, developer tools, cloud computing, cybersecurity, and more. Platforms include YouTube, LinkedIn, X (Twitter), TikTok, and Instagram.',
     },
     {
       question: 'How do I hire a tech influencer?',
@@ -938,7 +938,7 @@ export function FAQSection() {
     },
     {
       question: 'What platforms are best for tech influencers?',
-      answer: 'YouTube, LinkedIn, and Twitter/X are the most effective platforms for technology creators, with TikTok and Instagram strong for short video. YouTube works best for tutorials, Twitter/X for discussions, and LinkedIn for B2B audiences.',
+      answer: 'YouTube, LinkedIn, and X (Twitter) are the most effective platforms for technology creators, with TikTok and Instagram strong for short video. YouTube works best for tutorials, X (Twitter) for discussions, and LinkedIn for B2B audiences.',
     },
     {
       question: 'Why should startups work with tech influencers?',

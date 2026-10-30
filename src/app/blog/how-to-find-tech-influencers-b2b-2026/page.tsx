@@ -213,7 +213,7 @@ export default function HowToFindTechInfluencersPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">3. Twitter/X Tech Communities</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">3. X (Twitter) Tech Communities</h3>
                   <p className="text-gray-700 mb-3">Tech Twitter is where developers and founders hang out. Find influencers by:</p>
                   <ul className="list-disc list-inside text-gray-700 space-y-1 ml-2">
                     <li>Searching hashtags: #DevRel, #TechTwitter, #BuildInPublic</li>

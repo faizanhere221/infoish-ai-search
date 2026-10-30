@@ -122,7 +122,7 @@ const platformChoices = [
   { name: 'YouTube', description: 'Choose if your product needs demonstration (SaaS, developer platforms, AI), your sales cycle benefits from detailed reviews, or you want content that generates signups for 12-18 months.' },
   { name: 'LinkedIn', description: 'Choose if your product targets B2B buyers, your buyers are executives or decision-makers, or you want fast results: LinkedIn posts peak in 3-5 days.' },
   { name: 'Instagram or TikTok', description: 'Choose if your product is consumer-facing, your audience is 18-30, or you want high-volume awareness at lower per-creator cost.' },
-  { name: 'Twitter/X', description: 'Choose if your product targets developers, your audience is active in tech Twitter communities, or you want organic amplification through retweets and quote tweets.' },
+  { name: 'X (Twitter)', description: 'Choose if your product targets developers, your audience is active in tech Twitter communities, or you want organic amplification through retweets and quote tweets.' },
 ]
 
 const briefElements = [
@@ -145,7 +145,7 @@ const managementDays = [
 
 const measurementCheckpoints = [
   { time: '48-72 hours', description: 'Check TikTok and Instagram Reel performance. These formats peak within 2-3 days. Count views, engagement, and link clicks against your target CPA.' },
-  { time: '7 days', description: 'Check LinkedIn post and Twitter/X thread performance. These formats peak within 5-7 days. Count impressions, engagement, and conversions from the UTM link and promo code.' },
+  { time: '7 days', description: 'Check LinkedIn post and X (Twitter) thread performance. These formats peak within 5-7 days. Count impressions, engagement, and conversions from the UTM link and promo code.' },
   { time: '30 days', description: 'Check YouTube video performance, which builds momentum over weeks. Count cumulative signups and calculate CPA: total spend on the creator divided by total conversions.' },
   { time: '90 days', description: 'Calculate true campaign ROI across all creators and platforms. Compare against your other acquisition channels. YouTube keeps generating conversions past 90 days, so include those.' },
 ]

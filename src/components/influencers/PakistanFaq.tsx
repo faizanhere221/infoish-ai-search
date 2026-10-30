@@ -7,7 +7,7 @@ const faqs = [
   {
     question: 'How do I find tech influencers in Pakistan?',
     answer:
-      'Search the Infoishai creator directory and filter by Pakistan. Browse verified Pakistani tech influencers across YouTube, Instagram, TikTok, Twitter/X, and LinkedIn. Filter by niche, language, and audience size.',
+      'Search the Infoishai creator directory and filter by Pakistan. Browse verified Pakistani tech influencers across YouTube, Instagram, TikTok, X (Twitter), and LinkedIn. Filter by niche, language, and audience size.',
   },
   {
     question: 'How much do Pakistani tech influencers charge?',

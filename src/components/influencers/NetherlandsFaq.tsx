@@ -7,12 +7,12 @@ const faqs = [
   {
     question: 'How do I find tech influencers in the Netherlands?',
     answer:
-      'Search the Infoishai creator directory and filter by Netherlands. Browse verified Dutch tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche, language (Dutch or English), and audience size.',
+      'Search the Infoishai creator directory and filter by Netherlands. Browse verified Dutch tech influencers across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Filter by niche, language (Dutch or English), and audience size.',
   },
   {
     question: 'How much do Dutch tech influencers charge?',
     answer:
-      'Dutch rates vary by platform. YouTube: EUR 2,000 to EUR 5,000 per video for creators with 50K to 200K subscribers. LinkedIn: EUR 400 to EUR 1,800 per post. Twitter/X: EUR 150 to EUR 800 per thread. Rates are slightly below German rates and comparable to UK rates.',
+      'Dutch rates vary by platform. YouTube: EUR 2,000 to EUR 5,000 per video for creators with 50K to 200K subscribers. LinkedIn: EUR 400 to EUR 1,800 per post. X (Twitter): EUR 150 to EUR 800 per thread. Rates are slightly below German rates and comparable to UK rates.',
   },
   {
     question: 'Should I use Dutch-language or English-language creators?',

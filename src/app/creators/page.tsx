@@ -52,7 +52,7 @@ export default async function CreatorsPage() {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: 'Search Tech Influencers',
-    description: 'Browse verified tech influencers and content creators across YouTube, Twitter/X, and LinkedIn.',
+    description: 'Browse verified tech influencers and content creators across YouTube, X (Twitter), and LinkedIn.',
     url: 'https://infoishai.com/creators',
     mainEntity: {
       '@type': 'ItemList',

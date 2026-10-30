@@ -65,7 +65,7 @@ const collectionJsonLd = {
   '@type': 'CollectionPage',
   name: 'Tech Influencers in Singapore',
   description:
-    'Browse and hire verified Singaporean tech influencers across YouTube, LinkedIn, Twitter/X, and other platforms',
+    'Browse and hire verified Singaporean tech influencers across YouTube, LinkedIn, X (Twitter), and other platforms',
   url: 'https://infoishai.com/influencers/singapore',
   isPartOf: {
     '@type': 'WebSite',
@@ -95,7 +95,7 @@ const faqJsonLd = {
       name: 'How do I find tech influencers in Singapore?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Search the Infoishai creator directory and filter by Singapore. Browse verified Singaporean tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche (fintech, AI, SaaS, developer tools), audience size, and engagement rate to find the right creator for your campaign.',
+        text: 'Search the Infoishai creator directory and filter by Singapore. Browse verified Singaporean tech influencers across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Filter by niche (fintech, AI, SaaS, developer tools), audience size, and engagement rate to find the right creator for your campaign.',
       },
     },
     {
@@ -103,7 +103,7 @@ const faqJsonLd = {
       name: 'How much do Singaporean tech influencers charge?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Singaporean tech influencer rates vary by platform and audience size. YouTube: SGD 1,200 to SGD 5,500 per video (50K-200K subscribers). LinkedIn: SGD 600 to SGD 2,500 per post. Twitter/X: SGD 250 to SGD 1,200 per thread.',
+        text: 'Singaporean tech influencer rates vary by platform and audience size. YouTube: SGD 1,200 to SGD 5,500 per video (50K-200K subscribers). LinkedIn: SGD 600 to SGD 2,500 per post. X (Twitter): SGD 250 to SGD 1,200 per thread.',
       },
     },
     {
@@ -184,7 +184,7 @@ const platforms = [
   },
   {
     icon: Twitter,
-    name: 'Twitter/X',
+    name: 'X (Twitter)',
     description:
       'Active Singaporean tech community covering fintech, AI, Web3, and startup discussions. Singapore tech Twitter engages with global conversations while maintaining a strong regional voice. Best for developer-focused products, startup launches, and crypto/Web3 tools.',
   },
@@ -206,8 +206,8 @@ const rateTable = [
   { platform: 'YouTube (dedicated video)', audience: '10K-50K subscribers', rate: 'S$700 - S$2,500' },
   { platform: 'YouTube (dedicated video)', audience: '50K-200K subscribers', rate: 'S$2,500 - S$6,000' },
   { platform: 'YouTube (dedicated video)', audience: '200K+ subscribers', rate: 'S$6,000 - S$15,000' },
-  { platform: 'Twitter/X (thread)', audience: '10K-50K followers', rate: 'S$120 - S$600' },
-  { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: 'S$600 - S$1,500' },
+  { platform: 'X (Twitter) thread', audience: '10K-50K followers', rate: 'S$120 - S$600' },
+  { platform: 'X (Twitter) thread', audience: '50K-200K followers', rate: 'S$600 - S$1,500' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: 'S$400 - S$1,200' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: 'S$1,200 - S$3,000' },
 ]
@@ -250,7 +250,7 @@ const steps = [
     number: '1',
     title: 'Search the Creator Directory',
     description:
-      'Browse Singaporean tech influencers on Infoishai. Filter by niche (fintech, AI, enterprise SaaS, developer tools, govtech, Web3), platform (YouTube, LinkedIn, Twitter/X, TikTok, Instagram), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
+      'Browse Singaporean tech influencers on Infoishai. Filter by niche (fintech, AI, enterprise SaaS, developer tools, govtech, Web3), platform (YouTube, LinkedIn, X (Twitter), TikTok, Instagram), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
   },
   {
     number: '2',
@@ -318,7 +318,7 @@ export default function SingaporeInfluencersPage() {
             Singapore tech influencers provide gateway access to the entire ASEAN market (680 million people). A mid-tier Singapore tech creator charges SGD 400-SGD 3,000 per sponsored video. Singapore&apos;s tech ecosystem spans fintech, cybersecurity, cloud, and AI. Infoishai lists verified Singapore tech influencers with free search.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-            Connect with verified Singaporean tech creators across YouTube, LinkedIn, Twitter/X, TikTok,
+            Connect with verified Singaporean tech creators across YouTube, LinkedIn, X (Twitter), TikTok,
             and Instagram. Your gateway to Southeast Asia&apos;s 650 million person market.
             Browse by niche, audience size, and engagement rate. Free to search.
           </p>

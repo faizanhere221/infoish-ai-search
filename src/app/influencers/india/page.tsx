@@ -62,7 +62,7 @@ const collectionJsonLd = {
   '@type': 'CollectionPage',
   name: 'Tech Influencers in India',
   description:
-    'Browse and hire verified Indian tech influencers across YouTube, Twitter/X, LinkedIn, and other platforms',
+    'Browse and hire verified Indian tech influencers across YouTube, X (Twitter), LinkedIn, and other platforms',
   url: 'https://infoishai.com/influencers/india',
   isPartOf: {
     '@type': 'WebSite',
@@ -92,7 +92,7 @@ const faqJsonLd = {
       name: 'How do I find tech influencers in India?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Search the Infoishai creator directory and filter by India. Browse verified Indian tech influencers across YouTube, Twitter/X, LinkedIn, and Instagram. Filter by niche (AI, SaaS, coding, developer tools), language (English, Hindi, regional), and audience size to find the right creator for your campaign.',
+        text: 'Search the Infoishai creator directory and filter by India. Browse verified Indian tech influencers across YouTube, X (Twitter), LinkedIn, and Instagram. Filter by niche (AI, SaaS, coding, developer tools), language (English, Hindi, regional), and audience size to find the right creator for your campaign.',
       },
     },
     {
@@ -100,7 +100,7 @@ const faqJsonLd = {
       name: 'How much do Indian tech influencers charge?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Indian tech influencer rates vary by platform and audience size. YouTube: INR 15,000 to INR 1,50,000 per video (50K-500K subscribers). LinkedIn: INR 10,000 to INR 50,000 per post. Twitter/X: INR 5,000 to INR 30,000 per thread. Instagram: INR 8,000 to INR 60,000 per reel.',
+        text: 'Indian tech influencer rates vary by platform and audience size. YouTube: INR 15,000 to INR 1,50,000 per video (50K-500K subscribers). LinkedIn: INR 10,000 to INR 50,000 per post. X (Twitter): INR 5,000 to INR 30,000 per thread. Instagram: INR 8,000 to INR 60,000 per reel.',
       },
     },
     {
@@ -187,7 +187,7 @@ const platforms = [
   },
   {
     icon: Twitter,
-    name: 'Twitter/X',
+    name: 'X (Twitter)',
     description:
       'Active Indian tech community covering startups, developer tools, open-source projects, and AI. Tech Twitter in India drives strong engagement on product launches and feature announcements. Best for developer tools and startup products.',
   },
@@ -200,8 +200,8 @@ const rateTable = [
   { platform: 'YouTube (dedicated video)', audience: '1M+ subscribers', rate: '₹5,00,000 - ₹15,00,000' },
   { platform: 'Instagram (reel)', audience: '10K-50K followers', rate: '₹3,000 - ₹15,000' },
   { platform: 'Instagram (reel)', audience: '50K-500K followers', rate: '₹15,000 - ₹80,000' },
-  { platform: 'Twitter/X (thread)', audience: '10K-50K followers', rate: '₹2,000 - ₹10,000' },
-  { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: '₹10,000 - ₹40,000' },
+  { platform: 'X (Twitter) thread', audience: '10K-50K followers', rate: '₹2,000 - ₹10,000' },
+  { platform: 'X (Twitter) thread', audience: '50K-200K followers', rate: '₹10,000 - ₹40,000' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: '₹5,000 - ₹20,000' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: '₹20,000 - ₹60,000' },
 ]
@@ -282,7 +282,7 @@ const steps = [
     number: '1',
     title: 'Search the Creator Directory',
     description:
-      'Browse Indian tech influencers on Infoishai. Filter by niche (AI, SaaS, developer tools, coding education, career), platform (YouTube, Instagram, Twitter/X, LinkedIn), language (English, Hindi, regional), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
+      'Browse Indian tech influencers on Infoishai. Filter by niche (AI, SaaS, developer tools, coding education, career), platform (YouTube, Instagram, X (Twitter), LinkedIn), language (English, Hindi, regional), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
   },
   {
     number: '2',
@@ -352,7 +352,7 @@ export default function IndiaInfluencersPage() {
             Indian tech influencers reach the world&apos;s largest developer population (5.8 million engineers) at rates 70-80% lower than US equivalents. A mid-tier Indian tech creator charges INR 5,000-INR 50,000 per sponsored video. Bangalore, Mumbai, and Delhi-NCR produce the most tech content. Infoishai lists verified Indian tech influencers.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-            Connect with verified Indian tech creators across YouTube, Twitter/X, LinkedIn, and
+            Connect with verified Indian tech creators across YouTube, X (Twitter), LinkedIn, and
             Instagram. Browse by niche, language, audience size, and engagement rate. Free to
             search.
           </p>

@@ -143,7 +143,7 @@ const blogPosts: BlogPost[] = [
   {
     id: '16',
     title: 'How Much Should Tech Creators Charge for Sponsorships? (2026)',
-    excerpt: 'Tech creator sponsorship rates for 2026. Pricing formulas by platform, audience size, and niche. Rate cards for YouTube, LinkedIn, Twitter/X, and newsletters.',
+    excerpt: 'Tech creator sponsorship rates for 2026. Pricing formulas by platform, audience size, and niche. Rate cards for YouTube, LinkedIn, X (Twitter), and newsletters.',
     date: '2026-08-12',
     author: 'Infoishai Team',
     category: 'Strategy',
@@ -182,7 +182,7 @@ const blogPosts: BlogPost[] = [
   {
     id: '13',
     title: 'Tech Influencer Rates 2026: What Every Brand Should Know',
-    excerpt: 'Tech influencer rates by platform, country, and audience size for 2026. YouTube, LinkedIn, Twitter/X, Instagram pricing with data from 9 markets. Free rate guide.',
+    excerpt: 'Tech influencer rates by platform, country, and audience size for 2026. YouTube, LinkedIn, X (Twitter), Instagram pricing with data from 9 markets. Free rate guide.',
     date: '2026-08-04',
     author: 'Infoishai Team',
     category: 'Marketing',

@@ -132,7 +132,7 @@ const benefits = [
     color: 'purple',
     title: 'Influencer Content Works Across Multiple Channels',
     body: [
-      "A single influencer partnership produces content for many platforms. A YouTube review generates a video. The creator shares clips on Twitter/X. They write a LinkedIn post about the experience. They add the product to their newsletter. They mention the tool on their podcast.",
+      "A single influencer partnership produces content for many platforms. A YouTube review generates a video. The creator shares clips on X (Twitter). They write a LinkedIn post about the experience. They add the product to their newsletter. They mention the tool on their podcast.",
       "Your brand gets exposure across 3 to 5 channels from one partnership. Each piece of content reaches a different audience segment in a different format.",
       "You also earn reusable assets. With creator permission, you repurpose the review on your website, embed the video on your landing page, use quotes in email campaigns, and share clips in paid social ads.",
     ],

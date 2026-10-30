@@ -83,7 +83,7 @@ const faqSchema = {
       name: 'How much should a tech creator charge for a brand deal?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Rates vary by platform and audience size. YouTube: $500-$3,000 per video (50K-200K subs). Twitter/X: $100-$500 per thread. LinkedIn: $200-$1,000 per post. Newsletter: $50-$500 per mention depending on list size.'
+        text: 'Rates vary by platform and audience size. YouTube: $500-$3,000 per video (50K-200K subs). X (Twitter): $100-$500 per thread. LinkedIn: $200-$1,000 per post. Newsletter: $50-$500 per mention depending on list size.'
       }
     },
     {
@@ -179,7 +179,7 @@ export default function TechCreatorsGuideBrandDealsPage() {
               The reason is straightforward. A SaaS company selling a $50/month tool needs more than a banner ad to convert a customer. Buyers want to see the product in action. They want a trusted voice walking them through the setup, the features, and the results.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              Tech creators provide this. A 10-minute YouTube review or a detailed Twitter/X thread gives buyers the proof they need before signing up. For you as a creator, this shift means more opportunities. Brands need your content. The question is how to position yourself to get their attention.
+              Tech creators provide this. A 10-minute YouTube review or a detailed X (Twitter) thread gives buyers the proof they need before signing up. For you as a creator, this shift means more opportunities. Brands need your content. The question is how to position yourself to get their attention.
             </p>
           </section>
 
@@ -254,7 +254,7 @@ export default function TechCreatorsGuideBrandDealsPage() {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Step 3: Understand Your Audience Data</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              Brands pay for access to your audience, not for your follower count. Know your numbers. Pull your analytics from each platform. YouTube Studio, Twitter/X Analytics, LinkedIn Analytics, and your newsletter platform all provide this data.
+              Brands pay for access to your audience, not for your follower count. Know your numbers. Pull your analytics from each platform. YouTube Studio, X (Twitter) Analytics, LinkedIn Analytics, and your newsletter platform all provide this data.
             </p>
 
             <div className="bg-white rounded-lg p-8 shadow-sm border mb-6">
@@ -321,17 +321,17 @@ export default function TechCreatorsGuideBrandDealsPage() {
                     <td className="border-b border-gray-200 px-4 py-4 text-gray-700">~30% of video rate</td>
                   </tr>
                   <tr className="hover:bg-gray-50">
-                    <td className="border-b border-gray-200 px-4 py-4 text-gray-700 font-medium">Twitter/X (single post)</td>
+                    <td className="border-b border-gray-200 px-4 py-4 text-gray-700 font-medium">X (Twitter) single post</td>
                     <td className="border-b border-gray-200 px-4 py-4 text-gray-700">Under 50K followers</td>
                     <td className="border-b border-gray-200 px-4 py-4 text-gray-700">$50-$300</td>
                   </tr>
                   <tr className="hover:bg-gray-50">
-                    <td className="border-b border-gray-200 px-4 py-4 text-gray-700 font-medium">Twitter/X (sponsored thread)</td>
+                    <td className="border-b border-gray-200 px-4 py-4 text-gray-700 font-medium">X (Twitter) sponsored thread</td>
                     <td className="border-b border-gray-200 px-4 py-4 text-gray-700">Under 100K followers</td>
                     <td className="border-b border-gray-200 px-4 py-4 text-gray-700">$200-$1,000</td>
                   </tr>
                   <tr className="hover:bg-gray-50">
-                    <td className="border-b border-gray-200 px-4 py-4 text-gray-700 font-medium">Twitter/X (sponsored thread)</td>
+                    <td className="border-b border-gray-200 px-4 py-4 text-gray-700 font-medium">X (Twitter) sponsored thread</td>
                     <td className="border-b border-gray-200 px-4 py-4 text-gray-700">100K+ followers</td>
                     <td className="border-b border-gray-200 px-4 py-4 text-gray-700">$500-$2,500</td>
                   </tr>
@@ -576,7 +576,7 @@ My media kit is attached. I am open to discussing formats and timelines.
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">How much should a tech creator charge for a brand deal?</h3>
                 <p className="text-gray-700">
-                  Rates vary by platform and audience size. YouTube: $500-$3,000 per video (50K-200K subs). Twitter/X: $100-$500 per thread. LinkedIn: $200-$1,000 per post. Newsletter: $50-$500 per mention depending on list size.
+                  Rates vary by platform and audience size. YouTube: $500-$3,000 per video (50K-200K subs). X (Twitter): $100-$500 per thread. LinkedIn: $200-$1,000 per post. Newsletter: $50-$500 per mention depending on list size.
                 </p>
               </div>
 

@@ -176,7 +176,7 @@ interface RateRow {
 const rateRows: RateRow[] = [
   { platform: 'YouTube', format: 'Dedicated video', tier1: '£500-£1,500 (10K-50K subs)', tier2: '£1,500-£4,000 (50K-200K subs)', tier3: '£4,000-£10,000+ (200K+ subs)' },
   { platform: 'LinkedIn', format: 'Sponsored post', tier1: '£300-£800 (5K-20K followers)', tier2: '£800-£2,000 (20K-50K followers)', tier3: '£2,000-£4,500 (50K+ followers)' },
-  { platform: 'Twitter/X', format: 'Sponsored thread', tier1: '£200-£700 (10K-50K followers)', tier2: '£700-£2,000 (50K-200K followers)', tier3: 'Quoted case by case' },
+  { platform: 'X (Twitter)', format: 'Sponsored thread', tier1: '£200-£700 (10K-50K followers)', tier2: '£700-£2,000 (50K-200K followers)', tier3: 'Quoted case by case' },
   { platform: 'Newsletter', format: 'Sponsored slot', tier1: '£150-£500 (2K-5K subs)', tier2: '£500-£1,500 (5K-20K subs)', tier3: '£1,500-£4,000 (20K+ subs)' },
   { platform: 'Podcast', format: 'Host-read ad', tier1: '£200-£700 (1K-5K downloads)', tier2: '£700-£1,500 (5K-20K downloads)', tier3: '£1,500-£4,000 (20K+ downloads)' },
 ]
@@ -446,7 +446,7 @@ export default function UKTechInfluencersB2BBrandsPage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Which Platforms Work Best for UK B2B Influencer Marketing?</h2>
             <div className="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-6 mb-6">
               <p className="text-blue-900 leading-relaxed">
-                LinkedIn works best for most UK B2B campaigns. It reaches managers, founders, and finance, IT, and security buyers in a work mindset. YouTube suits product demos and developer tools. Podcasts reach senior leaders during commutes, newsletters reach founders and investors, and Twitter/X suits developer and AI audiences.
+                LinkedIn works best for most UK B2B campaigns. It reaches managers, founders, and finance, IT, and security buyers in a work mindset. YouTube suits product demos and developer tools. Podcasts reach senior leaders during commutes, newsletters reach founders and investors, and X (Twitter) suits developer and AI audiences.
               </p>
             </div>
 
@@ -465,7 +465,7 @@ export default function UKTechInfluencersB2BBrandsPage() {
                 <p className="text-gray-700">UK fintech, SaaS, and security podcasts reach directors and C-level listeners. A host-read ad or a guest slot for your founder builds trust with buyers who rarely scroll social feeds.</p>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Newsletters and Twitter/X</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Newsletters and X (Twitter)</h3>
                 <p className="text-gray-700">Fintech and startup newsletters reach founders and investors directly in the inbox. X remains useful for developer tools, open-source products, and AI launches, where engineers share and test new releases fast.</p>
               </div>
             </div>

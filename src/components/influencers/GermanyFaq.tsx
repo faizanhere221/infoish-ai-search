@@ -7,12 +7,12 @@ const faqs = [
   {
     question: 'How do I find tech influencers in Germany?',
     answer:
-      'Search the Infoishai creator directory and filter by Germany. Browse verified German tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche, language (German or English), and audience size.',
+      'Search the Infoishai creator directory and filter by Germany. Browse verified German tech influencers across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Filter by niche, language (German or English), and audience size.',
   },
   {
     question: 'How much do German tech influencers charge?',
     answer:
-      'German rates vary by platform. YouTube: EUR 2,500 to EUR 6,000 per video for creators with 50K to 200K subscribers. LinkedIn: EUR 500 to EUR 2,000 per post. Twitter/X: EUR 200 to EUR 1,000 per thread. Rates are comparable to UK rates and slightly above the European average.',
+      'German rates vary by platform. YouTube: EUR 2,500 to EUR 6,000 per video for creators with 50K to 200K subscribers. LinkedIn: EUR 500 to EUR 2,000 per post. X (Twitter): EUR 200 to EUR 1,000 per thread. Rates are comparable to UK rates and slightly above the European average.',
   },
   {
     question: 'Should I work with German-language or English-language creators in Germany?',

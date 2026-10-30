@@ -137,7 +137,7 @@ const faqData = {
       name: 'What types of tech influencers can I find?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'You can find influencers across niches including AI/ML, SaaS, developer tools, cloud computing, cybersecurity, and more. Platforms include YouTube, LinkedIn, Twitter/X, TikTok, and Instagram.',
+        text: 'You can find influencers across niches including AI/ML, SaaS, developer tools, cloud computing, cybersecurity, and more. Platforms include YouTube, LinkedIn, X (Twitter), TikTok, and Instagram.',
       },
     },
     {
@@ -177,7 +177,7 @@ const faqData = {
       name: 'What platforms are best for tech influencers?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'YouTube, LinkedIn, and Twitter/X are the most effective platforms for technology creators, with TikTok and Instagram strong for short video.',
+        text: 'YouTube, LinkedIn, and X (Twitter) are the most effective platforms for technology creators, with TikTok and Instagram strong for short video.',
       },
     },
     {

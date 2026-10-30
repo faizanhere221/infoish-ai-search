@@ -65,7 +65,7 @@ const collectionJsonLd = {
   '@type': 'CollectionPage',
   name: 'Tech Influencers in Germany',
   description:
-    'Browse and hire verified German tech influencers across YouTube, LinkedIn, Twitter/X, and other platforms',
+    'Browse and hire verified German tech influencers across YouTube, LinkedIn, X (Twitter), and other platforms',
   url: 'https://infoishai.com/influencers/germany',
   isPartOf: {
     '@type': 'WebSite',
@@ -95,7 +95,7 @@ const faqJsonLd = {
       name: 'How do I find tech influencers in Germany?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Search the Infoishai creator directory and filter by Germany. Browse verified German tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche (AI, SaaS, Industry 4.0, developer tools), language (German or English), and audience size to find the right creator for your campaign.',
+        text: 'Search the Infoishai creator directory and filter by Germany. Browse verified German tech influencers across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Filter by niche (AI, SaaS, Industry 4.0, developer tools), language (German or English), and audience size to find the right creator for your campaign.',
       },
     },
     {
@@ -103,7 +103,7 @@ const faqJsonLd = {
       name: 'How much do German tech influencers charge?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'German tech influencer rates vary by platform and audience size. YouTube: EUR 1,000 to EUR 5,000 per video (50K-200K subscribers). LinkedIn: EUR 500 to EUR 2,000 per post. Twitter/X: EUR 200 to EUR 1,000 per thread.',
+        text: 'German tech influencer rates vary by platform and audience size. YouTube: EUR 1,000 to EUR 5,000 per video (50K-200K subscribers). LinkedIn: EUR 500 to EUR 2,000 per post. X (Twitter): EUR 200 to EUR 1,000 per thread.',
       },
     },
     {
@@ -184,7 +184,7 @@ const platforms = [
   },
   {
     icon: Twitter,
-    name: 'Twitter/X',
+    name: 'X (Twitter)',
     description:
       'Active German tech community with strong engagement in developer tools, AI, and startup discussions. German tech Twitter operates in both German and English. Best for developer-focused products, open-source projects, and startup launches.',
   },
@@ -206,8 +206,8 @@ const rateTable = [
   { platform: 'YouTube (dedicated video)', audience: '10K-50K subscribers', rate: '€600 - €2,500' },
   { platform: 'YouTube (dedicated video)', audience: '50K-200K subscribers', rate: '€2,500 - €6,000' },
   { platform: 'YouTube (dedicated video)', audience: '200K+ subscribers', rate: '€6,000 - €15,000' },
-  { platform: 'Twitter/X (thread)', audience: '10K-50K followers', rate: '€100 - €500' },
-  { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: '€500 - €1,500' },
+  { platform: 'X (Twitter) thread', audience: '10K-50K followers', rate: '€100 - €500' },
+  { platform: 'X (Twitter) thread', audience: '50K-200K followers', rate: '€500 - €1,500' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: '€400 - €1,200' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: '€1,200 - €3,000' },
 ]
@@ -255,7 +255,7 @@ const steps = [
     number: '1',
     title: 'Search the Creator Directory',
     description:
-      'Browse German tech influencers on Infoishai. Filter by niche (enterprise software, Industry 4.0, AI, developer tools, automotive tech, cybersecurity), platform (YouTube, LinkedIn, Twitter/X, TikTok, Instagram), language (German, English), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
+      'Browse German tech influencers on Infoishai. Filter by niche (enterprise software, Industry 4.0, AI, developer tools, automotive tech, cybersecurity), platform (YouTube, LinkedIn, X (Twitter), TikTok, Instagram), language (German, English), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
   },
   {
     number: '2',
@@ -323,7 +323,7 @@ export default function GermanyInfluencersPage() {
             German tech influencers reach the DACH region (Germany, Austria, Switzerland), Europe&apos;s largest economy. A mid-tier German tech creator charges EUR 300-EUR 2,000 per sponsored video. Berlin, Munich, and Hamburg lead in tech content. Infoishai lists verified German tech influencers across YouTube, LinkedIn, XING, and Twitter.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-            Connect with verified German tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Reach the DACH region. Browse by niche, language, and engagement rate.
+            Connect with verified German tech creators across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Reach the DACH region. Browse by niche, language, and engagement rate.
             Free to search.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">

@@ -65,7 +65,7 @@ const collectionJsonLd = {
   '@type': 'CollectionPage',
   name: 'Tech Influencers in Pakistan',
   description:
-    'Browse and hire verified Pakistani tech influencers across YouTube, Twitter/X, LinkedIn, Instagram, and other platforms',
+    'Browse and hire verified Pakistani tech influencers across YouTube, X (Twitter), LinkedIn, Instagram, and other platforms',
   url: 'https://infoishai.com/influencers/pakistan',
   isPartOf: {
     '@type': 'WebSite',
@@ -95,7 +95,7 @@ const faqJsonLd = {
       name: 'How do I find tech influencers in Pakistan?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Search the Infoishai creator directory and filter by Pakistan. Browse verified Pakistani tech influencers across YouTube, Instagram, Twitter/X, and LinkedIn. Filter by niche (AI, SaaS, freelancing, mobile development), language (English, Urdu), and audience size to find the right creator for your campaign.',
+        text: 'Search the Infoishai creator directory and filter by Pakistan. Browse verified Pakistani tech influencers across YouTube, Instagram, X (Twitter), and LinkedIn. Filter by niche (AI, SaaS, freelancing, mobile development), language (English, Urdu), and audience size to find the right creator for your campaign.',
       },
     },
     {
@@ -103,7 +103,7 @@ const faqJsonLd = {
       name: 'How much do Pakistani tech influencers charge?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Pakistani tech influencer rates vary by platform and audience size. YouTube: PKR 15,000 to PKR 150,000 per video (50K-500K subscribers). Instagram: PKR 10,000 to PKR 80,000 per reel. LinkedIn: PKR 8,000 to PKR 40,000 per post. Twitter/X: PKR 5,000 to PKR 25,000 per thread.',
+        text: 'Pakistani tech influencer rates vary by platform and audience size. YouTube: PKR 15,000 to PKR 150,000 per video (50K-500K subscribers). Instagram: PKR 10,000 to PKR 80,000 per reel. LinkedIn: PKR 8,000 to PKR 40,000 per post. X (Twitter): PKR 5,000 to PKR 25,000 per thread.',
       },
     },
     {
@@ -196,7 +196,7 @@ const platforms = [
   },
   {
     icon: Twitter,
-    name: 'Twitter/X',
+    name: 'X (Twitter)',
     description:
       'Active Pakistani tech community with strong presence in developer tools, startup discussions, and AI. Pakistani tech Twitter drives engagement on product launches, open-source projects, and tech news. Best for developer-focused products and startup tools.',
   },
@@ -211,8 +211,8 @@ const rateTable = [
   { platform: 'Instagram (reel)', audience: '50K-500K followers', rate: '₨20,000 - ₨80,000' },
   { platform: 'TikTok (video)', audience: '50K-500K followers', rate: '₨5,000 - ₨30,000' },
   { platform: 'TikTok (video)', audience: '500K+ followers', rate: '₨30,000 - ₨1,50,000' },
-  { platform: 'Twitter/X (thread)', audience: '10K-50K followers', rate: '₨3,000 - ₨12,000' },
-  { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: '₨12,000 - ₨40,000' },
+  { platform: 'X (Twitter) thread', audience: '10K-50K followers', rate: '₨3,000 - ₨12,000' },
+  { platform: 'X (Twitter) thread', audience: '50K-200K followers', rate: '₨12,000 - ₨40,000' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: '₨5,000 - ₨20,000' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: '₨20,000 - ₨50,000' },
 ]
@@ -272,7 +272,7 @@ const languages = [
     icon: Languages,
     name: 'Roman Urdu',
     description:
-      'Written Urdu using English script. Common in social media posts, Twitter/X threads, and Instagram captions. Creators who write in Roman Urdu reach the mobile-first audience consuming content through social feeds. Best for social media campaigns and short-form content.',
+      'Written Urdu using English script. Common in social media posts, X (Twitter) threads, and Instagram captions. Creators who write in Roman Urdu reach the mobile-first audience consuming content through social feeds. Best for social media campaigns and short-form content.',
   },
   {
     icon: Languages,
@@ -293,7 +293,7 @@ const steps = [
     number: '1',
     title: 'Search the Creator Directory',
     description:
-      'Browse Pakistani tech influencers on Infoishai. Filter by niche (freelancing, coding, AI, e-commerce, career), platform (YouTube, Instagram, TikTok, Twitter/X, LinkedIn), language (English, Urdu), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
+      'Browse Pakistani tech influencers on Infoishai. Filter by niche (freelancing, coding, AI, e-commerce, career), platform (YouTube, Instagram, TikTok, X (Twitter), LinkedIn), language (English, Urdu), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
   },
   {
     number: '2',
@@ -367,7 +367,7 @@ export default function PakistanInfluencersPage() {
             Pakistani tech influencers serve a rapidly growing market of 120 million internet users. A mid-tier Pakistani tech creator charges PKR 10,000-PKR 100,000 per sponsored video. Lahore, Karachi, and Islamabad lead in tech content creation. Infoishai lists verified Pakistani tech influencers searchable by niche and platform.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-            Connect with verified Pakistani tech creators across YouTube, Instagram, Twitter/X,
+            Connect with verified Pakistani tech creators across YouTube, Instagram, X (Twitter),
             and LinkedIn. Browse by niche, language, audience size, and engagement rate. Free to
             search.
           </p>

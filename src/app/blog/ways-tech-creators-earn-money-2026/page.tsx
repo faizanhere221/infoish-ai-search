@@ -120,7 +120,7 @@ const streams: IncomeStream[] = [
     minAudience: '5K to 10K engaged followers',
     timeToFirstDollar: '2 to 8 weeks',
     body: [
-      'The most visible income stream. A brand pays you a flat fee to create content featuring their product: dedicated YouTube reviews, LinkedIn posts, Twitter/X threads, Instagram Reels, newsletter mentions, and podcast spots all qualify.',
+      'The most visible income stream. A brand pays you a flat fee to create content featuring their product: dedicated YouTube reviews, LinkedIn posts, X (Twitter) threads, Instagram Reels, newsletter mentions, and podcast spots all qualify.',
       'Rates for tech creators in 2026 range from $500 (micro-influencer YouTube video) to $25,000+ (top-tier dedicated review). Mid-tier creators with 50K-200K subscribers earn $2,000-$5,000 per YouTube sponsorship.',
       'Two paths exist: inbound (brands find you) and outbound (you pitch brands). Most creators start with outbound and shift to inbound as their channel grows.',
     ],

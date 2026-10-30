@@ -44,7 +44,7 @@ export function cleanNiches(values: unknown): Niche[] {
 export const PLATFORMS = [
   { id: 'youtube', name: 'YouTube' },
   { id: 'linkedin', name: 'LinkedIn' },
-  { id: 'twitter', name: 'Twitter/X' },
+  { id: 'twitter', name: 'X (Twitter)' },
   { id: 'tiktok', name: 'TikTok' },
   { id: 'instagram', name: 'Instagram' },
 ] as const

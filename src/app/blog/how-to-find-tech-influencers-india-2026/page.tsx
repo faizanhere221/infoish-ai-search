@@ -74,7 +74,7 @@ const faqSchema = {
       name: 'How do I find tech influencers in India?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Search influencer marketplaces like Infoishai and filter by India. Browse YouTube, Instagram, LinkedIn, and Twitter/X for creators in your niche (AI, SaaS, coding, developer tools). Check engagement rates, audience demographics, and content quality before reaching out. Filter by language (English or Hindi) based on your target audience.'
+        text: 'Search influencer marketplaces like Infoishai and filter by India. Browse YouTube, Instagram, LinkedIn, and X (Twitter) for creators in your niche (AI, SaaS, coding, developer tools). Check engagement rates, audience demographics, and content quality before reaching out. Filter by language (English or Hindi) based on your target audience.'
       }
     },
     {
@@ -82,7 +82,7 @@ const faqSchema = {
       name: 'How much do Indian tech influencers charge?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Indian tech influencer rates in 2026: YouTube INR 20,000 to INR 1,50,000 per video (50K-500K subscribers). Instagram INR 8,000 to INR 60,000 per reel. LinkedIn INR 10,000 to INR 50,000 per post. Twitter/X INR 5,000 to INR 30,000 per thread. Indian rates are 70-80% lower than US equivalents.'
+        text: 'Indian tech influencer rates in 2026: YouTube INR 20,000 to INR 1,50,000 per video (50K-500K subscribers). Instagram INR 8,000 to INR 60,000 per reel. LinkedIn INR 10,000 to INR 50,000 per post. X (Twitter) INR 5,000 to INR 30,000 per thread. Indian rates are 70-80% lower than US equivalents.'
       }
     },
     {
@@ -114,7 +114,7 @@ const rateRows: RateRow[] = [
   { platform: 'YouTube', tier1: 'INR 5,000-25,000 (10K-50K subs)', tier2: 'INR 25,000-1,50,000 (50K-500K subs)' },
   { platform: 'Instagram', tier1: 'INR 3,000-15,000 (10K-50K followers)', tier2: 'INR 15,000-80,000 (50K-500K followers)' },
   { platform: 'LinkedIn', tier1: 'INR 5,000-25,000 (10K-50K followers)', tier2: 'INR 25,000-60,000 (50K-100K followers)' },
-  { platform: 'Twitter/X', tier1: 'INR 2,000-12,000 (10K-50K followers)', tier2: 'INR 12,000-40,000 (50K-200K followers)' },
+  { platform: 'X (Twitter)', tier1: 'INR 2,000-12,000 (10K-50K followers)', tier2: 'INR 12,000-40,000 (50K-200K followers)' },
   { platform: 'Newsletter', tier1: 'INR 3,000-15,000 (5K-20K subscribers)', tier2: 'N/A' },
 ]
 
@@ -300,7 +300,7 @@ export default function HowToFindTechInfluencersIndiaPage() {
                 <p className="text-gray-700">Growing rapidly among mid-level and senior professionals. Best for B2B SaaS, enterprise tools, and professional development. A post from a respected 50K-follower thought leader generates 500-2,000 engagements.</p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Twitter/X, Telegram &amp; Discord</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">X (Twitter), Telegram &amp; Discord</h3>
                 <p className="text-gray-700">Active communities around startups, AI, open source, and developer tools. Best for developer tools, open-source projects, and community-driven product launches.</p>
               </div>
             </div>
@@ -538,13 +538,13 @@ Here is a link to the product: [URL]. Happy to set up a free account for you to 
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">How do I find tech influencers in India?</h3>
                 <p className="text-gray-700">
-                  Search influencer marketplaces like Infoishai and filter by India. Browse YouTube, Instagram, LinkedIn, and Twitter/X for creators in your niche (AI, SaaS, coding, developer tools). Check engagement rates, audience demographics, and content quality before reaching out. Filter by language (English or Hindi) based on your target audience.
+                  Search influencer marketplaces like Infoishai and filter by India. Browse YouTube, Instagram, LinkedIn, and X (Twitter) for creators in your niche (AI, SaaS, coding, developer tools). Check engagement rates, audience demographics, and content quality before reaching out. Filter by language (English or Hindi) based on your target audience.
                 </p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">How much do Indian tech influencers charge?</h3>
                 <p className="text-gray-700">
-                  Indian tech influencer rates in 2026: YouTube INR 20,000 to INR 1,50,000 per video (50K-500K subscribers). Instagram INR 8,000 to INR 60,000 per reel. LinkedIn INR 10,000 to INR 50,000 per post. Twitter/X INR 5,000 to INR 30,000 per thread. Indian rates are 70-80% lower than US equivalents.
+                  Indian tech influencer rates in 2026: YouTube INR 20,000 to INR 1,50,000 per video (50K-500K subscribers). Instagram INR 8,000 to INR 60,000 per reel. LinkedIn INR 10,000 to INR 50,000 per post. X (Twitter) INR 5,000 to INR 30,000 per thread. Indian rates are 70-80% lower than US equivalents.
                 </p>
               </div>
               <div className="bg-white rounded-lg p-6 shadow-sm border">

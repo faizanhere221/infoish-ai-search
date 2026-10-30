@@ -7,12 +7,12 @@ const faqs = [
   {
     question: 'How do I find tech influencers in Singapore?',
     answer:
-      'Search the Infoishai creator directory and filter by Singapore. Browse verified Singaporean tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche (fintech, AI, SaaS, developer tools), audience size, and engagement rate to find the right creator for your campaign.',
+      'Search the Infoishai creator directory and filter by Singapore. Browse verified Singaporean tech influencers across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Filter by niche (fintech, AI, SaaS, developer tools), audience size, and engagement rate to find the right creator for your campaign.',
   },
   {
     question: 'How much do Singaporean tech influencers charge?',
     answer:
-      'Singaporean tech influencer rates vary by platform and audience size. YouTube: SGD 1,200 to SGD 5,500 per video (50K-200K subscribers). LinkedIn: SGD 600 to SGD 2,500 per post. Twitter/X: SGD 250 to SGD 1,200 per thread.',
+      'Singaporean tech influencer rates vary by platform and audience size. YouTube: SGD 1,200 to SGD 5,500 per video (50K-200K subscribers). LinkedIn: SGD 600 to SGD 2,500 per post. X (Twitter): SGD 250 to SGD 1,200 per thread.',
   },
   {
     question: 'Why are Singaporean influencer rates higher than other ASEAN markets?',

@@ -61,7 +61,7 @@ const collectionJsonLd = {
   '@type': 'CollectionPage',
   name: 'Tech Influencers in United Kingdom',
   description:
-    'Browse and hire verified British tech influencers across YouTube, Twitter/X, LinkedIn, and other platforms',
+    'Browse and hire verified British tech influencers across YouTube, X (Twitter), LinkedIn, and other platforms',
   url: 'https://infoishai.com/influencers/uk',
   isPartOf: {
     '@type': 'WebSite',
@@ -91,7 +91,7 @@ const faqJsonLd = {
       name: 'How do I find tech influencers in the UK?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Search the Infoishai creator directory and filter by United Kingdom. Browse verified British tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche (AI, SaaS, developer tools) and audience size to find the right creator for your campaign.',
+        text: 'Search the Infoishai creator directory and filter by United Kingdom. Browse verified British tech influencers across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Filter by niche (AI, SaaS, developer tools) and audience size to find the right creator for your campaign.',
       },
     },
     {
@@ -99,7 +99,7 @@ const faqJsonLd = {
       name: 'How much do UK tech influencers charge?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'UK tech influencer rates vary by platform and audience size. YouTube: £800 to £4,000 per video (50K-200K subscribers). LinkedIn: £400 to £1,500 per post. Twitter/X: £150 to £800 per thread.',
+        text: 'UK tech influencer rates vary by platform and audience size. YouTube: £800 to £4,000 per video (50K-200K subscribers). LinkedIn: £400 to £1,500 per post. X (Twitter): £150 to £800 per thread.',
       },
     },
     {
@@ -180,7 +180,7 @@ const platforms = [
   },
   {
     icon: Twitter,
-    name: 'Twitter/X',
+    name: 'X (Twitter)',
     description:
       'Active UK tech community, especially in developer tools, open source, and AI. Tech threads from British creators reach engaged professional audiences across Europe.',
   },
@@ -202,8 +202,8 @@ const rateTable = [
   { platform: 'YouTube (dedicated video)', audience: '10K-50K subscribers', rate: '£400 - £1,500' },
   { platform: 'YouTube (dedicated video)', audience: '50K-200K subscribers', rate: '£1,500 - £4,000' },
   { platform: 'YouTube (dedicated video)', audience: '200K+ subscribers', rate: '£4,000 - £12,000' },
-  { platform: 'Twitter/X (thread)', audience: '10K-50K followers', rate: '£80 - £400' },
-  { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: '£400 - £1,200' },
+  { platform: 'X (Twitter) thread', audience: '10K-50K followers', rate: '£80 - £400' },
+  { platform: 'X (Twitter) thread', audience: '50K-200K followers', rate: '£400 - £1,200' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: '£250 - £800' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: '£800 - £2,000' },
 ]
@@ -246,7 +246,7 @@ const steps = [
     number: '1',
     title: 'Search the Creator Directory',
     description:
-      'Browse UK-based tech influencers on Infoishai. Filter by niche (AI, SaaS, developer tools, fintech, cybersecurity), platform (YouTube, LinkedIn, Twitter/X, TikTok, Instagram), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
+      'Browse UK-based tech influencers on Infoishai. Filter by niche (AI, SaaS, developer tools, fintech, cybersecurity), platform (YouTube, LinkedIn, X (Twitter), TikTok, Instagram), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
   },
   {
     number: '2',
@@ -314,7 +314,7 @@ export default function UkInfluencersPage() {
             British tech influencers serve Europe&apos;s second-largest tech market. A mid-tier UK tech creator charges GBP 200-GBP 1,500 per sponsored video. London, Cambridge, and Manchester produce the most active tech content creators. Infoishai lists verified UK tech influencers. Brands search free and message creators directly.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-            Connect with verified British tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Browse by niche, audience size, and engagement rate. Free to search.
+            Connect with verified British tech creators across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Browse by niche, audience size, and engagement rate. Free to search.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link

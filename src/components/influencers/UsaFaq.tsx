@@ -7,12 +7,12 @@ const faqs = [
   {
     question: 'How do I find tech influencers in the USA?',
     answer:
-      'Search the Infoishai creator directory and filter by United States. Browse verified tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche and audience size to find the right creator for your campaign.',
+      'Search the Infoishai creator directory and filter by United States. Browse verified tech influencers across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Filter by niche and audience size to find the right creator for your campaign.',
   },
   {
     question: 'How much do American tech influencers charge?',
     answer:
-      'US tech influencer rates vary by platform and audience size. YouTube: $1,000 to $5,000 per video for creators with 50K to 200K subscribers. LinkedIn: $500 to $2,000 per post. Twitter/X: $200 to $1,000 per thread.',
+      'US tech influencer rates vary by platform and audience size. YouTube: $1,000 to $5,000 per video for creators with 50K to 200K subscribers. LinkedIn: $500 to $2,000 per post. X (Twitter): $200 to $1,000 per thread.',
   },
   {
     question: 'Why should I work with US-based tech influencers?',
@@ -27,7 +27,7 @@ const faqs = [
   {
     question: 'What types of tech influencers are available in the USA?',
     answer:
-      'Infoishai lists American creators covering AI and machine learning, SaaS and productivity tools, developer platforms, cloud and DevOps, cybersecurity, fintech, no-code tools, and more. Creators are active on YouTube, LinkedIn, Twitter/X, TikTok, and Instagram.',
+      'Infoishai lists American creators covering AI and machine learning, SaaS and productivity tools, developer platforms, cloud and DevOps, cybersecurity, fintech, no-code tools, and more. Creators are active on YouTube, LinkedIn, X (Twitter), TikTok, and Instagram.',
   },
 ]
 

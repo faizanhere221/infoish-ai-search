@@ -110,7 +110,7 @@ const platformRates: PlatformRates[] = [
     ],
   },
   {
-    platform: 'Twitter/X',
+    platform: 'X (Twitter)',
     format: 'Sponsored thread',
     rows: [
       { tier: '10K-50K followers', bangalore: 'INR 3,000-12,000', mumbai: 'INR 2,500-10,000', delhi: 'INR 2,000-10,000' },

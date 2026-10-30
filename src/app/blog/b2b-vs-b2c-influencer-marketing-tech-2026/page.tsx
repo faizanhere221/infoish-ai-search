@@ -218,7 +218,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
                   <p className="text-gray-700">Work well for complex products. A 30-minute interview gives the creator time to explain features, address objections, and share their own experience with the tool.</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-1">Twitter/X</h4>
+                  <h4 className="font-semibold text-gray-900 mb-1">X (Twitter)</h4>
                   <p className="text-gray-700">Strong for developer tools, open-source projects, and AI products. Step-by-step threads generate high engagement within professional communities.</p>
                 </div>
               </div>
@@ -240,7 +240,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
                   <p className="text-gray-700">A 60-second Shorts video showing a productivity hack drives downloads. A 5-minute review drives more considered purchases.</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-1">Twitter/X</h4>
+                  <h4 className="font-semibold text-gray-900 mb-1">X (Twitter)</h4>
                   <p className="text-gray-700">Works for B2C tech products with strong community appeal: apps, games, and browser extensions spread through viral tweets and recommendation threads.</p>
                 </div>
               </div>
@@ -335,7 +335,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
                     <td className="border-b border-gray-200 px-4 py-4 text-gray-700">$500-$2,000</td>
                   </tr>
                   <tr className="hover:bg-gray-50">
-                    <td className="px-4 py-4 text-gray-700 font-medium">Twitter/X thread</td>
+                    <td className="px-4 py-4 text-gray-700 font-medium">X (Twitter) thread</td>
                     <td className="px-4 py-4 text-gray-700">20K-100K followers</td>
                     <td className="px-4 py-4 text-gray-700">$200-$1,000</td>
                   </tr>
@@ -508,7 +508,7 @@ export default function B2BvsB2CInfluencerMarketingPage() {
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
               Find creators who match your audience. On{' '}
-              <Link href="/creators" className="text-blue-600 hover:text-blue-700 font-medium">Infoishai</Link>, you filter tech influencers by niche, platform, audience size, and location. The creator directory includes AI, SaaS, developer, cloud, and startup creators across YouTube, Twitter/X, LinkedIn, and other platforms. You can also pair your research with our free{' '}
+              <Link href="/creators" className="text-blue-600 hover:text-blue-700 font-medium">Infoishai</Link>, you filter tech influencers by niche, platform, audience size, and location. The creator directory includes AI, SaaS, developer, cloud, and startup creators across YouTube, X (Twitter), LinkedIn, and other platforms. You can also pair your research with our free{' '}
               <Link href="/tools" className="text-blue-600 hover:text-blue-700 font-medium">creator research tools</Link>{' '}
               to check engagement quality before you commit budget.
             </p>

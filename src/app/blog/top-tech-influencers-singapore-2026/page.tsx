@@ -147,7 +147,7 @@ interface PlatformRow {
 const platformRows: PlatformRow[] = [
   { platform: 'YouTube', bestFor: 'Product demos, tutorials, reviews', audience: 'Developers, IT buyers, prosumers', format: 'Dedicated video or 60-90 second integration' },
   { platform: 'LinkedIn', bestFor: 'Thought leadership, B2B launches', audience: 'Managers, founders, enterprise buyers', format: 'Text post, carousel, short video' },
-  { platform: 'Twitter/X', bestFor: 'Developer tools, AI, crypto-adjacent tech', audience: 'Engineers, builders, early adopters', format: 'Thread or quote-post' },
+  { platform: 'X (Twitter)', bestFor: 'Developer tools, AI, crypto-adjacent tech', audience: 'Engineers, builders, early adopters', format: 'Thread or quote-post' },
   { platform: 'Newsletters', bestFor: 'Fintech and startup news', audience: 'Founders, investors, operators', format: 'Sponsored slot or dedicated issue' },
   { platform: 'Podcasts', bestFor: 'Enterprise SaaS, leadership topics', audience: 'Senior decision-makers', format: 'Host-read ad or guest episode' },
 ]
@@ -163,7 +163,7 @@ interface RateRow {
 const rateRows: RateRow[] = [
   { platform: 'YouTube', format: 'Dedicated video', tier1: 'SGD 800-2,500 (10K-50K subs)', tier2: 'SGD 2,500-6,000 (50K-200K subs)', tier3: 'SGD 6,000-15,000+ (200K+ subs)' },
   { platform: 'LinkedIn', format: 'Sponsored post', tier1: 'SGD 300-1,000 (5K-20K followers)', tier2: 'SGD 1,000-2,500 (20K-50K followers)', tier3: 'SGD 2,500-5,000 (50K+ followers)' },
-  { platform: 'Twitter/X', format: 'Sponsored thread', tier1: 'SGD 200-800 (10K-50K followers)', tier2: 'SGD 800-2,500 (50K-200K followers)', tier3: 'Quoted case by case' },
+  { platform: 'X (Twitter)', format: 'Sponsored thread', tier1: 'SGD 200-800 (10K-50K followers)', tier2: 'SGD 800-2,500 (50K-200K followers)', tier3: 'Quoted case by case' },
   { platform: 'Newsletter', format: 'Sponsored slot', tier1: 'SGD 300-900 (2K-5K subs)', tier2: 'SGD 900-2,500 (5K-20K subs)', tier3: 'SGD 2,500-6,000 (20K+ subs)' },
   { platform: 'Podcast', format: 'Host-read ad', tier1: 'SGD 300-1,000 (1K-5K downloads)', tier2: 'SGD 1,000-2,500 (5K-20K downloads)', tier3: 'Quoted case by case' },
 ]
@@ -424,7 +424,7 @@ export default function TopTechInfluencersSingaporePage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Which Platforms Do Singapore Tech Creators Use?</h2>
             <div className="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-6 mb-6">
               <p className="text-blue-900 leading-relaxed">
-                Singapore B2B tech creators publish mostly on LinkedIn and YouTube. LinkedIn reaches managers and enterprise buyers with text posts and carousels. YouTube carries product demos and tutorials with long shelf life. Twitter/X suits developer and AI audiences, while newsletters and podcasts reach founders, investors, and senior leaders.
+                Singapore B2B tech creators publish mostly on LinkedIn and YouTube. LinkedIn reaches managers and enterprise buyers with text posts and carousels. YouTube carries product demos and tutorials with long shelf life. X (Twitter) suits developer and AI audiences, while newsletters and podcasts reach founders, investors, and senior leaders.
               </p>
             </div>
 
@@ -462,7 +462,7 @@ export default function TopTechInfluencersSingaporePage() {
                   <Link href="/blog/how-to-find-tech-youtubers-product-reviews-2026" className="text-blue-600 hover:text-blue-700 font-medium">finding tech YouTubers for product reviews</Link>.</p>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Twitter/X: developers and AI builders</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">X (Twitter): developers and AI builders</h3>
                 <p className="text-gray-700">Engineers and AI practitioners in Singapore share launches and benchmarks on X. Threads work well for developer tools, APIs, and open-source products, where readers try the product the same day.</p>
               </div>
             </div>

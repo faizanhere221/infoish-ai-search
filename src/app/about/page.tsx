@@ -26,7 +26,7 @@ import { NICHES, PLATFORM_COUNT } from '@/utils/constants'
 // ============================================================================
 export const metadata: Metadata = {
   title: 'About Us | Free Tech Influencer Marketplace',
-  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Free search and messaging.',
+  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Free search and messaging.',
   keywords: [
     'about infoishai',
     'tech influencer platform',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'About Infoishai | Free Tech Influencer Marketplace',
-    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Free search and messaging.',
+    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Free search and messaging.',
     url: 'https://infoishai.com/about',
     siteName: 'Infoishai',
     type: 'website',
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'About Infoishai | Free Tech Influencer Marketplace',
-    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Free search and messaging.',
+    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram. Free search and messaging.',
     images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
@@ -59,7 +59,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'AboutPage',
   name: 'About Infoishai',
-  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram.',
+  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, LinkedIn, X (Twitter), TikTok, and Instagram.',
   url: 'https://infoishai.com/about',
   mainEntity: {
     '@type': 'Organization',
@@ -150,7 +150,7 @@ export default function AboutPage() {
             <div className="flex flex-wrap items-center justify-center gap-4">
               {[
                 { icon: Youtube, name: 'YouTube', color: 'bg-red-500' },
-                { icon: Twitter, name: 'Twitter/X', color: 'bg-gray-900' },
+                { icon: Twitter, name: 'X (Twitter)', color: 'bg-gray-900' },
                 { icon: Linkedin, name: 'LinkedIn', color: 'bg-blue-600' },
                 { icon: Music2, name: 'TikTok', color: 'bg-gray-800' },
                 { icon: Instagram, name: 'Instagram', color: 'bg-pink-500' },
@@ -222,7 +222,7 @@ export default function AboutPage() {
               <div className="space-y-6">
                 {[
                   'Only tech & B2B creators',
-                  'Multi-platform: YouTube, LinkedIn, Twitter/X, TikTok, Instagram',
+                  'Multi-platform: YouTube, LinkedIn, X (Twitter), TikTok, Instagram',
                   'Verified metrics and authentic engagement',
                   'Direct messaging with creators',
                   'Free to join for both brands and creators',
@@ -392,7 +392,7 @@ export default function AboutPage() {
               {
                 icon: Globe,
                 title: 'Multi-Platform',
-                description: 'YouTube, LinkedIn, Twitter/X, TikTok, and Instagram, all in one place.',
+                description: 'YouTube, LinkedIn, X (Twitter), TikTok, and Instagram, all in one place.',
               },
               {
                 icon: Zap,

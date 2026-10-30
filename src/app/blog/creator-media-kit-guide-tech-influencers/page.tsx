@@ -103,7 +103,7 @@ const sections = [
     examples: [
       'Alex Chen | AI and Machine Learning Tool Reviews | 85K YouTube Subscribers',
       'DevFlow | Developer Productivity Content | 42K LinkedIn Followers',
-      'Sara Tech | SaaS Reviews for Startup Teams | 28K YouTube, 15K Twitter/X',
+      'Sara Tech | SaaS Reviews for Startup Teams | 28K YouTube, 15K X (Twitter)',
     ],
     note: 'Do not write a paragraph. One line. The brand manager needs to understand your niche in 3 seconds.',
   },
@@ -115,7 +115,7 @@ const sections = [
     examples: [
       'YouTube: 85,000 subscribers | 22,000 avg views/video | 5.8% engagement rate',
       'LinkedIn: 34,000 followers | 6,500 avg impressions/post | 4.2% engagement rate',
-      'Twitter/X: 18,000 followers | 12,000 avg impressions/thread | 3.1% engagement rate',
+      'X (Twitter): 18,000 followers | 12,000 avg impressions/thread | 3.1% engagement rate',
       'Newsletter: 5,200 subscribers | 44% open rate | 8% click rate',
     ],
     note: 'List platforms largest first. Include only platforms where you actively post. A weak platform dilutes the strong ones. Update these numbers monthly.',
@@ -143,7 +143,7 @@ const sections = [
       'YouTube integration (30-60 sec): $800',
       'YouTube Shorts: $500',
       'LinkedIn post: $700',
-      'Twitter/X thread (5-8 tweets): $400',
+      'X (Twitter) thread (5-8 tweets): $400',
       'Newsletter mention: $300',
       'Bundle (YouTube + LinkedIn + Twitter): $3,200',
     ],
@@ -169,7 +169,7 @@ const sections = [
     examples: [
       '"AI Code Review Tools Compared" (YouTube, 45K views): [link]',
       '"Why I Switched to Linear for Project Management" (LinkedIn, 890 likes): [link]',
-      '"Top 5 Developer Productivity Apps" (Twitter/X, 2,100 retweets): [link]',
+      '"Top 5 Developer Productivity Apps" (X (Twitter), 2,100 retweets): [link]',
     ],
     note: 'Choose content relevant to the brands you want to attract. Want SaaS partnerships? Show SaaS-related content.',
   },
