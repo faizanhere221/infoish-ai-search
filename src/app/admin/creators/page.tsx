@@ -6,7 +6,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
 import { formatDate as formatDateUTC } from '@/lib/format-date'
 import { platformIcon } from '@/lib/platform-icons'
-import { PLATFORMS, platformName } from '@/utils/constants'
+import { NICHES, PLATFORMS, platformName } from '@/utils/constants'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, Star, Shield, ShieldCheck, ShieldX,
@@ -50,7 +50,6 @@ interface CreatorDetail {
   deals: Record<string, unknown>[]
 }
 
-const NICHES = ['AI/ML', 'SaaS', 'DevTools', 'Cloud', 'Cybersecurity', 'Web Dev', 'Mobile', 'Data Science', 'Blockchain', 'Open Source', 'Gaming', 'Design', 'Marketing', 'Productivity', 'Finance']
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

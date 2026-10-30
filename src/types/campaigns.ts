@@ -7,7 +7,7 @@
 // `brands.id` / `creators.id` profile rows (not `users.id`), matching the
 // existing `deals` / `conversations` convention in src/types/marketplace.ts.
 
-import { PLATFORMS as BASE_PLATFORMS, type PlatformId } from '@/utils/constants'
+import { NICHES, PLATFORMS as BASE_PLATFORMS, type Niche, type PlatformId } from '@/utils/constants'
 
 export type CampaignStatus = 'draft' | 'published' | 'closed' | 'completed' | 'cancelled'
 export type CampaignVisibility = 'public' | 'private'
@@ -93,19 +93,9 @@ export type CampaignObjective =
   | 'product_launch'
   | 'other'
 
-export type CampaignCategory =
-  | 'ai'
-  | 'saas'
-  | 'devtools'
-  | 'cloud'
-  | 'devops'
-  | 'startup'
-  | 'fintech'
-  | 'cybersecurity'
-  | 'productivity'
-  | 'marketing'
-  | 'ecommerce'
-  | 'other'
+// A campaign's category is one of the creator niches, stored as the
+// niche name.
+export type CampaignCategory = Niche
 
 export type Platform = PlatformId
 
@@ -156,7 +146,10 @@ export interface Campaign {
   title: string
   description: string | null
   objective: CampaignObjective | null
-  category: CampaignCategory | null
+  // A niche name. Rows saved before the niche list changed can hold an old
+  // slug ('ai', 'saas') until update_niches_migration.sql runs; show it
+  // with categoryLabel().
+  category: string | null
   budget_min: number | null
   budget_max: number | null
   budget_type: BudgetType
@@ -338,20 +331,10 @@ export const CAMPAIGN_OBJECTIVES: { value: CampaignObjective; label: string }[] 
   { value: 'other', label: 'Other' },
 ]
 
-export const CAMPAIGN_CATEGORIES: { value: CampaignCategory; label: string }[] = [
-  { value: 'ai', label: 'AI & Machine Learning' },
-  { value: 'saas', label: 'SaaS' },
-  { value: 'devtools', label: 'Developer Tools' },
-  { value: 'cloud', label: 'Cloud & Infrastructure' },
-  { value: 'devops', label: 'DevOps' },
-  { value: 'startup', label: 'Startups' },
-  { value: 'fintech', label: 'Fintech' },
-  { value: 'cybersecurity', label: 'Cybersecurity' },
-  { value: 'productivity', label: 'Productivity' },
-  { value: 'marketing', label: 'Marketing Tech' },
-  { value: 'ecommerce', label: 'E-commerce' },
-  { value: 'other', label: 'Other' },
-]
+export const CAMPAIGN_CATEGORIES: { value: CampaignCategory; label: string }[] = NICHES.map((n) => ({
+  value: n,
+  label: n,
+}))
 
 // Same list as src/utils/constants.ts, in the { value, label } shape the
 // campaign forms use.

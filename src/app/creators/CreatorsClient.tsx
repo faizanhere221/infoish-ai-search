@@ -23,7 +23,7 @@ import {
 import DashboardHeader from '@/components/DashboardHeader'
 import Header from '@/components/header'
 import type { ProfileDropdownProfile } from '@/components/ProfileDropdown'
-import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES, platformName } from '@/utils/constants'
+import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES, isNiche, isSupportedPlatform, platformName } from '@/utils/constants'
 
 export interface Creator {
   id: string
@@ -135,6 +135,13 @@ export default function CreatorsClient({ initialCreators }: { initialCreators: C
 
   useEffect(() => {
     checkAuth()
+    // Homepage links land here with ?niche= or ?platform= preselected. Read
+    // once on mount (not useSearchParams) so the page needs no Suspense.
+    const params = new URLSearchParams(window.location.search)
+    const niche = params.get('niche')
+    const platform = params.get('platform')
+    if (isNiche(niche)) {setSelectedNiches([niche])}
+    if (isSupportedPlatform(platform)) {setSelectedPlatforms([platform])}
   }, [])
 
   const checkAuth = () => {

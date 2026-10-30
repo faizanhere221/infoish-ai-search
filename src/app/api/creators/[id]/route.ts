@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { isCreatorPublic } from '@/lib/creators/visibility'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 import { getVerifiedUserId } from '@/lib/verified-user'
+import { cleanNiches } from '@/utils/constants'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -13,7 +14,9 @@ const UpdateCreatorSchema = z.object({
   bio: z.string().max(2000).optional().nullable(),
   country: z.string().max(2).optional().nullable(),
   city: z.string().max(100).optional().nullable(),
-  niches: z.array(z.string()).optional(),
+  // Unknown or retired niches are dropped, not rejected, so a profile still
+  // holding an old niche saves without an error.
+  niches: z.array(z.string()).optional().transform((v) => (v === undefined ? undefined : cleanNiches(v))),
   languages: z.array(z.string()).optional(),
   is_available: z.boolean().optional(),
   min_budget: z.number().nonnegative().optional().nullable(),

@@ -23,6 +23,7 @@ import {
   PLATFORMS,
   COUNTRIES,
   LANGUAGES,
+  cleanNiches,
   isSupportedPlatform,
   platformName,
   serviceTypesFor,
@@ -139,10 +140,12 @@ function SettingsPageInner() {
       // save drops them instead of failing validation.
       const freshPlatforms = (rawPlatforms || []).filter((p) => isSupportedPlatform(p.platform))
       const freshServices = (rawServices || []).filter((s) => !s.platform || isSupportedPlatform(s.platform))
-      setProfile(rest)
+      // Same for niches we retired: they have no button to deselect them.
+      const freshProfile = { ...rest, niches: cleanNiches(rest.niches) }
+      setProfile(freshProfile)
       setPlatforms(freshPlatforms)
       setServices(freshServices)
-      setSavedSnapshot(JSON.stringify({ profile: rest, platforms: freshPlatforms, services: freshServices }))
+      setSavedSnapshot(JSON.stringify({ profile: freshProfile, platforms: freshPlatforms, services: freshServices }))
       localStorage.setItem('auth_profile', JSON.stringify(creator))
     },
     []

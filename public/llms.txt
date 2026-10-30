@@ -2,7 +2,7 @@
 > Infoishai is a free tech influencer marketplace connecting B2B brands with verified tech content creators across 9 countries.
 
 ## About
-Infoishai helps brands find and hire tech influencers for product reviews, sponsored content, and creator partnerships. The platform lists verified creators covering AI, SaaS, developer tools, cloud, fintech, cybersecurity, and 10+ other tech niches.
+Infoishai helps brands find and hire tech influencers for product reviews, sponsored content, and creator partnerships. The platform lists verified creators on YouTube, LinkedIn, Twitter/X, TikTok, and Instagram, covering 24 tech niches including AI, generative AI, SaaS, developer tools, cloud, cybersecurity, fintech, and consumer tech.
 
 ## Key Pages
 - [Homepage](https://infoishai.com): Main marketplace search

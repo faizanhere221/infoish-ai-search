@@ -628,31 +628,37 @@ export function CategoriesSection() {
   const categories = [
     {
       title: 'AI Influencers',
+      niche: 'AI & Machine Learning',
       description: 'AI influencers create content about artificial intelligence tools, machine learning innovations, and emerging technologies.',
       icon: '🤖',
     },
     {
       title: 'SaaS Influencers',
+      niche: 'SaaS & Software',
       description: 'SaaS influencers focus on productivity tools, software platforms, and startup growth strategies.',
       icon: '☁️',
     },
     {
       title: 'Developer Influencers',
+      niche: 'Developer Tools',
       description: 'Developer influencers create technical content for programmers and software engineers.',
       icon: '👨‍💻',
     },
     {
       title: 'Startup Influencers',
+      niche: 'Startup & Entrepreneurship',
       description: 'Startup influencers share insights about entrepreneurship, business growth, and building companies.',
       icon: '🚀',
     },
     {
       title: 'DevOps Experts',
+      niche: 'Cloud & DevOps',
       description: 'DevOps creators cover cloud infrastructure, CI/CD, Kubernetes, and deployment strategies.',
       icon: '⚙️',
     },
     {
       title: 'Cybersecurity Creators',
+      niche: 'Cybersecurity',
       description: 'Security experts sharing ethical hacking, security tools, and best practices.',
       icon: '🔐',
     },
@@ -674,7 +680,7 @@ export function CategoriesSection() {
           {categories.map((category, index) => (
             <Link 
               key={index}
-              href={`/creators?niche=${category.title.toLowerCase().replace(' ', '-')}`}
+              href={`/creators?niche=${encodeURIComponent(category.niche)}`}
               className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-200 hover:border-brand-pink-light hover:shadow-lg transition-all group"
             >
               <div className="flex items-center gap-4 mb-4">

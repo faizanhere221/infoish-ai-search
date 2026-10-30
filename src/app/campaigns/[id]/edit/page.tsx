@@ -7,7 +7,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import CampaignWizard, { type CampaignFormData, type CampaignSubmitPayload } from '@/components/campaigns/CampaignWizard'
 import type { Campaign } from '@/types/campaigns'
-import { isSupportedPlatform } from '@/utils/constants'
+import { isNiche, isSupportedPlatform } from '@/utils/constants'
 
 interface Profile {
   id: string
@@ -31,7 +31,8 @@ function campaignToFormData(campaign: Campaign): CampaignFormData {
     title: campaign.title,
     description: campaign.description || '',
     objective: campaign.objective || '',
-    category: campaign.category || '',
+    // An old category slug starts blank: the brand picks a current niche.
+    category: isNiche(campaign.category) ? campaign.category : '',
     platforms: (campaign.platforms || []).filter(isSupportedPlatform),
     min_followers: campaign.min_followers ? String(campaign.min_followers) : '',
     target_countries: campaign.target_countries || [],

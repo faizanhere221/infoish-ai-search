@@ -1,18 +1,43 @@
-// Niches for Tech/AI marketplace
+// Niches. The only list of niches: creator profiles, marketplace search,
+// campaign categories, admin filters, and marketing counts all read it.
+// Stored as these exact strings (creators.niches, campaigns.category).
 export const NICHES = [
   'AI & Machine Learning',
-  'SaaS & Software', 
+  'Generative AI & LLMs',
+  'AI Tools & Automation',
+  'SaaS & Software',
   'Developer Tools',
   'Cloud & DevOps',
   'Cybersecurity',
   'Data Science',
   'Web Development',
   'Mobile Development',
+  'No-Code & Low-Code',
   'Startup & Entrepreneurship',
   'Product Management',
   'Tech News & Reviews',
   'Programming Tutorials',
+  'Consumer Tech & Gadgets',
+  'PC Hardware & Gaming Tech',
+  'Blockchain & Web3',
+  'Fintech',
+  'UI/UX & Product Design',
+  'Open Source',
+  'Tech Careers & Education',
+  'Robotics & IoT',
+  'E-commerce Tech',
 ] as const
+
+export type Niche = (typeof NICHES)[number]
+
+export function isNiche(value: unknown): value is Niche {
+  return typeof value === 'string' && (NICHES as readonly string[]).includes(value)
+}
+
+// Keeps only current niches, de-duplicated, in the order given.
+export function cleanNiches(values: unknown): Niche[] {
+  return Array.isArray(values) ? [...new Set(values.filter(isNiche))] : []
+}
 
 // Platforms. The only list of supported platforms: every form, filter,
 // badge, icon map, and API validator reads it.

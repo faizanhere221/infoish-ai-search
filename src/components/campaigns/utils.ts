@@ -99,9 +99,10 @@ export const DELIVERABLE_STATUS_BADGE: Record<DeliverableStatus, { label: string
   completed: { label: DELIVERABLE_STATUS_LABELS.completed, bg: 'bg-green-100', text: 'text-green-700' },
 }
 
+// An old category slug (before the niche list changed) shows as "Other",
+// same as no category.
 export function categoryLabel(value: string | null): string {
-  if (!value) {return 'Other'}
-  return CAMPAIGN_CATEGORIES.find((c) => c.value === value)?.label || value
+  return CAMPAIGN_CATEGORIES.find((c) => c.value === value)?.label ?? 'Other'
 }
 
 // Old campaigns can still name a platform we dropped: platformName()

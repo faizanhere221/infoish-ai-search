@@ -3,7 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { updateReferralOnProfileComplete } from '@/lib/referral'
 import { getExcludedCreatorUserIdsList } from '@/lib/creators/visibility'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
-import { isSupportedPlatform } from '@/utils/constants'
+import { cleanNiches, isSupportedPlatform } from '@/utils/constants'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
         bio: bio || null,
         country: country || null,
         city: city || null,
-        niches: niches || [],
+        niches: cleanNiches(niches),
         languages: languages || [],
         verification_status: 'pending',
         is_available: true,
