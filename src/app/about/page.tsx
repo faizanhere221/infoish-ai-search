@@ -20,7 +20,7 @@ import {
   Mic,
 } from 'lucide-react'
 import { Navigation, Footer } from '@/components/landing'
-import { NICHES, PLATFORMS } from '@/utils/constants'
+import { NICHES, PLATFORM_COUNT } from '@/utils/constants'
 
 // ============================================================================
 // SEO METADATA
@@ -108,7 +108,7 @@ const team = [
 // ============================================================================
 const stats = [
   { value: 'Free', label: 'For Brands and Creators', icon: Users },
-  { value: String(PLATFORMS.length), label: 'Platforms Covered', icon: Globe },
+  { value: String(PLATFORM_COUNT), label: 'Platforms Covered', icon: Globe },
   { value: String(NICHES.length), label: 'Tech Niches', icon: Target },
 ]
 

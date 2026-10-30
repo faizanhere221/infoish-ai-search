@@ -30,6 +30,11 @@ export const PLATFORMS = [
   { id: 'other', name: 'Other', icon: 'MoreHorizontal' },
 ] as const
 
+// How many platforms we support, for display. Every stat and
+// piece of copy that shows the count reads this, so they always agree.
+// "Other" is the picker's catch-all, not a platform.
+export const PLATFORM_COUNT = PLATFORMS.filter((p) => p.id !== 'other').length
+
 // Service types by platform
 export const SERVICE_TYPES: Record<string, Array<{ id: string; name: string; defaultRate: number }>> = {
   twitter: [

@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { NICHES, PLATFORMS } from '@/utils/constants'
+import { NICHES, PLATFORM_COUNT } from '@/utils/constants'
 import Link from 'next/link'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
@@ -120,7 +120,7 @@ const faqJsonLd = {
 
 const stats = [
   { value: String(NICHES.length), label: 'Tech Niches' },
-  { value: String(PLATFORMS.length), label: 'Platforms Supported' },
+  { value: String(PLATFORM_COUNT), label: 'Platforms Supported' },
   { value: 'Direct', label: 'Messaging with Creators' },
   { value: 'Free', label: 'To Search and Connect' },
 ]

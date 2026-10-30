@@ -7,7 +7,7 @@ import Logo from '@/components/Logo'
 import Header from '@/components/header'
 import NewsletterForm from '@/components/NewsletterForm'
 import { trackCTAClick } from '@/lib/analytics'
-import { COUNTRY_LANDING_PAGES, NICHES, PLATFORMS } from '@/utils/constants'
+import { COUNTRY_LANDING_PAGES, NICHES, PLATFORM_COUNT } from '@/utils/constants'
 import {
   Sparkles, 
   Search, 
@@ -52,7 +52,7 @@ export function HeroSection() {
   const stats = [
     { value: 'Free', label: 'For Brands and Creators' },
     { value: String(NICHES.length), label: 'Tech Niches' },
-    { value: String(PLATFORMS.length), label: 'Platforms' },
+    { value: String(PLATFORM_COUNT), label: 'Platforms' },
   ]
 
   // null until localStorage is read. Logged-out is the default render (most
