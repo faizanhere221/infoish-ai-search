@@ -8,6 +8,8 @@
 // ENUMS
 // ============================================================================
 
+import type { PlatformId } from '@/utils/constants'
+
 export type UserType = 'creator' | 'brand' | 'admin'
 
 export type DealStatus =
@@ -21,17 +23,7 @@ export type DealStatus =
   | 'cancelled'
   | 'disputed'
 
-export type PlatformType =
-  | 'youtube'
-  | 'twitter'
-  | 'linkedin'
-  | 'instagram'
-  | 'tiktok'
-  | 'newsletter'
-  | 'podcast'
-  | 'github'
-  | 'blog'
-  | 'other'
+export type PlatformType = PlatformId
 
 export type ContentType =
   | 'video_integration'
@@ -39,12 +31,6 @@ export type ContentType =
   | 'twitter_thread'
   | 'tweet'
   | 'linkedin_post'
-  | 'newsletter_feature'
-  | 'newsletter_dedicated'
-  | 'podcast_mention'
-  | 'podcast_episode'
-  | 'blog_post'
-  | 'github_readme'
   | 'instagram_post'
   | 'instagram_story'
   | 'tiktok_video'

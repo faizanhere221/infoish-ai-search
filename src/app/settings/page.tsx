@@ -18,7 +18,15 @@ import {
   Mail,
   Share2,
 } from 'lucide-react'
-import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES, SERVICE_TYPES } from '@/utils/constants'
+import {
+  NICHES,
+  PLATFORMS,
+  COUNTRIES,
+  LANGUAGES,
+  isSupportedPlatform,
+  platformName,
+  serviceTypesFor,
+} from '@/utils/constants'
 import { normalizeProfileUrl, parseFollowerCount, parsePrice } from '@/lib/creators/platform-input'
 import AvatarUpload from '@/components/AvatarUpload'
 import DashboardHeader from '@/components/DashboardHeader'
@@ -126,13 +134,15 @@ function SettingsPageInner() {
 
   const applyServerCreator = useCallback(
     (creator: CreatorProfile & { creator_platforms?: Platform[]; creator_services?: Service[] }) => {
-      const { creator_platforms: freshPlatforms, creator_services: freshServices, ...rest } = creator
+      const { creator_platforms: rawPlatforms, creator_services: rawServices, ...rest } = creator
+      // Rows for a platform we no longer support are left out, so the next
+      // save drops them instead of failing validation.
+      const freshPlatforms = (rawPlatforms || []).filter((p) => isSupportedPlatform(p.platform))
+      const freshServices = (rawServices || []).filter((s) => !s.platform || isSupportedPlatform(s.platform))
       setProfile(rest)
-      setPlatforms(freshPlatforms || [])
-      setServices(freshServices || [])
-      setSavedSnapshot(
-        JSON.stringify({ profile: rest, platforms: freshPlatforms || [], services: freshServices || [] })
-      )
+      setPlatforms(freshPlatforms)
+      setServices(freshServices)
+      setSavedSnapshot(JSON.stringify({ profile: rest, platforms: freshPlatforms, services: freshServices }))
       localStorage.setItem('auth_profile', JSON.stringify(creator))
     },
     []
@@ -236,7 +246,6 @@ function SettingsPageInner() {
       setSaving(false)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
-    const platformName = (id: string) => PLATFORMS.find((x) => x.id === id)?.name || id
     for (const p of platforms) {
       if (p.followers_input !== undefined && parseFollowerCount(p.followers_input) === null) {
         failValidation(`${platformName(p.platform)}: "${p.followers_input}" is not a follower count. Use a number like 5076, 5,076, or 5k.`, 'platforms')
@@ -765,7 +774,7 @@ function ServicesSettings({
         title: '',
         description: null,
         content_type: '',
-        platform: platforms[0]?.platform || 'twitter',
+        platform: platforms[0]?.platform || PLATFORMS[0].id,
         price: 0,
         delivery_days: 7,
         revisions_included: 1,
@@ -868,7 +877,7 @@ function ServicesSettings({
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
                   >
                     <option value="">Select type</option>
-                    {SERVICE_TYPES[service.platform]?.map((type) => (
+                    {serviceTypesFor(service.platform).map((type) => (
                       <option key={type.id} value={type.id}>{type.name}</option>
                     ))}
                   </select>
@@ -972,7 +981,8 @@ function PlatformsSettings({
     // to the first platform not already in the list instead of always 'twitter',
     // so clicking "Add Platform" twice doesn't create a save-breaking duplicate.
     const used = new Set(platforms.map((p) => p.platform))
-    const nextPlatform = PLATFORMS.find((p) => !used.has(p.id))?.id || 'other'
+    const nextPlatform = PLATFORMS.find((p) => !used.has(p.id))?.id
+    if (!nextPlatform) {return}
 
     setPlatforms([
       ...platforms,
@@ -1010,7 +1020,8 @@ function PlatformsSettings({
         </div>
         <button
           onClick={addPlatform}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
+          disabled={platforms.length >= PLATFORMS.length}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4" />
           Add Platform

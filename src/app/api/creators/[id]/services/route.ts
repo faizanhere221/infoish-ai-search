@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 import { captureError } from '@/lib/error-tracking'
 import { parsePrice } from '@/lib/creators/platform-input'
+import { PLATFORM_IDS } from '@/utils/constants'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -14,7 +15,7 @@ const ServiceSchema = z.object({
   // creator_services.content_type is VARCHAR(50) on the live DB — a longer
   // value passed validation here and then failed the insert with a 500.
   content_type: z.string().max(50).optional().nullable(),
-  platform: z.string().max(100).optional().nullable(),
+  platform: z.enum(PLATFORM_IDS).optional().nullable(),
   // Accepts 100, "100.50", "$1,000" — same parser as the settings page.
   price: z.unknown().transform((v, ctx) => {
     const price = parsePrice(v)

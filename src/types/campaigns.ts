@@ -7,6 +7,8 @@
 // `brands.id` / `creators.id` profile rows (not `users.id`), matching the
 // existing `deals` / `conversations` convention in src/types/marketplace.ts.
 
+import { PLATFORMS as BASE_PLATFORMS, type PlatformId } from '@/utils/constants'
+
 export type CampaignStatus = 'draft' | 'published' | 'closed' | 'completed' | 'cancelled'
 export type CampaignVisibility = 'public' | 'private'
 export type BudgetType = 'fixed' | 'range' | 'negotiable'
@@ -48,14 +50,16 @@ export interface CampaignOffer {
 }
 
 export type DeliverableStatus = 'pending' | 'draft_submitted' | 'changes_requested' | 'approved' | 'posted' | 'completed'
-export type DeliverableFormat = 'video' | 'post' | 'thread' | 'newsletter' | 'story' | 'podcast' | 'other'
+export type DeliverableFormat = 'video' | 'post' | 'thread' | 'story' | 'other'
 
 export interface CreatorDeliverable {
   id: string
   campaign_creator_id: string
   title: string
   platform: string | null
-  format: DeliverableFormat | null
+  // Older rows can hold a format we dropped (newsletter, podcast), so this
+  // is a plain string. Show it with deliverableFormatLabel().
+  format: string | null
   draft_due: string | null
   publish_due: string | null
   status: DeliverableStatus
@@ -103,16 +107,7 @@ export type CampaignCategory =
   | 'ecommerce'
   | 'other'
 
-export type Platform =
-  | 'youtube'
-  | 'twitter'
-  | 'linkedin'
-  | 'instagram'
-  | 'tiktok'
-  | 'newsletter'
-  | 'podcast'
-  | 'blog'
-  | 'github'
+export type Platform = PlatformId
 
 export type ApplicationStatus =
   | 'submitted'
@@ -358,17 +353,12 @@ export const CAMPAIGN_CATEGORIES: { value: CampaignCategory; label: string }[] =
   { value: 'other', label: 'Other' },
 ]
 
-export const PLATFORMS: { value: Platform; label: string }[] = [
-  { value: 'youtube', label: 'YouTube' },
-  { value: 'twitter', label: 'Twitter/X' },
-  { value: 'linkedin', label: 'LinkedIn' },
-  { value: 'instagram', label: 'Instagram' },
-  { value: 'tiktok', label: 'TikTok' },
-  { value: 'newsletter', label: 'Newsletter' },
-  { value: 'podcast', label: 'Podcast' },
-  { value: 'blog', label: 'Blog' },
-  { value: 'github', label: 'GitHub' },
-]
+// Same list as src/utils/constants.ts, in the { value, label } shape the
+// campaign forms use.
+export const PLATFORMS: { value: Platform; label: string }[] = BASE_PLATFORMS.map((p) => ({
+  value: p.id,
+  label: p.name,
+}))
 
 export const DELIVERABLE_TYPES: { value: DeliverableType; label: string }[] = [
   { value: 'dedicated_video', label: 'Dedicated Video' },
@@ -430,11 +420,17 @@ export const DELIVERABLE_FORMATS: { value: DeliverableFormat; label: string }[] 
   { value: 'video', label: 'Video' },
   { value: 'post', label: 'Post' },
   { value: 'thread', label: 'Thread' },
-  { value: 'newsletter', label: 'Newsletter' },
   { value: 'story', label: 'Story' },
-  { value: 'podcast', label: 'Podcast' },
   { value: 'other', label: 'Other' },
 ]
+
+export function isDeliverableFormat(value: unknown): value is DeliverableFormat {
+  return DELIVERABLE_FORMATS.some((f) => f.value === value)
+}
+
+export function deliverableFormatLabel(value: string | null | undefined): string {
+  return DELIVERABLE_FORMATS.find((f) => f.value === value)?.label ?? 'Other'
+}
 
 export const CREATOR_AVAILABILITY_LABELS: Record<CreatorAvailabilityStatus, string> = {
   open: 'Open for new campaigns',

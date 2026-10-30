@@ -7,12 +7,12 @@ const faqs = [
   {
     question: 'How do I find tech influencers in the UK?',
     answer:
-      'Search the Infoishai creator directory and filter by United Kingdom. Browse verified British tech influencers across YouTube, Twitter/X, LinkedIn, and newsletters. Filter by niche (AI, SaaS, developer tools) and audience size to find the right creator for your campaign.',
+      'Search the Infoishai creator directory and filter by United Kingdom. Browse verified British tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche (AI, SaaS, developer tools) and audience size to find the right creator for your campaign.',
   },
   {
     question: 'How much do UK tech influencers charge?',
     answer:
-      'UK tech influencer rates vary by platform and audience size. YouTube: £800 to £4,000 per video for creators with 50K to 200K subscribers. LinkedIn: £400 to £1,500 per post. Twitter/X: £150 to £800 per thread. Newsletter mentions: £250 to £1,200 per issue.',
+      'UK tech influencer rates vary by platform and audience size. YouTube: £800 to £4,000 per video for creators with 50K to 200K subscribers. LinkedIn: £400 to £1,500 per post. Twitter/X: £150 to £800 per thread.',
   },
   {
     question: 'Why should I work with UK-based tech influencers?',

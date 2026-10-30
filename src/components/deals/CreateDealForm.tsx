@@ -15,6 +15,7 @@ import {
 import type { CreatorProfile, Service, Deliverable } from '@/types/marketplace'
 import { track } from '@/lib/analytics'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { platformName } from '@/utils/constants'
 
 interface CreateDealFormProps {
   creator: CreatorProfile
@@ -197,7 +198,7 @@ export function CreateDealForm({
                         <div className="flex items-start justify-between">
                           <div>
                             <p className="font-medium text-gray-900">{service.name}</p>
-                            <p className="text-sm text-gray-500 mt-1">{service.platform}</p>
+                            <p className="text-sm text-gray-500 mt-1">{platformName(service.platform)}</p>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-gray-900">

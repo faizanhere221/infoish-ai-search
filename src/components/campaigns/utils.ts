@@ -1,4 +1,5 @@
-import { CAMPAIGN_CATEGORIES, PLATFORMS, CAMPAIGN_CREATOR_STATUS_LABELS, DELIVERABLE_STATUS_LABELS } from '@/types/campaigns'
+import { CAMPAIGN_CATEGORIES, CAMPAIGN_CREATOR_STATUS_LABELS, DELIVERABLE_STATUS_LABELS } from '@/types/campaigns'
+import { platformName } from '@/utils/constants'
 import type { Campaign, CampaignStatus, CampaignCreatorStatus, DeliverableStatus } from '@/types/campaigns'
 import { formatDate as formatDateUTC } from '@/lib/format-date'
 
@@ -103,6 +104,8 @@ export function categoryLabel(value: string | null): string {
   return CAMPAIGN_CATEGORIES.find((c) => c.value === value)?.label || value
 }
 
+// Old campaigns can still name a platform we dropped: platformName()
+// gives those a neutral label.
 export function platformLabel(value: string): string {
-  return PLATFORMS.find((p) => p.value === value)?.label || value
+  return platformName(value)
 }

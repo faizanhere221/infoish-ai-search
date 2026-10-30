@@ -9,14 +9,14 @@ import {
   Youtube,
   Twitter,
   Linkedin,
-  Mail,
-  Mic,
   Brain,
   LayoutGrid,
   Code2,
   ShieldCheck,
   Landmark,
   HeartPulse,
+  Music2,
+  Instagram,
 } from 'lucide-react'
 
 export const revalidate = 86400
@@ -91,7 +91,7 @@ const faqJsonLd = {
       name: 'How do I find tech influencers in the UK?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Search the Infoishai creator directory and filter by United Kingdom. Browse verified British tech influencers across YouTube, Twitter/X, LinkedIn, and newsletters. Filter by niche (AI, SaaS, developer tools) and audience size to find the right creator for your campaign.',
+        text: 'Search the Infoishai creator directory and filter by United Kingdom. Browse verified British tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche (AI, SaaS, developer tools) and audience size to find the right creator for your campaign.',
       },
     },
     {
@@ -99,7 +99,7 @@ const faqJsonLd = {
       name: 'How much do UK tech influencers charge?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'UK tech influencer rates vary by platform and audience size. YouTube: £800 to £4,000 per video (50K-200K subscribers). LinkedIn: £400 to £1,500 per post. Twitter/X: £150 to £800 per thread. Newsletter mentions: £250 to £1,200 per issue.',
+        text: 'UK tech influencer rates vary by platform and audience size. YouTube: £800 to £4,000 per video (50K-200K subscribers). LinkedIn: £400 to £1,500 per post. Twitter/X: £150 to £800 per thread.',
       },
     },
     {
@@ -185,16 +185,16 @@ const platforms = [
       'Active UK tech community, especially in developer tools, open source, and AI. Tech threads from British creators reach engaged professional audiences across Europe.',
   },
   {
-    icon: Mail,
-    name: 'Newsletters',
+    icon: Music2,
+    name: 'TikTok',
     description:
-      'The UK has a growing tech newsletter ecosystem. Curated roundups covering SaaS, AI, and startup news reach highly engaged subscribers. UK newsletters often cover both UK-specific and global tech developments.',
+      'Short tech explainers, gadget unboxings, and quick tool demos from British creators. Best for consumer apps and products with a strong visual hook.',
   },
   {
-    icon: Mic,
-    name: 'Podcasts',
+    icon: Instagram,
+    name: 'Instagram',
     description:
-      'British tech podcasts reach commuters and professionals across the UK. Sponsored segments on UK tech podcasts connect your brand with listeners during dedicated attention time.',
+      'Reels, carousels, and stories on gadgets, desk setups, and app walkthroughs. Best for consumer tech and brand awareness with British audiences.',
   },
 ]
 
@@ -206,9 +206,6 @@ const rateTable = [
   { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: '£400 - £1,200' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: '£250 - £800' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: '£800 - £2,000' },
-  { platform: 'Newsletter (mention)', audience: '5K-20K subscribers', rate: '£150 - £600' },
-  { platform: 'Newsletter (mention)', audience: '20K-50K subscribers', rate: '£600 - £1,500' },
-  { platform: 'Podcast (mid-roll spot)', audience: '1K-10K downloads/ep', rate: '£250 - £1,200' },
 ]
 
 const techHubs = [
@@ -249,7 +246,7 @@ const steps = [
     number: '1',
     title: 'Search the Creator Directory',
     description:
-      'Browse UK-based tech influencers on Infoishai. Filter by niche (AI, SaaS, developer tools, fintech, cybersecurity), platform (YouTube, Twitter/X, LinkedIn), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
+      'Browse UK-based tech influencers on Infoishai. Filter by niche (AI, SaaS, developer tools, fintech, cybersecurity), platform (YouTube, LinkedIn, Twitter/X, TikTok, Instagram), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
   },
   {
     number: '2',
@@ -317,8 +314,7 @@ export default function UkInfluencersPage() {
             British tech influencers serve Europe&apos;s second-largest tech market. A mid-tier UK tech creator charges GBP 200-GBP 1,500 per sponsored video. London, Cambridge, and Manchester produce the most active tech content creators. Infoishai lists verified UK tech influencers. Brands search free and message creators directly.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-            Connect with verified British tech creators across YouTube, Twitter/X, LinkedIn, and
-            newsletters. Browse by niche, audience size, and engagement rate. Free to search.
+            Connect with verified British tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Browse by niche, audience size, and engagement rate. Free to search.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link

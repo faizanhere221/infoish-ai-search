@@ -7,12 +7,12 @@ const faqs = [
   {
     question: 'How do I find tech influencers in Australia?',
     answer:
-      'Search the Infoishai creator directory and filter by Australia. Browse verified Australian tech influencers across YouTube, Twitter/X, LinkedIn, and newsletters. Filter by niche and audience size to find the right creator for your campaign.',
+      'Search the Infoishai creator directory and filter by Australia. Browse verified Australian tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche and audience size to find the right creator for your campaign.',
   },
   {
     question: 'How much do Australian tech influencers charge?',
     answer:
-      'Australian rates vary by platform. YouTube: AUD $2,000 to $5,000 per video for creators with 50K to 200K subscribers. LinkedIn: AUD $500 to $2,000 per post. Twitter/X: AUD $200 to $1,000 per thread. Newsletter mentions: AUD $300 to $1,500 per issue.',
+      'Australian rates vary by platform. YouTube: AUD $2,000 to $5,000 per video for creators with 50K to 200K subscribers. LinkedIn: AUD $500 to $2,000 per post. Twitter/X: AUD $200 to $1,000 per thread.',
   },
   {
     question: 'Why are Australian tech influencers valuable for APAC campaigns?',

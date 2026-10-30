@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { updateReferralOnProfileComplete } from '@/lib/referral'
 import { getExcludedCreatorUserIdsList } from '@/lib/creators/visibility'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
+import { isSupportedPlatform } from '@/utils/constants'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -199,9 +200,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Add platforms if provided
-    if (platforms && platforms.length > 0) {
-      const platformRecords = platforms.map((p: { platform: string; username?: string; url?: string; followers?: number }) => ({
+    // Add platforms if provided (only ones we support)
+    type PlatformInput = { platform: string; username?: string; url?: string; followers?: number }
+    const supportedPlatforms: PlatformInput[] = Array.isArray(platforms)
+      ? platforms.filter((p: PlatformInput) => isSupportedPlatform(p?.platform))
+      : []
+    if (supportedPlatforms.length > 0) {
+      const platformRecords = supportedPlatforms.map((p) => ({
         creator_id: creator.id,
         platform: p.platform,
         platform_username: p.username || null,

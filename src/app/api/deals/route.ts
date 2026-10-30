@@ -3,7 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { getUserIdFromCreator, getUserIdFromBrand } from '@/lib/notifications'
 import { emitEvent } from '@/lib/events/emit'
 import { captureError } from '@/lib/error-tracking'
-import { PLATFORM_FEE_PERCENTAGE } from '@/utils/constants'
+import { PLATFORM_FEE_PERCENTAGE, PLATFORM_IDS } from '@/utils/constants'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
@@ -16,7 +16,7 @@ const CreateDealSchema = z.object({
   title: z.string().min(3).max(200),
   description: z.string().max(2000).optional().nullable(),
   content_type: z.string().min(1).max(50).default('other'),
-  platform: z.string().min(1).max(100).default('other'),
+  platform: z.enum(PLATFORM_IDS),
   requirements: z.string().max(5000).optional().nullable(),
   deliverables: z.array(z.object({
     id: z.string(),

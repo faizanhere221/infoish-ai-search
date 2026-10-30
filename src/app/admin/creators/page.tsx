@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
 import { formatDate as formatDateUTC } from '@/lib/format-date'
+import { platformIcon } from '@/lib/platform-icons'
+import { PLATFORMS, platformName } from '@/utils/constants'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
   Eye, UserX, UserCheck, Star, Shield, ShieldCheck, ShieldX,
@@ -49,11 +51,6 @@ interface CreatorDetail {
 }
 
 const NICHES = ['AI/ML', 'SaaS', 'DevTools', 'Cloud', 'Cybersecurity', 'Web Dev', 'Mobile', 'Data Science', 'Blockchain', 'Open Source', 'Gaming', 'Design', 'Marketing', 'Productivity', 'Finance']
-const PLATFORMS = ['youtube', 'twitter', 'linkedin', 'instagram', 'tiktok', 'newsletter', 'podcast', 'github', 'blog']
-const PLATFORM_ICONS: Record<string, string> = {
-  youtube: '▶', twitter: '𝕏', linkedin: 'in', instagram: '◉', tiktok: '♪',
-  newsletter: '✉', podcast: '🎙', github: '⎈', blog: '✍',
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -342,7 +339,7 @@ export default function AdminCreatorsPage() {
           </select>
           <select value={filterPlatform} onChange={e => { setFilterPlatform(e.target.value); setPage(1) }} className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
             <option value="">All Platforms</option>
-            {PLATFORMS.map(p => <option key={p} value={p} className="capitalize">{p}</option>)}
+            {PLATFORMS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
           <select value={filterVerification} onChange={e => { setFilterVerification(e.target.value); setPage(1) }} className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
             <option value="">Any Verification</option>
@@ -455,11 +452,14 @@ export default function AdminCreatorsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
-                        {c.platform_list.slice(0, 4).map(p => (
-                          <span key={p} className="w-5 h-5 bg-gray-100 rounded text-xs flex items-center justify-center text-gray-600" title={p}>
-                            {PLATFORM_ICONS[p] ?? p[0].toUpperCase()}
-                          </span>
-                        ))}
+                        {c.platform_list.slice(0, 4).map(p => {
+                          const Icon = platformIcon(p)
+                          return (
+                            <span key={p} className="w-5 h-5 bg-gray-100 rounded flex items-center justify-center text-gray-600" title={platformName(p)}>
+                              <Icon className="w-3 h-3" />
+                            </span>
+                          )
+                        })}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500">{c.country ?? '—'}</td>
@@ -563,7 +563,7 @@ export default function AdminCreatorsPage() {
                         <div className="space-y-2">
                           {modalDetail.platforms.map((p: Record<string, unknown>) => (
                             <div key={String(p.id)} className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded-lg">
-                              <span className="capitalize font-medium text-gray-700">{String(p.platform)}</span>
+                              <span className="font-medium text-gray-700">{platformName(String(p.platform))}</span>
                               <span className="text-gray-500">{fmtNum(Number(p.followers))} followers</span>
                             </div>
                           ))}

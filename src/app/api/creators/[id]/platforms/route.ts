@@ -4,14 +4,10 @@ import { z } from 'zod'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
 import { captureError } from '@/lib/error-tracking'
 import { normalizeProfileUrl, parseFollowerCount } from '@/lib/creators/platform-input'
+import { PLATFORM_IDS } from '@/utils/constants'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
-
-const PLATFORM_IDS = [
-  'youtube', 'twitter', 'linkedin', 'instagram', 'tiktok', 'twitch',
-  'blog', 'newsletter', 'podcast', 'github', 'discord', 'other',
-] as const
 
 const PlatformSchema = z.object({
   platform: z.enum(PLATFORM_IDS),

@@ -7,7 +7,7 @@ const faqs = [
   {
     question: 'How do I find tech influencers in the Netherlands?',
     answer:
-      'Search the Infoishai creator directory and filter by Netherlands. Browse verified Dutch tech influencers across YouTube, LinkedIn, Twitter/X, and newsletters. Filter by niche, language (Dutch or English), and audience size.',
+      'Search the Infoishai creator directory and filter by Netherlands. Browse verified Dutch tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche, language (Dutch or English), and audience size.',
   },
   {
     question: 'How much do Dutch tech influencers charge?',

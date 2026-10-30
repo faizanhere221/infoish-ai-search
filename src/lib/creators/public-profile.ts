@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { createServerSupabase } from '@/lib/db'
 import { isCreatorPublic } from '@/lib/creators/visibility'
+import { isSupportedPlatform } from '@/utils/constants'
 
 // Server-side loader for the public profile page (/creators/[username]).
 // Everything returned here is serialized into the page's HTML, which is
@@ -93,7 +94,9 @@ export const getPublicCreatorProfile = cache(async (username: string): Promise<P
     ...profile,
     niches: profile.niches ?? [],
     languages: profile.languages ?? [],
-    creator_platforms: platforms ?? [],
-    creator_services: services ?? [],
+    // Rows for a platform we dropped stay off the public page until
+    // remove_platforms_migration.sql deletes them.
+    creator_platforms: (platforms ?? []).filter((p) => isSupportedPlatform(p.platform)),
+    creator_services: (services ?? []).filter((s) => !s.platform || isSupportedPlatform(s.platform)),
   } as PublicCreatorProfile
 })

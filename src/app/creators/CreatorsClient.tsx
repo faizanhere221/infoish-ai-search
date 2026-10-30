@@ -23,7 +23,7 @@ import {
 import DashboardHeader from '@/components/DashboardHeader'
 import Header from '@/components/header'
 import type { ProfileDropdownProfile } from '@/components/ProfileDropdown'
-import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES } from '@/utils/constants'
+import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES, platformName } from '@/utils/constants'
 
 export interface Creator {
   id: string
@@ -56,17 +56,6 @@ export interface Creator {
 }
 
 type SortOption = 'relevance' | 'rating' | 'price_low' | 'price_high' | 'followers' | 'newest'
-
-const PLATFORM_NAMES: Record<string, string> = {
-  twitter: 'Twitter/X',
-  youtube: 'YouTube',
-  linkedin: 'LinkedIn',
-  github: 'GitHub',
-  newsletter: 'Newsletter',
-  podcast: 'Podcast',
-  tiktok: 'TikTok',
-  instagram: 'Instagram',
-}
 
 const COUNTRY_NAMES: Record<string, string> = {
   US: 'United States',
@@ -415,7 +404,7 @@ export default function CreatorsClient({ initialCreators }: { initialCreators: C
                 onClick={() => togglePlatform(platform)}
                 className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200"
               >
-                {PLATFORM_NAMES[platform] || platform}
+                {platformName(platform)}
                 <X className="w-3 h-3" />
               </button>
             ))}
@@ -928,7 +917,7 @@ function CreatorCard({ creator }: { creator: Creator }) {
               <span className="text-xs text-gray-500">Active on:</span>
               {platforms.slice(0, 4).map((p) => (
                 <span key={p.platform} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
-                  {PLATFORM_NAMES[p.platform] || p.platform}
+                  {platformName(p.platform)}
                 </span>
               ))}
               {platforms.length > 4 && (

@@ -14,34 +14,49 @@ export const NICHES = [
   'Programming Tutorials',
 ] as const
 
-// Platforms
+// Platforms. The only list of supported platforms: every form, filter,
+// badge, icon map, and API validator reads it.
 export const PLATFORMS = [
-  { id: 'youtube', name: 'YouTube', icon: 'Youtube' },
-  { id: 'twitter', name: 'Twitter/X', icon: 'Twitter' },
-  { id: 'linkedin', name: 'LinkedIn', icon: 'Linkedin' },
-  { id: 'instagram', name: 'Instagram', icon: 'Instagram' },
-  { id: 'tiktok', name: 'TikTok', icon: 'Music2' },
-  { id: 'twitch', name: 'Twitch', icon: 'Twitch' },
-  { id: 'blog', name: 'Blog/Website', icon: 'Globe' },
-  { id: 'newsletter', name: 'Newsletter', icon: 'Mail' },
-  { id: 'podcast', name: 'Podcast', icon: 'Mic' },
-  { id: 'github', name: 'GitHub', icon: 'Github' },
-  { id: 'discord', name: 'Discord', icon: 'MessageSquare' },
-  { id: 'other', name: 'Other', icon: 'MoreHorizontal' },
+  { id: 'youtube', name: 'YouTube' },
+  { id: 'linkedin', name: 'LinkedIn' },
+  { id: 'twitter', name: 'Twitter/X' },
+  { id: 'tiktok', name: 'TikTok' },
+  { id: 'instagram', name: 'Instagram' },
 ] as const
+
+export type PlatformId = (typeof PLATFORMS)[number]['id']
+
+export const PLATFORM_IDS = PLATFORMS.map((p) => p.id) as [PlatformId, ...PlatformId[]]
+
+export function isSupportedPlatform(id: unknown): id is PlatformId {
+  return typeof id === 'string' && PLATFORMS.some((p) => p.id === id)
+}
+
+// Old deals, campaigns, and deliverables can still name a platform we
+// dropped (github, podcast, ...). They get a neutral label, not the raw id.
+export function platformName(id: string | null | undefined): string {
+  return PLATFORMS.find((p) => p.id === id)?.name ?? 'Other platform'
+}
+
+// Emoji badges, for compact spots (creator cards, conversation list).
+const PLATFORM_EMOJI: Record<PlatformId, string> = {
+  youtube: '📺',
+  linkedin: '💼',
+  twitter: '𝕏',
+  tiktok: '🎵',
+  instagram: '📸',
+}
+
+export function platformEmoji(id: string | null | undefined): string {
+  return isSupportedPlatform(id) ? PLATFORM_EMOJI[id] : '🌐'
+}
 
 // How many platforms we support, for display. Every stat and
 // piece of copy that shows the count reads this, so they always agree.
-// "Other" is the picker's catch-all, not a platform.
-export const PLATFORM_COUNT = PLATFORMS.filter((p) => p.id !== 'other').length
+export const PLATFORM_COUNT = PLATFORMS.length
 
-// Service types by platform
-export const SERVICE_TYPES: Record<string, Array<{ id: string; name: string; defaultRate: number }>> = {
-  twitter: [
-    { id: 'thread', name: 'Twitter Thread', defaultRate: 300 },
-    { id: 'post', name: 'Single Post', defaultRate: 100 },
-    { id: 'space', name: 'Twitter Space Mention', defaultRate: 500 },
-  ],
+// Service (content) types by platform
+export const SERVICE_TYPES: Record<PlatformId, Array<{ id: string; name: string; defaultRate: number }>> = {
   youtube: [
     { id: 'integration', name: 'Integration (60-90s)', defaultRate: 2500 },
     { id: 'dedicated', name: 'Dedicated Video', defaultRate: 5000 },
@@ -52,42 +67,30 @@ export const SERVICE_TYPES: Record<string, Array<{ id: string; name: string; def
     { id: 'article', name: 'LinkedIn Article', defaultRate: 800 },
     { id: 'video', name: 'LinkedIn Video', defaultRate: 600 },
   ],
+  twitter: [
+    { id: 'thread', name: 'Twitter Thread', defaultRate: 300 },
+    { id: 'post', name: 'Single Post', defaultRate: 100 },
+    { id: 'space', name: 'Twitter Space Mention', defaultRate: 500 },
+  ],
   tiktok: [
     { id: 'video', name: 'TikTok Video', defaultRate: 300 },
-  ],
-  newsletter: [
-    { id: 'section', name: 'Sponsored Section', defaultRate: 500 },
-    { id: 'dedicated', name: 'Dedicated Issue', defaultRate: 1500 },
-  ],
-  podcast: [
-    { id: 'mention', name: 'Mention (30-60s)', defaultRate: 500 },
-    { id: 'segment', name: 'Segment (5-10min)', defaultRate: 1500 },
-    { id: 'episode', name: 'Full Episode', defaultRate: 3000 },
-  ],
-  github: [
-    { id: 'tutorial', name: 'Code Tutorial', defaultRate: 1000 },
-    { id: 'review', name: 'Tool Review/Demo', defaultRate: 800 },
   ],
   instagram: [
     { id: 'post', name: 'Instagram Post', defaultRate: 400 },
     { id: 'story', name: 'Instagram Story', defaultRate: 200 },
     { id: 'reel', name: 'Instagram Reel', defaultRate: 600 },
   ],
-  twitch: [
-    { id: 'mention', name: 'Stream Mention', defaultRate: 300 },
-    { id: 'sponsored', name: 'Sponsored Stream', defaultRate: 1500 },
-  ],
-  blog: [
-    { id: 'post', name: 'Blog Post', defaultRate: 500 },
-    { id: 'review', name: 'Product Review', defaultRate: 800 },
-  ],
-  discord: [
-    { id: 'mention', name: 'Server Mention', defaultRate: 200 },
-    { id: 'ama', name: 'Community AMA', defaultRate: 600 },
-  ],
-  other: [
-    { id: 'custom', name: 'Custom', defaultRate: 300 },
-  ],
+}
+
+export function serviceTypesFor(platform: string | null | undefined) {
+  return isSupportedPlatform(platform) ? SERVICE_TYPES[platform] : []
+}
+
+// Content-type label for a service, or a neutral one for a type we no
+// longer offer.
+export function serviceTypeName(platform: string | null | undefined, contentType: string | null | undefined): string {
+  if (!contentType) {return ''}
+  return serviceTypesFor(platform).find((t) => t.id === contentType)?.name ?? 'Other content'
 }
 
 // Countries (Phase 1)

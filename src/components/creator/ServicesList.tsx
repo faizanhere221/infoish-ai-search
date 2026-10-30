@@ -1,7 +1,8 @@
 'use client'
 
 import { Clock, ChevronRight } from 'lucide-react'
-import { PLATFORMS } from '@/utils/constants'
+import { platformName } from '@/utils/constants'
+import { platformIcon } from '@/lib/platform-icons'
 import type { Service } from '@/types/marketplace'
 
 interface ServicesListProps {
@@ -44,15 +45,15 @@ export function ServicesList({
   return (
     <div className="space-y-6">
       {Object.entries(groupedServices).map(([platform, platformServices]) => {
-        const platformInfo = PLATFORMS.find(p => p.id === platform)
-        
+        const PlatformIcon = platformIcon(platform)
+
         return (
           <div key={platform}>
             {/* Platform Header */}
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-xl">{platformInfo?.icon || '🌐'}</span>
+              <PlatformIcon className="w-5 h-5 text-gray-600" />
               <h4 className="font-medium text-gray-900">
-                {platformInfo?.name || platform}
+                {platformName(platform)}
               </h4>
             </div>
 

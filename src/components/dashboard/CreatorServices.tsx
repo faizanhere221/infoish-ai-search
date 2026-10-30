@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { DollarSign, Plus } from 'lucide-react'
-import { PLATFORMS } from '@/utils/constants'
+import { platformName } from '@/utils/constants'
 
 interface ServiceItem {
   id?: string
@@ -10,7 +10,6 @@ interface ServiceItem {
   is_active: boolean
 }
 
-const NAMES = Object.fromEntries(PLATFORMS.map((p) => [p.id, p.name])) as Record<string, string>
 
 export default function CreatorServices({ services }: { services: ServiceItem[] }) {
   return (
@@ -29,7 +28,7 @@ export default function CreatorServices({ services }: { services: ServiceItem[] 
               <div className="min-w-0">
                 <p className="font-medium text-gray-900 truncate">{s.title}</p>
                 <p className="text-xs text-gray-500">
-                  {s.platform ? NAMES[s.platform] || s.platform : 'Any platform'}
+                  {s.platform ? platformName(s.platform) : 'Any platform'}
                   {!s.is_active && ' · Inactive'}
                 </p>
               </div>

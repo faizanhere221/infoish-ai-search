@@ -7,11 +7,7 @@ import { ExternalLink, Loader2, ShieldX } from 'lucide-react'
 import Logo from '@/components/Logo'
 import { CAMPAIGN_CREATOR_STATUS_LABELS, type CampaignCreatorStatus } from '@/types/campaigns'
 import { formatMoney } from '@/components/campaigns/utils'
-
-const PLATFORM_ICONS: Record<string, string> = {
-  youtube: '📺', twitter: '𝕏', instagram: '📸', tiktok: '🎵', linkedin: '💼',
-  twitch: '🎮', newsletter: '📧', podcast: '🎙️', github: '💻', blog: '📝', other: '🌐',
-}
+import { platformEmoji } from '@/utils/constants'
 
 const STATUS_BADGE: Record<CampaignCreatorStatus, { bg: string; text: string }> = {
   shortlisted: { bg: 'bg-gray-100', text: 'text-gray-700' },
@@ -172,7 +168,7 @@ export default function SharePage() {
                           <div className="min-w-0">
                             <p className="font-medium text-gray-900 truncate">{row.creator?.display_name}</p>
                             <p className="text-xs text-gray-500 truncate">
-                              {row.creator?.primary_platform ? PLATFORM_ICONS[row.creator.primary_platform] ?? '🌐' : ''} @{row.creator?.username}
+                              {row.creator?.primary_platform ? platformEmoji(row.creator.primary_platform) : ''} @{row.creator?.username}
                             </p>
                           </div>
                         </div>

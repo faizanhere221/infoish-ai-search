@@ -11,7 +11,6 @@ import {
   Twitter,
   Linkedin,
   Music2,
-  Facebook,
   Briefcase,
   Code2,
   Brain,
@@ -201,12 +200,6 @@ const platforms = [
     description:
       'Active Pakistani tech community with strong presence in developer tools, startup discussions, and AI. Pakistani tech Twitter drives engagement on product launches, open-source projects, and tech news. Best for developer-focused products and startup tools.',
   },
-  {
-    icon: Facebook,
-    name: 'Facebook Groups',
-    description:
-      'Still relevant in Pakistan. Large tech communities operate through Facebook Groups focused on programming, freelancing, WordPress, and digital marketing. Creators who moderate or post actively in these groups reach engaged members. Best for community-driven products and educational platforms.',
-  },
 ]
 
 const rateTable = [
@@ -222,8 +215,6 @@ const rateTable = [
   { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: '₨12,000 - ₨40,000' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: '₨5,000 - ₨20,000' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: '₨20,000 - ₨50,000' },
-  { platform: 'Newsletter (mention)', audience: '2K-10K subscribers', rate: '₨3,000 - ₨15,000' },
-  { platform: 'Podcast (mid-roll spot)', audience: '500-5K downloads/ep', rate: '₨5,000 - ₨25,000' },
 ]
 
 const techHubs = [

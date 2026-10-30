@@ -1,28 +1,13 @@
 import Link from 'next/link'
-import { Globe, Github, Instagram, Linkedin, Mail, Mic, Music2, Twitch, Twitter, Youtube, MessageSquare, Plus, type LucideIcon } from 'lucide-react'
-import { PLATFORMS } from '@/utils/constants'
+import { Globe, Plus } from 'lucide-react'
+import { platformName } from '@/utils/constants'
+import { platformIcon } from '@/lib/platform-icons'
 
 interface PlatformItem {
   platform: string
   platform_username: string | null
   followers: number
 }
-
-const ICONS: Record<string, LucideIcon> = {
-  youtube: Youtube,
-  twitter: Twitter,
-  linkedin: Linkedin,
-  instagram: Instagram,
-  tiktok: Music2,
-  twitch: Twitch,
-  blog: Globe,
-  newsletter: Mail,
-  podcast: Mic,
-  github: Github,
-  discord: MessageSquare,
-}
-
-const NAMES = Object.fromEntries(PLATFORMS.map((p) => [p.id, p.name])) as Record<string, string>
 
 export default function CreatorPlatforms({ platforms }: { platforms: PlatformItem[] }) {
   return (
@@ -37,14 +22,14 @@ export default function CreatorPlatforms({ platforms }: { platforms: PlatformIte
       {platforms.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {platforms.map((p) => {
-            const Icon = ICONS[p.platform] || Globe
+            const Icon = platformIcon(p.platform)
             return (
               <div key={p.platform} className="p-4 border border-gray-200 rounded-xl">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 bg-violet-50 rounded-lg flex items-center justify-center">
                     <Icon className="w-4 h-4 text-violet-600" />
                   </div>
-                  <span className="text-sm font-medium text-gray-900 truncate">{NAMES[p.platform] || p.platform}</span>
+                  <span className="text-sm font-medium text-gray-900 truncate">{platformName(p.platform)}</span>
                 </div>
                 <p className="text-xl font-bold text-gray-900">{(p.followers || 0).toLocaleString()}</p>
                 <p className="text-xs text-gray-500 truncate">

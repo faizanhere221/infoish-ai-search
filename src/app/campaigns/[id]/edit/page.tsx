@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
 import CampaignWizard, { type CampaignFormData, type CampaignSubmitPayload } from '@/components/campaigns/CampaignWizard'
 import type { Campaign } from '@/types/campaigns'
+import { isSupportedPlatform } from '@/utils/constants'
 
 interface Profile {
   id: string
@@ -18,7 +19,8 @@ function campaignToFormData(campaign: Campaign): CampaignFormData {
     campaign.deliverables && campaign.deliverables.length > 0
       ? campaign.deliverables.map((d) => ({
           id: d.id,
-          platform: d.platform,
+          // A platform we dropped starts blank: the brand picks a current one.
+          platform: isSupportedPlatform(d.platform) ? d.platform : ('' as const),
           deliverable_type: d.deliverable_type,
           quantity: String(d.quantity),
           description: d.description || '',
@@ -30,7 +32,7 @@ function campaignToFormData(campaign: Campaign): CampaignFormData {
     description: campaign.description || '',
     objective: campaign.objective || '',
     category: campaign.category || '',
-    platforms: campaign.platforms || [],
+    platforms: (campaign.platforms || []).filter(isSupportedPlatform),
     min_followers: campaign.min_followers ? String(campaign.min_followers) : '',
     target_countries: campaign.target_countries || [],
     deliverables,

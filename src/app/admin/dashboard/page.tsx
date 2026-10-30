@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { platformName } from '@/utils/constants'
 import {
   Users, UserSquare, Building2, Handshake, DollarSign, Activity,
   RefreshCw, TrendingUp, TrendingDown, Minus, UserPlus, MessageSquare,
@@ -429,7 +430,7 @@ export default function AdminDashboard() {
   const registrationData = stats.registrationTrend.map(d => ({ date: d.date, value: d.count }))
   const revenueData = stats.revenueTrend.map(d => ({ date: d.date, value: d.amount }))
   const nicheData = stats.topNiches.map(d => ({ label: d.name, value: d.count }))
-  const platformData = stats.platformDist.map(d => ({ label: d.platform, value: d.count }))
+  const platformData = stats.platformDist.map(d => ({ label: platformName(d.platform), value: d.count }))
 
   const now = new Date()
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })

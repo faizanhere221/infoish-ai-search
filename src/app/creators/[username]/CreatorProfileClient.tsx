@@ -13,22 +13,13 @@ import {
   Clock,
   MessageSquare,
   Briefcase,
-  Users,
   ExternalLink,
   Loader2,
-  Twitter,
-  Youtube,
-  Linkedin,
-  Github,
-  Mail,
-  Mic,
-  Music2,
   Edit,
   Gift,
   Bookmark,
   BookmarkCheck,
   Flag,
-  type LucideIcon
 } from 'lucide-react'
 import { usePartner } from '@/hooks/usePartner'
 import Header from '@/components/header'
@@ -38,29 +29,11 @@ import { ReportDialog } from '@/components/ReportDialog'
 import { formatMonthYear } from '@/lib/format-date'
 import { safeExternalHref } from '@/lib/creators/platform-input'
 import { track } from '@/lib/analytics'
+import { platformIcon } from '@/lib/platform-icons'
+import { platformName } from '@/utils/constants'
 import type { PublicCreatorProfile, PublicCreatorService } from '@/lib/creators/public-profile'
 
 type Service = PublicCreatorService
-
-const PLATFORM_ICONS: Record<string, LucideIcon> = {
-  twitter: Twitter,
-  youtube: Youtube,
-  linkedin: Linkedin,
-  github: Github,
-  newsletter: Mail,
-  podcast: Mic,
-  tiktok: Music2,
-}
-
-const PLATFORM_NAMES: Record<string, string> = {
-  twitter: 'Twitter/X',
-  youtube: 'YouTube',
-  linkedin: 'LinkedIn',
-  github: 'GitHub',
-  newsletter: 'Newsletter',
-  podcast: 'Podcast',
-  tiktok: 'TikTok',
-}
 
 const COUNTRY_NAMES: Record<string, string> = {
   US: 'United States',
@@ -569,7 +542,7 @@ export default function CreatorProfileClient({ creator }: { creator: PublicCreat
                 <h3 className="font-semibold text-gray-900 mb-4">Platforms</h3>
                 <div className="space-y-3">
                   {platforms.map((platform) => {
-                    const Icon = PLATFORM_ICONS[platform.platform] || Users
+                    const Icon = platformIcon(platform.platform)
                     return (
                       <div key={platform.id} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -578,7 +551,7 @@ export default function CreatorProfileClient({ creator }: { creator: PublicCreat
                           </div>
                           <div>
                             <p className="font-medium text-gray-900">
-                              {platform.platform_username || PLATFORM_NAMES[platform.platform] || platform.platform}
+                              {platform.platform_username || platformName(platform.platform)}
                             </p>
                             <p className="text-sm text-gray-500">
                               {formatFollowers(platform.followers)} followers
@@ -624,7 +597,7 @@ function ServiceCard({ service }: { service: Service }) {
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-gray-900">{service.title}</h3>
             <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
-              {PLATFORM_NAMES[service.platform] || service.platform}
+              {platformName(service.platform)}
             </span>
           </div>
           {service.description && (

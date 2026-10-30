@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Infoishai** (infoishai.com) is a free B2B marketplace connecting tech brands with verified tech content creators (YouTube, Twitter/X, LinkedIn, GitHub, newsletters, podcasts) across 9 countries (USA, UK, Canada, India, Pakistan, Australia, Germany, Netherlands, Singapore). Brands discover and message creators directly, send deal proposals, or post campaigns that creators apply to. Once a creator is attached to a campaign, a per-pairing tracker takes the collaboration through offer → contract → deliverables → payment tracking (see **Campaign Workflow** below). There is also a referral/affiliate ("partner") system and an admin back office.
+**Infoishai** (infoishai.com) is a free B2B marketplace connecting tech brands with verified tech content creators (YouTube, LinkedIn, Twitter/X, TikTok, Instagram — the only five supported platforms, defined once as `PLATFORMS` in `src/utils/constants.ts`) across 9 countries (USA, UK, Canada, India, Pakistan, Australia, Germany, Netherlands, Singapore). Brands discover and message creators directly, send deal proposals, or post campaigns that creators apply to. Once a creator is attached to a campaign, a per-pairing tracker takes the collaboration through offer → contract → deliverables → payment tracking (see **Campaign Workflow** below). There is also a referral/affiliate ("partner") system and an admin back office.
 
 ## Brand Identity
 

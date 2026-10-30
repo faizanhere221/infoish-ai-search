@@ -7,7 +7,7 @@ const faqs = [
   {
     question: 'How do I find tech influencers in Germany?',
     answer:
-      'Search the Infoishai creator directory and filter by Germany. Browse verified German tech influencers across YouTube, LinkedIn, Twitter/X, and newsletters. Filter by niche, language (German or English), and audience size.',
+      'Search the Infoishai creator directory and filter by Germany. Browse verified German tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche, language (German or English), and audience size.',
   },
   {
     question: 'How much do German tech influencers charge?',

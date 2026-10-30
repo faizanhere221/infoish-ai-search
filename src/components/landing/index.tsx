@@ -24,9 +24,8 @@ import {
   Youtube,
   Twitter,
   Linkedin,
-  Github,
-  Mail,
-  Mic,
+  Instagram,
+  Music2,
   ChevronRight,
   ChevronDown
 } from 'lucide-react'
@@ -183,9 +182,8 @@ export function HeroSection() {
           <Youtube className="w-8 h-8 text-gray-400" />
           <Twitter className="w-8 h-8 text-gray-400" />
           <Linkedin className="w-8 h-8 text-gray-400" />
-          <Github className="w-8 h-8 text-gray-400" />
-          <Mail className="w-8 h-8 text-gray-400" />
-          <Mic className="w-8 h-8 text-gray-400" />
+          <Music2 className="w-8 h-8 text-gray-400" aria-label="TikTok" />
+          <Instagram className="w-8 h-8 text-gray-400" />
         </div>
       </div>
     </section>
@@ -209,8 +207,8 @@ export function AboutSection() {
           <p>
             Infoishai is a <strong>tech influencer marketplace</strong> built to connect ambitious brands
             with creators who actually understand technology. Unlike generic influencer directories, we
-            focus exclusively on <strong>tech content creators</strong> — YouTubers, Twitter/X voices,
-            LinkedIn thought leaders, newsletter writers, and podcast hosts covering AI, SaaS, developer
+            focus exclusively on <strong>tech content creators</strong> — YouTubers, LinkedIn thought
+            leaders, Twitter/X voices, and TikTok and Instagram creators covering AI, SaaS, developer
             tools, cloud infrastructure, and cybersecurity.
           </p>
           <p>
@@ -338,7 +336,7 @@ export function ForBrandsSection() {
           <div className="max-w-3xl mx-auto space-y-5 text-lg text-gray-600 leading-relaxed">
             <p>
               Infoishai gives your brand direct access to verified tech influencers across
-              YouTube, Twitter/X, LinkedIn, Instagram, and newsletters. Search creators by niche,
+              YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Search creators by niche,
               platform, audience size, country, and engagement rate. Every profile is verified.
               Every creator is active and accepting partnerships.
             </p>
@@ -545,6 +543,7 @@ export function SolutionSection() {
 export function PlatformSection() {
   const platforms = [
     {
+      id: 'youtube',
       icon: Youtube,
       name: 'YouTube',
       title: 'YouTube Tech Influencers',
@@ -552,6 +551,7 @@ export function PlatformSection() {
       color: 'bg-red-500',
     },
     {
+      id: 'twitter',
       icon: Twitter,
       name: 'X (Twitter)',
       title: 'Twitter Tech Influencers',
@@ -559,6 +559,7 @@ export function PlatformSection() {
       color: 'bg-gray-900',
     },
     {
+      id: 'linkedin',
       icon: Linkedin,
       name: 'LinkedIn',
       title: 'LinkedIn Tech Creators',
@@ -566,25 +567,20 @@ export function PlatformSection() {
       color: 'bg-blue-600',
     },
     {
-      icon: Github,
-      name: 'GitHub',
-      title: 'Developer Influencers',
-      description: 'Open source maintainers, dev tool reviews, technical tutorials.',
+      id: 'tiktok',
+      icon: Music2,
+      name: 'TikTok',
+      title: 'TikTok Tech Creators',
+      description: 'Short tech explainers, gadget unboxings, quick AI tool demos.',
       color: 'bg-gray-800',
     },
     {
-      icon: Mail,
-      name: 'Newsletter',
-      title: 'Tech Newsletter Writers',
-      description: 'Curated tech news, industry insights, developer resources.',
-      color: 'bg-emerald-500',
-    },
-    {
-      icon: Mic,
-      name: 'Podcast',
-      title: 'Tech Podcast Hosts',
-      description: 'Interview shows, tech discussions, startup stories.',
-      color: 'bg-purple-500',
+      id: 'instagram',
+      icon: Instagram,
+      name: 'Instagram',
+      title: 'Instagram Tech Creators',
+      description: 'Reels on new gadgets, desk setups, and app walkthroughs.',
+      color: 'bg-pink-500',
     },
   ]
 
@@ -611,7 +607,7 @@ export function PlatformSection() {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{platform.title}</h3>
               <p className="text-gray-600 text-sm mb-4">{platform.description}</p>
               <Link 
-                href={`/creators?platform=${platform.name.toLowerCase()}`}
+                href={`/creators?platform=${platform.id}`}
                 className="inline-flex items-center text-brand-purple font-medium text-sm group-hover:gap-2 transition-all"
               >
                 Browse {platform.name} Creators
@@ -916,7 +912,7 @@ export function FAQSection() {
     },
     {
       question: 'What types of tech influencers can I find?',
-      answer: 'You can find influencers across niches including AI/ML, SaaS, developer tools, cloud computing, cybersecurity, and more. Platforms include YouTube, Twitter, LinkedIn, podcasts, and newsletters.',
+      answer: 'You can find influencers across niches including AI/ML, SaaS, developer tools, cloud computing, cybersecurity, and more. Platforms include YouTube, LinkedIn, Twitter/X, TikTok, and Instagram.',
     },
     {
       question: 'How do I hire a tech influencer?',
@@ -936,7 +932,7 @@ export function FAQSection() {
     },
     {
       question: 'What platforms are best for tech influencers?',
-      answer: 'YouTube, Twitter/X, LinkedIn, and newsletters are the most effective platforms for technology creators. YouTube works best for tutorials, Twitter for discussions, and newsletters for in-depth content.',
+      answer: 'YouTube, LinkedIn, and Twitter/X are the most effective platforms for technology creators, with TikTok and Instagram strong for short video. YouTube works best for tutorials, Twitter/X for discussions, and LinkedIn for B2B audiences.',
     },
     {
       question: 'Why should startups work with tech influencers?',

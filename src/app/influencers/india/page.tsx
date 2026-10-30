@@ -10,7 +10,6 @@ import {
   Instagram,
   Twitter,
   Linkedin,
-  Send,
   GraduationCap,
   Brain,
   LayoutGrid,
@@ -192,12 +191,6 @@ const platforms = [
     description:
       'Active Indian tech community covering startups, developer tools, open-source projects, and AI. Tech Twitter in India drives strong engagement on product launches and feature announcements. Best for developer tools and startup products.',
   },
-  {
-    icon: Send,
-    name: 'Telegram and Discord',
-    description:
-      'Indian tech communities are highly active on Telegram and Discord. Creators run channels with thousands of members discussing tools, sharing resources, and recommending products. Best for developer-focused products and community-driven tools.',
-  },
 ]
 
 const rateTable = [
@@ -211,8 +204,6 @@ const rateTable = [
   { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: '₹10,000 - ₹40,000' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: '₹5,000 - ₹20,000' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: '₹20,000 - ₹60,000' },
-  { platform: 'Newsletter (mention)', audience: '5K-20K subscribers', rate: '₹3,000 - ₹15,000' },
-  { platform: 'Podcast (mid-roll spot)', audience: '1K-10K downloads/ep', rate: '₹5,000 - ₹25,000' },
 ]
 
 const techHubs = [

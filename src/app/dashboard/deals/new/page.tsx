@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2, DollarSign, Calendar, FileText, Plus, Trash2 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
-import { PLATFORMS } from '@/utils/constants'
+import { PLATFORMS, serviceTypesFor } from '@/utils/constants'
 
 interface Deliverable {
   id: string
@@ -40,8 +40,8 @@ function NewDealPageContent() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
-  const [platform, setPlatform] = useState('instagram')
-  const [contentType, setContentType] = useState('instagram_post')
+  const [platform, setPlatform] = useState<string>(PLATFORMS[0].id)
+  const [contentType, setContentType] = useState(serviceTypesFor(PLATFORMS[0].id)[0]?.id ?? '')
   const [deadline, setDeadline] = useState('')
   const [deliveryDays, setDeliveryDays] = useState('7')
   const [revisionsAllowed, setRevisionsAllowed] = useState('1')
@@ -229,7 +229,7 @@ function NewDealPageContent() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Platform *</label>
-                <select value={platform} onChange={e => setPlatform(e.target.value)}
+                <select value={platform} onChange={e => { setPlatform(e.target.value); setContentType(serviceTypesFor(e.target.value)[0]?.id ?? '') }}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500">
                   {PLATFORMS.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -240,14 +240,7 @@ function NewDealPageContent() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Content Type *</label>
                 <select value={contentType} onChange={e => setContentType(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500">
-                  {[
-                    ['instagram_post','Instagram Post'],['instagram_story','Instagram Story'],
-                    ['instagram_reel','Instagram Reel'],['youtube_video','YouTube Video'],
-                    ['tiktok_video','TikTok Video'],['twitter_post','Twitter Post'],
-                    ['linkedin_post','LinkedIn Post'],['blog_post','Blog Post'],
-                    ['podcast','Podcast'],['stream_mention','Stream Mention'],
-                    ['discord_mention','Discord Mention'],['other','Other'],
-                  ].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  {serviceTypesFor(platform).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </div>
             </div>

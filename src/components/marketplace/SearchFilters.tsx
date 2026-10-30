@@ -9,7 +9,8 @@ import {
   Star,
   CheckCircle
 } from 'lucide-react'
-import { NICHES, PLATFORMS } from '@/utils/constants'
+import { NICHES, PLATFORMS, platformName } from '@/utils/constants'
+import { platformIcon } from '@/lib/platform-icons'
 
 interface FilterState {
   search: string
@@ -193,7 +194,9 @@ export function SearchFilters({
       {/* Platforms */}
       <FilterSection title="Platform" id="platforms">
         <div className="space-y-2">
-          {PLATFORMS.map(platform => (
+          {PLATFORMS.map(platform => {
+            const PlatformIcon = platformIcon(platform.id)
+            return (
             <label key={platform.id} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -201,10 +204,11 @@ export function SearchFilters({
                 onChange={() => toggleArrayFilter('platforms', platform.id)}
                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <span className="text-lg">{platform.icon}</span>
+              <PlatformIcon className="w-4 h-4 text-gray-500" />
               <span className="text-sm text-gray-700">{platform.name}</span>
             </label>
-          ))}
+            )
+          })}
         </div>
       </FilterSection>
 
@@ -353,7 +357,7 @@ export function SearchFilters({
           ))}
           {filters.platforms.map(platform => (
             <span key={platform} className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-100 text-emerald-700 text-sm rounded-full">
-              {PLATFORMS.find(p => p.id === platform)?.name || platform}
+              {platformName(platform)}
               <button onClick={() => toggleArrayFilter('platforms', platform)}>
                 <X className="w-4 h-4" />
               </button>

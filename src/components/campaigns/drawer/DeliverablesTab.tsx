@@ -3,7 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ExternalLink, FileText, Loader2, Paperclip, Pencil, Plus, Scissors, Trash2, Upload } from 'lucide-react'
 import { formatDate, DELIVERABLE_STATUS_BADGE } from '@/components/campaigns/utils'
-import { DELIVERABLE_FORMATS, type CreatorDeliverable } from '@/types/campaigns'
+import {
+  DELIVERABLE_FORMATS,
+  deliverableFormatLabel,
+  isDeliverableFormat,
+  type CreatorDeliverable,
+} from '@/types/campaigns'
+import { PLATFORMS, isSupportedPlatform } from '@/utils/constants'
 import { ResultsPanel } from './ResultsPanel'
 
 interface DeliverablesTabProps {
@@ -145,8 +151,10 @@ export function DeliverablesTab({ campaignCreatorId, actorType, token }: Deliver
     setEditingId(d.id)
     setEditDraft({
       title: d.title,
-      platform: d.platform || '',
-      format: d.format || '',
+      // A platform or format we no longer offer starts blank, so saving
+      // doesn't send a value the API rejects.
+      platform: isSupportedPlatform(d.platform) ? d.platform : '',
+      format: isDeliverableFormat(d.format) ? d.format : '',
       draft_due: d.draft_due || '',
       publish_due: d.publish_due || '',
     })
@@ -339,12 +347,14 @@ export function DeliverablesTab({ campaignCreatorId, actorType, token }: Deliver
                     <option value="">Format…</option>
                     {DELIVERABLE_FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
                   </select>
-                  <input
+                  <select
                     value={editDraft.platform}
                     onChange={(e) => setEditDraft((f) => ({ ...f, platform: e.target.value }))}
-                    placeholder="Platform"
                     className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                  />
+                  >
+                    <option value="">Platform…</option>
+                    {PLATFORMS.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <input type="date" value={editDraft.draft_due} onChange={(e) => setEditDraft((f) => ({ ...f, draft_due: e.target.value }))} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
@@ -364,7 +374,7 @@ export function DeliverablesTab({ campaignCreatorId, actorType, token }: Deliver
             ) : null}
 
             <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-2">
-              {d.format && <span className="capitalize">{d.format}</span>}
+              {d.format && <span>{deliverableFormatLabel(d.format)}</span>}
               {d.draft_due && <span>Draft due {formatDate(d.draft_due)}</span>}
               {d.publish_due && <span>Publish due {formatDate(d.publish_due)}</span>}
               {actorType === 'brand' ? (
@@ -520,12 +530,14 @@ export function DeliverablesTab({ campaignCreatorId, actorType, token }: Deliver
               <option value="">Format…</option>
               {DELIVERABLE_FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
             </select>
-            <input
+            <select
               value={newDeliverable.platform}
               onChange={(e) => setNewDeliverable((f) => ({ ...f, platform: e.target.value }))}
-              placeholder="Platform"
               className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
-            />
+            >
+              <option value="">Platform…</option>
+              {PLATFORMS.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

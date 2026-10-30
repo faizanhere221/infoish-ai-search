@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { MessageSquare } from 'lucide-react'
 import type { ConversationSummary } from '@/hooks/useConversationsList'
+import { platformEmoji as emojiFor } from '@/utils/constants'
 
 interface ConversationListProps {
   conversations: ConversationSummary[]
@@ -11,22 +12,6 @@ interface ConversationListProps {
   userType: 'creator' | 'brand'
   isLoading?: boolean
   emptyMessage?: string
-}
-
-// Same emoji mapping CreatorCard uses elsewhere so a platform looks the same
-// wherever it's shown in the app.
-const PLATFORM_ICONS: Record<string, string> = {
-  youtube: '📺',
-  twitter: '𝕏',
-  instagram: '📸',
-  tiktok: '🎵',
-  linkedin: '💼',
-  twitch: '🎮',
-  newsletter: '📧',
-  podcast: '🎙️',
-  github: '💻',
-  blog: '📝',
-  other: '🌐',
 }
 
 function formatTime(dateString: string): string {
@@ -105,7 +90,7 @@ export function ConversationList({
           name = conversation.creator.display_name
           avatar = conversation.creator.profile_photo_url
           const primaryPlatform = (conversation.creator as { primary_platform?: string | null }).primary_platform
-          platformEmoji = primaryPlatform ? PLATFORM_ICONS[primaryPlatform] ?? '🌐' : null
+          platformEmoji = primaryPlatform ? emojiFor(primaryPlatform) : null
         }
 
         return (

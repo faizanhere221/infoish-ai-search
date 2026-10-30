@@ -48,21 +48,16 @@ const TOKEN = getEnv('TEST_CREATOR_TOKEN')
 const confirmArg = process.argv.find((a) => a.startsWith('--confirm='))?.slice('--confirm='.length)
 
 // Every platform the settings page and the onboarding wizard offer
-// (src/utils/constants.ts PLATFORMS). The signup page only picks platforms
-// (no handle/followers/URL), so it has no input of its own to test here.
+// (the five in src/utils/constants.ts PLATFORMS). Cases below index the
+// first three (twitter, youtube, linkedin), so keep that order. The signup
+// page only picks platforms (no handle/followers/URL), so it has no input of
+// its own to test here.
 const PLATFORMS = [
   { platform: 'twitter', platform_username: '@pc_twitter', followers: 5076, platform_url: 'https://x.com/pc_twitter' },
   { platform: 'youtube', platform_username: '@pc_youtube', followers: 120000, platform_url: 'https://www.youtube.com/@pc_youtube' },
   { platform: 'linkedin', platform_username: 'pc-linkedin', followers: 3400, platform_url: 'https://www.linkedin.com/in/pc-linkedin/' },
   { platform: 'instagram', platform_username: '@pc.instagram', followers: 8800, platform_url: 'https://www.instagram.com/pc.instagram' },
   { platform: 'tiktok', platform_username: '@pc_tiktok', followers: 22000, platform_url: 'https://www.tiktok.com/@pc_tiktok' },
-  { platform: 'twitch', platform_username: 'pc_twitch', followers: 900, platform_url: 'https://www.twitch.tv/pc_twitch' },
-  { platform: 'blog', platform_username: 'pc.dev', followers: 0, platform_url: 'https://pc.dev/' },
-  { platform: 'newsletter', platform_username: 'PC Weekly', followers: 15000, platform_url: 'https://pcweekly.substack.com' },
-  { platform: 'podcast', platform_username: 'PC Podcast', followers: 4200, platform_url: 'https://podcasts.apple.com/podcast/pc/id123' },
-  { platform: 'github', platform_username: 'pc-github', followers: 650, platform_url: 'https://github.com/pc-github' },
-  { platform: 'discord', platform_username: 'pc-discord', followers: 1300, platform_url: 'https://discord.gg/pcinvite' },
-  { platform: 'other', platform_username: 'pc-other', followers: 10, platform_url: 'https://example.com/pc' },
 ]
 
 let passCount = 0
@@ -295,6 +290,10 @@ async function main() {
       [{ platform: 'twitter', platform_username: null, platform_url: null, followers: 0 }, PLATFORMS[1], PLATFORMS[2]])
 
     await platformCase('Setup: twitter + youtube + linkedin again', base)
+    for (const removed of ['github', 'newsletter', 'podcast', 'other']) {
+      await rejectCase(`Removed platform "${removed}" is rejected with 400, nothing changes`,
+        [...base, { platform: removed, platform_username: 'pc-removed', followers: 100, platform_url: 'https://example.com/pc' }], base)
+    }
     await platformCase('Editing one platform leaves the others untouched', withTwitter({ followers: 9999, platform_username: '@edited' }))
     await platformCase('Removing a platform keeps the rest', [PLATFORMS[0], PLATFORMS[2]])
     await platformCase('Adding a platform back keeps the rest', [PLATFORMS[0], PLATFORMS[2], PLATFORMS[1]])
@@ -314,7 +313,7 @@ async function main() {
       svc('Single Post', 100, { content_type: 'post' }),
       svc('Dedicated Video', 2500, { platform: 'youtube', content_type: 'dedicated', delivery_days: 14 }),
       svc('LinkedIn Post', 400, { platform: 'linkedin', content_type: 'post', revisions_included: 0 }),
-      svc('Paused Newsletter Slot', 500, { platform: 'newsletter', content_type: 'section', is_active: false }),
+      svc('Paused Instagram Reel', 600, { platform: 'instagram', content_type: 'reel', is_active: false }),
     ]
     await serviceCase('Save a list of 5 (incl. 0 revisions and one paused) — none lost, order kept', five)
     await serviceCase('Re-saving the list of 5 as read back loses nothing (paused one survives)', five)
@@ -325,6 +324,15 @@ async function main() {
       report('include_inactive=1 without a token returns no paused services', anon.status === 200 && !leaked, `status ${anon.status}, leaked: ${leaked}`)
     } catch (err) {
       report('include_inactive=1 without a token returns no paused services', false, `threw: ${err.message}`)
+    }
+
+    try {
+      const res = await putServices([...five, svc('Newsletter Slot', 500, { platform: 'newsletter', content_type: 'section' })])
+      const problems = diffServices(five, (await readOwner()).creator_services)
+      report('A service on a removed platform (newsletter) is rejected with 400, nothing changes',
+        res.status === 400 && problems.length === 0, `status ${res.status}${problems.length ? `; ${problems[0]}` : ''}`)
+    } catch (err) {
+      report('A service on a removed platform (newsletter) is rejected with 400, nothing changes', false, `threw: ${err.message}`)
     }
 
     await serviceCase('Removing every service leaves none', [])

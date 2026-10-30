@@ -18,6 +18,7 @@ import {
 import DashboardHeader from '@/components/DashboardHeader'
 import type { ProfileDropdownProfile } from '@/components/ProfileDropdown'
 import { formatDate as formatDateUTC } from '@/lib/format-date'
+import { platformName } from '@/utils/constants'
 
 interface Deal {
   id: string
@@ -63,17 +64,6 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: str
   completed: { label: 'Completed', color: 'text-emerald-700', bgColor: 'bg-emerald-100' },
   cancelled: { label: 'Cancelled', color: 'text-gray-700', bgColor: 'bg-gray-100' },
   disputed: { label: 'Disputed', color: 'text-red-700', bgColor: 'bg-red-100' },
-}
-
-const PLATFORM_NAMES: Record<string, string> = {
-  twitter: 'Twitter/X',
-  youtube: 'YouTube',
-  linkedin: 'LinkedIn',
-  github: 'GitHub',
-  newsletter: 'Newsletter',
-  podcast: 'Podcast',
-  tiktok: 'TikTok',
-  instagram: 'Instagram',
 }
 
 export default function DealsPage() {
@@ -503,7 +493,7 @@ function DealCard({ deal, userType }: { deal: Deal; userType: 'brand' | 'creator
               </span>
               {deal.platform && (
                 <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
-                  {PLATFORM_NAMES[deal.platform] || deal.platform}
+                  {platformName(deal.platform)}
                 </span>
               )}
             </div>

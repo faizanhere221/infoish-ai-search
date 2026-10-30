@@ -6,6 +6,7 @@ import { recordCampaignCreatorAction } from '@/lib/campaign-creator-events'
 import { voidContractOnTermsChange } from '@/lib/contracts/lifecycle'
 import { getUserIdFromCreator } from '@/lib/notifications'
 import { DELIVERABLE_FORMATS } from '@/types/campaigns'
+import { PLATFORM_IDS } from '@/utils/constants'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
@@ -19,7 +20,7 @@ const FORMAT_VALUES = DELIVERABLE_FORMATS.map((f) => f.value) as [string, ...str
 
 const CreateDeliverableSchema = z.object({
   title: z.string().min(1).max(255),
-  platform: z.string().max(50).optional().nullable(),
+  platform: z.enum(PLATFORM_IDS).optional().nullable(),
   format: z.enum(FORMAT_VALUES).optional().nullable(),
   draft_due: z.string().optional().nullable(),
   publish_due: z.string().optional().nullable(),

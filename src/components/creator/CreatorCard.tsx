@@ -13,18 +13,7 @@ import {
   Crown
 } from 'lucide-react'
 import type { CreatorProfile } from '@/types/marketplace'
-
-// Platform icons mapping
-const PLATFORM_ICONS: Record<string, string> = {
-  youtube: '📺',
-  twitter: '𝕏',
-  instagram: '📸',
-  tiktok: '🎵',
-  linkedin: '💼',
-  twitch: '🎮',
-  newsletter: '📧',
-  podcast: '🎙️',
-}
+import { platformEmoji } from '@/utils/constants'
 
 interface CreatorCardProps {
   creator: CreatorProfile
@@ -144,7 +133,7 @@ export function CreatorCard({
             <div className="flex gap-1">
               {platforms.slice(0, 4).map(platform => (
                 <span key={platform} className="text-lg" title={platform}>
-                  {PLATFORM_ICONS[platform] || '🌐'}
+                  {platformEmoji(platform)}
                 </span>
               ))}
             </div>
@@ -290,7 +279,7 @@ export function CreatorCard({
               className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center text-sm"
               title={platform}
             >
-              {PLATFORM_ICONS[platform] || '🌐'}
+              {platformEmoji(platform)}
             </span>
           ))}
           {platforms.length > 5 && (

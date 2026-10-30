@@ -15,9 +15,8 @@ import {
   Youtube,
   Twitter,
   Linkedin,
-  Github,
-  Mail,
-  Mic,
+  Instagram,
+  Music2,
 } from 'lucide-react'
 import { Navigation, Footer } from '@/components/landing'
 import { NICHES, PLATFORM_COUNT } from '@/utils/constants'
@@ -27,7 +26,7 @@ import { NICHES, PLATFORM_COUNT } from '@/utils/constants'
 // ============================================================================
 export const metadata: Metadata = {
   title: 'About Us | Free Tech Influencer Marketplace',
-  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search and messaging.',
+  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Free search and messaging.',
   keywords: [
     'about infoishai',
     'tech influencer platform',
@@ -39,7 +38,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'About Infoishai | Free Tech Influencer Marketplace',
-    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search and messaging.',
+    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Free search and messaging.',
     url: 'https://infoishai.com/about',
     siteName: 'Infoishai',
     type: 'website',
@@ -48,7 +47,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'About Infoishai | Free Tech Influencer Marketplace',
-    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn. Free search and messaging.',
+    description: 'Infoishai connects B2B brands with verified tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Free search and messaging.',
     images: ['https://infoishai.com/twitter-image.jpg'],
   },
   alternates: {
@@ -60,7 +59,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'AboutPage',
   name: 'About Infoishai',
-  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, Twitter/X, and LinkedIn.',
+  description: 'Infoishai connects B2B brands with verified tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram.',
   url: 'https://infoishai.com/about',
   mainEntity: {
     '@type': 'Organization',
@@ -153,9 +152,8 @@ export default function AboutPage() {
                 { icon: Youtube, name: 'YouTube', color: 'bg-red-500' },
                 { icon: Twitter, name: 'Twitter/X', color: 'bg-gray-900' },
                 { icon: Linkedin, name: 'LinkedIn', color: 'bg-blue-600' },
-                { icon: Github, name: 'GitHub', color: 'bg-gray-800' },
-                { icon: Mail, name: 'Newsletter', color: 'bg-emerald-500' },
-                { icon: Mic, name: 'Podcast', color: 'bg-purple-500' },
+                { icon: Music2, name: 'TikTok', color: 'bg-gray-800' },
+                { icon: Instagram, name: 'Instagram', color: 'bg-pink-500' },
               ].map((platform, index) => (
                 <div key={index} className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-gray-100">
                   <div className={`w-6 h-6 ${platform.color} rounded-full flex items-center justify-center`}>
@@ -224,7 +222,7 @@ export default function AboutPage() {
               <div className="space-y-6">
                 {[
                   'Only tech & B2B creators',
-                  'Multi-platform: YouTube, Twitter, LinkedIn, GitHub, Newsletters, Podcasts',
+                  'Multi-platform: YouTube, LinkedIn, Twitter/X, TikTok, Instagram',
                   'Verified metrics and authentic engagement',
                   'Direct messaging with creators',
                   'Free to join for both brands and creators',
@@ -394,7 +392,7 @@ export default function AboutPage() {
               {
                 icon: Globe,
                 title: 'Multi-Platform',
-                description: 'YouTube, Twitter, LinkedIn, GitHub, Newsletters, Podcasts—all in one place.',
+                description: 'YouTube, LinkedIn, Twitter/X, TikTok, and Instagram, all in one place.',
               },
               {
                 icon: Zap,

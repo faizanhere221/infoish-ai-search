@@ -9,14 +9,14 @@ import {
   Youtube,
   Twitter,
   Linkedin,
-  Mail,
-  Mic,
   Brain,
   LayoutGrid,
   Code2,
   Cloud,
   ShieldCheck,
   Landmark,
+  Music2,
+  Instagram,
 } from 'lucide-react'
 
 export const revalidate = 86400
@@ -91,7 +91,7 @@ const faqJsonLd = {
       name: 'How do I find tech influencers in the USA?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Search the Infoishai creator directory and filter by United States. Browse verified tech influencers across YouTube, Twitter/X, LinkedIn, and newsletters. Filter by niche (AI, SaaS, developer tools) and audience size to find the right creator for your campaign.',
+        text: 'Search the Infoishai creator directory and filter by United States. Browse verified tech influencers across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Filter by niche (AI, SaaS, developer tools) and audience size to find the right creator for your campaign.',
       },
     },
     {
@@ -99,7 +99,7 @@ const faqJsonLd = {
       name: 'How much do American tech influencers charge?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'US tech influencer rates vary by platform and audience size. YouTube: $1,000 to $5,000 per video (50K-200K subscribers). LinkedIn: $500 to $2,000 per post. Twitter/X: $200 to $1,000 per thread. Newsletter mentions: $300 to $1,500 per issue.',
+        text: 'US tech influencer rates vary by platform and audience size. YouTube: $1,000 to $5,000 per video (50K-200K subscribers). LinkedIn: $500 to $2,000 per post. Twitter/X: $200 to $1,000 per thread.',
       },
     },
     {
@@ -185,16 +185,16 @@ const platforms = [
       'Thought leadership posts, industry analysis, and professional recommendations. Best for enterprise SaaS and B2B platforms.',
   },
   {
-    icon: Mail,
-    name: 'Newsletters',
+    icon: Music2,
+    name: 'TikTok',
     description:
-      'Curated tech roundups and product spotlights. Best for reaching engaged subscribers who read weekly digests.',
+      'Short tech explainers, gadget unboxings, and quick tool demos from American creators. Best for consumer apps and products with a strong visual hook.',
   },
   {
-    icon: Mic,
-    name: 'Podcasts',
+    icon: Instagram,
+    name: 'Instagram',
     description:
-      'Interview-style content and sponsored segments. Best for complex products needing longer explanations.',
+      'Reels, carousels, and stories on gadgets, desk setups, and app walkthroughs. Best for consumer tech and brand awareness with American audiences.',
   },
 ]
 
@@ -206,9 +206,6 @@ const rateTable = [
   { platform: 'Twitter/X (thread)', audience: '50K-200K followers', rate: '$500 - $1,500' },
   { platform: 'LinkedIn (post)', audience: '10K-50K followers', rate: '$300 - $1,000' },
   { platform: 'LinkedIn (post)', audience: '50K-100K followers', rate: '$1,000 - $2,500' },
-  { platform: 'Newsletter (mention)', audience: '5K-20K subscribers', rate: '$200 - $800' },
-  { platform: 'Newsletter (mention)', audience: '20K-50K subscribers', rate: '$800 - $2,000' },
-  { platform: 'Podcast (mid-roll spot)', audience: '1K-10K downloads/ep', rate: '$300 - $1,500' },
 ]
 
 const techHubs = [
@@ -220,7 +217,7 @@ const techHubs = [
   {
     name: 'New York City',
     description:
-      'Fintech, media tech, and enterprise SaaS creators. Strong LinkedIn and newsletter presence among East Coast business audiences.',
+      'Fintech, media tech, and enterprise SaaS creators. Strong LinkedIn presence among East Coast business audiences.',
   },
   {
     name: 'Austin, Texas',
@@ -249,7 +246,7 @@ const steps = [
     number: '1',
     title: 'Search the Creator Directory',
     description:
-      'Browse US-based tech influencers on Infoishai. Filter by niche (AI, SaaS, developer tools, cloud), platform (YouTube, Twitter/X, LinkedIn), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
+      'Browse US-based tech influencers on Infoishai. Filter by niche (AI, SaaS, developer tools, cloud), platform (YouTube, LinkedIn, Twitter/X, TikTok, Instagram), and audience size. View profiles with engagement rates, past campaigns, and content samples.',
   },
   {
     number: '2',
@@ -317,8 +314,7 @@ export default function UsaInfluencersPage() {
             American tech influencers reach the world&apos;s largest SaaS market ($195 billion) across YouTube, LinkedIn, Twitter, and TikTok. A mid-tier US tech creator charges $500-$3,000 per sponsored video. Infoishai lists verified US tech creators. Brands search free, filter by niche and platform, and message creators directly. There are no platform fees.
           </p>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-            Connect with verified American tech creators across YouTube, Twitter/X, LinkedIn, and
-            newsletters. Browse by niche, audience size, and engagement rate. Free to search.
+            Connect with verified American tech creators across YouTube, LinkedIn, Twitter/X, TikTok, and Instagram. Browse by niche, audience size, and engagement rate. Free to search.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
