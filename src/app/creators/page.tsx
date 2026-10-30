@@ -1,5 +1,6 @@
 import { createServerSupabase } from '@/lib/db'
 import { getExcludedCreatorUserIdsList } from '@/lib/creators/visibility'
+import { isSupportedPlatform } from '@/utils/constants'
 import CreatorsClient, { type Creator } from './CreatorsClient'
 
 // Revalidate every 30 minutes so Google always sees fresh, server-rendered
@@ -32,8 +33,11 @@ async function getCreators(): Promise<Creator[]> {
 
     return creators.map((creator) => ({
       ...creator,
-      creator_platforms: platforms?.filter((p) => p.creator_id === creator.id) || [],
-      creator_services: services?.filter((s) => s.creator_id === creator.id) || [],
+      // Rows for a platform we dropped stay off the marketplace until
+      // remove_platforms_migration.sql deletes them.
+      creator_platforms: platforms?.filter((p) => p.creator_id === creator.id && isSupportedPlatform(p.platform)) || [],
+      creator_services:
+        services?.filter((s) => s.creator_id === creator.id && (!s.platform || isSupportedPlatform(s.platform))) || [],
     }))
   } catch (error) {
     console.error('Error fetching creators for SSR:', error)
