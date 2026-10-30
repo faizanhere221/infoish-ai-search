@@ -8,6 +8,13 @@
 --   PART 1 — a read-only preview of what PART 2 deletes or changes.
 --   PART 2 — the changes, in one transaction.
 --
+-- Column types on the live DB: creator_platforms.platform is the enum
+-- public.platform_type (lower() has no enum overload, so it's cast with
+-- ::text); creator_services.platform and campaign_deliverables.platform are
+-- VARCHAR; campaigns.platforms is TEXT[]. Every comparison casts to text so
+-- it works for either type. The enum keeps its old values (github, podcast,
+-- ...): dropping enum values is not done here. The API now rejects them.
+--
 -- What PART 2 does NOT touch, on purpose: old deals, campaign_deliverables,
 -- and creator_deliverables keep their platform value. The app shows a
 -- platform it no longer supports as "Other platform" instead of failing.
@@ -21,33 +28,33 @@ WITH keep(platform) AS (
 )
 SELECT 'creator_platforms rows to delete' AS what, COUNT(*) AS how_many
 FROM creator_platforms
-WHERE lower(platform) NOT IN (SELECT platform FROM keep)
+WHERE lower(platform::text) NOT IN (SELECT platform FROM keep)
 UNION ALL
 SELECT 'creator_services rows to delete', COUNT(*)
 FROM creator_services
-WHERE platform IS NOT NULL AND lower(platform) NOT IN (SELECT platform FROM keep)
+WHERE platform IS NOT NULL AND lower(platform::text) NOT IN (SELECT platform FROM keep)
 UNION ALL
 SELECT 'creators whose total_followers changes', COUNT(*)
 FROM creators c
 WHERE c.total_followers IS DISTINCT FROM (
   SELECT COALESCE(SUM(cp.followers), 0)
   FROM creator_platforms cp
-  WHERE cp.creator_id = c.id AND lower(cp.platform) IN (SELECT platform FROM keep)
+  WHERE cp.creator_id = c.id AND lower(cp.platform::text) IN (SELECT platform FROM keep)
 )
 UNION ALL
 SELECT 'campaigns with a removed platform in targeting', COUNT(*)
 FROM campaigns
 WHERE EXISTS (
-  SELECT 1 FROM unnest(platforms) AS p WHERE lower(p) NOT IN (SELECT platform FROM keep)
+  SELECT 1 FROM unnest(platforms) AS p WHERE lower(p::text) NOT IN (SELECT platform FROM keep)
 )
 UNION ALL
 SELECT 'campaign_deliverables on a removed platform (kept, shown neutrally)', COUNT(*)
 FROM campaign_deliverables
-WHERE lower(platform) NOT IN (SELECT platform FROM keep);
+WHERE lower(platform::text) NOT IN (SELECT platform FROM keep);
 
 -- Breakdown by platform, if you want it (run on its own):
--- SELECT platform, COUNT(*) FROM creator_platforms
--- WHERE lower(platform) NOT IN ('youtube','linkedin','twitter','tiktok','instagram')
+-- SELECT platform::text, COUNT(*) FROM creator_platforms
+-- WHERE lower(platform::text) NOT IN ('youtube','linkedin','twitter','tiktok','instagram')
 -- GROUP BY platform ORDER BY 2 DESC;
 
 -- ============================================================================
@@ -58,13 +65,13 @@ BEGIN;
 
 -- 1. Platform rows for removed platforms.
 DELETE FROM creator_platforms
-WHERE lower(platform) NOT IN ('youtube', 'linkedin', 'twitter', 'tiktok', 'instagram');
+WHERE lower(platform::text) NOT IN ('youtube', 'linkedin', 'twitter', 'tiktok', 'instagram');
 
 -- 2. Services tied to a removed platform. Services with no platform
 --    ("Any platform") stay.
 DELETE FROM creator_services
 WHERE platform IS NOT NULL
-  AND lower(platform) NOT IN ('youtube', 'linkedin', 'twitter', 'tiktok', 'instagram');
+  AND lower(platform::text) NOT IN ('youtube', 'linkedin', 'twitter', 'tiktok', 'instagram');
 
 -- 3. Recalculate total_followers for every creator from what's left
 --    (0 when a creator has no platforms left).
@@ -84,12 +91,12 @@ UPDATE campaigns
 SET platforms = ARRAY(
   SELECT p
   FROM unnest(platforms) WITH ORDINALITY AS t(p, i)
-  WHERE lower(p) IN ('youtube', 'linkedin', 'twitter', 'tiktok', 'instagram')
+  WHERE lower(p::text) IN ('youtube', 'linkedin', 'twitter', 'tiktok', 'instagram')
   ORDER BY i
 )
 WHERE EXISTS (
   SELECT 1 FROM unnest(platforms) AS p
-  WHERE lower(p) NOT IN ('youtube', 'linkedin', 'twitter', 'tiktok', 'instagram')
+  WHERE lower(p::text) NOT IN ('youtube', 'linkedin', 'twitter', 'tiktok', 'instagram')
 );
 
 COMMIT;
