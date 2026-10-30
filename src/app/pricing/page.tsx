@@ -1,207 +1,205 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { Check, ArrowRight } from 'lucide-react'
+import { Check, ArrowRight, CalendarDays } from 'lucide-react'
 import { Navigation, Footer } from '@/components/landing'
+import { COUNTRY_LANDING_PAGES, PLATFORMS } from '@/utils/constants'
+
+// The URL stays /pricing (it's indexed); the nav calls it "Managed Service".
+
+const TITLE = 'Managed Influencer Marketing Service'
+const DESCRIPTION =
+  'Let Infoishai run your tech influencer marketing, start to finish. A dedicated account manager handles creator strategy, outreach, campaigns, content, and weekly reports.'
+const PAGE_URL = 'https://infoishai.com/pricing'
 
 export const metadata: Metadata = {
-  title: 'Pricing — Influencer Marketing Services',
-  description: 'Done-for-you tech influencer marketing services starting at $50. Creator matching, campaign setup, full management, and monthly retainers for tech brands.',
+  title: TITLE,
+  description: DESCRIPTION,
   openGraph: {
-    title: 'Pricing — Influencer Marketing Services | Infoishai',
-    description: 'Done-for-you tech influencer marketing services starting at $50. Creator matching, campaign setup, full management, and monthly retainers for tech brands.',
-    url: 'https://infoishai.com/pricing',
+    title: `${TITLE} | Infoishai`,
+    description: DESCRIPTION,
+    url: PAGE_URL,
     siteName: 'Infoishai',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pricing — Influencer Marketing Services | Infoishai',
-    description: 'Done-for-you tech influencer marketing services starting at $50. Creator matching, campaign setup, full management, and monthly retainers for tech brands.',
+    title: `${TITLE} | Infoishai`,
+    description: DESCRIPTION,
   },
   alternates: {
-    canonical: 'https://infoishai.com/pricing',
+    canonical: PAGE_URL,
   },
 }
 
-interface Tier {
-  name: string
-  price: string
-  unit: string
-  description: string
-  features: string[]
-  popular?: boolean
-  ctaLabel?: string
-}
+// Brand booking link (Calendly). Set in the environment; the "Book a call"
+// button only shows when it's a valid https URL.
+const BOOKING_URL = (() => {
+  const raw = process.env.NEXT_PUBLIC_BRAND_BOOKING_URL?.trim()
+  return raw && /^https:\/\//.test(raw) ? raw : null
+})()
 
-const TIERS: Tier[] = [
+const FEATURES = [
+  'Dedicated account manager for your brand',
+  'Unlimited creator matching and outreach',
+  'Full campaign management across all your product launches',
+  'Content strategy, review, and approval coordination',
+  'Creator relationship management (re-bookings, long-term deals)',
+  'Weekly performance reports and ROI tracking',
+  'Priority support with replies within 1 business day',
+]
+
+const STEPS = [
   {
-    name: 'Creator Matching',
-    price: '$50–$75',
-    unit: 'per project',
-    description: 'Get 3–5 matched tech creators with audience data, engagement rates, and pricing. Delivered within 48 hours.',
-    features: [
-      'Creators matched to your niche, budget, and target audience',
-      'Full profile breakdown: audience demographics, engagement rate',
-      'Creator rate cards included',
-      'Delivered as a ready-to-use shortlist',
-    ],
+    title: 'Intro call',
+    description: 'Tell us about your product, your audience, and your upcoming launches.',
   },
   {
-    name: 'Campaign Setup',
-    price: '$100–$150',
-    unit: 'per campaign',
-    description: 'We find the right creators, handle outreach, negotiate rates, and deliver a ready-to-go campaign brief.',
-    features: [
-      'Everything in Creator Matching',
-      'Direct outreach to creators on your behalf',
-      'Rate negotiation',
-      'Campaign brief delivered to the creator',
-    ],
+    title: 'Strategy and creator shortlist',
+    description: 'We plan the campaign and send you a shortlist of matched tech creators to approve.',
   },
   {
-    name: 'Full Campaign Management',
-    price: '$150–$250',
-    unit: 'per campaign',
-    description: 'End-to-end campaign management. We handle matching, outreach, negotiation, content review, and reporting.',
-    features: [
-      'Everything in Campaign Setup',
-      'Content draft review and feedback coordination',
-      'Deliverable tracking and deadline management',
-      'Post-campaign performance report',
-    ],
-    popular: true,
+    title: 'We run the campaign',
+    description: 'We handle offers, contracts, content approvals, and posting with every creator.',
   },
   {
-    name: 'Dedicated Marketing Partner',
-    price: 'Let’s Talk',
-    unit: '',
-    description: 'We become your influencer marketing team. You focus on your product. We handle creator strategy, outreach, campaigns, content, and reporting across all your launches.',
-    features: [
-      'Dedicated account manager for your brand',
-      'Unlimited creator matching and outreach',
-      'Full campaign management across all your product launches',
-      'Content strategy, review, and approval coordination',
-      'Creator relationship management (re-bookings, long-term deals)',
-      'Weekly performance reports and ROI tracking',
-      'Priority support with under 6 hour response time',
-    ],
-    ctaLabel: 'Contact Us',
+    title: 'Weekly reports and next launch',
+    description: 'You get results every week, and we plan the next launch with the creators who performed.',
   },
 ]
+
+function listNames(names: string[]): string {
+  return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`
+}
 
 const FAQS: { q: string; a: string }[] = [
   {
-    q: 'How do payments work?',
-    a: 'You pay for the service upfront. Creator fees are separate and paid directly to the creator. We do not take commission on creator payments.',
+    q: 'How does pricing work?',
+    a: 'Every brand gets a custom quote based on the number of creators and launches you want covered. One invoice covers creator fees and our management fee.',
   },
   {
-    q: 'What if I am not happy with the creator matches?',
-    a: 'We will redo the matching at no extra charge. If we still don’t find a fit, you get a full refund.',
+    q: 'Which platforms do you cover?',
+    a: `${listNames(PLATFORMS.map((p) => p.name))}.`,
   },
   {
-    q: 'How fast do you deliver?',
-    a: 'Creator Matching: 48 hours. Campaign Setup: 3–5 business days. Full Campaign Management: timeline depends on campaign scope, typically 2–4 weeks.',
+    q: 'Which countries do you cover?',
+    a: `Creators in our ${COUNTRY_LANDING_PAGES.length} markets: ${listNames(COUNTRY_LANDING_PAGES.map((c) => c.name))}.`,
   },
   {
-    q: 'Do I need an Infoishai account?',
-    a: 'Yes, a free account is required so you get access to creator profiles, messaging, and campaign tracking.',
+    q: 'How fast do campaigns start?',
+    a: 'You get a creator shortlist within 48 hours of the strategy call. Most campaigns go live in 2 to 4 weeks, depending on creator schedules and content review.',
   },
   {
-    q: 'What tech niches do you cover?',
-    a: 'AI, SaaS, developer tools, cloud infrastructure, cybersecurity, hardware, fintech, and more. If it is in tech, we cover it.',
+    q: 'Do I see progress while a campaign runs?',
+    a: 'Yes. You get a live progress link for every campaign and a weekly report with results.',
   },
 ]
 
-function PricingCard({ tier }: { tier: Tier }) {
-  return (
-    <div
-      className={`relative flex flex-col rounded-2xl bg-white p-6 ${
-        tier.popular
-          ? 'border-2 border-brand-pink shadow-xl'
-          : 'border border-gray-200 shadow-sm'
-      }`}
-    >
-      {tier.popular && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-brand-pink to-brand-purple px-3 py-1 text-xs font-semibold text-white shadow-md">
-          Most Popular
-        </span>
-      )}
-
-      <h2 className="text-lg font-bold text-gray-900">{tier.name}</h2>
-      <div className="mt-2 mb-3">
-        <span className="text-3xl font-bold text-gray-900">{tier.price}</span>
-        {tier.unit && <span className="ml-1.5 text-sm text-gray-500">{tier.unit}</span>}
-      </div>
-      <p className="text-sm text-gray-600 mb-5">{tier.description}</p>
-
-      <ul className="flex-1 space-y-2.5 mb-6">
-        {tier.features.map((feature) => (
-          <li key={feature} className="flex items-start gap-2 text-sm text-gray-700">
-            <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-purple" />
-            <span>{feature}</span>
-          </li>
-        ))}
-      </ul>
-
-      <Link
-        href="/contact"
-        className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-brand-pink to-brand-purple px-5 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-brand-pink/25"
-      >
-        {tier.ctaLabel ?? 'Get Started'}
-        <ArrowRight className="h-4 w-4" />
-      </Link>
-    </div>
-  )
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Service',
+      name: 'Dedicated Marketing Partner',
+      serviceType: 'Managed influencer marketing',
+      description: DESCRIPTION,
+      url: PAGE_URL,
+      provider: { '@type': 'Organization', name: 'Infoishai', url: 'https://infoishai.com' },
+      areaServed: COUNTRY_LANDING_PAGES.map((c) => c.name),
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: FAQS.map((item) => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: { '@type': 'Answer', text: item.a },
+      })),
+    },
+  ],
 }
 
-export default function PricingPage() {
+export default function ManagedServicePage() {
   return (
     <div className="min-h-screen bg-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <Navigation />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-brand-pink/10 via-white to-brand-purple/10 pt-32 pb-16">
+      <section className="bg-gradient-to-br from-brand-pink/10 via-white to-brand-purple/10 pb-16 pt-32">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <h1 className="mb-4 text-4xl font-bold text-gray-900 md:text-5xl">
-            Influencer Marketing Services for Tech Brands
+            Let us run your influencer marketing, start to finish
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-gray-600">
-            The marketplace is free. When you need hands-on help finding creators, running campaigns, or managing deliverables, pick a service below.
+            We become your influencer marketing team. You focus on your product. We handle creator
+            strategy, outreach, campaigns, content, and reporting across all your launches.
           </p>
         </div>
       </section>
 
-      {/* Pricing cards */}
+      {/* Offer */}
       <section className="py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {TIERS.map((tier) => (
-              <PricingCard key={tier.name} tier={tier} />
-            ))}
+        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border-2 border-brand-pink bg-white p-8 shadow-xl">
+            <h2 className="text-2xl font-bold text-gray-900">Dedicated Marketing Partner</h2>
+            <p className="mb-6 mt-2 text-3xl font-bold text-gray-900">Let&apos;s Talk</p>
+
+            <ul className="mb-8 space-y-3">
+              {FEATURES.map((feature) => (
+                <li key={feature} className="flex items-start gap-2 text-gray-700">
+                  <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-brand-purple" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              {BOOKING_URL && (
+                <a
+                  href={BOOKING_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-brand-pink to-brand-purple px-5 py-3 font-semibold text-white transition-all hover:shadow-lg hover:shadow-brand-pink/25"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  Book a call
+                </a>
+              )}
+              <Link
+                href="/contact"
+                className={
+                  BOOKING_URL
+                    ? 'inline-flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-brand-purple px-5 py-3 font-semibold text-brand-purple-dark transition-all hover:bg-brand-pink/10'
+                    : 'inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-brand-pink to-brand-purple px-5 py-3 font-semibold text-white transition-all hover:shadow-lg hover:shadow-brand-pink/25'
+                }
+              >
+                Contact Us
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Marketplace is always free */}
-      <section className="pb-16">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-8 text-center">
-            <p className="mx-auto mb-5 max-w-2xl text-gray-700">
-              Looking for a self-service option? Browse verified tech creators and run campaigns yourself. Infoishai is free for brands and creators. There are no platform fees.
-            </p>
-            <Link
-              href="/creators"
-              className="inline-flex items-center gap-2 rounded-lg border-2 border-brand-purple px-5 py-2.5 font-semibold text-brand-purple-dark transition-all hover:bg-brand-pink/10"
-            >
-              Browse Creators for Free
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+      {/* How it works */}
+      <section className="bg-gray-50 py-16">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-10 text-center text-2xl font-bold text-gray-900 md:text-3xl">How it works</h2>
+          <ol className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map((step, index) => (
+              <li key={step.title} className="rounded-2xl border border-gray-200 bg-white p-6">
+                <span className="mb-4 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-brand-pink to-brand-purple text-sm font-bold text-white">
+                  {index + 1}
+                </span>
+                <h3 className="mb-2 font-semibold text-gray-900">{step.title}</h3>
+                <p className="text-sm leading-relaxed text-gray-600">{step.description}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="pb-20">
+      <section className="py-16">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <h2 className="mb-10 text-center text-2xl font-bold text-gray-900 md:text-3xl">
             Frequently Asked Questions
@@ -215,6 +213,16 @@ export default function PricingPage() {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* Self-serve option */}
+      <section className="pb-20">
+        <p className="px-4 text-center text-sm text-gray-600">
+          Prefer to run campaigns yourself?{' '}
+          <Link href="/signup/brand" className="font-medium text-brand-purple-dark hover:underline">
+            Infoishai is free for brands.
+          </Link>
+        </p>
       </section>
 
       <Footer />

@@ -164,7 +164,7 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
     { href: '/dashboard/brand', label: 'Dashboard' },
     { href: '/creators', label: 'Find Creators' },
     { href: '/dashboard/campaigns', label: 'My Campaigns', countBadge: campaignBadgeCount },
-    { href: '/pricing', label: 'Pricing' },
+    { href: '/pricing', label: 'Managed Service' },
     { href: '/dashboard/roster', label: 'Roster' },
     { href: '/dashboard/payments', label: 'Payments' },
     { href: '/dashboard/analytics', label: 'Analytics' },
@@ -208,7 +208,7 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${
                     isActive(item.href)
                       ? 'bg-brand-pink/10 text-brand-purple-dark'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
