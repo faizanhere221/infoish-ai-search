@@ -98,45 +98,44 @@ ORDER BY 1, 2;
 
 BEGIN;
 
-CREATE TEMP TABLE _valid_niches(name TEXT PRIMARY KEY) ON COMMIT DROP;
-INSERT INTO _valid_niches VALUES
-  ('AI & Machine Learning'), ('Generative AI & LLMs'), ('AI Tools & Automation'),
-  ('SaaS & Software'), ('Developer Tools'), ('Cloud & DevOps'), ('Cybersecurity'),
-  ('Data Science'), ('Web Development'), ('Mobile Development'), ('No-Code & Low-Code'),
-  ('Startup & Entrepreneurship'), ('Product Management'), ('Tech News & Reviews'),
-  ('Programming Tutorials'), ('Consumer Tech & Gadgets'), ('PC Hardware & Gaming Tech'),
-  ('Blockchain & Web3'), ('Fintech'), ('UI/UX & Product Design'), ('Open Source'),
-  ('Tech Careers & Education'), ('Robotics & IoT'), ('E-commerce Tech');
-
-CREATE TEMP TABLE _niche_map(old TEXT PRIMARY KEY, new TEXT NOT NULL) ON COMMIT DROP;
-INSERT INTO _niche_map VALUES
-  ('AI/ML', 'AI & Machine Learning'), ('AI', 'AI & Machine Learning'),
-  ('Machine Learning', 'AI & Machine Learning'),
-  ('Generative AI', 'Generative AI & LLMs'), ('LLMs', 'Generative AI & LLMs'),
-  ('SaaS', 'SaaS & Software'), ('Software', 'SaaS & Software'),
-  ('DevTools', 'Developer Tools'),
-  ('Cloud', 'Cloud & DevOps'), ('DevOps', 'Cloud & DevOps'),
-  ('Web Dev', 'Web Development'),
-  ('Mobile', 'Mobile Development'), ('Mobile Dev', 'Mobile Development'),
-  ('No-Code', 'No-Code & Low-Code'), ('Low-Code', 'No-Code & Low-Code'),
-  ('Startups', 'Startup & Entrepreneurship'), ('Startup', 'Startup & Entrepreneurship'),
-  ('Blockchain', 'Blockchain & Web3'), ('Web3', 'Blockchain & Web3'), ('Crypto', 'Blockchain & Web3'),
-  ('Design', 'UI/UX & Product Design'), ('UI/UX', 'UI/UX & Product Design'),
-  ('Gadgets', 'Consumer Tech & Gadgets'), ('Consumer Tech', 'Consumer Tech & Gadgets'),
-  ('E-commerce', 'E-commerce Tech'), ('Ecommerce', 'E-commerce Tech');
+-- No temp tables: the Supabase SQL Editor does not keep session state
+-- between statements reliably, so each statement carries its own lists.
 
 -- 1. Creator niches: map old spellings, drop anything else not current,
 --    de-duplicate, keep the creator's order.
-UPDATE creators c
-SET niches = cleaned.niches
-FROM (
+WITH valid(name) AS (
+  VALUES ('AI & Machine Learning'), ('Generative AI & LLMs'), ('AI Tools & Automation'),
+         ('SaaS & Software'), ('Developer Tools'), ('Cloud & DevOps'), ('Cybersecurity'),
+         ('Data Science'), ('Web Development'), ('Mobile Development'), ('No-Code & Low-Code'),
+         ('Startup & Entrepreneurship'), ('Product Management'), ('Tech News & Reviews'),
+         ('Programming Tutorials'), ('Consumer Tech & Gadgets'), ('PC Hardware & Gaming Tech'),
+         ('Blockchain & Web3'), ('Fintech'), ('UI/UX & Product Design'), ('Open Source'),
+         ('Tech Careers & Education'), ('Robotics & IoT'), ('E-commerce Tech')
+),
+niche_map(old, new) AS (
+  VALUES ('AI/ML', 'AI & Machine Learning'), ('AI', 'AI & Machine Learning'),
+         ('Machine Learning', 'AI & Machine Learning'),
+         ('Generative AI', 'Generative AI & LLMs'), ('LLMs', 'Generative AI & LLMs'),
+         ('SaaS', 'SaaS & Software'), ('Software', 'SaaS & Software'),
+         ('DevTools', 'Developer Tools'),
+         ('Cloud', 'Cloud & DevOps'), ('DevOps', 'Cloud & DevOps'),
+         ('Web Dev', 'Web Development'),
+         ('Mobile', 'Mobile Development'), ('Mobile Dev', 'Mobile Development'),
+         ('No-Code', 'No-Code & Low-Code'), ('Low-Code', 'No-Code & Low-Code'),
+         ('Startups', 'Startup & Entrepreneurship'), ('Startup', 'Startup & Entrepreneurship'),
+         ('Blockchain', 'Blockchain & Web3'), ('Web3', 'Blockchain & Web3'), ('Crypto', 'Blockchain & Web3'),
+         ('Design', 'UI/UX & Product Design'), ('UI/UX', 'UI/UX & Product Design'),
+         ('Gadgets', 'Consumer Tech & Gadgets'), ('Consumer Tech', 'Consumer Tech & Gadgets'),
+         ('E-commerce', 'E-commerce Tech'), ('Ecommerce', 'E-commerce Tech')
+),
+cleaned AS (
   SELECT c2.id, ARRAY(
     SELECT x.n
     FROM (
       SELECT COALESCE(m.new, v.name) AS n, MIN(t.i) AS first_i
       FROM unnest(c2.niches) WITH ORDINALITY AS t(v, i)
-      LEFT JOIN _niche_map m ON m.old = t.v
-      LEFT JOIN _valid_niches v ON v.name = t.v
+      LEFT JOIN niche_map m ON m.old = t.v
+      LEFT JOIN valid v ON v.name = t.v
       GROUP BY 1
     ) x
     WHERE x.n IS NOT NULL
@@ -144,11 +143,24 @@ FROM (
   ) AS niches
   FROM creators c2
   WHERE c2.niches IS NOT NULL
-) AS cleaned
+)
+UPDATE creators c
+SET niches = cleaned.niches
+FROM cleaned
 WHERE cleaned.id = c.id
   AND c.niches IS DISTINCT FROM cleaned.niches;
 
--- 2. Campaign categories: old slugs to niche names.
+-- 2. Campaign categories: old slugs to niche names; anything else not a
+--    current niche is cleared to NULL.
+WITH valid(name) AS (
+  VALUES ('AI & Machine Learning'), ('Generative AI & LLMs'), ('AI Tools & Automation'),
+         ('SaaS & Software'), ('Developer Tools'), ('Cloud & DevOps'), ('Cybersecurity'),
+         ('Data Science'), ('Web Development'), ('Mobile Development'), ('No-Code & Low-Code'),
+         ('Startup & Entrepreneurship'), ('Product Management'), ('Tech News & Reviews'),
+         ('Programming Tutorials'), ('Consumer Tech & Gadgets'), ('PC Hardware & Gaming Tech'),
+         ('Blockchain & Web3'), ('Fintech'), ('UI/UX & Product Design'), ('Open Source'),
+         ('Tech Careers & Education'), ('Robotics & IoT'), ('E-commerce Tech')
+)
 UPDATE campaigns SET category = CASE category
   WHEN 'ai' THEN 'AI & Machine Learning'
   WHEN 'saas' THEN 'SaaS & Software'
@@ -161,6 +173,6 @@ UPDATE campaigns SET category = CASE category
   WHEN 'ecommerce' THEN 'E-commerce Tech'
 END
 WHERE category IS NOT NULL
-  AND category NOT IN (SELECT name FROM _valid_niches);
+  AND category NOT IN (SELECT name FROM valid);
 
 COMMIT;
