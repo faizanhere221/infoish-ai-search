@@ -72,6 +72,9 @@ export default function Header({ overlay = false }: HeaderProps) {
       ? viewer.userType === 'brand' ? '/dashboard/brand' : '/dashboard/creator'
       : '/admin'
   const showAdminLink = viewer?.kind === 'admin' || (viewer?.kind === 'member' && viewer.isAdmin)
+  // Pricing is for brands and prospects; creators never pay, so hide it from them.
+  // Shown while auth is unknown so logged-out visitors (and crawlers) get it.
+  const showPricing = !(viewer?.kind === 'member' && viewer.userType === 'creator')
 
   const adminLogout = () => {
     localStorage.removeItem('auth_token')
@@ -102,7 +105,7 @@ export default function Header({ overlay = false }: HeaderProps) {
             <div className="hidden lg:flex items-center gap-7">
               <Link href="/creators" className={navLink}>Find Creators</Link>
               <Link href="/campaigns" className={navLink}>Campaigns</Link>
-              <Link href="/pricing" className={navLink}>Pricing</Link>
+              {showPricing && <Link href="/pricing" className={navLink}>Pricing</Link>}
               <Link href="/blog" className={cn(navLink, 'flex items-center gap-1')}>
                 <BookOpen className="w-4 h-4" />
                 Blog
@@ -197,7 +200,7 @@ export default function Header({ overlay = false }: HeaderProps) {
               <div className="flex flex-col gap-1">
                 <Link href="/creators" className={cn(navLink, 'py-3')}>Find Creators</Link>
                 <Link href="/campaigns" className={cn(navLink, 'py-3')}>Campaigns</Link>
-                <Link href="/pricing" className={cn(navLink, 'py-3')}>Pricing</Link>
+                {showPricing && <Link href="/pricing" className={cn(navLink, 'py-3')}>Pricing</Link>}
                 <Link href="/blog" className={cn(navLink, 'py-3')}>Blog</Link>
 
                 <button

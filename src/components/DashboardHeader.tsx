@@ -176,7 +176,6 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
     { href: '/dashboard/creator', label: 'Dashboard' },
     { href: '/creators', label: 'Find Creators' },
     { href: '/campaigns', label: 'Campaigns' },
-    { href: '/pricing', label: 'Pricing' },
     { href: '/dashboard/applications', label: 'My Applications', countBadge: campaignBadgeCount },
     { href: '/dashboard/my-campaigns', label: 'My Campaigns' },
     { href: '/dashboard/earnings', label: 'Earnings' },
