@@ -86,7 +86,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'How fast do campaigns start?',
-    a: 'You get a creator shortlist within 48 hours of the strategy call. Most campaigns go live in 2 to 4 weeks, depending on creator schedules and content review.',
+    a: 'You get a creator shortlist within 3 business days of the strategy call. First content usually goes live in 2 to 4 weeks, depending on creator schedules.',
   },
   {
     q: 'Do I see progress while a campaign runs?',
