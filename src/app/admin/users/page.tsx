@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
+import { FounderEmailPanel } from '@/components/admin/FounderEmailPanel'
 import { formatDate as formatDateUTC } from '@/lib/format-date'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
@@ -680,6 +681,8 @@ function AdminUsersContent() {
                       </div>
                     </section>
                   )}
+
+                  <FounderEmailPanel userId={modalUser.user.id} />
 
                   {/* Recent deals */}
                   {modalUser.deals.length > 0 && (

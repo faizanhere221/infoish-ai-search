@@ -93,3 +93,12 @@ export function renderLayout(params: LayoutParams): { html: string; text: string
 export function paragraph(text: string): string {
   return `<p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.5; color: #374151;">${text}</p>`
 }
+
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}

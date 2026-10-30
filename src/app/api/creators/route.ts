@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { updateReferralOnProfileComplete } from '@/lib/referral'
 import { getExcludedCreatorUserIdsList } from '@/lib/creators/visibility'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
+import { onCreatorProfileSaved } from '@/lib/founder-emails'
 import { cleanNiches, isSupportedPlatform } from '@/utils/constants'
 
 export const dynamic = 'force-dynamic'
@@ -235,6 +236,8 @@ export async function POST(request: NextRequest) {
 
     // A new profile can be complete enough for the sitemap and country pages.
     revalidateCreatorPublicSurfaces(creator.username)
+    // Founder welcome, the first time the profile is complete and over the follower threshold.
+    await onCreatorProfileSaved(supabase, user_id)
 
     return NextResponse.json({
       message: 'Creator profile created successfully',

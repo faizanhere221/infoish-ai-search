@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 import { isCreatorPublic } from '@/lib/creators/visibility'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
+import { onCreatorProfileSaved } from '@/lib/founder-emails'
 import { getVerifiedUserId } from '@/lib/verified-user'
 import { cleanNiches } from '@/utils/constants'
 
@@ -203,6 +204,8 @@ export async function PUT(
     }
 
     revalidateCreatorPublicSurfaces(creator.username)
+    // Founder welcome, the first time the profile is complete and over the follower threshold.
+    await onCreatorProfileSaved(supabase, existing.user_id)
 
     return NextResponse.json({
       message: 'Creator updated successfully',

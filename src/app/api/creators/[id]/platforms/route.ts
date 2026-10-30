@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
+import { onCreatorProfileSaved } from '@/lib/founder-emails'
 import { captureError } from '@/lib/error-tracking'
 import { normalizeProfileUrl, parseFollowerCount } from '@/lib/creators/platform-input'
 import { PLATFORM_IDS } from '@/utils/constants'
@@ -192,6 +193,8 @@ export async function PUT(
     }
 
     revalidateCreatorPublicSurfaces(creator.username)
+    // Founder welcome, the first time the profile is complete and over the follower threshold.
+    await onCreatorProfileSaved(supabase, creator.user_id)
 
     return NextResponse.json({
       message: 'Platforms updated successfully',
@@ -292,6 +295,7 @@ export async function DELETE(
 
     const totalFollowers = (remaining || []).reduce((sum, p) => sum + (p.followers || 0), 0)
     await supabase.from('creators').update({ total_followers: totalFollowers }).eq('id', id)
+    await onCreatorProfileSaved(supabase, creator.user_id)
 
     return NextResponse.json({ message: 'Platform deleted successfully' })
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
+import { FounderEmailPanel } from '@/components/admin/FounderEmailPanel'
 import { formatDate as formatDateUTC } from '@/lib/format-date'
 import { platformIcon } from '@/lib/platform-icons'
 import { NICHES, PLATFORMS, platformName } from '@/utils/constants'
@@ -555,6 +556,8 @@ export default function AdminCreatorsPage() {
                         </div>
                       </section>
                     )}
+
+                    <FounderEmailPanel userId={c.user_id} />
 
                     {modalDetail.platforms.length > 0 && (
                       <section>

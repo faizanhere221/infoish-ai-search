@@ -2,12 +2,12 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServerSupabase } from '@/lib/db'
 import { captureError, captureMessage } from '@/lib/error-tracking'
 
-export type EmailCategory = 'messages' | 'offers' | 'contracts' | 'work' | 'payments' | 'daily_summary' | 'profile_tips' | 'security'
+export type EmailCategory = 'messages' | 'offers' | 'contracts' | 'work' | 'payments' | 'daily_summary' | 'profile_tips' | 'founder_notes' | 'security'
 
 // The categories a user can actually toggle (users.email_preferences) —
 // 'security' is excluded on purpose: welcome/verification/password-reset
 // emails are never gated by preferences.
-export const PREFERENCE_CATEGORIES = ['messages', 'offers', 'contracts', 'work', 'payments', 'daily_summary', 'profile_tips'] as const
+export const PREFERENCE_CATEGORIES = ['messages', 'offers', 'contracts', 'work', 'payments', 'daily_summary', 'profile_tips', 'founder_notes'] as const
 export type PreferenceCategory = (typeof PREFERENCE_CATEGORIES)[number]
 
 export interface SendEmailParams {
@@ -38,6 +38,10 @@ export interface SendEmailParams {
   // List-Unsubscribe header value, e.g. `<https://.../api/email/unsubscribe?...>`.
   // Omit for security emails — those are never unsubscribable.
   unsubscribeUrl?: string | null
+  // Overrides EMAIL_FROM, e.g. the founder emails go out in the founder's
+  // name from the same sending address.
+  from?: string
+  replyTo?: string | null
 }
 
 export interface SendEmailResult {
@@ -120,7 +124,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     }
 
     const apiKey = process.env.RESEND_API_KEY
-    const from = process.env.EMAIL_FROM || 'Infoishai <notifications@infoishai.com>'
+    const from = params.from || process.env.EMAIL_FROM || 'Infoishai <notifications@infoishai.com>'
 
     if (!apiKey) {
       // Local dev without a Resend key — log instead of sending so the
@@ -142,6 +146,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         subject: params.subject,
         html: params.html,
         text: params.text,
+        reply_to: params.replyTo || undefined,
         headers: Object.keys(headers).length > 0 ? headers : undefined,
       }),
     })

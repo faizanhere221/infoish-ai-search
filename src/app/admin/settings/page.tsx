@@ -17,6 +17,7 @@ interface Settings {
   max_login_attempts: number
   ip_whitelist: string[]
   ip_blacklist: string[]
+  founder_creator_min_followers: number
 }
 
 const DEFAULT: Settings = {
@@ -31,6 +32,7 @@ const DEFAULT: Settings = {
   max_login_attempts: 5,
   ip_whitelist: [],
   ip_blacklist: [],
+  founder_creator_min_followers: 10000,
 }
 
 function Toggle({ checked, onChange, label, description }: {
@@ -229,6 +231,22 @@ export default function SettingsPage() {
             Maintenance mode is ON — regular users will see a maintenance page
           </div>
         )}
+      </div>
+
+      {/* Founder Emails */}
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+        <h2 className="text-base font-semibold text-white mb-4">Founder Emails</h2>
+        <div className="space-y-0 divide-y divide-slate-700/30">
+          <Field label="Creator welcome: minimum followers" description="A creator gets the founder welcome once their profile is complete and their follower total reaches this number">
+            <input
+              type="number"
+              min={0} step={1000}
+              value={settings.founder_creator_min_followers}
+              onChange={e => set('founder_creator_min_followers', Math.max(0, parseInt(e.target.value) || 0))}
+              className="w-40 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-white focus:outline-none focus:border-violet-500"
+            />
+          </Field>
+        </div>
       </div>
 
       {/* Security Settings */}

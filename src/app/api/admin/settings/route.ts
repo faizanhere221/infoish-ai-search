@@ -21,6 +21,7 @@ const DEFAULT_SETTINGS: Record<string, unknown> = {
   max_login_attempts:  5,
   ip_whitelist:        [],
   ip_blacklist:        [],
+  founder_creator_min_followers: 10000,
 }
 
 export async function GET() {

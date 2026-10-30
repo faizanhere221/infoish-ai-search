@@ -7,6 +7,7 @@ import {
   Search, X, RefreshCw, Filter, ChevronLeft, ChevronRight, AlertTriangle, Send, Mail,
 } from 'lucide-react'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
+import { FounderEmailsCard } from '@/components/admin/FounderEmailsCard'
 
 interface EmailLogRow {
   id: string
@@ -292,6 +293,8 @@ function AdminEmailContent() {
         <UsageChart data={dailyUsage} />
       </div>
 
+      <FounderEmailsCard onSent={() => fetchEmails(true)} />
+
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
         <div className="flex flex-wrap gap-3">
           <div className="relative flex-1 min-w-48">
@@ -308,7 +311,7 @@ function AdminEmailContent() {
           </select>
           <select value={category} onChange={e => { setCategory(e.target.value); setPage(1) }} className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
             <option value="">All Categories</option>
-            {['messages', 'offers', 'contracts', 'work', 'payments', 'daily_summary', 'profile_tips', 'security'].map(c => <option key={c} value={c}>{c.replace('_', ' ')}</option>)}
+            {['messages', 'offers', 'contracts', 'work', 'payments', 'daily_summary', 'profile_tips', 'founder_notes', 'security'].map(c => <option key={c} value={c}>{c.replace('_', ' ')}</option>)}
           </select>
           {hasFilters && (
             <button onClick={clearFilters} className="flex items-center gap-1 px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg bg-white">

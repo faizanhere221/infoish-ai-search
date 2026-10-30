@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { revalidateCreatorPublicSurfaces } from '@/lib/creators/revalidate'
+import { onCreatorProfileSaved } from '@/lib/founder-emails'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -73,6 +74,8 @@ export async function POST(
     }
 
     revalidateCreatorPublicSurfaces(creator.username)
+    // Founder welcome, the first time the profile is complete and over the follower threshold.
+    await onCreatorProfileSaved(supabase, creator.user_id)
 
     return NextResponse.json({ profile_photo_url: avatarUrl })
   } catch (error) {

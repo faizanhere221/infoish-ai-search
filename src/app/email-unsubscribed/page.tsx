@@ -14,6 +14,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   payments: 'payment',
   daily_summary: 'daily summary',
   profile_tips: 'profile tip',
+  founder_notes: 'founder',
   all: 'all',
 }
 

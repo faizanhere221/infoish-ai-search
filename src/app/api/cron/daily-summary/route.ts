@@ -5,6 +5,7 @@ import { isAuthorizedCronRequest } from '@/lib/cron-auth'
 import { sendEmail } from '@/lib/email/send'
 import { dailySummaryTemplate } from '@/lib/email/templates/dailySummary'
 import { signUnsubscribeToken } from '@/lib/email/unsubscribeToken'
+import { processPendingFounderEmails } from '@/lib/founder-emails'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -114,7 +115,11 @@ export async function GET(request: NextRequest) {
       if (result.sent) {sent += 1}
     }
 
-    return NextResponse.json({ usersConsidered: userIdsToProcess.length, summariesSent: sent })
+    // Founder emails held back by yesterday's quota go out now, after the
+    // summaries, with whatever quota is left.
+    const founderEmails = await processPendingFounderEmails(supabase)
+
+    return NextResponse.json({ usersConsidered: userIdsToProcess.length, summariesSent: sent, founderEmails })
   } catch (error) {
     captureError(error, { route: 'GET /api/cron/daily-summary' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
