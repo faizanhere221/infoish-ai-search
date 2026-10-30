@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Logo from '@/components/Logo'
 import Header from '@/components/header'
 import NewsletterForm from '@/components/NewsletterForm'
+import { trackCTAClick } from '@/lib/analytics'
 import { COUNTRY_LANDING_PAGES, NICHES, PLATFORMS } from '@/utils/constants'
 import {
   Sparkles, 
@@ -43,12 +44,35 @@ export function Navigation() {
 // ============================================================================
 // HERO SECTION
 // ============================================================================
+// border-2 transparent so it matches the outline button's height exactly
+const HERO_PRIMARY_BUTTON =
+  'w-full sm:w-auto px-8 py-4 border-2 border-transparent bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-semibold text-lg text-center hover:shadow-xl hover:shadow-brand-pink/25 transition-all'
+
 export function HeroSection() {
   const stats = [
     { value: 'Free', label: 'For Brands and Creators' },
     { value: String(NICHES.length), label: 'Tech Niches' },
     { value: String(PLATFORMS.length), label: 'Platforms' },
   ]
+
+  // null until localStorage is read. Logged-out is the default render (most
+  // homepage visitors, and what crawlers see); a logged-in visitor's buttons
+  // swap in place without moving anything (see the grid stack below).
+  const [dashboardHref, setDashboardHref] = useState<string | null>(null)
+  useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem('auth_user') || 'null')
+      if (user && localStorage.getItem('auth_token')) {
+        setDashboardHref(
+          user.user_type === 'brand' ? '/dashboard/brand'
+            : user.user_type === 'creator' ? '/dashboard/creator'
+              : '/admin'
+        )
+      }
+    } catch {
+      // malformed localStorage: keep the logged-out buttons
+    }
+  }, [])
 
   return (
     <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
@@ -81,21 +105,51 @@ export function HeroSection() {
               Connect with YouTube, Twitter, LinkedIn influencers.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-12">
+            {/* CTA row 1. Both variants share one grid cell, so the cell is
+                always as tall as the taller one (two stacked buttons on mobile)
+                and swapping variants after auth loads never shifts the page. */}
+            <div className="grid">
+              <div
+                className={`[grid-area:1/1] flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 sm:gap-4 ${dashboardHref ? 'invisible' : ''}`}
+              >
+                <Link
+                  href="/signup/brand"
+                  onClick={() => trackCTAClick('Join as Brand', 'home_hero', '/signup/brand')}
+                  className={HERO_PRIMARY_BUTTON}
+                >
+                  Join as Brand
+                </Link>
+                <Link
+                  href="/signup/creator"
+                  onClick={() => trackCTAClick('Join as Creator', 'home_hero', '/signup/creator')}
+                  className="w-full sm:w-auto px-8 py-4 bg-white border-2 border-gray-200 text-gray-700 rounded-full font-semibold text-lg text-center hover:border-brand-pink-light hover:bg-brand-pink/10 transition-all"
+                >
+                  Join as Creator
+                </Link>
+              </div>
+              {dashboardHref && (
+                <div className="[grid-area:1/1] self-center flex justify-center lg:justify-start">
+                  <Link
+                    href={dashboardHref}
+                    onClick={() => trackCTAClick('Go to dashboard', 'home_hero', dashboardHref)}
+                    className={HERO_PRIMARY_BUTTON}
+                  >
+                    Go to dashboard
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* CTA row 2 */}
+            <div className="mt-5 mb-12 flex justify-center lg:justify-start">
               <Link
                 href="/creators"
-                className="group w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-semibold text-lg hover:shadow-xl hover:shadow-brand-pink/25 transition-all flex items-center justify-center gap-2"
+                onClick={() => trackCTAClick('Find Tech Creators', 'home_hero', '/creators')}
+                className="group inline-flex items-center gap-2 py-2 text-brand-purple-dark font-semibold hover:text-brand-pink transition-colors"
               >
-                <Search className="w-5 h-5" />
+                <Search className="w-4 h-4" />
                 Find Tech Creators
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                href="/signup/creator"
-                className="w-full sm:w-auto px-8 py-4 bg-white border-2 border-gray-200 text-gray-700 rounded-full font-semibold text-lg hover:border-brand-pink-light hover:bg-brand-pink/10 transition-all"
-              >
-                Join as Creator
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
 
