@@ -1,288 +1,138 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, LogOut, Globe } from 'lucide-react'
+import { Menu, X, ChevronDown, Globe, BookOpen, Shield } from 'lucide-react'
 import Logo from '@/components/Logo'
+import ProfileDropdown, { type ProfileDropdownProfile } from '@/components/ProfileDropdown'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
+import { cn } from '@/lib/utils'
 
-interface UserProfile {
-  id: string
-  email: string
-  full_name?: string
-  profile_picture?: string
-  subscription_tier: 'free' | 'starter' | 'pro' | 'developer'
-  monthly_searches: number
-  search_limit: number
-  user_type?: 'brand' | 'influencer'
+type Viewer =
+  | { kind: 'guest' }
+  | { kind: 'member'; userType: 'brand' | 'creator'; profile: ProfileDropdownProfile | null; isAdmin: boolean }
+  | { kind: 'admin' }
+
+function readViewer(): Viewer {
+  try {
+    const userStr = localStorage.getItem('auth_user')
+    if (!userStr || !localStorage.getItem('auth_token')) {return { kind: 'guest' }}
+    const user = JSON.parse(userStr)
+    const isAdmin = user.role === 'admin' || user.role === 'super_admin'
+    if (user.user_type === 'brand' || user.user_type === 'creator') {
+      const profileStr = localStorage.getItem('auth_profile')
+      return { kind: 'member', userType: user.user_type, profile: profileStr ? JSON.parse(profileStr) : null, isAdmin }
+    }
+    return isAdmin || user.user_type === 'admin' ? { kind: 'admin' } : { kind: 'guest' }
+  } catch {
+    // malformed localStorage: treat as logged out
+    return { kind: 'guest' }
+  }
 }
 
 interface HeaderProps {
-  isSearchPage?: boolean
+  /**
+   * Homepage-style: transparent until scrolled, and no spacer (the page's
+   * hero already pads for the fixed header). Every other public page uses
+   * the default solid header plus spacer.
+   */
+  overlay?: boolean
 }
 
-export default function Header({ isSearchPage: _isSearchPage = false }: HeaderProps) {
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [showCountriesDropdown, setShowCountriesDropdown] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isMobileCountriesOpen, setIsMobileCountriesOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
+/**
+ * The one public-site header. Every public page renders this (the landing
+ * `Navigation` export is a thin wrapper around it), so logo, nav items and
+ * auth state look the same everywhere.
+ *
+ * Auth is only known client-side, so the server render and first paint use
+ * a `null` viewer: nav links render, and the right-hand CTAs reserve their
+ * space invisibly until the real state is read. Header height never
+ * changes, so nothing below it moves.
+ */
+export default function Header({ overlay = false }: HeaderProps) {
   const router = useRouter()
-  const [userType, setUserType] = useState<'brand' | 'influencer' | null>(null)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [showLoginDropdown, setShowLoginDropdown] = useState(false)
-  // Auth state is only known client-side (localStorage), so it starts
-  // "logged out" on both the server render and the first client paint.
-  // `mounted` gates anything that depends on isLoggedIn (like the Contact
-  // button, which should be hidden once logged in) so a logged-in visitor
-  // never sees it flash in and then disappear once the real auth state is read.
-  const [mounted, setMounted] = useState(false)
+  const [viewer, setViewer] = useState<Viewer | null>(null)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [countriesOpen, setCountriesOpen] = useState(false)
+  const [mobileCountriesOpen, setMobileCountriesOpen] = useState(false)
 
-  const goToLogin = () => {
+  useEffect(() => {
+    setViewer(readViewer())
+    const handleScroll = () => setIsScrolled(window.scrollY > 10)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const isGuest = viewer?.kind === 'guest'
+  const dashboardHref =
+    viewer?.kind === 'member'
+      ? viewer.userType === 'brand' ? '/dashboard/brand' : '/dashboard/creator'
+      : '/admin'
+  const showAdminLink = viewer?.kind === 'admin' || (viewer?.kind === 'member' && viewer.isAdmin)
+
+  const adminLogout = () => {
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
+    localStorage.removeItem('auth_profile')
     router.push('/login')
   }
 
-  useEffect(() => {
-    const authToken = localStorage.getItem('auth_token')
-    setIsLoggedIn(!!authToken)
-
-    const storedUserType = localStorage.getItem('user_type')
-    if (storedUserType === 'influencer' || storedUserType === 'brand') {
-      setUserType(storedUserType)
-    }
-    setMounted(true)
-  }, [])
-
-  // NOTE: this used to call a FastAPI backend (infoish-ai-search-production
-  // on Railway) that predates the current Next.js/Supabase app and no longer
-  // exists as part of this codebase — every call to it failed silently.
-  // `isLoggedIn` below (sourced from the real auth_token) is the actual
-  // source of truth for whether to show the signed-in header state.
-  // `user` intentionally stays null: the subscription-tier/search-quota UI
-  // it used to feed reads fields (subscription_tier, monthly_searches,
-  // search_limit) that don't exist on this app's users table, so that UI is
-  // effectively retired rather than fed fake data.
-  const checkAuthStatus = useCallback(async () => {
-    setIsLoading(false)
-  }, [])
-
-  useEffect(() => {
-    checkAuthStatus()
-
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [checkAuthStatus])
-
-
-  const handleLogout = async () => {
-    try {
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_user')
-      localStorage.removeItem('auth_profile')
-      localStorage.removeItem('user_type')
-      setUser(null)
-      setUserType(null)
-      setShowDropdown(false)
-      
-      if (window.google && window.google.accounts && window.google.accounts.id) {
-        window.google.accounts.id.disableAutoSelect()
-        window.google.accounts.id.cancel()
-      }
-      
-      if (navigator.credentials && navigator.credentials.preventSilentAccess) {
-        navigator.credentials.preventSilentAccess()
-      }
-      
-      const googleCookies = [
-        'g_state', 'g_csrf_token', 'gsi_state', 'gsi_replay', 
-        'g_authuser', 'g_enabled_idps', '__Host-1PLSID', '__Host-3PLSID',
-        'NID', 'HSID', 'SSID', 'APISID', 'SAPISID'
-      ]
-      
-      googleCookies.forEach(cookieName => {
-        const domains = ['', `.${window.location.hostname}`, '.google.com', '.accounts.google.com']
-        const paths = ['/', '/auth', '/oauth']
-        
-        domains.forEach(domain => {
-          paths.forEach(path => {
-            const domainPart = domain ? `; domain=${domain}` : ''
-            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}${domainPart}`
-          })
-        })
-      })
-      
-      Object.keys(sessionStorage).forEach(key => {
-        if (key.includes('google') || key.includes('gsi') || key.includes('oauth')) {
-          sessionStorage.removeItem(key)
-        }
-      })
-      
-      window.location.href = '/'
-      
-    } catch (error) {
-      console.error('Logout error:', error)
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('user_data')
-      localStorage.removeItem('user_type')
-      setUser(null)
-      setUserType(null)
-      setShowDropdown(false)
-      window.location.href = '/'
-    }
-  }
-
-  const getUserDisplayName = () => {
-    if (user?.full_name) {
-      return user.full_name.split(' ')[0]
-    }
-    return user?.email?.split('@')[0] || 'User'
-  }
-
-  const getSearchesRemaining = () => {
-    if (!user) {return 0}
-    if (user.subscription_tier === 'pro' || user.subscription_tier === 'developer') {return 'unlimited'}
-    return Math.max(0, user.search_limit - user.monthly_searches)
-  }
-
-  const getSearchLimitText = () => {
-    if (!user) {return ''}
-    
-    if (user.subscription_tier === 'pro' || user.subscription_tier === 'developer') {
-      return 'Unlimited searches'
-    }
-    
-    return `${user.monthly_searches}/${user.search_limit} searches used`
-  }
-
-  const getTierBadgeColor = () => {
-    switch (user?.subscription_tier) {
-      case 'free':
-        return 'bg-gray-100 text-gray-700 border-gray-200'
-      case 'starter':
-        return 'bg-blue-100 text-blue-700 border-blue-200'
-      case 'pro':
-        return 'bg-green-100 text-green-700 border-green-200'
-      case 'developer':
-        return 'bg-purple-100 text-purple-700 border-purple-200'
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-200'
-    }
-  }
-
-  const getTierIcon = () => {
-    switch (user?.subscription_tier) {
-      case 'pro':
-        return <Crown className="w-3 h-3" />
-      case 'developer':
-        return <Key className="w-3 h-3" />
-      case 'starter':
-        return <Zap className="w-3 h-3" />
-      default:
-        return null
-    }
-  }
-
-  const getDashboardUrl = () => {
-    if (userType === 'influencer') {
-      return '/dashboard/creator'
-    }
-    return '/dashboard/brand'
-  }
-
-  // The loading header must reserve the same space as the full one below
-  // (fixed header + h-16 spacer); without the spacer, page content jumps
-  // down 64px on hydration, which Lighthouse scores as layout shift.
-  if (isLoading) {
-    return (
-      <>
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? 'bg-white/95 backdrop-blur-xl shadow-lg'
-          : 'bg-white/80 backdrop-blur-lg'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Logo size="lg" />
-            <div className="animate-pulse bg-gray-200 rounded-full w-10 h-10"></div>
-          </div>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-pink to-brand-purple" />
-      </header>
-      <div className="h-16"></div>
-      </>
-    )
-  }
+  const navLink = 'text-gray-600 hover:text-gray-900 font-medium'
 
   return (
     <>
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? 'bg-white/95 backdrop-blur-xl shadow-lg'
-          : 'bg-white/80 backdrop-blur-lg'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header
+        className={cn(
+          'fixed top-0 left-0 right-0 z-50 transition-colors duration-300',
+          overlay && !isScrolled && !mobileMenuOpen
+            ? 'bg-transparent'
+            : 'bg-white/95 backdrop-blur-md shadow-sm'
+        )}
+      >
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main">
           <div className="flex items-center justify-between h-16">
-            
-            {/* Logo */}
             <Link href="/" aria-label="Infoishai home" className="flex items-center">
-              <Logo size="lg" priority />
+              <Logo priority />
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
-              <Link 
-                href="/about" 
-                className="px-4 py-2 text-gray-700 hover:text-brand-purple hover:bg-brand-pink/10 font-medium rounded-lg transition-all"
-              >
-                About
+            {/* Desktop navigation */}
+            <div className="hidden lg:flex items-center gap-7">
+              <Link href="/creators" className={navLink}>Find Creators</Link>
+              <Link href="/campaigns" className={navLink}>Campaigns</Link>
+              <Link href="/pricing" className={navLink}>Pricing</Link>
+              <Link href="/blog" className={cn(navLink, 'flex items-center gap-1')}>
+                <BookOpen className="w-4 h-4" />
+                Blog
               </Link>
-              {/* Contact — hidden once logged in; see the `mounted` comment above */}
-              {mounted && !isLoggedIn && (
-                <Link
-                  href="/contact"
-                  className="px-4 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm flex items-center gap-2"
-                >
-                  <Mail className="w-4 h-4" />
-                  Contact
-                </Link>
-              )}
 
-              {/* Countries Dropdown */}
               <div className="relative">
                 <button
-                  onClick={() => setShowCountriesDropdown(!showCountriesDropdown)}
-                  className="px-4 py-2 text-gray-700 hover:text-brand-purple hover:bg-brand-pink/10 font-medium rounded-lg transition-all flex items-center gap-2"
+                  onClick={() => setCountriesOpen(!countriesOpen)}
+                  aria-expanded={countriesOpen}
+                  className={cn(navLink, 'flex items-center gap-1')}
                 >
                   <Globe className="w-4 h-4" />
                   Countries
-                  <ChevronDown className={`w-4 h-4 transition-transform ${showCountriesDropdown ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 transition-transform ${countriesOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                {showCountriesDropdown && (
+                {countriesOpen && (
                   <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setShowCountriesDropdown(false)}
-                    />
-                    <div className="absolute left-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+                    <div className="fixed inset-0 z-40" onClick={() => setCountriesOpen(false)} />
+                    <div className="absolute left-0 mt-3 w-80 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
                       <div className="px-4 py-2 border-b border-gray-100">
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Find Influencers by Country</p>
                       </div>
-
                       <div className="grid grid-cols-2 gap-1 p-2">
                         {COUNTRY_LANDING_PAGES.map((country) => (
                           <Link
                             key={country.href}
                             href={country.href}
-                            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-brand-pink/10 hover:text-brand-purple rounded-lg transition-colors"
-                            onClick={() => setShowCountriesDropdown(false)}
+                            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-brand-pink/10 hover:text-brand-purple-dark rounded-lg transition-colors"
+                            onClick={() => setCountriesOpen(false)}
                           >
                             <span aria-hidden="true">{country.flag}</span>
                             {country.name}
@@ -294,359 +144,84 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                 )}
               </div>
 
-              <Link
-                href="/pricing"
-                className="px-4 py-2 text-gray-700 hover:text-brand-purple hover:bg-brand-pink/10 font-medium rounded-lg transition-all"
-              >
-                Pricing
-              </Link>
+              <Link href="/about" className={navLink}>About</Link>
+              {isGuest && <Link href="/contact" className={navLink}>Contact</Link>}
+            </div>
 
-              <Link
-                href="/blog"
-                className="px-4 py-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 font-medium rounded-lg transition-all"
-              >
-                Blog
-              </Link>
-
-              {!user && (
-                <div className="relative ml-2">
-                  <button
-                    onClick={() => setShowLoginDropdown(!showLoginDropdown)}
-                    className="px-5 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm flex items-center gap-2"
-                  >
-                    Login
-                    <ChevronDown className={`w-4 h-4 transition-transform ${showLoginDropdown ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  {showLoginDropdown && (
-                    <>
-                      <div 
-                        className="fixed inset-0 z-40" 
-                        onClick={() => setShowLoginDropdown(false)}
-                      />
-                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
-                        <Link
-                          href="/login"
-                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-brand-pink/10 transition-colors"
-                          onClick={() => setShowLoginDropdown(false)}
-                        >
-                          <div className="w-8 h-8 bg-gradient-to-br from-brand-purple to-brand-pink rounded-lg flex items-center justify-center">
-                            <User className="w-4 h-4 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-sm">Influencer</p>
-                            <p className="text-xs text-gray-500">Manage profile</p>
-                          </div>
-                        </Link>
-                        
-                        <div className="my-1 h-px bg-gray-200" />
-                        
-                        <button
-                          onClick={() => {
-                            setShowLoginDropdown(false)
-                            goToLogin()
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-brand-pink/10 transition-colors"
-                        >
-                          <div className="w-8 h-8 bg-gradient-to-br from-brand-pink to-brand-purple rounded-lg flex items-center justify-center">
-                            <Building className="w-4 h-4 text-white" />
-                          </div>
-                          <div className="text-left">
-                            <p className="font-semibold text-sm">Brand</p>
-                            <p className="text-xs text-gray-500">Search influencers</p>
-                          </div>
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </nav>
-
-            {/* User Actions */}
-            <div className="flex items-center gap-3">
-              {user ? (
-                <>
-                  {/* Quick Actions for Brands */}
-                  {userType === 'brand' && (
-                    <div className="hidden md:flex items-center gap-2">
-                      <Link
-                        href="/creators"
-                        className="p-2 text-gray-600 hover:text-brand-purple hover:bg-brand-pink/10 rounded-lg transition-all"
-                        title="Search Influencers"
-                      >
-                        <Search className="w-5 h-5" />
-                      </Link>
-                      <Link
-                        href="/campaigns/create"
-                        className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
-                        title="My Campaigns"
-                      >
-                        <BarChart3 className="w-5 h-5" />
-                      </Link>
-                    </div>
-                  )}
-
-                  {/* Search Counter */}
-                  {user.subscription_tier !== 'pro' && user.subscription_tier !== 'developer' && (
-                    <div className="hidden xl:flex items-center text-xs text-gray-600 px-3 py-1.5 bg-gray-100 rounded-full border border-gray-200">
-                      {getSearchesRemaining()}/{user.search_limit}
-                    </div>
-                  )}
-
-                  {/* User Profile Dropdown */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowDropdown(!showDropdown)}
-                      className="flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 transition-all shadow-sm hover:shadow-md"
-                    >
-                      {user.profile_picture ? (
-                        <Image
-                          src={user.profile_picture}
-                          alt={getUserDisplayName()}
-                          width={32}
-                          height={32}
-                          className="w-8 h-8 rounded-lg border border-gray-200 object-cover"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-pink-light to-brand-purple-light flex items-center justify-center">
-                          <User className="w-4 h-4 text-white" />
-                        </div>
-                      )}
-                      <div className="hidden xl:block text-left">
-                        <p className="text-sm font-semibold text-gray-900 leading-tight">
-                          {getUserDisplayName()}
-                        </p>
-                        <p className="text-xs text-gray-500 capitalize">
-                          {user.subscription_tier}
-                        </p>
-                      </div>
-                      <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {/* Dropdown Menu */}
-                    {showDropdown && (
-                      <>
-                        <div 
-                          className="fixed inset-0 z-40" 
-                          onClick={() => setShowDropdown(false)}
-                        />
-                        <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
-                          {/* Header */}
-                          <div className="p-4 bg-gradient-to-br from-brand-pink/10 to-brand-purple/10 border-b border-gray-200">
-                            <div className="flex items-center gap-3 mb-3">
-                              {user.profile_picture ? (
-                                <Image
-                                  src={user.profile_picture}
-                                  alt={getUserDisplayName()}
-                                  width={56}
-                                  height={56}
-                                  className="w-14 h-14 rounded-xl border-2 border-white shadow-md"
-                                />
-                              ) : (
-                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-brand-pink-light to-brand-purple-light flex items-center justify-center shadow-md">
-                                  <User className="w-7 h-7 text-white" />
-                                </div>
-                              )}
-                              <div className="flex-1">
-                                <p className="font-bold text-gray-900">{getUserDisplayName()}</p>
-                                <p className="text-sm text-gray-600">{user.email}</p>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center justify-between">
-                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border ${getTierBadgeColor()}`}>
-                                {getTierIcon()}
-                                {user.subscription_tier.toUpperCase()}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          {/* Usage Stats */}
-                          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                            <div className="text-xs text-gray-500 mb-1 font-medium">Usage This Month</div>
-                            <div className="text-sm font-bold text-gray-900">
-                              {getSearchLimitText()}
-                            </div>
-                          </div>
-                          
-                          {/* Menu Items */}
-                          <div className="p-2">
-                            <Link
-                              href={getDashboardUrl()}
-                              className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-brand-pink/10 hover:text-brand-purple rounded-lg transition-all"
-                              onClick={() => setShowDropdown(false)}
-                            >
-                              <Settings className="w-5 h-5" />
-                              Dashboard
-                            </Link>
-                            
-                            {userType === 'brand' && (
-                              <>
-                                <Link
-                                  href="/creators"
-                                  className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-brand-pink/10 hover:text-brand-purple rounded-lg transition-all"
-                                  onClick={() => setShowDropdown(false)}
-                                >
-                                  <Search className="w-5 h-5" />
-                                  Search Influencers
-                                </Link>
-                                
-                                <Link
-                                  href="/campaigns/create"
-                                  className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-all"
-                                  onClick={() => setShowDropdown(false)}
-                                >
-                                  <BarChart3 className="w-5 h-5" />
-                                  My Campaigns
-                                </Link>
-                              </>
-                            )}
-                            
-                            <Link
-                              href="/contact"
-                              className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-brand-pink/10 hover:text-brand-purple rounded-lg transition-all"
-                              onClick={() => setShowDropdown(false)}
-                            >
-                              <Mail className="w-5 h-5" />
-                              Contact Support
-                            </Link>
-                            
-                            <div className="border-t border-gray-200 my-2"></div>
-                            
-                            <button 
-                              className="w-full flex items-center gap-3 text-left px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                              onClick={handleLogout}
-                            >
-                              <LogOut className="w-5 h-5" />
-                              Sign Out
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className="flex items-center gap-3">
-                  {mounted && !isLoggedIn && (
-                    <Link
-                      href="/contact"
-                      className="hidden sm:block text-gray-700 hover:text-brand-purple font-medium transition-colors px-3 py-2"
-                    >
-                      Contact
-                    </Link>
-                  )}
+            {/* Desktop auth actions */}
+            <div className="hidden lg:flex items-center gap-4">
+              {viewer === null || viewer.kind === 'guest' ? (
+                // Invisible (not absent) until auth is read, so the slot keeps its size.
+                <div className={cn('flex items-center gap-4', viewer === null && 'invisible')}>
+                  <Link href="/login" className={navLink}>Log in</Link>
                   <Link
-                    href="/login"
-                    className="bg-gradient-to-r from-brand-pink to-brand-purple hover:from-brand-pink-dark hover:to-brand-purple-dark text-white px-5 py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
+                    href="/signup"
+                    className="px-5 py-2.5 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-medium hover:shadow-lg hover:shadow-brand-pink/25 transition-all"
                   >
-                    <span className="hidden sm:inline">Get Started Free</span>
-                    <span className="sm:hidden">Login</span>
+                    Get Started Free
                   </Link>
                 </div>
+              ) : (
+                <>
+                  {showAdminLink && (
+                    <Link href="/admin" className={cn(navLink, 'flex items-center gap-1')}>
+                      <Shield className="w-4 h-4" />
+                      Admin
+                    </Link>
+                  )}
+                  {viewer.kind === 'member' ? (
+                    <>
+                      <Link href={dashboardHref} className={navLink}>Dashboard</Link>
+                      <ProfileDropdown userType={viewer.userType} profile={viewer.profile} />
+                    </>
+                  ) : (
+                    <button onClick={adminLogout} className={navLink}>Log out</button>
+                  )}
+                </>
               )}
-
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
-                aria-expanded={isMobileMenuOpen}
-                className="lg:hidden min-w-[48px] min-h-[48px] flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition-all"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="w-5 h-5 text-gray-700" />
-                ) : (
-                  <Menu className="w-5 h-5 text-gray-700" />
-                )}
-              </button>
             </div>
+
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
+              className="lg:hidden min-w-[48px] min-h-[48px] flex items-center justify-center text-gray-600"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
 
-          {/* Mobile Menu */}
-          {isMobileMenuOpen && (
-            <div className="lg:hidden border-t border-gray-200 py-4 bg-white">
+          {/* Mobile menu */}
+          {mobileMenuOpen && (
+            <div className="lg:hidden py-4 border-t border-gray-100 bg-white max-h-[calc(100vh-4rem)] overflow-y-auto">
               <div className="flex flex-col gap-1">
-                {!user && (
-                  <>
-                    <Link 
-                      href="/login"
-                      className="flex items-center gap-3 text-brand-purple hover:text-brand-purple-dark font-semibold py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10 border-2 border-brand-purple/30"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <User className="w-5 h-5" />
-                      Influencer Login
-                    </Link>
-                    
-                    <div className="h-px bg-gray-200 my-2" />
-                  </>
-                )}
+                <Link href="/creators" className={cn(navLink, 'py-3')}>Find Creators</Link>
+                <Link href="/campaigns" className={cn(navLink, 'py-3')}>Campaigns</Link>
+                <Link href="/pricing" className={cn(navLink, 'py-3')}>Pricing</Link>
+                <Link href="/blog" className={cn(navLink, 'py-3')}>Blog</Link>
 
-                {isLoggedIn && userType === 'brand' && (
-                  <>
-                    <Link 
-                      href="/creators"
-                      className="flex items-center gap-3 text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Search className="w-5 h-5" />
-                      Search Influencers
-                    </Link>
-                    
-                    <Link
-                      href="/campaigns/create"
-                      className="flex items-center gap-3 text-gray-700 hover:text-green-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-green-50"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <BarChart3 className="w-5 h-5" />
-                      My Campaigns
-                    </Link>
-                    
-                    <div className="h-px bg-gray-200 my-2" />
-                  </>
-                )}
-                
-                <Link 
-                  href="/about" 
-                  className="text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-gray-50"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  About
-                </Link>
-                {mounted && !isLoggedIn && (
-                  <Link
-                    href="/contact"
-                    className="flex items-center gap-2 text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Mail className="w-5 h-5" />
-                    Contact
-                  </Link>
-                )}
-
-                {/* Countries - inline expandable */}
                 <button
-                  onClick={() => setIsMobileCountriesOpen(!isMobileCountriesOpen)}
-                  aria-expanded={isMobileCountriesOpen}
-                  className="w-full flex items-center justify-between gap-2 text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10 min-h-[48px]"
+                  onClick={() => setMobileCountriesOpen(!mobileCountriesOpen)}
+                  aria-expanded={mobileCountriesOpen}
+                  className={cn(navLink, 'w-full flex items-center justify-between py-3 min-h-[48px]')}
                 >
-                  <span className="flex items-center gap-2">
-                    <Globe className="w-5 h-5" />
+                  <span className="flex items-center gap-1">
+                    <Globe className="w-4 h-4" />
                     Countries
                   </span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${isMobileCountriesOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileCountriesOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                {isMobileCountriesOpen && (
-                  <div className="grid grid-cols-2 gap-1 px-4 pb-2">
+                {mobileCountriesOpen && (
+                  <div className="grid grid-cols-2 gap-1 pb-2">
                     {COUNTRY_LANDING_PAGES.map((country) => (
                       <Link
                         key={country.href}
                         href={country.href}
-                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand-purple font-medium py-2.5 px-3 rounded-lg transition-all hover:bg-brand-pink/10 min-h-[44px]"
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 font-medium py-2.5 px-2 rounded-lg hover:bg-brand-pink/10 min-h-[44px]"
                         onClick={() => {
-                          setIsMobileMenuOpen(false)
-                          setIsMobileCountriesOpen(false)
+                          setMobileMenuOpen(false)
+                          setMobileCountriesOpen(false)
                         }}
                       >
                         <span aria-hidden="true">{country.flag}</span>
@@ -656,68 +231,45 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
                   </div>
                 )}
 
-                <Link
-                  href="/pricing"
-                  className="text-gray-700 hover:text-brand-purple font-medium py-3 px-4 rounded-lg transition-all hover:bg-brand-pink/10"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Pricing
-                </Link>
+                <Link href="/about" className={cn(navLink, 'py-3')}>About</Link>
+                {isGuest && <Link href="/contact" className={cn(navLink, 'py-3')}>Contact</Link>}
 
-                <Link
-                  href="/blog"
-                  className="text-gray-700 hover:text-orange-600 font-medium py-3 px-4 rounded-lg transition-all hover:bg-gray-50"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Blog
-                </Link>
-                
-                {isLoggedIn && (
-                  <div className="border-t border-gray-200 mt-2 pt-2">
-                    <Link
-                      href="/contact"
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-all bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Mail className="w-5 h-5" />
-                      Contact Support
-                    </Link>
-
-                    <button
-                      onClick={() => {
-                        handleLogout()
-                        setIsMobileMenuOpen(false)
-                      }}
-                      className="w-full flex items-center justify-center gap-3 bg-red-500 text-white px-4 py-3 rounded-lg font-bold text-sm hover:bg-red-600 transition-all mt-2"
-                    >
-                      <LogOut className="w-5 h-5" />
-                      Logout
-                    </button>
-                  </div>
-                )}
-                
-                {!isLoggedIn && (
-                  <div className="border-t border-gray-200 mt-2 pt-2">
-                    <button
-                      onClick={() => {
-                        goToLogin()
-                        setIsMobileMenuOpen(false)
-                      }}
-                      className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-brand-pink to-brand-purple text-white px-4 py-3 rounded-lg font-bold text-sm hover:shadow-lg transition-all"
-                    >
-                      Get Started Free
-                    </button>
-                  </div>
-                )}
+                <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-gray-100">
+                  {viewer === null || viewer.kind === 'guest' ? (
+                    <>
+                      <Link href="/login" className="text-center py-2 text-gray-600 font-medium">Log in</Link>
+                      <Link
+                        href="/signup"
+                        className="text-center py-3 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-medium"
+                      >
+                        Get Started Free
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      {showAdminLink && (
+                        <Link href="/admin" className="text-center py-2 text-gray-600 font-medium">Admin</Link>
+                      )}
+                      {viewer.kind === 'member' ? (
+                        <>
+                          <Link href={dashboardHref} className="text-center py-2 text-gray-600 font-medium">Dashboard</Link>
+                          <div className="flex justify-center">
+                            <ProfileDropdown userType={viewer.userType} profile={viewer.profile} />
+                          </div>
+                        </>
+                      ) : (
+                        <button onClick={adminLogout} className="text-center py-2 text-gray-600 font-medium">Log out</button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           )}
-        </div>
+        </nav>
         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-pink to-brand-purple" />
       </header>
-
-      {/* Spacer */}
-      <div className="h-16"></div>
+      {!overlay && <div className="h-16" aria-hidden="true" />}
     </>
   )
 }

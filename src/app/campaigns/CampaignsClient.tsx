@@ -1,10 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, RotateCcw, Sparkles } from 'lucide-react'
+import { AlertCircle, RotateCcw } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
+import Header from '@/components/header'
 import CampaignList from '@/components/campaigns/CampaignList'
 import CampaignFilters, { EMPTY_FILTERS, type CampaignFilterState } from '@/components/campaigns/CampaignFilters'
 import type { Campaign } from '@/types/campaigns'
@@ -133,7 +133,7 @@ export default function CampaignsClient({ initialCampaigns }: { initialCampaigns
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {isLoggedIn && userType ? <DashboardHeader userType={userType} profile={profile} /> : <GuestHeader />}
+      {isLoggedIn && userType ? <DashboardHeader userType={userType} profile={profile} /> : <Header />}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
@@ -206,43 +206,5 @@ export default function CampaignsClient({ initialCampaigns }: { initialCampaigns
         )}
       </main>
     </div>
-  )
-}
-
-function GuestHeader() {
-  return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-brand-purple rounded-lg flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">Infoishai</span>
-            </Link>
-            <nav className="hidden md:flex items-center gap-6">
-              <Link href="/creators" className="text-gray-600 hover:text-gray-900">
-                Find Creators
-              </Link>
-              <Link href="/campaigns" className="text-brand-purple font-medium">
-                Campaigns
-              </Link>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-gray-600 hover:text-gray-900 font-medium">
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="px-4 py-2 bg-brand-purple text-white rounded-lg font-medium hover:bg-brand-purple-dark"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </div>
-    </header>
   )
 }

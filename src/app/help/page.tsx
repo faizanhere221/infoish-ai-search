@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import Header from '@/components/header'
 import {
   Sparkles,
   HelpCircle,
@@ -107,7 +108,8 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 export default function HelpPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
+      <Header />
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
@@ -121,7 +123,7 @@ export default function HelpPage() {
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {FAQS.map(({ category, icon: Icon, items }) => (

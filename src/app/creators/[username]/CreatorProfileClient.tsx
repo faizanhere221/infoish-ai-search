@@ -16,7 +16,6 @@ import {
   Users,
   ExternalLink,
   Loader2,
-  Sparkles,
   Twitter,
   Youtube,
   Linkedin,
@@ -32,6 +31,9 @@ import {
   type LucideIcon
 } from 'lucide-react'
 import { usePartner } from '@/hooks/usePartner'
+import Header from '@/components/header'
+import DashboardHeader from '@/components/DashboardHeader'
+import type { ProfileDropdownProfile } from '@/components/ProfileDropdown'
 import { ReportDialog } from '@/components/ReportDialog'
 import { formatMonthYear } from '@/lib/format-date'
 import { safeExternalHref } from '@/lib/creators/platform-input'
@@ -97,6 +99,7 @@ export default function CreatorProfileClient({ creator }: { creator: PublicCreat
   const [isOwnProfile, setIsOwnProfile] = useState(false)
   const [contacting, setContacting] = useState(false)
   const [userType, setUserType] = useState<string | null>(null)
+  const [authProfile, setAuthProfile] = useState<ProfileDropdownProfile | null>(null)
   const [brandProfile, setBrandProfile] = useState<{ id: string } | null>(null)
   const [savingToRoster, setSavingToRoster] = useState(false)
   const [reporting, setReporting] = useState(false)
@@ -114,6 +117,7 @@ export default function CreatorProfileClient({ creator }: { creator: PublicCreat
       
       if (profileStr) {
         const profile = JSON.parse(profileStr)
+        setAuthProfile(profile)
         if (profile.username === username) {
           setIsOwnProfile(true)
         }
@@ -246,9 +250,14 @@ export default function CreatorProfileClient({ creator }: { creator: PublicCreat
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      {userType === 'brand' || userType === 'creator' ? (
+        <DashboardHeader userType={userType} profile={authProfile} />
+      ) : (
+        <Header />
+      )}
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14">
             <button 
               onClick={handleBack}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
@@ -275,16 +284,10 @@ export default function CreatorProfileClient({ creator }: { creator: PublicCreat
                   Edit Profile
                 </Link>
               )}
-              <Link href="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">Infoishai</span>
-              </Link>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

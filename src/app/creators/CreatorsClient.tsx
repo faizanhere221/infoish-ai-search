@@ -21,6 +21,7 @@ import {
   Award
 } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
+import Header from '@/components/header'
 import type { ProfileDropdownProfile } from '@/components/ProfileDropdown'
 import { NICHES, PLATFORMS, COUNTRIES, LANGUAGES } from '@/utils/constants'
 
@@ -345,65 +346,7 @@ export default function CreatorsClient({ initialCreators }: { initialCreators: C
       {isLoggedIn && (userType === 'creator' || userType === 'brand') ? (
         <DashboardHeader userType={userType} profile={authProfile} />
       ) : (
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-8">
-              <Link href="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">Infoishai</span>
-              </Link>
-
-              <nav className="hidden md:flex items-center gap-6">
-                <Link href="/creators" className="text-violet-600 font-medium">
-                  Find Creators
-                </Link>
-                <Link href="/campaigns" className="text-gray-600 hover:text-gray-900">
-                  Campaigns
-                </Link>
-                {isLoggedIn && (
-                  <Link
-                    href={userType === 'brand' ? '/dashboard/brand' : '/dashboard/creator'}
-                    className="text-gray-600 hover:text-gray-900"
-                  >
-                    Dashboard
-                  </Link>
-                )}
-                {isLoggedIn && (
-                  <Link href="/messages" className="text-gray-600 hover:text-gray-900">
-                    Messages
-                  </Link>
-                )}
-              </nav>
-            </div>
-
-            <div className="flex items-center gap-4">
-              {isLoggedIn ? (
-                <Link
-                  href={userType === 'brand' ? '/dashboard/brand' : '/dashboard/creator'}
-                  className="px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
-                >
-                  Dashboard
-                </Link>
-              ) : (
-                <>
-                  <Link href="/login" className="text-gray-600 hover:text-gray-900 font-medium">
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className="px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
-                  >
-                    Get Started
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+        <Header />
       )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

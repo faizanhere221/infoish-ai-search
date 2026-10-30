@@ -199,10 +199,12 @@ Database-backed (Postgres, `rate_limits` table). Import from `src/lib/rate-limit
 
 ### Three Headers, Two Footers
 
-Three separate header implementations exist and must be kept in sync for sitewide changes:
-1. `src/components/header.tsx` — public pages (blog, tools, country pages, contact, legal)
-2. `src/components/DashboardHeader.tsx` — logged-in dashboard/settings/messages pages
-3. `Navigation` inside `src/components/landing/index.tsx` — homepage/about only
+Header implementations (keep them in sync for sitewide changes):
+1. `src/components/header.tsx` — THE public header, on every public page (blog, tools, country pages, contact, legal, help, /creators, /creators/[username], /campaigns for logged-out visitors). Handles guest/brand/creator/admin states itself.
+2. `src/components/DashboardHeader.tsx` — logged-in dashboard/settings/messages pages, and /creators, /campaigns for logged-in brands/creators
+3. `Navigation` inside `src/components/landing/index.tsx` — homepage/about/pricing; just `<Header overlay />` (transparent over the hero), not a separate implementation
+
+The brand mark is rendered only through `src/components/Logo.tsx` (`LOGO_MARK_SRC`).
 
 Two footers:
 1. `src/components/footer.tsx` — public pages

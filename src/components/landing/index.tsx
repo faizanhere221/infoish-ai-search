@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Logo from '@/components/Logo'
+import Header from '@/components/header'
 import NewsletterForm from '@/components/NewsletterForm'
-import ProfileDropdown, { type ProfileDropdownProfile } from '@/components/ProfileDropdown'
 import { COUNTRY_LANDING_PAGES, NICHES, PLATFORMS } from '@/utils/constants'
 import {
   Sparkles, 
@@ -27,259 +27,17 @@ import {
   Mail,
   Mic,
   ChevronRight,
-  ChevronDown,
-  Menu,
-  X,
-  BookOpen
+  ChevronDown
 } from 'lucide-react'
 
 // ============================================================================
 // NAVIGATION
 // ============================================================================
+// The homepage/about/pricing header is the shared public header in overlay
+// mode (transparent over the hero until scrolled). Kept as a named export so
+// those pages' imports don't change.
 export function Navigation() {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [countriesOpen, setCountriesOpen] = useState(false)
-  const [mobileCountriesOpen, setMobileCountriesOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [userType, setUserType] = useState<'brand' | 'creator' | null>(null)
-  const [profile, setProfile] = useState<ProfileDropdownProfile | null>(null)
-  // Auth state is only known client-side (localStorage), so it starts
-  // "logged out" on both the server render and the first client paint.
-  // `mounted` gates anything that depends on isLoggedIn (like the Contact
-  // button, which should be hidden once logged in) so a logged-in visitor
-  // never sees it flash in and then disappear once the real auth state is read.
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 10)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  useEffect(() => {
-    const userStr = localStorage.getItem('auth_user')
-    const profileStr = localStorage.getItem('auth_profile')
-    if (userStr) {
-      const user = JSON.parse(userStr)
-      setIsLoggedIn(true)
-      setUserType(user.user_type)
-      setProfile(profileStr ? JSON.parse(profileStr) : null)
-    }
-    setMounted(true)
-  }, [])
-
-  return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-transparent'
-    }`}>
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <Link href="/" aria-label="Infoishai home" className="flex items-center">
-            <Logo priority />
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-8">
-            <Link href="/creators" className="text-gray-600 hover:text-gray-900 font-medium">
-              Find Creators
-            </Link>
-
-            <Link href="/campaigns" className="text-gray-600 hover:text-gray-900 font-medium">
-              Campaigns
-            </Link>
-
-            <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium">
-              Pricing
-            </Link>
-
-            <Link href="/blog" className="text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1">
-              <BookOpen className="w-4 h-4" />
-              Blog
-            </Link>
-            {mounted && !isLoggedIn && (
-              <Link
-                href="/contact"
-                className="px-5 py-2 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-medium hover:shadow-lg hover:shadow-brand-pink/25 transition-all flex items-center gap-2"
-              >
-                <Mail className="w-4 h-4" />
-                Contact
-              </Link>
-            )}
-
-            {/* Countries Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setCountriesOpen(!countriesOpen)}
-                className="text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1"
-              >
-                <Globe className="w-4 h-4" />
-                Countries
-                <ChevronDown className={`w-4 h-4 transition-transform ${countriesOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {countriesOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setCountriesOpen(false)} />
-                  <div className="absolute left-0 mt-3 w-80 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Find Influencers by Country</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1 p-2">
-                      {COUNTRY_LANDING_PAGES.map((country) => (
-                        <Link
-                          key={country.href}
-                          href={country.href}
-                          className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-brand-pink/10 hover:text-brand-purple-dark rounded-lg transition-colors"
-                          onClick={() => setCountriesOpen(false)}
-                        >
-                          <span aria-hidden="true">{country.flag}</span>
-                          {country.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <Link href="/about" className="text-gray-600 hover:text-gray-900 font-medium">
-              About
-            </Link>
-          </div>
-
-          {/* CTA Buttons */}
-          <div className="hidden lg:flex items-center gap-4">
-            {isLoggedIn && userType ? (
-              <>
-                <Link
-                  href={userType === 'brand' ? '/dashboard/brand' : '/dashboard/creator'}
-                  className="text-gray-600 hover:text-gray-900 font-medium"
-                >
-                  Dashboard
-                </Link>
-                <ProfileDropdown userType={userType} profile={profile} />
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="text-gray-600 hover:text-gray-900 font-medium">
-                  Log in
-                </Link>
-                <Link
-                  href="/signup"
-                  className="px-5 py-2.5 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-medium hover:shadow-lg hover:shadow-brand-pink/25 transition-all"
-                >
-                  Get Started Free
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={mobileMenuOpen}
-            className="lg:hidden p-2 text-gray-600"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-gray-100 bg-white">
-            <div className="flex flex-col gap-4">
-              <Link href="/creators" className="text-gray-600 hover:text-gray-900 font-medium py-2">
-                Find Creators
-              </Link>
-
-              <Link href="/campaigns" className="text-gray-600 hover:text-gray-900 font-medium py-2">
-                Campaigns
-              </Link>
-
-              <Link href="/pricing" className="text-gray-600 hover:text-gray-900 font-medium py-2">
-                Pricing
-              </Link>
-
-              <Link href="/blog" className="text-gray-600 hover:text-gray-900 font-medium py-2">
-                Blog
-              </Link>
-              {/* Countries - inline expandable */}
-              <button
-                onClick={() => setMobileCountriesOpen(!mobileCountriesOpen)}
-                aria-expanded={mobileCountriesOpen}
-                className="w-full flex items-center justify-between text-gray-600 hover:text-gray-900 font-medium py-2 min-h-[48px]"
-              >
-                <span className="flex items-center gap-1">
-                  <Globe className="w-4 h-4" />
-                  Countries
-                </span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${mobileCountriesOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {mobileCountriesOpen && (
-                <div className="grid grid-cols-2 gap-1 pb-2">
-                  {COUNTRY_LANDING_PAGES.map((country) => (
-                    <Link
-                      key={country.href}
-                      href={country.href}
-                      className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 font-medium py-2.5 px-2 rounded-lg hover:bg-brand-pink/10 min-h-[44px]"
-                      onClick={() => {
-                        setMobileMenuOpen(false)
-                        setMobileCountriesOpen(false)
-                      }}
-                    >
-                      <span aria-hidden="true">{country.flag}</span>
-                      {country.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              <Link href="/about" className="text-gray-600 hover:text-gray-900 font-medium py-2">
-                About
-              </Link>
-              {mounted && !isLoggedIn && (
-                <Link href="/contact" className="text-gray-600 hover:text-gray-900 font-medium py-2">
-                  Contact
-                </Link>
-              )}
-              <div className="flex flex-col gap-2 pt-4 border-t border-gray-100">
-                {isLoggedIn && userType ? (
-                  <>
-                    <Link
-                      href={userType === 'brand' ? '/dashboard/brand' : '/dashboard/creator'}
-                      className="text-center py-2 text-gray-600 font-medium"
-                    >
-                      Dashboard
-                    </Link>
-                    <div className="flex justify-center">
-                      <ProfileDropdown userType={userType} profile={profile} />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/login" className="text-center py-2 text-gray-600 font-medium">
-                      Log in
-                    </Link>
-                    <Link
-                      href="/signup"
-                      className="text-center py-3 bg-gradient-to-r from-brand-pink to-brand-purple text-white rounded-full font-medium"
-                    >
-                      Get Started Free
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </nav>
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-pink to-brand-purple" />
-    </header>
-  )
+  return <Header overlay />
 }
 
 // ============================================================================

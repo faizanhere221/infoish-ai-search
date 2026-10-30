@@ -3,8 +3,9 @@
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle2, Loader2, Megaphone, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Loader2, Megaphone, X } from 'lucide-react'
 import DashboardHeader from '@/components/DashboardHeader'
+import Header from '@/components/header'
 import CampaignDetail, { type CampaignViewerRole, type MyApplicationSummary } from '@/components/campaigns/CampaignDetail'
 import type { Campaign } from '@/types/campaigns'
 
@@ -155,7 +156,7 @@ export default function CampaignDetailClient({
   if (loadError || !campaign) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {isLoggedIn && userType ? <DashboardHeader userType={userType} profile={profile} /> : <GuestHeader />}
+        {isLoggedIn && userType ? <DashboardHeader userType={userType} profile={profile} /> : <Header />}
         <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <Megaphone className="w-12 h-12 text-gray-300 mx-auto" />
           <h1 className="mt-4 text-xl font-semibold text-gray-900">Campaign not found</h1>
@@ -183,7 +184,7 @@ export default function CampaignDetailClient({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {isLoggedIn && userType ? <DashboardHeader userType={userType} profile={profile} /> : <GuestHeader />}
+      {isLoggedIn && userType ? <DashboardHeader userType={userType} profile={profile} /> : <Header />}
 
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -244,43 +245,5 @@ function SuccessBanner() {
         <X className="w-4 h-4" />
       </button>
     </div>
-  )
-}
-
-function GuestHeader() {
-  return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">Infoishai</span>
-            </Link>
-            <nav className="hidden md:flex items-center gap-6">
-              <Link href="/creators" className="text-gray-600 hover:text-gray-900">
-                Find Creators
-              </Link>
-              <Link href="/campaigns" className="text-violet-600 font-medium">
-                Campaigns
-              </Link>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-gray-600 hover:text-gray-900 font-medium">
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </div>
-    </header>
   )
 }

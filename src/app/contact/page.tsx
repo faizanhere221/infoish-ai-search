@@ -104,7 +104,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header isSearchPage={false} />
+      <Header />
       
       <div className="max-w-7xl mx-auto px-4 py-16">
         {/* Header Section */}
