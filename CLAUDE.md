@@ -39,6 +39,7 @@ All three just make HTTP calls against `BASE_URL` (default `http://localhost:300
 When something looks impossible from reading the code (stale data, phantom errors, a route that behaves differently than its source), suspect a stale `.next` cache before anything else: `rm -rf .next && npm run build`. If a build fails with `Cannot find module for page: ...`, a leftover `next dev`/`next start` process from an earlier session is holding a lock on `.next`. Find it with `netstat -ano | grep LISTENING` (ports 3000 and other `next start -p <port>` ports) and kill it before rebuilding.
 
 - The user often has `npm run dev` running on port 3000. Never run `npm run build` or start another server while it's up. To verify, use `npx tsc --noEmit` and `npm run lint`, or ask the user to stop their dev server first. If you start a server for testing, kill it before finishing.
+- `npm run build` enforces this: its `prebuild` hook (`scripts/check-dev-server.mjs`) exits 1 when anything is listening on port 3000, so the build never touches `.next`. It is skipped on Vercel/CI. `ALLOW_BUILD_WITH_DEV_SERVER=1` overrides it; only use that when the user says so. Always build via `npm run build` (not `npx next build`, which skips the hook).
 
 ## Tech Stack (DO NOT change versions without asking)
 
