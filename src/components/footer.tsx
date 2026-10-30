@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import Image from 'next/image'
+import Logo from '@/components/Logo'
 import { MapPin, Mail, Phone, Linkedin } from 'lucide-react'
 import { useState } from 'react'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
@@ -125,12 +125,8 @@ export default function Footer() {
           
           {/* Company Info */}
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-3 mb-6">
-              <Image src="/logo.png" alt="Infoishai" width={48} height={48} className="w-12 h-12 rounded-2xl shadow-lg" />
-              <div>
-                <span className="font-bold text-xl text-white">Infoishai</span>
-                <p className="text-xs text-white/60">AI Influencer Search</p>
-              </div>
+            <Link href="/" aria-label="Infoishai home" className="inline-flex items-center mb-6">
+              <Logo size="lg" tone="dark" />
             </Link>
             <p className="text-white/70 mb-6 leading-relaxed">
               Pakistan's leading AI-powered platform to discover and connect with top influencers and content creators. Free campaign management system included.

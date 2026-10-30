@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
-  Sparkles,
   ArrowLeft,
   ArrowRight,
   Mail,
@@ -23,6 +22,7 @@ import { trackSignupComplete, trackTrialStarted } from '@/lib/analytics'
 import { getReferralCode, setReferralCode, clearReferralCode } from '@/lib/referral-tracking'
 import ReferralBanner from '@/components/referral/ReferralBanner'
 import AvatarUpload from '@/components/AvatarUpload'
+import Logo from '@/components/Logo'
 
 type Step = 1 | 2 | 3
 
@@ -338,10 +338,7 @@ function CreatorSignupContent() {
         {/* Logo */}
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex items-center gap-2">
-            <div className="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-gray-900">Infoishai</span>
+            <Logo size="lg" />
           </Link>
         </div>
 

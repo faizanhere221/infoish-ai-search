@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { User, Search, Menu, X, Crown, Zap, Key, Mail, Settings, ChevronDown, Building, BarChart3, LogOut, Globe } from 'lucide-react'
+import Logo from '@/components/Logo'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
 
 interface UserProfile {
@@ -208,10 +209,7 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <Image src="/logo.png" alt="Infoishai" width={40} height={40} className="w-10 h-10 rounded-xl" />
-              <span className="text-xl font-bold text-gray-900">Infoishai</span>
-            </div>
+            <Logo size="lg" />
             <div className="animate-pulse bg-gray-200 rounded-full w-10 h-10"></div>
           </div>
         </div>
@@ -233,25 +231,8 @@ export default function Header({ isSearchPage: _isSearchPage = false }: HeaderPr
           <div className="flex items-center justify-between h-16">
             
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative">
-                <Image
-                  src="/logo.png"
-                  alt="Infoishai"
-                  width={40}
-                  height={40}
-                  className={`w-10 h-10 rounded-xl shadow-md transition-all duration-300 ${
-                    isScrolled ? 'shadow-lg' : 'group-hover:shadow-xl group-hover:scale-105'
-                  }`}
-                />
-                {user?.subscription_tier === 'pro' && (
-                  <Crown className="w-4 h-4 text-yellow-500 absolute -top-1 -right-1" />
-                )}
-              </div>
-              <div className="hidden sm:block">
-                <span className="block text-xl font-bold text-gray-900">Infoishai</span>
-                <p className="text-xs text-gray-500 -mt-0.5">AI Influencer Search</p>
-              </div>
+            <Link href="/" aria-label="Infoishai home" className="flex items-center">
+              <Logo size="lg" priority />
             </Link>
 
             {/* Desktop Navigation */}

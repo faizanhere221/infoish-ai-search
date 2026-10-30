@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, Mail, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react'
+import { Mail, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react'
+import Logo from '@/components/Logo'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -39,10 +40,7 @@ export default function ForgotPasswordPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <div className="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-gray-900">Infoishai</span>
+            <Logo size="lg" />
           </Link>
         </div>
 

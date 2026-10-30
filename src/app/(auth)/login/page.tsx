@@ -10,11 +10,11 @@ import {
   EyeOff,
   Loader2,
   AlertCircle,
-  ArrowRight,
-  Sparkles
+  ArrowRight
 } from 'lucide-react'
 import { validateEmail } from '@/utils/validateEmail'
 import { trackLogin, identifyUser } from '@/lib/analytics'
+import Logo from '@/components/Logo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -95,10 +95,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-violet-600 to-blue-600 p-12 flex-col justify-between">
         <div>
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white">Infoishai</span>
+            <Logo size="lg" tone="dark" />
           </Link>
         </div>
         
@@ -139,10 +136,7 @@ export default function LoginPage() {
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
             <Link href="/" className="inline-flex items-center gap-2">
-              <div className="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-gray-900">Infoishai</span>
+              <Logo size="lg" />
             </Link>
           </div>
 

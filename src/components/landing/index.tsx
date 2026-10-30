@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import Logo from '@/components/Logo'
 import NewsletterForm from '@/components/NewsletterForm'
 import ProfileDropdown, { type ProfileDropdownProfile } from '@/components/ProfileDropdown'
 import { COUNTRY_LANDING_PAGES, NICHES, PLATFORMS } from '@/utils/constants'
@@ -75,9 +76,8 @@ export function Navigation() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Infoishai" width={40} height={40} className="w-10 h-10 rounded-xl" />
-            <span className="text-xl font-bold text-gray-900">Infoishai</span>
+          <Link href="/" aria-label="Infoishai home" className="flex items-center">
+            <Logo priority />
           </Link>
 
           {/* Desktop Navigation */}
@@ -1256,9 +1256,8 @@ export function Footer() {
         <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <Image src="/logo.png" alt="Infoishai" width={40} height={40} className="w-10 h-10 rounded-xl" />
-              <span className="text-xl font-bold text-white">Infoishai</span>
+            <Link href="/" aria-label="Infoishai home" className="inline-flex items-center mb-4">
+              <Logo size="lg" tone="dark" />
             </Link>
             <p className="text-sm mb-4 max-w-xs">
               A tech influencer marketplace connecting AI, SaaS, and tech brands with verified content creators.

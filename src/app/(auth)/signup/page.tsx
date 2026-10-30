@@ -4,13 +4,13 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { 
-  Sparkles, 
   Users, 
   Building2,
   CheckCircle,
   ArrowRight,
   ArrowLeft
 } from 'lucide-react'
+import Logo from '@/components/Logo'
 
 type UserType = 'creator' | 'brand' | null
 
@@ -32,10 +32,7 @@ export default function SignupPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <div className="w-12 h-12 bg-violet-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-7 h-7 text-white" />
-            </div>
-            <span className="text-3xl font-bold text-gray-900">Infoishai</span>
+            <Logo size="lg" />
           </Link>
         </div>
 

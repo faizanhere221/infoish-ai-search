@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import Logo from './Logo'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   MessageSquare,
@@ -199,9 +199,8 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
         <div className="flex items-center justify-between h-16">
           {/* Logo & Nav */}
           <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2">
-              <Image src="/logo.png" alt="Infoishai" width={32} height={32} className="w-8 h-8 rounded-lg" />
-              <span className="text-xl font-bold text-gray-900">Infoishai</span>
+            <Link href="/" aria-label="Infoishai home" className="flex items-center">
+              <Logo />
             </Link>
 
             {/* Desktop Navigation */}

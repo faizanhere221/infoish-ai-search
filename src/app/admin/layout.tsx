@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 import {
   LayoutDashboard, Users, UserSquare, Building2, Handshake,
-  FileText, Mail, LogOut, Menu, X, Shield,
+  FileText, Mail, LogOut, Menu, X,
   Activity, BarChart2, Search, ChevronDown, Settings, UserCog, Share2,
   Wallet, ClipboardList, FileSignature, Flag,
 } from 'lucide-react'
@@ -309,9 +310,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className={`${collapsed ? 'w-16' : 'w-60'} flex-shrink-0 bg-slate-900 border-r border-slate-800 flex flex-col transition-all duration-200`}>
         {/* Brand */}
         <div className="h-16 flex items-center gap-3 px-4 border-b border-slate-800">
-          <div className="flex-shrink-0 w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
-            <Shield className="w-4 h-4 text-white" />
-          </div>
+          <Logo variant="mark" className="flex-shrink-0" />
           {!collapsed && <span className="font-semibold text-sm text-white tracking-wide truncate">Admin Panel</span>}
         </div>
 

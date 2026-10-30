@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { ExternalLink, Loader2, ShieldX } from 'lucide-react'
+import Logo from '@/components/Logo'
 import { CAMPAIGN_CREATOR_STATUS_LABELS, type CampaignCreatorStatus } from '@/types/campaigns'
 import { formatMoney } from '@/components/campaigns/utils'
 
@@ -101,8 +102,7 @@ export default function SharePage() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-2">
-          <Image src="/logo.png" alt="Infoishai" width={28} height={28} className="rounded-lg" />
-          <span className="font-bold text-gray-900">Infoishai</span>
+          <Logo size="sm" />
         </div>
       </header>
 

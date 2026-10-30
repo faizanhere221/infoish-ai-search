@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { 
-  Sparkles, 
   LayoutDashboard, 
   MessageSquare, 
   FileText, 
@@ -20,6 +19,7 @@ import {
   Search,
   CreditCard
 } from 'lucide-react'
+import Logo from '@/components/Logo'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -92,10 +92,7 @@ export default function DashboardLayout({
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-100">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-gradient-to-r from-blue-600 to-violet-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">Infoishai</span>
+            <Logo size="sm" />
           </Link>
           <button 
             onClick={() => setSidebarOpen(false)}

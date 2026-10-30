@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2, Printer, ShieldX } from 'lucide-react'
+import Logo from '@/components/Logo'
 import { formatDate } from '@/components/campaigns/utils'
 
 interface ContractData {
@@ -98,6 +99,7 @@ export default function ContractPage() {
         </div>
 
         <div className="bg-white border border-gray-200 rounded-xl print:border-0 print:rounded-none p-8 print:p-0">
+          <Logo size="sm" className="mb-6" />
           <div className="flex items-start justify-between mb-6 pb-6 border-b border-gray-200">
             <div>
               <h1 className="text-xl font-bold text-gray-900">Creator content agreement</h1>
