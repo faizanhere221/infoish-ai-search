@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { CheckCircle, Clock, AlertCircle, Share2 } from 'lucide-react'
+import { CheckCircle, Clock, AlertCircle, ExternalLink, Share2 } from 'lucide-react'
 import ProfileCompletionCard from '@/components/dashboard/ProfileCompletionCard'
 import DashboardStats from '@/components/dashboard/DashboardStats'
 import CreatorPlatforms from '@/components/dashboard/CreatorPlatforms'
@@ -187,8 +187,16 @@ export default function CreatorDashboard() {
               href={`/creators/${profile.username}`}
               className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-lg text-sm font-medium hover:from-violet-700 hover:to-blue-700"
             >
-              <Share2 className="w-4 h-4" />
+              <ExternalLink className="w-4 h-4" />
               View Public Profile
+            </Link>
+            {/* Always goes to the Share tab: an incomplete profile sees the checklist there. */}
+            <Link
+              href="/settings?tab=share"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-violet-200 text-violet-700 rounded-lg text-sm font-medium hover:bg-violet-50 hover:border-violet-300"
+            >
+              <Share2 className="w-4 h-4" />
+              Share your profile
             </Link>
           </div>
         </div>
