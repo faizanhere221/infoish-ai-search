@@ -29,6 +29,7 @@ import {
   loadCreatorWelcome,
   type FounderAudience,
 } from './creator'
+import { SAMPLE_BRAND_WELCOME, brandSignupNotice, brandWelcomeTemplate, getBrandWelcomeAudience, loadBrandWelcome } from './brand'
 
 export { FOUNDER_EMAIL_KINDS, type FounderEmailKind, type FounderEmailRow } from './core'
 
@@ -40,9 +41,13 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 const MANAGE_SETTINGS_URL = `${APP_URL}/settings?tab=notifications`
 // A row stuck in 'sending' this long means its sender died mid-send.
 const STALE_CLAIM_MS = 60 * 60 * 1000
+// The cron leaves a just-queued brand row alone for this long, so a brand
+// still on the signup form gets the email with their company details.
+const BRAND_PROFILE_GRACE_MS = 10 * 60 * 1000
 
 const TEMPLATE_NAMES: Record<FounderEmailKind, string> = {
   creator_welcome: 'founder_creator_welcome',
+  brand_welcome: 'founder_brand_welcome',
 }
 
 type BuiltEmail = { subject: string; html: string; text: string }
@@ -62,6 +67,10 @@ async function buildForUser(
       const creator = await loadCreatorWelcome(supabase, userId, await getCreatorFollowerThreshold(supabase))
       return creator ? creatorWelcomeTemplate(creator.data, sender, footer) : null
     }
+    case 'brand_welcome': {
+      const brand = await loadBrandWelcome(supabase, userId)
+      return brand ? brandWelcomeTemplate(brand, sender, footer) : null
+    }
   }
 }
 
@@ -72,6 +81,10 @@ async function noticeFor(supabase: Supabase, kind: FounderEmailKind, userId: str
       const creator = await loadCreatorWelcome(supabase, userId, threshold)
       return creator ? creatorQualifiedNotice(creator.data, threshold) : null
     }
+    case 'brand_welcome': {
+      const brand = await loadBrandWelcome(supabase, userId)
+      return brand ? brandSignupNotice(brand, userId) : null
+    }
   }
 }
 
@@ -81,6 +94,8 @@ function sampleEmail(kind: FounderEmailKind, unsubscribeUrl: string): BuiltEmail
   switch (kind) {
     case 'creator_welcome':
       return creatorWelcomeTemplate(SAMPLE_CREATOR_WELCOME, sender, footer)
+    case 'brand_welcome':
+      return brandWelcomeTemplate(SAMPLE_BRAND_WELCOME, sender, footer)
   }
 }
 
@@ -194,6 +209,23 @@ export async function onCreatorProfileSaved(supabase: Supabase, userId: string |
   }
 }
 
+// Called right after a brand account is created. Only queues: the signup
+// form saves the company profile next, and onBrandProfileCreated sends
+// then, with the company details in the email. Never throws.
+export async function onBrandRegistered(supabase: Supabase, userId: string): Promise<void> {
+  try {
+    await enqueueFounderEmail(supabase, userId, 'brand_welcome', 'trigger')
+  } catch (error) {
+    if (!isMissingTable(error)) {captureError(error, { context: 'onBrandRegistered', userId })}
+  }
+}
+
+// Called after a brand saves its company profile for the first time: sends
+// the founder the signup notice and the brand its welcome. Never throws.
+export async function onBrandProfileCreated(supabase: Supabase, userId: string): Promise<void> {
+  await processFounderEmail(supabase, userId, 'brand_welcome')
+}
+
 // The daily-summary cron's pass over the queue: rows deferred by the quota,
 // rows whose last attempt failed, and claims left behind by a sender that
 // died mid-send. Stops once today's quota is spent.
@@ -214,13 +246,15 @@ export async function processPendingFounderEmails(supabase: Supabase): Promise<R
 
     const { data: pending, error } = await supabase
       .from('founder_emails')
-      .select('user_id, kind')
+      .select('user_id, kind, queued_at')
       .eq('status', 'pending')
       .order('queued_at', { ascending: true })
       .limit(200)
     if (error) {throw error}
 
+    const graceCutoff = Date.now() - BRAND_PROFILE_GRACE_MS
     for (const row of pending ?? []) {
+      if (row.kind === 'brand_welcome' && new Date(row.queued_at).getTime() > graceCutoff) {continue}
       const result = await processFounderEmail(supabase, row.user_id, row.kind as FounderEmailKind)
       counts[result] += 1
       if (result === 'deferred') {break}
@@ -236,6 +270,8 @@ export async function getFounderAudience(supabase: Supabase, kind: FounderEmailK
   switch (kind) {
     case 'creator_welcome':
       return getCreatorWelcomeAudience(supabase)
+    case 'brand_welcome':
+      return getBrandWelcomeAudience(supabase)
   }
 }
 

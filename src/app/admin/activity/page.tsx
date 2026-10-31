@@ -59,6 +59,7 @@ const ACTION_META: Record<string, { color: string; icon: string }> = {
   newsletter_subscriber_deleted: { color: 'bg-red-500/20 text-red-400',       icon: '🗑' },
   settings_updated:             { color: 'bg-cyan-500/20 text-cyan-400',      icon: '✎' },
   founder_creator_qualified:    { color: 'bg-pink-500/20 text-pink-400',      icon: '★' },
+  founder_brand_signup:         { color: 'bg-pink-500/20 text-pink-400',      icon: '+' },
   founder_emails_backfilled:    { color: 'bg-violet-500/20 text-violet-400',  icon: '✉' },
   founder_email_test_sent:      { color: 'bg-slate-500/20 text-slate-400',    icon: '✉' },
   founder_contacted_marked:     { color: 'bg-cyan-500/20 text-cyan-400',      icon: '✓' },

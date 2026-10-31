@@ -15,6 +15,10 @@ export interface LayoutParams {
   bodyText: string // plain-text equivalent of bodyHtml
   buttonLabel?: string
   buttonUrl?: string
+  // Optional closing paragraphs below the button (e.g. a sign-off), with
+  // their plain-text equivalent.
+  afterButtonHtml?: string
+  afterButtonText?: string
   // Omit for security emails (welcome/verify/reset) — those aren't
   // unsubscribable and carry no footer links besides "visit Infoishai".
   footerLinks?: { manageSettingsUrl: string; unsubscribeUrl: string }
@@ -65,6 +69,9 @@ export function renderLayout(params: LayoutParams): { html: string; text: string
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
             ${button}
           </table>
+          ${params.afterButtonHtml ? `<tr>
+            <td style="padding: 0 32px 8px 32px;">${params.afterButtonHtml}</td>
+          </tr>` : ''}
           <tr>
             <td style="padding: 24px 32px 32px 32px; border-top: 1px solid #f3f4f6;">
               <p style="margin: 16px 0 0 0; font-size: 12px; color: #9ca3af;">
@@ -85,7 +92,7 @@ export function renderLayout(params: LayoutParams): { html: string; text: string
 
   const text = `${params.heading}\n\n${params.bodyText}${
     params.buttonUrl ? `\n\n${params.buttonLabel}: ${params.buttonUrl}` : ''
-  }\n\n---\n${textFooter}`
+  }${params.afterButtonText ? `\n\n${params.afterButtonText}` : ''}\n\n---\n${textFooter}`
 
   return { html, text }
 }

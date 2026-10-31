@@ -19,6 +19,7 @@ interface FounderEmailState {
 
 const KIND_LABELS: Record<string, string> = {
   creator_welcome: 'Creator welcome',
+  brand_welcome: 'Brand welcome',
 }
 
 const STATUS_STYLES: Record<string, string> = {

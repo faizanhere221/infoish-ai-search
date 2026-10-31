@@ -10,6 +10,7 @@ import { sendEmail } from '@/lib/email/send'
 import { welcomeEmail } from '@/lib/email/templates/welcome'
 import { verifyEmailTemplate } from '@/lib/email/templates/verifyEmail'
 import { generateToken, hashToken } from '@/lib/email/tokens'
+import { onBrandRegistered } from '@/lib/founder-emails'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -133,20 +134,26 @@ export async function POST(request: NextRequest) {
 
     // Welcome + verification emails are fire-and-forget — a failure here
     // must never turn into a failed registration (the account already
-    // exists at this point).
+    // exists at this point). Brands get the founder welcome instead of the
+    // generic one: queued here, sent once the company profile is saved
+    // (src/lib/founder-emails).
     try {
-      const welcome = welcomeEmail(user_type)
-      await sendEmail({
-        to: user.email,
-        subject: welcome.subject,
-        html: welcome.html,
-        text: welcome.text,
-        category: 'security',
-        template: `welcome_${user_type}`,
-        idempotencyKey: `welcome:${user.id}`,
-        userId: user.id,
-        deferrable: false,
-      })
+      if (user_type === 'brand') {
+        await onBrandRegistered(supabase, user.id)
+      } else {
+        const welcome = welcomeEmail('creator')
+        await sendEmail({
+          to: user.email,
+          subject: welcome.subject,
+          html: welcome.html,
+          text: welcome.text,
+          category: 'security',
+          template: 'welcome_creator',
+          idempotencyKey: `welcome:${user.id}`,
+          userId: user.id,
+          deferrable: false,
+        })
+      }
 
       const rawToken = generateToken()
       const { error: tokenError } = await supabase.from('email_verification_tokens').insert({

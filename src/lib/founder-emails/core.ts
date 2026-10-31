@@ -14,8 +14,8 @@ import { renderLayout, paragraph, escapeHtml } from '@/lib/email/templates/layou
 
 export type Supabase = ReturnType<typeof createServerSupabase>
 
-export type FounderEmailKind = 'creator_welcome'
-export const FOUNDER_EMAIL_KINDS: FounderEmailKind[] = ['creator_welcome']
+export type FounderEmailKind = 'creator_welcome' | 'brand_welcome'
+export const FOUNDER_EMAIL_KINDS: FounderEmailKind[] = ['creator_welcome', 'brand_welcome']
 
 export type FounderEmailStatus = 'pending' | 'sending' | 'sent' | 'failed' | 'skipped'
 

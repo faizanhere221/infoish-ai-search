@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { z } from 'zod'
+import { onBrandProfileCreated } from '@/lib/founder-emails'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -118,6 +119,9 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    // Founder welcome (queued at signup) goes out now, with the company details.
+    await onBrandProfileCreated(supabase, user_id)
 
     return NextResponse.json({
       message: 'Brand profile created successfully',

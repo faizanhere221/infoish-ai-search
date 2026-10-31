@@ -11,6 +11,7 @@ export const fetchCache = 'force-no-store'
 // Which founder email an account type gets.
 const KIND_BY_USER_TYPE: Partial<Record<string, FounderEmailKind>> = {
   creator: 'creator_welcome',
+  brand: 'brand_welcome',
 }
 
 const ContactedSchema = z.object({ contacted: z.boolean() })

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
+import { FounderEmailPanel } from '@/components/admin/FounderEmailPanel'
 import { formatDate as formatDateUTC } from '@/lib/format-date'
 import {
   Search, Download, ChevronUp, ChevronDown, ChevronsUpDown,
@@ -501,6 +502,8 @@ export default function AdminBrandsPage() {
                         ))}
                       </div>
                     </section>
+
+                    <FounderEmailPanel userId={b.user_id} />
 
                     {modalDetail.deals.length > 0 && (
                       <section>

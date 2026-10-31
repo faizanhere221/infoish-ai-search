@@ -29,6 +29,13 @@ const KINDS: KindConfig[] = [
     sendLabel: 'Send to qualifying creators',
     audienceNoun: 'creators',
   },
+  {
+    kind: 'brand_welcome',
+    title: 'Brand welcome',
+    description: 'Sent when a brand signs up, with a free strategy call link. "Send" reaches brands who signed up before this email existed.',
+    sendLabel: 'Send to existing brands',
+    audienceNoun: 'brands',
+  },
 ]
 
 // Founder emails on /admin/email: per email, a count preview before the
