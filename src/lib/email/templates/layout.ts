@@ -4,7 +4,6 @@
 // CTA button, and a plain-text version alongside every HTML one.
 
 const BRAND_PINK = '#de5688'
-const BRAND_PURPLE = '#b153c8'
 const DARK_BG = '#1A1A2E'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://infoishai.com'
 
@@ -25,16 +24,8 @@ export interface LayoutParams {
 }
 
 export function renderLayout(params: LayoutParams): { html: string; text: string } {
-  const button = params.buttonUrl && params.buttonLabel
-    ? `
-      <tr>
-        <td align="center" style="padding: 8px 0 24px 0;">
-          <a href="${params.buttonUrl}" style="display: inline-block; padding: 12px 28px; background: linear-gradient(90deg, ${BRAND_PINK}, ${BRAND_PURPLE}); color: #ffffff; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 10px;">
-            ${params.buttonLabel}
-          </a>
-        </td>
-      </tr>`
-    : ''
+  const hasButton = !!(params.buttonUrl && params.buttonLabel)
+  const button = hasButton ? renderButtonRow(params.buttonLabel as string, params.buttonUrl as string) : ''
 
   const footerLinksHtml = params.footerLinks
     ? `<a href="${params.footerLinks.manageSettingsUrl}" style="color: #9ca3af; text-decoration: underline;">Manage email settings</a>
@@ -66,9 +57,7 @@ export function renderLayout(params: LayoutParams): { html: string; text: string
               ${params.bodyHtml}
             </td>
           </tr>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-            ${button}
-          </table>
+          ${button}
           ${params.afterButtonHtml ? `<tr>
             <td style="padding: 0 32px 8px 32px;">${params.afterButtonHtml}</td>
           </tr>` : ''}
@@ -91,10 +80,35 @@ export function renderLayout(params: LayoutParams): { html: string; text: string
     : APP_URL
 
   const text = `${params.heading}\n\n${params.bodyText}${
-    params.buttonUrl ? `\n\n${params.buttonLabel}: ${params.buttonUrl}` : ''
+    hasButton ? `\n\n${params.buttonLabel}: ${params.buttonUrl}` : ''
   }${params.afterButtonText ? `\n\n${params.afterButtonText}` : ''}\n\n---\n${textFooter}`
 
   return { html, text }
+}
+
+// "Bulletproof" button: a nested table whose cell carries the solid color as
+// both the bgcolor attribute and inline background-color, so it shows even
+// where clients strip CSS backgrounds (Outlook) or gradients (Gmail). It is a
+// full <tr><td> row of the card table; a bare <table> between card rows is
+// invalid markup, and clients move it outside the card. The plain link below
+// it works even when the button doesn't render at all.
+function renderButtonRow(label: string, url: string): string {
+  const href = escapeHtml(url)
+  return `<tr>
+            <td align="center" style="padding: 8px 32px 24px 32px;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                <tr>
+                  <td align="center" bgcolor="${BRAND_PINK}" style="background-color: ${BRAND_PINK}; border-radius: 10px; padding: 12px 28px;">
+                    <a href="${href}" target="_blank" style="color: #ffffff; text-decoration: none; font-weight: 600; font-size: 15px; line-height: 20px; display: inline-block;">${label}</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 16px 0 0 0; font-size: 13px; line-height: 1.5; color: #6b7280; text-align: left;">
+                Or copy and paste this link:<br />
+                <a href="${href}" target="_blank" style="color: ${BRAND_PINK}; text-decoration: underline; word-break: break-all;">${href}</a>
+              </p>
+            </td>
+          </tr>`
 }
 
 export function paragraph(text: string): string {
