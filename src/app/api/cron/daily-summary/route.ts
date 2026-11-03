@@ -119,7 +119,18 @@ export async function GET(request: NextRequest) {
     // summaries, with whatever quota is left.
     const founderEmails = await processPendingFounderEmails(supabase)
 
-    return NextResponse.json({ usersConsidered: userIdsToProcess.length, summariesSent: sent, founderEmails })
+    // Outreach leads followed up 7+ days ago with no reply → no_reply. Runs
+    // here because Vercel Hobby allows one daily cron. A failure is reported
+    // but doesn't fail the summary run.
+    let outreachNoReply: number | null = null
+    const { data: noReplyCount, error: noReplyError } = await supabase.rpc('outreach_mark_no_reply')
+    if (noReplyError) {
+      captureError(noReplyError, { route: 'GET /api/cron/daily-summary', step: 'outreach_mark_no_reply' })
+    } else {
+      outreachNoReply = Number(noReplyCount ?? 0)
+    }
+
+    return NextResponse.json({ usersConsidered: userIdsToProcess.length, summariesSent: sent, founderEmails, outreachNoReply })
   } catch (error) {
     captureError(error, { route: 'GET /api/cron/daily-summary' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

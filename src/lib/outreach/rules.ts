@@ -1,0 +1,572 @@
+// Pure outreach rules: no imports, no I/O. Shared by the API routes, the
+// admin UI (import preview) and scripts/outreach-check.mjs, which imports
+// this file directly with Node's built-in TypeScript type stripping. Keep it
+// to erasable TS syntax (no enums, no namespaces, no parameter properties)
+// and no imports, or that script stops working.
+//
+// Normalisation and the mailbox limit mirror the SQL functions in
+// supabase/outreach_migration.sql. The database is the source of truth;
+// these exist so the import preview agrees with what the DB will do.
+
+export const TIME_ZONE = 'Asia/Karachi'
+// Asia/Karachi is UTC+5 all year (no DST), which keeps day maths simple.
+const KARACHI_OFFSET_MS = 5 * 60 * 60 * 1000
+
+export const LEAD_TYPES = ['creator', 'brand'] as const
+export type LeadType = (typeof LEAD_TYPES)[number]
+
+export const CHANNELS = ['email', 'linkedin', 'x', 'instagram', 'tiktok'] as const
+export type Channel = (typeof CHANNELS)[number]
+export const DM_CHANNELS: Channel[] = ['linkedin', 'x', 'instagram', 'tiktok']
+
+export const CREATOR_STATUSES = [
+  'found', 'contacted', 'followed_up', 'replied', 'signed_up',
+  'not_interested', 'no_reply', 'bounced', 'opted_out',
+] as const
+export const BRAND_STATUSES = [
+  'found', 'contacted', 'followed_up', 'replied', 'call_booked', 'won',
+  'not_interested', 'no_reply', 'bounced', 'opted_out',
+] as const
+export const END_STATUSES = ['not_interested', 'no_reply', 'bounced', 'opted_out'] as const
+
+export const CREATOR_ACTIONS = [
+  'contacted', 'followed_up', 'replied', 'signed_up', 'not_interested', 'bounced', 'opted_out',
+] as const
+export const BRAND_ACTIONS = [
+  'contacted', 'followed_up', 'replied', 'call_booked', 'won', 'not_interested', 'bounced', 'opted_out',
+] as const
+export type LeadAction = (typeof CREATOR_ACTIONS)[number] | (typeof BRAND_ACTIONS)[number]
+
+export const DNC_KEY_TYPES = ['email', 'domain', 'profile_url'] as const
+export type DncKeyType = (typeof DNC_KEY_TYPES)[number]
+export const DNC_REASONS = ['opted_out', 'bounced', 'removal_request', 'competitor', 'other'] as const
+
+export const STATUS_LABELS: Record<string, string> = {
+  found: 'Found',
+  contacted: 'Contacted',
+  followed_up: 'Followed up',
+  replied: 'Replied',
+  signed_up: 'Signed up',
+  call_booked: 'Call booked',
+  won: 'Won',
+  not_interested: 'Not interested',
+  no_reply: 'No reply',
+  bounced: 'Bounced',
+  opted_out: 'Opted out',
+}
+
+export const CHANNEL_LABELS: Record<Channel, string> = {
+  email: 'Email',
+  linkedin: 'LinkedIn',
+  x: 'X',
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+}
+
+export const FOLLOW_UP_AFTER_DAYS = 4
+export const NO_REPLY_AFTER_DAYS = 7
+export const UNDO_WINDOW_MS = 10 * 60 * 1000
+export const IMPORT_MAX_ROWS = 5000
+export const MAILBOX_MAX_LIMIT = 40
+export const PERSONAL_MAILBOX_DEFAULT_LIMIT = 30
+export const MAILBOX_WARN_RATIO = 0.8
+export const BOUNCE_RATE_FLAG = 0.03
+export const OWNER_RULE_SUBSCRIBERS = 100_000
+
+// ─── Normalisation ───────────────────────────────────────────────────────────
+
+function clean(v: unknown): string {
+  return typeof v === 'string' ? v.trim().toLowerCase() : ''
+}
+
+export function normalizeEmail(v: unknown): string | null {
+  const s = clean(v).replace(/^mailto:/, '')
+  return s || null
+}
+
+// lowercase, trim, no protocol, no www., no query/fragment, no trailing slash
+export function normalizeUrl(v: unknown): string | null {
+  const s = clean(v)
+    .replace(/^[a-z][a-z0-9+.-]*:\/\//, '')
+    .replace(/^www\./, '')
+    .replace(/[?#].*$/, '')
+    .replace(/\/+$/, '')
+  return s || null
+}
+
+export function normalizeDomain(v: unknown): string | null {
+  const url = normalizeUrl(v)
+  if (!url) {return null}
+  const host = url.split('/')[0].replace(/:[0-9]+$/, '')
+  return host || null
+}
+
+export function emailDomain(emailNorm: string | null): string | null {
+  if (!emailNorm) {return null}
+  const at = emailNorm.lastIndexOf('@')
+  return at === -1 ? null : emailNorm.slice(at + 1) || null
+}
+
+export interface LeadKey {
+  type: 'email' | 'profile_url' | 'domain'
+  value: string
+}
+
+// The keys a lead claims in outreach_keys (duplicate detection).
+export function leadKeys(
+  leadType: LeadType,
+  lead: { email?: unknown; profile_url?: unknown; domain?: unknown; website?: unknown },
+): LeadKey[] {
+  const keys: LeadKey[] = []
+  const email = normalizeEmail(lead.email)
+  if (email) {keys.push({ type: 'email', value: email })}
+  if (leadType === 'creator') {
+    const url = normalizeUrl(lead.profile_url)
+    if (url) {keys.push({ type: 'profile_url', value: url })}
+  } else {
+    const rawDomain = typeof lead.domain === 'string' && lead.domain.trim() ? lead.domain : lead.website
+    const domain = normalizeDomain(rawDomain)
+    if (domain) {keys.push({ type: 'domain', value: domain })}
+  }
+  return keys
+}
+
+// Keys checked against the DNC list: the lead's own keys plus its email's
+// domain (a DNC domain entry blocks every address at that domain).
+export function dncKeys(leadType: LeadType, lead: Parameters<typeof leadKeys>[1]): LeadKey[] {
+  const keys = leadKeys(leadType, lead)
+  const domain = emailDomain(normalizeEmail(lead.email))
+  if (domain && !keys.some((k) => k.type === 'domain' && k.value === domain)) {
+    keys.push({ type: 'domain', value: domain })
+  }
+  return keys
+}
+
+export function normalizeDncValue(type: DncKeyType, v: unknown): string | null {
+  if (type === 'email') {return normalizeEmail(v)}
+  if (type === 'domain') {return normalizeDomain(v)}
+  return normalizeUrl(v)
+}
+
+// ─── Dates (Asia/Karachi) ────────────────────────────────────────────────────
+
+// YYYY-MM-DD for the Karachi calendar day containing `now`.
+export function karachiToday(now: Date = new Date()): string {
+  return new Date(now.getTime() + KARACHI_OFFSET_MS).toISOString().slice(0, 10)
+}
+
+// The UTC instant a Karachi calendar day starts.
+export function karachiDayStart(day: string): Date {
+  return new Date(Date.parse(`${day}T00:00:00Z`) - KARACHI_OFFSET_MS)
+}
+
+export function addDays(day: string, days: number): string {
+  const d = new Date(`${day}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+export function daysBetween(from: string, to: string): number {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000)
+}
+
+// 0 = Sunday … 6 = Saturday
+export function weekday(day: string): number {
+  return new Date(`${day}T00:00:00Z`).getUTCDay()
+}
+
+// Monday of the week containing `day`.
+export function weekStart(day: string): string {
+  const wd = weekday(day)
+  return addDays(day, wd === 0 ? -6 : 1 - wd)
+}
+
+export function monthStart(day: string): string {
+  return `${day.slice(0, 7)}-01`
+}
+
+export function monthEnd(day: string): string {
+  const d = new Date(`${monthStart(day)}T00:00:00Z`)
+  d.setUTCMonth(d.getUTCMonth() + 1)
+  d.setUTCDate(0)
+  return d.toISOString().slice(0, 10)
+}
+
+export function followUpDate(dateContacted: string): string {
+  return addDays(dateContacted, FOLLOW_UP_AFTER_DAYS)
+}
+
+export function noReplyDate(followedUpDate: string): string {
+  return addDays(followedUpDate, NO_REPLY_AFTER_DAYS)
+}
+
+export function isWorkingDay(day: string, worksSaturday: boolean): boolean {
+  const wd = weekday(day)
+  if (wd === 0) {return false}
+  if (wd === 6) {return worksSaturday}
+  return true
+}
+
+// Working days in [from, to], both inclusive.
+export function workingDaysBetween(from: string, to: string, worksSaturday: boolean): number {
+  let n = 0
+  for (let d = from; d <= to; d = addDays(d, 1)) {
+    if (isWorkingDay(d, worksSaturday)) {n += 1}
+  }
+  return n
+}
+
+export interface Pace {
+  target: number
+  done: number
+  workingDaysTotal: number
+  workingDaysLeft: number // including today
+  expectedByNow: number // target share of working days already finished
+  perDayNeeded: number
+  onTrack: boolean
+}
+
+// Month pace for one person. "Expected by now" counts working days before
+// today, so nobody is "behind" at 9am for sends they haven't had a day for.
+export function monthPace(target: number, done: number, today: string, worksSaturday: boolean): Pace {
+  const start = monthStart(today)
+  const end = monthEnd(today)
+  const total = workingDaysBetween(start, end, worksSaturday)
+  const left = workingDaysBetween(today, end, worksSaturday)
+  const elapsed = total - left
+  const expected = total > 0 ? Math.round((target * elapsed) / total) : 0
+  const remaining = Math.max(target - done, 0)
+  return {
+    target,
+    done,
+    workingDaysTotal: total,
+    workingDaysLeft: left,
+    expectedByNow: expected,
+    perDayNeeded: left > 0 ? Math.ceil(remaining / left) : remaining,
+    onTrack: done >= expected,
+  }
+}
+
+// ─── Mailboxes ───────────────────────────────────────────────────────────────
+
+export interface MailboxLimitInput {
+  start_date: string
+  is_personal: boolean
+  custom_limit: number | null
+}
+
+// Week 1 = 10/day, week 2 = 15, week 3 = 25, week 4+ = 30. A custom limit
+// (max 40) replaces the schedule. Personal mailboxes have no warm-up:
+// custom limit, or 30.
+export function mailboxDailyLimit(mb: MailboxLimitInput, today: string): number {
+  if (mb.custom_limit !== null && mb.custom_limit !== undefined) {
+    return Math.min(mb.custom_limit, MAILBOX_MAX_LIMIT)
+  }
+  if (mb.is_personal) {return PERSONAL_MAILBOX_DEFAULT_LIMIT}
+  const age = daysBetween(mb.start_date, today)
+  if (age < 7) {return 10}
+  if (age < 14) {return 15}
+  if (age < 21) {return 25}
+  return 30
+}
+
+export type MailboxState = 'ok' | 'warn' | 'full'
+
+export function mailboxState(sent: number, limit: number): MailboxState {
+  if (sent >= limit) {return 'full'}
+  if (sent >= Math.ceil(limit * MAILBOX_WARN_RATIO)) {return 'warn'}
+  return 'ok'
+}
+
+// ─── Owner rule ──────────────────────────────────────────────────────────────
+
+export interface OwnerRuleIds {
+  faizan: string | null
+  va: string | null
+}
+
+// Creators who do sponsorships or have 100K+ subscribers → Faizan, other
+// creators → VA, brands → Faizan.
+export function suggestOwner(
+  leadType: LeadType,
+  lead: { does_sponsorships?: boolean | null; subscribers?: number | null },
+  ids: OwnerRuleIds,
+): string | null {
+  if (leadType === 'brand') {return ids.faizan}
+  if (lead.does_sponsorships === true || (lead.subscribers ?? 0) >= OWNER_RULE_SUBSCRIBERS) {
+    return ids.faizan
+  }
+  return ids.va
+}
+
+// ─── Value parsing ───────────────────────────────────────────────────────────
+
+// "5,076" → 5076, "5k" → 5000, "1.2M" → 1200000, "12%" → 12. null if not a number.
+export function parseNumber(v: unknown): number | null {
+  if (typeof v === 'number') {return Number.isFinite(v) ? v : null}
+  if (typeof v !== 'string') {return null}
+  const s = v.trim().toLowerCase().replace(/[,\s%]/g, '')
+  if (!s) {return null}
+  const m = s.match(/^(-?\d+(?:\.\d+)?)([kmb])?$/)
+  if (!m) {return null}
+  const mult = m[2] === 'k' ? 1e3 : m[2] === 'm' ? 1e6 : m[2] === 'b' ? 1e9 : 1
+  return Number(m[1]) * mult
+}
+
+export function parseInteger(v: unknown): number | null {
+  const n = parseNumber(v)
+  return n === null ? null : Math.round(n)
+}
+
+export function parseBool(v: unknown): boolean | null {
+  if (typeof v === 'boolean') {return v}
+  if (typeof v !== 'string') {return null}
+  const s = v.trim().toLowerCase()
+  if (['yes', 'y', 'true', '1'].includes(s)) {return true}
+  if (['no', 'n', 'false', '0'].includes(s)) {return false}
+  return null
+}
+
+// ─── CSV ─────────────────────────────────────────────────────────────────────
+
+// RFC 4180: quoted fields, "" escapes, commas and newlines inside quotes,
+// CRLF or LF line endings, optional UTF-8 BOM. Blank lines are dropped.
+export function parseCsv(text: string): string[][] {
+  const rows: string[][] = []
+  let row: string[] = []
+  let field = ''
+  let inQuotes = false
+  let i = text.charCodeAt(0) === 0xfeff ? 1 : 0
+
+  for (; i < text.length; i++) {
+    const ch = text[i]
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          field += '"'
+          i++
+        } else {
+          inQuotes = false
+        }
+      } else {
+        field += ch
+      }
+      continue
+    }
+    if (ch === '"') {
+      inQuotes = true
+    } else if (ch === ',') {
+      row.push(field)
+      field = ''
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') {i++}
+      row.push(field)
+      if (row.some((f) => f !== '')) {rows.push(row)}
+      row = []
+      field = ''
+    } else {
+      field += ch
+    }
+  }
+  row.push(field)
+  if (row.some((f) => f !== '')) {rows.push(row)}
+  return rows
+}
+
+function csvCell(v: unknown): string {
+  if (v === null || v === undefined) {return ''}
+  let s = String(v)
+  // Spreadsheet formula injection: a leading =, +, - or @ runs as a formula
+  // when the export is opened in Excel/Sheets.
+  if (/^[=+\-@]/.test(s)) {s = `'${s}`}
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+}
+
+export function toCsv(headers: string[], rows: Record<string, unknown>[]): string {
+  return [headers.map(csvCell).join(','), ...rows.map((r) => headers.map((h) => csvCell(r[h])).join(','))].join('\r\n')
+}
+
+// ─── Import mapping ──────────────────────────────────────────────────────────
+
+export type ImportFileType = 'creators_new' | 'creators_review_new' | 'sponsor_brands_new' | 'yc_brands_new'
+
+export const IMPORT_FILE_TYPES: Record<ImportFileType, { leadType: LeadType; label: string }> = {
+  creators_new: { leadType: 'creator', label: 'Creators (new)' },
+  creators_review_new: { leadType: 'creator', label: 'Creators (review)' },
+  sponsor_brands_new: { leadType: 'brand', label: 'Sponsor brands' },
+  yc_brands_new: { leadType: 'brand', label: 'YC brands' },
+}
+
+// Longest prefix first, so creators_review_new_ wins over creators_.
+export function detectFileType(fileName: string): ImportFileType | null {
+  const base = fileName.split(/[\\/]/).pop()?.toLowerCase() ?? ''
+  if (!base.endsWith('.csv')) {return null}
+  if (base.startsWith('creators_review_new_')) {return 'creators_review_new'}
+  if (base.startsWith('creators_new_')) {return 'creators_new'}
+  if (base.startsWith('sponsor_brands_new_')) {return 'sponsor_brands_new'}
+  if (base.startsWith('yc_brands_new_')) {return 'yc_brands_new'}
+  return null
+}
+
+// Lead fields an import can fill. 'notes' collects every column mapped to it
+// as "header: value" lines; '' means ignore the column.
+export const CREATOR_IMPORT_FIELDS = [
+  'name', 'platform', 'profile_url', 'country', 'niche', 'subscribers', 'avg_views',
+  'engagement_pct', 'does_sponsorships', 'sponsor_brands', 'email', 'instagram', 'x',
+  'linkedin', 'tiktok', 'website', 'notes',
+] as const
+export const BRAND_IMPORT_FIELDS = [
+  'company', 'website', 'domain', 'country', 'product', 'team_size', 'why_them', 'score',
+  'contact_name', 'role', 'email', 'linkedin', 'notes',
+] as const
+
+export type ImportMapping = Record<string, string> // CSV header → lead field ('' = ignore)
+
+// Header matchers per file type: exact names first, then prefixes, since the
+// sheets truncate some headers (channel_n…, sponsor_b…). The user can edit
+// every mapping in the import screen.
+const DEFAULT_MATCHERS: Record<LeadType, { field: string; exact?: string[]; prefix?: string[] }[]> = {
+  creator: [
+    { field: 'name', exact: ['name', 'channel_name', 'creator', 'creator_name'], prefix: ['channel_n'] },
+    { field: 'profile_url', exact: ['profile_url', 'channel_url', 'url'], prefix: ['channel_u'] },
+    { field: 'platform', exact: ['platform'] },
+    { field: 'country', exact: ['country'] },
+    { field: 'niche', exact: ['niche', 'category'] },
+    { field: 'subscribers', exact: ['subscribers', 'followers'], prefix: ['subscriber'] },
+    { field: 'avg_views', exact: ['avg_views', 'average_views'], prefix: ['avg_view'] },
+    { field: 'engagement_pct', exact: ['engagement_pct', 'engagement'], prefix: ['engagem'] },
+    { field: 'does_sponsorships', exact: ['does_sponsorships'], prefix: ['does_spo'] },
+    { field: 'sponsor_brands', exact: ['sponsor_brands'], prefix: ['sponsor_b'] },
+    { field: 'email', exact: ['email', 'email_address'] },
+    { field: 'instagram', exact: ['instagram'], prefix: ['instagr'] },
+    { field: 'x', exact: ['x', 'x_twitter', 'twitter'], prefix: ['x_tw'] },
+    { field: 'linkedin', exact: ['linkedin'] },
+    { field: 'tiktok', exact: ['tiktok'] },
+    { field: 'website', exact: ['website'], prefix: ['website'] },
+    {
+      field: 'notes',
+      exact: ['date_found', 'found_by', 'views_to_subs', 'days_since_last_upload', 'recent_video', 'recent_videos'],
+      prefix: ['views_to', 'days_sinc', 'uploads_', 'recent_vi', 'date_fou', 'found_b'],
+    },
+  ],
+  brand: [
+    { field: 'company', exact: ['company', 'name', 'company_name', 'sponsor_name', 'sponsor_label', 'brand'], prefix: ['sponsor_l', 'sponsor_n'] },
+    { field: 'website', exact: ['website', 'url'] },
+    { field: 'domain', exact: ['domain'] },
+    { field: 'country', exact: ['country'] },
+    { field: 'product', exact: ['product', 'one_liner', 'description'], prefix: ['one_lin'] },
+    { field: 'team_size', exact: ['team_size'], prefix: ['team_s'] },
+    { field: 'why_them', exact: ['why_them', 'evidence'] },
+    { field: 'score', exact: ['score'] },
+    { field: 'contact_name', exact: ['contact_name', 'contact'] },
+    { field: 'role', exact: ['role', 'title'] },
+    { field: 'email', exact: ['email'] },
+    { field: 'linkedin', exact: ['linkedin'] },
+    {
+      field: 'notes',
+      exact: ['batch', 'batch_year', 'locations', 'industry', 'tags', 'is_hiring', 'yc_url', 'creators', 'creators_count', 'first_seen'],
+      prefix: ['creators_c', 'example_', 'sponsors_', 'sponsor_c'],
+    },
+  ],
+}
+
+export function headerKey(h: string): string {
+  return h.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+}
+
+export function defaultMapping(leadType: LeadType, headers: string[]): ImportMapping {
+  const mapping: ImportMapping = {}
+  const taken = new Set<string>()
+  const matchers = DEFAULT_MATCHERS[leadType]
+  // Exact matches first across all headers, then prefixes, so a prefix never
+  // steals a field an exact header claims later in the row.
+  for (const pass of ['exact', 'prefix'] as const) {
+    for (const h of headers) {
+      if (mapping[h] !== undefined) {continue}
+      const key = headerKey(h)
+      const m = matchers.find((mm) =>
+        pass === 'exact' ? mm.exact?.includes(key) : mm.prefix?.some((p) => key.startsWith(p)),
+      )
+      if (!m) {continue}
+      if (m.field !== 'notes' && taken.has(m.field)) {continue}
+      mapping[h] = m.field
+      taken.add(m.field)
+    }
+  }
+  for (const h of headers) {
+    if (mapping[h] === undefined) {mapping[h] = ''}
+  }
+  return mapping
+}
+
+export type ImportLead = Record<string, string | number | boolean | null> & { _row: number }
+
+export interface MappedRow {
+  lead: ImportLead
+  errors: string[]
+}
+
+const NUMBER_FIELDS = new Set(['subscribers', 'avg_views', 'engagement_pct', 'score'])
+const INTEGER_FIELDS = new Set(['subscribers', 'avg_views'])
+const BOOL_FIELDS = new Set(['does_sponsorships'])
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// Turns one CSV row into a typed lead using the mapping. _row is the
+// 1-based line number in the file (header = line 1).
+export function mapRow(
+  leadType: LeadType,
+  headers: string[],
+  cells: string[],
+  mapping: ImportMapping,
+  rowNumber: number,
+  defaults: { platform?: string } = {},
+): MappedRow {
+  const lead: ImportLead = { _row: rowNumber }
+  const errors: string[] = []
+  const notes: string[] = []
+
+  headers.forEach((h, idx) => {
+    const field = mapping[h]
+    const raw = (cells[idx] ?? '').trim()
+    if (!field || !raw) {return}
+    if (field === 'notes') {
+      notes.push(`${h}: ${raw}`)
+      return
+    }
+    if (BOOL_FIELDS.has(field)) {
+      const b = parseBool(raw)
+      if (b === null) {errors.push(`${h}: "${raw}" is not Yes or No`)}
+      else {lead[field] = b}
+      return
+    }
+    if (NUMBER_FIELDS.has(field)) {
+      const n = INTEGER_FIELDS.has(field) ? parseInteger(raw) : parseNumber(raw)
+      if (n === null) {errors.push(`${h}: "${raw}" is not a number`)}
+      else {lead[field] = n}
+      return
+    }
+    lead[field] = raw
+  })
+
+  if (notes.length > 0) {lead.notes = notes.join('\n')}
+  if (leadType === 'creator' && !lead.platform && defaults.platform) {lead.platform = defaults.platform}
+
+  if (typeof lead.email === 'string') {
+    const e = normalizeEmail(lead.email)
+    if (!e || !EMAIL_RE.test(e)) {errors.push(`email: "${lead.email}" is not a valid address`)}
+  }
+
+  if (leadType === 'creator') {
+    if (!lead.name && !lead.profile_url) {errors.push('Needs a name or a profile URL')}
+    if (!lead.profile_url && !lead.email) {errors.push('Needs a profile URL or an email to check for duplicates')}
+  } else {
+    if (!lead.company && !lead.domain && !lead.website) {errors.push('Needs a company, domain or website')}
+    if (!lead.domain && !lead.website && !lead.email) {errors.push('Needs a domain, website or email to check for duplicates')}
+    if (!lead.company) {
+      const d = normalizeDomain(lead.domain ?? lead.website)
+      if (d) {lead.company = d}
+    }
+  }
+
+  return { lead, errors }
+}
