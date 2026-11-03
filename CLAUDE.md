@@ -30,6 +30,8 @@ Three standalone black-box scripts cover authorization, concurrency, and creator
 - `node scripts/race-check.mjs` — fires two concurrent requests at mark-paid/split to prove the DB-level locking actually prevents double-processing. **It writes data** — only ever point `RACE_PAYMENT_ID`/`RACE_SPLIT_PAYMENT_ID` at disposable test rows.
 - `node scripts/creator-profile-check.mjs --confirm=<username>` — saves every platform and a set of services through the same routes as `/settings`, reads them back via the owner and public APIs, covers input edge cases ("5,076", "5k", scheme-less URLs, `javascript:` URLs, removals), then restores the original data. **It writes data** — `TEST_CREATOR_TOKEN` must belong to a disposable test creator.
 
+`npm run test:outreach` (`scripts/outreach-check.mjs`) covers the outreach rules (normalisation, CSV mapping, owner rule, dates, mailbox limits) with no writes; add `--http --confirm=outreach-check` for its data-writing API checks.
+
 All three just make HTTP calls against `BASE_URL` (default `http://localhost:3000`) — run them against an already-running dev server, don't start a new one for them.
 
 **Never sign or mint JWTs with `JWT_SECRET`** (no `jwt.sign` in a scratch script, no forged admin/user tokens) to test an authenticated route, even locally. If a token in `.env.test.local` is missing or expired, stop and ask the user for a fresh one.
@@ -65,7 +67,7 @@ JWT-based, **NOT Supabase Auth**. Never use `supabase.auth.*` methods.
 1. `/api/auth/login` and `/api/auth/register` validate credentials against the `users` table, hash with bcrypt (cost 12), and issue JWTs using `jsonwebtoken`
 2. `src/middleware.ts` verifies JWTs using `jose` from either the `Authorization: Bearer` header or the `auth_token` cookie, then injects trusted `x-user-id`, `x-user-type`, `x-profile-id`, `x-user-role` headers. It strips any client-supplied versions of these headers first, so routes can trust them unconditionally.
 3. API routes read identity ONLY from these injected headers, never from request body or query params
-4. `/admin/*` page routes and `/api/admin/*` routes additionally require `role === 'admin' | 'super_admin'`
+4. `/admin/*` page routes and `/api/admin/*` routes additionally require `role === 'admin' | 'super_admin'`, or `'outreach'`, which middleware limits to `/admin/outreach/*` and `/api/admin/outreach/*` (see **Outreach** below). A token carrying `mustChangePassword` reaches only `/admin/change-password` and `POST /api/admin/account/password`.
 5. Client-side reads `localStorage` directly: `auth_token`, `auth_user`, `auth_profile`. **`src/hooks/useAuth.tsx` (`AuthProvider`/`useAuth`) is fully built but never mounted anywhere. Do not use it or assume it is wired up.**
 
 ### Data Layer
@@ -90,6 +92,23 @@ Once a creator is attached to a campaign (shortlisted by the brand or hired from
 - **"Whose turn is it":** `getNextStep(row, viewerType)` in `src/lib/campaign-creator-next-step.ts` is the ONE decision tree for this — used by the brand tracker table, the creator's campaign cards, and both dashboards' "Action needed" widgets (`ActionNeededWidget`, fed by `GET /api/dashboard/action-needed`). Don't reimplement this logic somewhere else; add a branch here instead.
 - **UI:** brand tracker at `/dashboard/campaigns/[id]/tracker` (table + `CampaignCreatorDrawer`, tabs: Offer/Contract/Deliverables/Payments/Activity — `src/components/campaigns/drawer/`). Creator's view at `/dashboard/my-campaigns/[id]`. Both read `?row=`/`?tab=` query params on load so deep links can open the right tab directly.
 
+### Outreach — manual creator/brand outreach tracking (/admin/outreach)
+
+Tracks outreach the team does by hand from Hostinger mailboxes, personal mailboxes and DMs. **It never sends anything.** Leads live in their own tables, never in users/creators/brands, and never reach public pages, the sitemap or any email. Migration: `supabase/outreach_migration.sql`.
+
+- **Role:** `role = 'outreach'` (`user_type = 'admin'`). Signs in only at `/admin/login` (`/api/auth/login` rejects it). Middleware restricts it to `/admin/outreach/*` + `/api/admin/outreach/*` + the change-password page/route: other admin pages redirect to `/admin/outreach`, other APIs return 403, user-area pages (`/dashboard`, `/settings`, `/messages`, `/notifications`) redirect. Optional-auth API routes treat it as logged out. Admin sessions are signed in one place, `src/lib/admin-session.ts`.
+- **Permissions inside the section** (`getOutreachCaller()` in `src/lib/outreach/server.ts`): outreach users view/edit every lead, log actions, import. Admins also delete leads, bulk-change owner/status, erase personal data, and manage mailboxes, targets and the DNC list. Super admins add team members (`/admin/outreach/team`), which creates a `users` row with a temporary password and `must_change_password = true`.
+- **Leads:** `outreach_creators` (`C-0001`) and `outreach_brands` (`B-0001`), ids from sequences via `outreach_format_lead_id()` (gaps after failed inserts are normal). Creator statuses `found → contacted → followed_up → replied → signed_up`; brand statuses `found → contacted → followed_up → replied → call_booked → won`; end states for both `not_interested, no_reply, bounced, opted_out`.
+- **No duplicates, enforced in the DB:** triggers keep `email_norm`, `profile_url_norm` (creators) and `domain_norm` (brands, from `domain` or `website`) and claim each key in `outreach_keys`, whose primary key makes an email unique across BOTH tables. Normalisation lives in SQL (`outreach_norm_email/url/domain`) and is mirrored in `src/lib/outreach/rules.ts`. Change both together.
+- **Do-not-contact (`outreach_dnc`):** normalised email/domain/profile_url. A domain entry blocks every email at that domain. Triggers block inserting a lead (or changing a key) onto the list; `outreach_log_action()` blocks sends to a listed lead; imports skip listed rows. Opt-out adds the lead's email + profile URL, a bounce adds the email; undo removes what the action added (`activity_id`). "Delete personal data" (`outreach_erase_lead()`) keeps the DNC entry.
+- **Actions go through `outreach_log_action()`**, never a plain UPDATE: it locks the mailbox row `FOR UPDATE`, counts today's sends (contacted + followed up, Asia/Karachi day), blocks at the limit, updates the lead and writes `outreach_activity` with `prev_state` for undo. `outreach_undo_action()`: same user, latest action on the lead, within 10 minutes. Contacted sets `follow_up_date = today + 4` (one follow-up). DMs (linkedin/x/instagram/tiktok) use no mailbox and only get a soft per-person daily warning (`outreach_team.dm_daily_warning`, default 25).
+- **Mailbox limits** (`outreach_mailbox_limit()` / `mailboxDailyLimit()`): warm-up week 1 = 10/day, 2 = 15, 3 = 25, 4+ = 30; a custom limit (max 40) replaces it; personal mailboxes have no warm-up (custom or 30). Warn at 80%, block at 100%.
+- **Import** (`/admin/outreach/import`): file type from the name (`creators_new_*`, `creators_review_new_*`, `sponsor_brands_new_*`, `yc_brands_new_*`), CSV parsed in the browser with `parseCsv()` (no dependency), editable mapping, preview, per-row owner (sponsorships or 100K+ subs → Faizan, other creators → VA, brands → Faizan). `outreach_import()` inserts every new row in one transaction, skips and reports duplicates/DNC rows, and rolls back only on an unexpected error. Max 5,000 rows.
+- **Daily cron:** `outreach_mark_no_reply()` runs inside `/api/cron/daily-summary` (followed up 7+ days ago, no reply → `no_reply`).
+- **All "today" logic uses Asia/Karachi** (UTC+5, no DST), via `karachiToday()`/`karachiDayStart()` in `rules.ts` and `now() AT TIME ZONE 'Asia/Karachi'` in SQL. Working days per person: `outreach_team.works_saturday` (Mon–Sat vs Mon–Fri).
+- **Stats** are aggregated in SQL (`outreach_user_stats`, `outreach_channel_stats`, `outreach_today_usage`, `outreach_match_keys`, `outreach_all_keys`) because PostgREST caps responses at 1,000 rows.
+- **Tests:** `npm run test:outreach` (pure logic, no writes). `node scripts/outreach-check.mjs --http --confirm=outreach-check` writes test data through the API. Role access: `OUTREACH_TOKEN` checks in `scripts/security-check.mjs`.
+
 ### Database Schema
 
 `supabase/schema.sql` is the base schema. Everything added since lives in standalone `supabase/*_migration.sql` files. There is no migration runner. The current schema is `schema.sql` plus every migration file — but a migration file existing doesn't guarantee it was actually run; when in doubt, check the live table with a read-only query rather than trusting the file list. New schema changes should follow the same pattern: write a new `supabase/<feature>_migration.sql` and tell the user to run it in the Supabase SQL Editor. Permission classifiers may block direct DDL from the agent. When that happens, write the migration file and tell the user to run it.
@@ -108,10 +127,12 @@ Once a creator is attached to a campaign (shortlisted by the brand or hired from
 
 **Admin/Ops:** contact_messages, newsletter_subscribers
 
+**Outreach (admin-only lead tracking, see Outreach below):** outreach_creators, outreach_brands, outreach_keys, outreach_dnc, outreach_activity, outreach_mailboxes, outreach_team
+
 **Infrastructure:** rate_limits
 
 **Key column notes:**
-- `users.role`: `'user' | 'admin' | 'super_admin'`
+- `users.role`: `'user' | 'admin' | 'super_admin' | 'outreach'`. `users.must_change_password` forces a new password on first admin login (team accounts created with a temporary password).
 - `deals.deliverables`: JSONB array of `{id, description, is_completed}`
 - `creators.niches` and `campaigns.category`: niche names from `NICHES` in `src/utils/constants.ts` (24 entries, the single list). `campaigns.category` held its own slugs (`ai`, `saas`, ...) before `supabase/update_niches_migration.sql`; the app shows any value not in `NICHES` as "Other". Platform ids likewise come only from `PLATFORMS` there; a removed platform on an old row shows as "Other platform" via `platformName()`.
 - `creators.profile_views`: INTEGER counter, incremented by public API
