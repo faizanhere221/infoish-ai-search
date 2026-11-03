@@ -39,6 +39,25 @@ function isOptionalAuthApiRoute(pathname: string, method: string): boolean {
 
 const AUTH_HEADER_NAMES = ['x-user-id', 'x-user-type', 'x-profile-id', 'x-user-role']
 
+// ── Restricted tokens ─────────────────────────────────────────────────────────
+// Two kinds of admin-login token only work on a short allowlist:
+//   1. role 'outreach' (outreach team members): only the outreach section,
+//      /admin/outreach/* and /api/admin/outreach/*. Every other admin page
+//      redirects there, every other API route returns 403, and user-area
+//      pages (dashboards, settings, messages) redirect there too.
+//   2. mustChangePassword (team accounts created with a temporary
+//      password): only the change-password page and route until it is set.
+// admin and super_admin tokens without the flag are unaffected.
+const ADMIN_ROLES = ['admin', 'super_admin']
+const OUTREACH_ROLE = 'outreach'
+const CHANGE_PASSWORD_PAGE = '/admin/change-password'
+const CHANGE_PASSWORD_API = '/api/admin/account/password'
+const USER_AREA_PAGE_PREFIXES = ['/dashboard', '/settings', '/messages', '/notifications']
+
+function isUnder(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`)
+}
+
 function stripAuthHeaders(request: NextRequest): Headers {
   const headers = new Headers(request.headers)
   for (const name of AUTH_HEADER_NAMES) {headers.delete(name)}
@@ -112,8 +131,14 @@ export async function middleware(request: NextRequest) {
     try {
       const { payload } = await jwtVerify(cookieToken, new TextEncoder().encode(secret))
       const role = String(payload.role ?? '')
-      if (role !== 'admin' && role !== 'super_admin') {
+      if (!ADMIN_ROLES.includes(role) && role !== OUTREACH_ROLE) {
         return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))
+      }
+      if (payload.mustChangePassword === true && pathname !== CHANGE_PASSWORD_PAGE) {
+        return withSecurityHeaders(NextResponse.redirect(new URL(CHANGE_PASSWORD_PAGE, request.url)))
+      }
+      if (role === OUTREACH_ROLE && !isUnder(pathname, '/admin/outreach') && pathname !== CHANGE_PASSWORD_PAGE) {
+        return withSecurityHeaders(NextResponse.redirect(new URL('/admin/outreach', request.url)))
       }
       return withSecurityHeaders(passThrough())
     } catch {
@@ -141,11 +166,22 @@ export async function middleware(request: NextRequest) {
 
     try {
       const { payload } = await jwtVerify(token, new TextEncoder().encode(secret))
+      const role = String(payload.role ?? '')
 
-      // Admin-only API routes require admin or super_admin role
+      if (payload.mustChangePassword === true && pathname !== CHANGE_PASSWORD_API) {
+        return withSecurityHeaders(NextResponse.json({ error: 'Set a new password first' }, { status: 403 }))
+      }
+
+      if (role === OUTREACH_ROLE && !isUnder(pathname, '/api/admin/outreach') && pathname !== CHANGE_PASSWORD_API) {
+        // Optional-auth routes still work, as a logged-out visitor would see them.
+        if (optionalAuth) {return withSecurityHeaders(passThrough())}
+        return withSecurityHeaders(NextResponse.json({ error: 'Not available for outreach accounts' }, { status: 403 }))
+      }
+
+      // Admin-only API routes require admin or super_admin role. Outreach
+      // tokens that reach this point are already limited to their section.
       if (pathname.startsWith('/api/admin/')) {
-        const role = String(payload.role ?? '')
-        if (role !== 'admin' && role !== 'super_admin') {
+        if (!ADMIN_ROLES.includes(role) && role !== OUTREACH_ROLE) {
           return withSecurityHeaders(NextResponse.json({ error: 'Admin access required' }, { status: 403 }))
         }
       }
@@ -166,6 +202,19 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Everything else (pages) ─────────────────────────────────────────────────
+  // Outreach accounts never see brand/creator areas. Only checked when an
+  // auth cookie is present on a user-area page, so public pages skip it.
+  const pageToken = request.cookies.get('auth_token')?.value
+  if (pageToken && secret && USER_AREA_PAGE_PREFIXES.some((p) => isUnder(pathname, p))) {
+    try {
+      const { payload } = await jwtVerify(pageToken, new TextEncoder().encode(secret))
+      if (String(payload.role ?? '') === OUTREACH_ROLE) {
+        return withSecurityHeaders(NextResponse.redirect(new URL('/admin/outreach', request.url)))
+      }
+    } catch {
+      // invalid/expired cookie: the page's own client-side auth handles it
+    }
+  }
   return withSecurityHeaders(passThrough())
 }
 

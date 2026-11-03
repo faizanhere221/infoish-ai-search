@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, UserSquare, Building2, Handshake,
   FileText, Mail, LogOut, Menu, X,
   Activity, BarChart2, Search, ChevronDown, Settings, UserCog, Share2,
-  Wallet, ClipboardList, FileSignature, Flag,
+  Wallet, ClipboardList, FileSignature, Flag, Send,
 } from 'lucide-react'
 
 // ─── Nav structure ────────────────────────────────────────────────────────────
@@ -29,6 +29,7 @@ const NAV = [
       { label: 'Payments',  href: '/admin/payments',          icon: Wallet },
     ],
   },
+  { label: 'Outreach',    href: '/admin/outreach',    icon: Send },
   { label: 'Reports',     href: '/admin/reports',     icon: Flag },
   { label: 'Partners',    href: '/admin/partners',    icon: Share2 },
   { label: 'Analytics',   href: '/admin/analytics',   icon: BarChart2 },
@@ -187,7 +188,8 @@ const ROUTE_NAMES: Record<string, string> = {
   contacts: 'Contacts', newsletter: 'Newsletter', subscriptions: 'Subscriptions',
   partners: 'Partners', payouts: 'Payouts',
   'campaign-creators': 'Workflow Tracker', contracts: 'Contracts', email: 'Email',
-  reports: 'Reports',
+  reports: 'Reports', outreach: 'Outreach', today: 'Today', import: 'Import',
+  dnc: 'Do not contact', mailboxes: 'Mailboxes', team: 'Team',
 }
 
 function Breadcrumbs() {
@@ -291,10 +293,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [collapsed, setCollapsed]     = useState(false)
   const [adminEmail, setAdminEmail]   = useState('')
   const [showProfile, setShowProfile] = useState(false)
+  const [adminRole, setAdminRole]     = useState('')
 
-  useEffect(() => { setAdminEmail(localStorage.getItem('admin_email') ?? 'Admin') }, [])
+  useEffect(() => {
+    setAdminEmail(localStorage.getItem('admin_email') ?? 'Admin')
+    setAdminRole(localStorage.getItem('admin_role') ?? '')
+  }, [])
 
-  if (pathname === '/admin/login') {return <>{children}</>}
+  if (pathname === '/admin/login' || pathname === '/admin/change-password') {return <>{children}</>}
+
+  // Outreach accounts see only the Outreach section. Cosmetic: middleware
+  // is what blocks every other admin page and API for them.
+  const isOutreachRole = adminRole === 'outreach'
+  const navItems = isOutreachRole ? NAV.filter(item => item.href === '/admin/outreach') : NAV
 
   const handleLogout = async () => {
     try { await fetch('/api/admin/auth/logout', { method: 'POST' }) } finally {
@@ -316,7 +327,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Nav */}
         <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
-          {(NAV as NavItem[]).map((item) => (
+          {(navItems as NavItem[]).map((item) => (
             <NavEntry key={item.label} item={item} pathname={pathname} collapsed={collapsed} />
           ))}
         </nav>
@@ -358,9 +369,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex-1" />
 
           {/* Global Search */}
-          <div className="hidden lg:block">
-            <GlobalSearch />
-          </div>
+          {!isOutreachRole && (
+            <div className="hidden lg:block">
+              <GlobalSearch />
+            </div>
+          )}
 
           {/* Profile dropdown */}
           <div className="relative">
@@ -379,10 +392,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="px-3 py-2 border-b border-slate-700 mb-1">
                   <div className="text-xs text-slate-400 truncate">{adminEmail}</div>
                 </div>
-                <Link href="/admin/settings" onClick={() => setShowProfile(false)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-lg transition-colors">
-                  <Settings className="w-4 h-4" /> Settings
-                </Link>
+                {!isOutreachRole && (
+                  <Link href="/admin/settings" onClick={() => setShowProfile(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-lg transition-colors">
+                    <Settings className="w-4 h-4" /> Settings
+                  </Link>
+                )}
                 <button onClick={handleLogout}
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:bg-slate-700 rounded-lg transition-colors">
                   <LogOut className="w-4 h-4" /> Logout

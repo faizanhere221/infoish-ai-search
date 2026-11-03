@@ -35,7 +35,11 @@ export default function AdminLoginPage() {
 
       localStorage.setItem('admin_email', data.user?.email ?? email)
       localStorage.setItem('admin_role', data.user?.role ?? 'admin')
-      router.push('/admin/dashboard')
+      if (data.must_change_password) {
+        router.push('/admin/change-password')
+      } else {
+        router.push(data.user?.role === 'outreach' ? '/admin/outreach' : '/admin/dashboard')
+      }
     } catch {
       setError('Network error. Please try again.')
     } finally {

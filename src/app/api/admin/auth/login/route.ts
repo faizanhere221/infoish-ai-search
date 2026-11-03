@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
 import { rateLimit } from '@/lib/rate-limit'
 import { logActivity } from '@/lib/activity'
+import { ADMIN_LOGIN_ROLES, setAdminSessionCookie, signAdminSession } from '@/lib/admin-session'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
-
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET
-  if (!secret) {throw new Error('JWT_SECRET is required')}
-  return secret
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     const role: string = user.role ?? 'user'
-    if (role !== 'admin' && role !== 'super_admin') {
+    if (!(ADMIN_LOGIN_ROLES as readonly string[]).includes(role)) {
       return invalid()
     }
 
@@ -58,11 +52,7 @@ export async function POST(request: NextRequest) {
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', user.id)
 
-    const token = jwt.sign(
-      { userId: user.id, email: user.email, userType: user.user_type, role },
-      getJwtSecret(),
-      { expiresIn: '4h' }
-    )
+    const token = signAdminSession({ ...user, role })
 
     void logActivity({
       userId: user.id,
@@ -79,15 +69,10 @@ export async function POST(request: NextRequest) {
       message: 'Login successful',
       token,
       user: { ...safeUser, role },
+      must_change_password: user.must_change_password === true,
     })
 
-    response.cookies.set('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 4,
-      path: '/',
-    })
+    setAdminSessionCookie(response, token)
 
     return response
   } catch (err) {
