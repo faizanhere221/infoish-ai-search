@@ -106,6 +106,12 @@ const HIDDEN_CREATOR_USERNAME = getEnv('HIDDEN_CREATOR_USERNAME')
 const PASSWORD_RESET_TOKEN = getEnv('PASSWORD_RESET_TOKEN')
 const PASSWORD_RESET_TEST_NEW_PASSWORD = 'SecurityCheckReset123'
 
+// Optional — outreach role checks, skipped if blank. The auth_token cookie
+// of a role='outreach' account that has already set its own password
+// (log in at /admin/login, then DevTools → Cookies → auth_token).
+// Read-only.
+const OUTREACH_TOKEN = getEnv('OUTREACH_TOKEN')
+
 const required = { BRAND_A_TOKEN, CREATOR_A_TOKEN, CREATOR_B_TOKEN, CONVERSATION_ID, PRIVATE_CAMPAIGN_ID }
 const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k)
 if (missing.length > 0) {
@@ -1032,6 +1038,75 @@ async function main() {
     skip('[control] Brand A / Creator A CAN read the contract', 'CONTRACT_ID not set')
   }
 
+  // ── Outreach role ────────────────────────────────────────────────────────────
+  // role='outreach' tokens work only inside /admin/outreach/* and
+  // /api/admin/outreach/* (middleware.ts), and inside the section only
+  // admins manage mailboxes, the DNC list and the team.
+
+  if (OUTREACH_TOKEN) {
+    const claims = decodeJwtPayload(OUTREACH_TOKEN)
+    if (claims?.role !== 'outreach') {
+      await check('[control] OUTREACH_TOKEN really is an outreach account', async () => ({ pass: false, detail: `role claim is ${claims?.role ?? 'missing'}` }))
+    } else {
+      const outreachHeaders = adminCookieHeaders(OUTREACH_TOKEN)
+
+      for (const urlPath of ['/api/admin/users?limit=1', '/api/admin/payments?limit=1', '/api/admin/settings', '/api/admin/search?q=ab']) {
+        await check(`Outreach token gets 403 on ${urlPath.split('?')[0]}`, async () => {
+          const res = await request(urlPath, { headers: outreachHeaders })
+          return { pass: res.status === 403, detail: `status ${res.status}` }
+        })
+      }
+
+      await check('Outreach token gets 403 on a user-area API (/api/dashboard/action-needed)', async () => {
+        const res = await request('/api/dashboard/action-needed', { headers: outreachHeaders })
+        return { pass: res.status === 403, detail: `status ${res.status}` }
+      })
+
+      for (const urlPath of ['/api/admin/outreach/team', '/api/admin/outreach/today', '/api/admin/outreach/leads/creators?limit=1', '/api/admin/outreach/mailboxes', '/api/admin/outreach/dnc?limit=1']) {
+        await check(`Outreach token gets 200 on ${urlPath.split('?')[0]}`, async () => {
+          const res = await request(urlPath, { headers: outreachHeaders })
+          return { pass: res.status === 200, detail: `status ${res.status}` }
+        })
+      }
+
+      // Admin-only writes inside the section. Bodies are valid, so a 403 here
+      // is the permission check and not validation.
+      const adminOnlyWrites = [
+        ['POST', '/api/admin/outreach/mailboxes', { address: 'security-check@outreach-check.invalid', start_date: '2026-01-01' }],
+        ['POST', '/api/admin/outreach/dnc', { key_type: 'email', value: 'security-check@outreach-check.invalid', reason: 'other' }],
+        ['POST', '/api/admin/outreach/team', { email: 'security-check@outreach-check.invalid', display_name: 'x', role: 'outreach', temp_password: 'xxxxxxxxxxxx', reason: 'security check' }],
+        ['POST', '/api/admin/outreach/leads/creators/bulk', { lead_ids: ['C-0000'], status: 'found', reason: 'security check' }],
+        ['DELETE', '/api/admin/outreach/leads/creators/C-0000', { reason: 'security check' }],
+      ]
+      for (const [method, urlPath, body] of adminOnlyWrites) {
+        await check(`Outreach token gets 403 on ${method} ${urlPath}`, async () => {
+          const res = await request(urlPath, { method, headers: { ...outreachHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+          return { pass: res.status === 403, detail: `status ${res.status}` }
+        })
+      }
+
+      for (const pagePath of ['/admin/users', '/admin/dashboard', '/dashboard/brand']) {
+        await check(`Outreach cookie on ${pagePath} redirects to /admin/outreach`, async () => {
+          const res = await request(pagePath, { headers: outreachHeaders, redirect: 'manual' })
+          const location = res.headers.get('location') ?? ''
+          return { pass: res.status >= 300 && res.status < 400 && location.endsWith('/admin/outreach'), detail: `status ${res.status} → ${location}` }
+        })
+      }
+    }
+  } else {
+    skip('Outreach role access checks', 'OUTREACH_TOKEN not set')
+  }
+
+  await check('Creator token gets 403 on /api/admin/outreach/*', async () => {
+    const res = await request('/api/admin/outreach/team', { headers: authHeaders(CREATOR_A_TOKEN) })
+    return { pass: res.status === 403, detail: `status ${res.status}` }
+  })
+
+  await check('Logged-out caller gets 401 on /api/admin/outreach/*', async () => {
+    const res = await request('/api/admin/outreach/leads/creators')
+    return { pass: res.status === 401, detail: `status ${res.status}` }
+  })
+
   // ── Supabase public-schema lockdown ─────────────────────────────────────────
   // Hits the Supabase REST API directly with ONLY the anon key — not this
   // app's own routes — to prove supabase/lockdown_migration.sql actually
@@ -1045,7 +1120,7 @@ async function main() {
       'Content-Type': 'application/json',
     }
 
-    const LOCKED_TABLES = ['users', 'messages', 'creator_payments', 'payout_methods']
+    const LOCKED_TABLES = ['users', 'messages', 'creator_payments', 'payout_methods', 'outreach_creators', 'outreach_brands', 'outreach_dnc']
     for (const table of LOCKED_TABLES) {
       await check(`Anon key gets an error or empty array (never rows) reading public.${table}`, async () => {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&limit=1`, { headers: anonHeaders })
@@ -1076,6 +1151,9 @@ async function main() {
       'split_payment', 'sync_campaign_creator_status', 'update_influencer_auth_timestamp',
       'update_newsletter_updated_at', 'update_tool_subscription', 'update_updated_at',
       'update_updated_at_column',
+      // supabase/outreach_migration.sql
+      'outreach_log_action', 'outreach_undo_action', 'outreach_import', 'outreach_erase_lead',
+      'outreach_mark_no_reply', 'outreach_all_keys', 'outreach_match_keys', 'outreach_filter_values',
     ]
     for (const fn of RPC_FUNCTIONS) {
       await check(`Anon POST to /rest/v1/rpc/${fn} fails`, async () => {

@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "test:security": "node scripts/security-check.mjs",
+    "test:outreach": "node scripts/outreach-check.mjs",
     "check:schema": "node scripts/check-schema.mjs"
   },
   "dependencies": {
