@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '27',
+    title: 'LinkedIn Tech Creator Rates 2026: What B2B Brands Pay',
+    excerpt: 'See what B2B brands pay LinkedIn tech creators in 2026: rates by tier, whether tech carries a premium, and how to structure posts, newsletters and retainers.',
+    date: '2026-11-03',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '9 min read',
+    slug: 'linkedin-tech-creator-rates',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '26',
     title: 'How to Vet a Tech Influencer: A 10-Point Scorecard for B2B Brands',
     excerpt: 'Use this 10-point scorecard to vet tech influencers before you pay. Check audience fit, engagement quality, technical credibility and brand safety.',
