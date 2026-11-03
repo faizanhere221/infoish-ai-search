@@ -307,7 +307,7 @@ export default function HowToFindTechInfluencersPage() {
           {/* Red Flags */}
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Red Flags to Avoid</h2>
-            <p className="text-gray-700 leading-relaxed mb-6">Watch out for these warning signs:</p>
+            <p className="text-gray-700 leading-relaxed mb-6">Watch out for these warning signs. For a full review, use our <Link href="/blog/vet-tech-influencers-scorecard" className="text-blue-600 hover:text-blue-700 font-medium">10-point tech influencer vetting scorecard</Link>.</p>
 
             <div className="space-y-4 mb-8">
               <div className="flex gap-4 items-start">

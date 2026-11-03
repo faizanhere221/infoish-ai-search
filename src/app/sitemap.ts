@@ -123,6 +123,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Blog
     { url: `${baseUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/blog/vet-tech-influencers-scorecard`, lastModified: new Date('2026-11-03'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/us-tech-influencers-b2b-reviews-2026`, lastModified: new Date('2026-10-29'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/tech-influencers-complete-guide`, lastModified: new Date('2026-10-29'), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${baseUrl}/blog/best-tech-influencers-to-follow-2026`, lastModified: new Date('2026-10-28'), changeFrequency: 'monthly', priority: 0.7 },

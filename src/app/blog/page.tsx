@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '26',
+    title: 'How to Vet a Tech Influencer: A 10-Point Scorecard for B2B Brands',
+    excerpt: 'Use this 10-point scorecard to vet tech influencers before you pay. Check audience fit, engagement quality, technical credibility and brand safety.',
+    date: '2026-11-03',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '10 min read',
+    slug: 'vet-tech-influencers-scorecard',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '25',
     title: 'Top US Tech Influencers for B2B Reviews (2026)',
     excerpt: '15 US-based creators who review B2B software, SaaS, developer tools, AI tools, and IT and security products, with verified audience sizes and brand fit.',
