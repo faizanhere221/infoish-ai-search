@@ -132,7 +132,7 @@ async function pureChecks() {
     'tiktok', 'website_or_link', 'does_sponsorships', 'sponsor_brands', 'recent_video_titles', 'status']
   const SPONSOR_HEADERS = ['domain', 'sponsor_label', 'creators_count', 'creators', 'example_video', 'example_url', 'evidence', 'first_seen']
   const YC_HEADERS = ['score', 'name', 'website', 'domain', 'one_liner', 'batch', 'batch_year', 'team_size', 'country', 'locations',
-    'industry', 'tags', 'is_hiring', 'sponsors_found', 'sponsor_count', 'yc_url', 'status_outreach']
+    'industry', 'tags', 'is_hiring', 'sponsors_creators', 'sponsor_creators', 'yc_url', 'status_outreach']
 
   await check('defaultMapping: creators_new headers', () => {
     const m = rules.defaultMapping('creator', CREATOR_HEADERS)
@@ -143,8 +143,8 @@ async function pureChecks() {
     assert.equal(m.website_or_link, 'website')
     assert.equal(m.does_sponsorships, 'does_sponsorships')
     assert.equal(m.sponsor_brands, 'sponsor_brands')
-    assert.equal(m.date_found, 'notes')
-    assert.equal(m.recent_video_titles, 'notes')
+    assert.equal(m.date_found, 'extra')
+    assert.equal(m.recent_video_titles, 'extra')
     assert.equal(m.status, '', 'sheet status is ignored, imports start as found')
   })
 
@@ -158,8 +158,8 @@ async function pureChecks() {
     assert.equal(m.domain, 'domain')
     assert.equal(m.sponsor_label, 'company')
     assert.equal(m.evidence, 'why_them')
-    assert.equal(m.creators_count, 'notes')
-    assert.equal(m.example_video, 'notes')
+    assert.equal(m.creators_count, 'extra')
+    assert.equal(m.example_video, 'extra')
   })
 
   await check('defaultMapping: yc_brands_new headers', () => {
@@ -169,7 +169,11 @@ async function pureChecks() {
     assert.equal(m.one_liner, 'product')
     assert.equal(m.team_size, 'team_size')
     assert.equal(m.score, 'score')
-    assert.equal(m.yc_url, 'notes')
+    for (const h of ['batch', 'batch_year', 'locations', 'industry', 'tags', 'is_hiring', 'sponsors_creators', 'sponsor_creators', 'yc_url']) {
+      assert.equal(m[h], 'extra', h)
+    }
+    assert.equal(m.country, 'country')
+    assert.equal(m.domain, 'domain')
     assert.equal(m.status_outreach, '')
   })
 
@@ -185,7 +189,8 @@ async function pureChecks() {
     assert.equal(lead.avg_views, 12500)
     assert.equal(lead.does_sponsorships, true)
     assert.equal(lead.platform, 'youtube')
-    assert.equal(lead.notes, 'date_found: 2026-11-01')
+    assert.equal(lead.extra.date_found, '2026-11-01')
+    assert.equal(lead.notes, undefined)
     assert.equal(lead._row, 2)
 
     set('subscribers', 'lots'); set('email', 'not-an-email')
@@ -202,6 +207,100 @@ async function pureChecks() {
   await check('mapRow: a row with no key to dedupe on is an error', () => {
     const { errors } = rules.mapRow('creator', ['channel_name'], ['No Link'], { channel_name: 'name' }, 2)
     assert.ok(errors.some((e) => e.includes('duplicates')))
+  })
+
+  await check('yc_brands row: fields, extra, country from locations, why_them built', () => {
+    const m = rules.defaultMapping('brand', YC_HEADERS)
+    const values = {
+      score: '87', name: 'Acme AI', website: 'https://acme.ai', domain: 'acme.ai', one_liner: 'Agents for support', batch: 'W24',
+      batch_year: '2024', team_size: '12', country: '', locations: 'San Francisco, CA, USA; Remote', industry: 'B2B',
+      tags: 'ai; devtools', is_hiring: 'true', sponsors_creators: 'yes', sponsor_creators: 'Fireship', yc_url: 'https://www.ycombinator.com/companies/acme-ai',
+      status_outreach: 'emailed',
+    }
+    const cells = YC_HEADERS.map((h) => values[h])
+    const { lead, errors } = rules.mapRow('brand', YC_HEADERS, cells, m, 2, { fileType: 'yc_brands_new' })
+    assert.deepEqual(errors, [])
+    assert.equal(lead.company, 'Acme AI')
+    assert.equal(lead.product, 'Agents for support')
+    assert.equal(lead.score, 87)
+    assert.equal(lead.team_size, '12')
+    assert.equal(lead.country, 'USA')
+    assert.equal(lead.why_them, 'YC W24, hiring, sponsors creators')
+    assert.equal(lead.status, undefined, 'status_outreach is ignored')
+    assert.deepEqual(Object.keys(lead.extra).sort(), ['batch', 'batch_year', 'industry', 'is_hiring', 'locations', 'sponsor_creators', 'sponsors_creators', 'tags', 'yc_url'])
+  })
+
+  await check('why_them: kept when the file has one, empty when nothing to say', () => {
+    assert.equal(rules.buildWhyThem({ batch: 'S23' }, 'sponsor_brands_new'), 'S23')
+    assert.equal(rules.buildWhyThem({ is_hiring: 'no', sponsors_creators: '0' }, 'yc_brands_new'), null)
+    const { lead } = rules.mapRow('brand', ['domain', 'why_them', 'batch'], ['x.io', 'Sponsors 4 channels', 'W24'], { domain: 'domain', why_them: 'why_them', batch: 'extra' }, 2, { fileType: 'yc_brands_new' })
+    assert.equal(lead.why_them, 'Sponsors 4 channels')
+  })
+
+  await check('countryFromLocations', () => {
+    assert.equal(rules.countryFromLocations('Berlin, Germany'), 'Germany')
+    assert.equal(rules.countryFromLocations('Remote'), 'Remote')
+    assert.equal(rules.countryFromLocations('London, UK | NYC, USA'), 'UK')
+    assert.equal(rules.countryFromLocations(''), null)
+  })
+
+  await check('every file type: no column disappears (each maps to a field, extra or ignore)', () => {
+    for (const [type, headers] of [['creator', CREATOR_HEADERS], ['brand', SPONSOR_HEADERS], ['brand', YC_HEADERS]]) {
+      const m = rules.defaultMapping(type, headers)
+      assert.deepEqual(Object.keys(m).sort(), [...headers].sort())
+    }
+  })
+
+  await check('spreadsheet uploads are detected (save as CSV first)', () => {
+    assert.equal(rules.isSpreadsheetFile('yc_brands_new_1.xlsx'), true)
+    assert.equal(rules.isSpreadsheetFile('creators.XLS'), true)
+    assert.equal(rules.isSpreadsheetFile('creators_new_1.csv'), false)
+  })
+
+  await check('field validation: email', () => {
+    assert.deepEqual(rules.validateLeadField('email', '  Jane@Acme.IO '), { ok: true, value: 'jane@acme.io' })
+    assert.equal(rules.validateLeadField('email', 'jane@acme').ok, false)
+    assert.deepEqual(rules.validateLeadField('email', ''), { ok: true, value: null })
+  })
+
+  await check('field validation: URLs get https://, other schemes are refused', () => {
+    assert.deepEqual(rules.validateLeadField('website', 'acme.io/pricing'), { ok: true, value: 'https://acme.io/pricing' })
+    assert.deepEqual(rules.validateLeadField('profile_url', 'http://youtube.com/@x'), { ok: true, value: 'http://youtube.com/@x' })
+    assert.equal(rules.validateLeadField('website', 'javascript:alert(1)').ok, false)
+    assert.equal(rules.validateLeadField('website', 'not a url').ok, false)
+    assert.equal(rules.validateLeadField('linkedin', 'localhost').ok, false)
+  })
+
+  await check('field validation: social handles become profile URLs', () => {
+    assert.deepEqual(rules.validateLeadField('instagram', '@jane.doe'), { ok: true, value: 'https://instagram.com/jane.doe' })
+    assert.deepEqual(rules.validateLeadField('x', 'jane'), { ok: true, value: 'https://x.com/jane' })
+    assert.deepEqual(rules.validateLeadField('tiktok', '@jane'), { ok: true, value: 'https://www.tiktok.com/@jane' })
+    assert.deepEqual(rules.validateLeadField('instagram', 'instagram.com/jane'), { ok: true, value: 'https://instagram.com/jane' })
+  })
+
+  await check('field validation: numbers >= 0, "5k" and "5,076" accepted', () => {
+    assert.deepEqual(rules.validateLeadField('subscribers', '5,076'), { ok: true, value: 5076 })
+    assert.deepEqual(rules.validateLeadField('avg_views', '1.25k'), { ok: true, value: 1250 })
+    assert.deepEqual(rules.validateLeadField('engagement_pct', '3.5%'), { ok: true, value: 3.5 })
+    assert.equal(rules.validateLeadField('score', '-1').ok, false)
+    assert.equal(rules.validateLeadField('subscribers', 'lots').ok, false)
+  })
+
+  await check('field validation: domain, bool, channel, extra, length', () => {
+    assert.deepEqual(rules.validateLeadField('domain', 'https://www.Acme.io/x'), { ok: true, value: 'acme.io' })
+    assert.equal(rules.validateLeadField('domain', 'acme').ok, false)
+    assert.deepEqual(rules.validateLeadField('does_sponsorships', 'Yes'), { ok: true, value: true })
+    assert.equal(rules.validateLeadField('channel', 'fax').ok, false)
+    assert.deepEqual(rules.validateLeadField('extra', { Batch: 'W24', empty: '' }), { ok: true, value: { batch: 'W24' } })
+    assert.equal(rules.validateLeadField('extra', ['x']).ok, false)
+    assert.equal(rules.validateLeadField('name', 'x'.repeat(256)).ok, false)
+  })
+
+  await check('validateLeadUpdates: status, lead_id and unknown fields are refused, not dropped', () => {
+    const { values, errors } = rules.validateLeadUpdates('creator', { email: 'a@b.co', status: 'won', lead_id: 'C-1', company: 'x' })
+    assert.deepEqual(values, { email: 'a@b.co' })
+    assert.deepEqual(Object.keys(errors).sort(), ['company', 'lead_id', 'status'])
+    assert.ok(rules.validateLeadUpdates('brand', { why_them: 'x' }).errors.why_them === undefined)
   })
 
   await check('owner rule: sponsorships or 100K+ → Faizan, other creators → VA, brands → Faizan', () => {
@@ -389,6 +488,59 @@ async function httpChecks() {
       const lead = found.json.leads.find((l) => l.email === email3)
       assert.ok(lead, 'imported lead not found')
       created.push(['creators', lead.lead_id])
+    })
+
+    const patchA = (body) => call('PATCH', `/api/admin/outreach/leads/creators/${leadA}`, body)
+
+    await check('edit: email already used by another lead → 409 naming that lead, on the email field', async () => {
+      const r = await patchA({ email: email3.toUpperCase() })
+      assert.equal(r.status, 409, JSON.stringify(r.json))
+      assert.match(r.json.fields.email[0], /^Already used by C-\d+/)
+    })
+
+    await check('edit: email on the DNC list → 409 on the email field', async () => {
+      const r = await patchA({ email: email2 })
+      assert.equal(r.status, 409, JSON.stringify(r.json))
+      assert.match(r.json.fields.email[0], /do-not-contact/)
+    })
+
+    await check('edit: invalid values → 400 per field, never 500', async () => {
+      const r = await patchA({ email: 'not-an-email', subscribers: '-5', website: 'javascript:alert(1)' })
+      assert.equal(r.status, 400, JSON.stringify(r.json))
+      assert.deepEqual(Object.keys(r.json.fields).sort(), ['email', 'subscribers', 'website'])
+    })
+
+    await check('edit: status and lead_id are not editable', async () => {
+      const r = await patchA({ status: 'signed_up', lead_id: 'C-9' })
+      assert.equal(r.status, 400, JSON.stringify(r.json))
+      assert.ok(r.json.fields.status && r.json.fields.lead_id)
+    })
+
+    await check('edit: normalises values and logs old → new as "edited"', async () => {
+      const r = await patchA({ website: `${tag}.example`, subscribers: '5k', extra: { batch: 'W24' } })
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      assert.equal(r.json.lead.website, `https://${tag}.example`)
+      assert.equal(r.json.lead.subscribers, 5000)
+      assert.equal(r.json.lead.extra.batch, 'W24')
+      const again = await patchA({ website: `https://${tag}.example`, subscribers: 5000 })
+      assert.equal(again.json.changed, false, 'saving the same values logs nothing')
+      const detail = (await call('GET', `/api/admin/outreach/leads/creators/${leadA}`)).json
+      const edits = detail.activity.filter((a) => a.action === 'edited')
+      assert.equal(edits.length, 1)
+      assert.deepEqual(edits[0].changes.subscribers, { old: null, new: 5000 })
+    })
+
+    await check('search finds extra fields', async () => {
+      const r = await call('GET', `/api/admin/outreach/leads/creators?q=W24&limit=200`)
+      assert.ok(r.json.leads.some((l) => l.lead_id === leadA))
+    })
+
+    await check('missing-email filter and counter', async () => {
+      const all = await call('GET', `/api/admin/outreach/leads/creators?q=${tag}&limit=200`)
+      const missing = await call('GET', `/api/admin/outreach/leads/creators?q=${tag}&missing=email&limit=200`)
+      assert.equal(missing.status, 200)
+      assert.ok(missing.json.leads.every((l) => !l.email))
+      assert.equal(all.json.missingEmailCount, missing.json.total)
     })
 
     await check('add a mailbox with a 1/day limit', async () => {
