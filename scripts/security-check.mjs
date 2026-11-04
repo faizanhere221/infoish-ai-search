@@ -1132,6 +1132,28 @@ async function main() {
     return { pass: bad.length === 0, detail: `${paths.length} creator URLs${bad.length ? `, non-200: ${bad.join(', ')}` : ''}` }
   })
 
+  // Every creator the public marketplace lists must have a profile page
+  // that renders (200), whatever its stored data looks like. Built from
+  // GET /api/creators (every page), not the sitemap, so a profile the
+  // sitemap leaves out is still covered. Read-only, no env vars needed.
+  await check('Every public creator profile (all of GET /api/creators) returns 200', async () => {
+    const usernames = []
+    for (let offset = 0; offset < 10000; offset += 50) {
+      const res = await request(`/api/creators?limit=50&offset=${offset}`)
+      if (res.status !== 200) {return { pass: false, detail: `GET /api/creators?offset=${offset} returned ${res.status}` }}
+      const page = (await res.json().catch(() => ({}))).creators ?? []
+      usernames.push(...page.map((c) => c.username).filter((u) => typeof u === 'string' && u))
+      if (page.length < 50) {break}
+    }
+    if (usernames.length === 0) {return { pass: false, detail: 'GET /api/creators listed no creators' }}
+    const bad = []
+    for (const username of [...new Set(usernames)]) {
+      const r = await request(`/creators/${encodeURIComponent(username)}`, { redirect: 'manual' })
+      if (r.status !== 200) {bad.push(`${r.status} /creators/${username}`)}
+    }
+    return { pass: bad.length === 0, detail: `${usernames.length} profiles${bad.length ? `, non-200: ${bad.join(', ')}` : ''}` }
+  })
+
   // Positive controls — if these fail, every 404 above might just mean the
   // route is broken for everyone, not that access control actually works.
   await check('[control] Brand A CAN read the conversation', async () => {
