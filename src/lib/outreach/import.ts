@@ -57,7 +57,7 @@ export async function classifyImportRows(
       if (match) {
         return {
           row: r.row, status: 'duplicate', match,
-          reasons: [`Already exists: ${match.lead_id}${match.owner_name ? `, owned by ${match.owner_name}` : ''}${match.status ? `, status ${match.status}` : ''}`],
+          reasons: [match.deleted ? `Previously deleted: ${match.lead_id}` : `Already exists: ${match.lead_id}${match.owner_name ? `, owned by ${match.owner_name}` : ''}${match.status ? `, status ${match.status}` : ''}`],
         }
       }
     }

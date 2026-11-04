@@ -11,6 +11,7 @@ export const fetchCache = 'force-no-store'
 type Params = { params: { type: string } }
 
 // POST (admin): set owner and/or status on up to 500 leads at once.
+// Deleted leads are skipped (restore them first).
 // Bulk status changes have no undo and skip the mailbox count; they're for
 // cleanup, not for logging sends.
 export async function POST(request: NextRequest, { params }: Params) {
@@ -53,6 +54,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       .from(leadTable(leadType))
       .update(updates)
       .in('lead_id', lead_ids)
+      .is('deleted_at', null)
       .select(leadType === 'creator' ? 'lead_id, email_norm, profile_url_norm' : 'lead_id, email_norm')
     if (error) {
       captureError(error, { route: 'POST /api/admin/outreach/leads/bulk' })

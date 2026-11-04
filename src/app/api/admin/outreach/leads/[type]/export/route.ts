@@ -35,7 +35,8 @@ export async function GET(request: NextRequest, { params }: { params: { type: st
 
   try {
     const supabase = createServerSupabase()
-    const filters = parseLeadFilters(leadType, request.nextUrl.searchParams, caller.userId)
+    // Deleted leads never go into an export.
+    const filters = { ...parseLeadFilters(leadType, request.nextUrl.searchParams, caller.userId), deleted: false }
     const leads = await fetchAllRows<OutreachLead>(
       (from, to) => leadListQuery(supabase, leadType, filters, false).range(from, to),
       MAX_EXPORT_ROWS,

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
-import { logAdminAction, requireReason } from '@/lib/admin-action'
 import { editLead } from '@/lib/outreach/edit'
 import {
   adminOnly, getOutreachCaller, leadTable, leadTypeFromSegment, unauthorized, withDncFlags,
@@ -66,7 +65,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   }
 }
 
-// DELETE (admin): removes the lead. Its DNC entries and activity stay.
+// DELETE (admin): soft delete. The row, its keys (still block duplicates)
+// and its activity stay; an admin restores it from the Deleted filter.
 export async function DELETE(request: NextRequest, { params }: Params) {
   const caller = getOutreachCaller(request)
   if (!caller) {return unauthorized()}
@@ -75,28 +75,23 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   if (!leadType) {return NextResponse.json({ error: 'Not found' }, { status: 404 })}
 
   try {
-    const body = await request.json().catch(() => null)
-    const reasonCheck = requireReason(body)
-    if (!reasonCheck.ok) {return NextResponse.json({ error: reasonCheck.error }, { status: 400 })}
-
     const supabase = createServerSupabase()
-    const { data, error } = await supabase
-      .from(leadTable(leadType))
-      .delete()
-      .eq('lead_id', params.leadId)
-      .select('lead_id, status, owner_user_id')
-      .maybeSingle()
+    const { data, error } = await supabase.rpc('outreach_delete_leads', {
+      p_lead_type: leadType,
+      p_lead_ids: [params.leadId],
+      p_user_id: caller.userId,
+    })
     if (error) {
       captureError(error, { route: 'DELETE /api/admin/outreach/leads/[leadId]' })
       return NextResponse.json({ error: 'Failed to delete lead' }, { status: 500 })
     }
-    if (!data) {return NextResponse.json({ error: 'Lead not found' }, { status: 404 })}
-
-    logAdminAction({
-      request, adminId: caller.userId, action: 'outreach_lead_deleted', targetType: `outreach_${leadType}`,
-      targetId: params.leadId, reason: reasonCheck.reason, before: data, after: null,
-    })
-    return NextResponse.json({ message: 'Lead deleted' })
+    if (Number(data ?? 0) === 0) {
+      const { data: row } = await supabase.from(leadTable(leadType)).select('lead_id').eq('lead_id', params.leadId).maybeSingle()
+      return row
+        ? NextResponse.json({ message: 'Lead already deleted' })
+        : NextResponse.json({ error: 'Lead not found' }, { status: 404 })
+    }
+    return NextResponse.json({ message: `${params.leadId} deleted` })
   } catch (err) {
     captureError(err, { route: 'DELETE /api/admin/outreach/leads/[leadId]' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

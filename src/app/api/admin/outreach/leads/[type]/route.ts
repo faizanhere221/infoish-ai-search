@@ -3,7 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { leadKeys, validateLeadUpdates } from '@/lib/outreach/rules'
 import {
-  filterValues, findDuplicates, getOutreachCaller, leadListQuery, leadTable, leadTypeFromSegment,
+  adminOnly, fetchAllRows, filterValues, findDuplicates, getOutreachCaller, leadListQuery, leadTable, leadTypeFromSegment,
   loadTeam, mapDbError, parseLeadFilters, unauthorized, withDncFlags,
 } from '@/lib/outreach/server'
 import type { OutreachLead } from '@/lib/outreach/types'
@@ -13,10 +13,14 @@ export const fetchCache = 'force-no-store'
 
 type Params = { params: { type: string } }
 
+const MAX_IDS = 50_000
+
 // GET /api/admin/outreach/leads/creators|brands
 // Filters: owner (user id | me | none), status (comma list), country, niche,
-// platform, channel, q. Sort: sort + dir. Paging: limit (max 200) + offset.
-// meta=1 adds the filter dropdown values.
+// platform, channel, missing=email, q, deleted=1 (admins: deleted leads only;
+// otherwise deleted leads are hidden). Sort: sort + dir. Paging: limit (max
+// 200) + offset. meta=1 adds the filter dropdown values. ids=1 (admins)
+// returns every matching lead id instead, for "select all N matching".
 export async function GET(request: NextRequest, { params }: Params) {
   const caller = getOutreachCaller(request)
   if (!caller) {return unauthorized()}
@@ -28,8 +32,19 @@ export async function GET(request: NextRequest, { params }: Params) {
     const limit = Math.min(Math.max(parseInt(sp.get('limit') ?? '50', 10) || 50, 1), 200)
     const offset = Math.max(parseInt(sp.get('offset') ?? '0', 10) || 0, 0)
     const filters = parseLeadFilters(leadType, sp, caller.userId)
+    if (filters.deleted && !caller.isAdmin) {return adminOnly()}
 
     const supabase = createServerSupabase()
+
+    if (sp.get('ids') === '1') {
+      if (!caller.isAdmin) {return adminOnly()}
+      const rows = await fetchAllRows<{ lead_id: string }>(
+        (from, to) => leadListQuery(supabase, leadType, filters, 'ids').range(from, to),
+        MAX_IDS,
+      )
+      return NextResponse.json({ ids: rows.map((r) => r.lead_id), total: rows.length, capped: rows.length >= MAX_IDS })
+    }
+
     const { data, error, count } = await leadListQuery(supabase, leadType, filters, true).range(offset, offset + limit - 1)
     if (error) {
       captureError(error, { route: 'GET /api/admin/outreach/leads' })
@@ -90,7 +105,12 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     const duplicates = await findDuplicates(supabase, keys)
     if (duplicates.size > 0) {
-      return NextResponse.json({ error: 'Already exists', duplicates: [...duplicates.values()] }, { status: 409 })
+      const list = [...duplicates.values()]
+      const deleted = list.find((d) => d.deleted)
+      return NextResponse.json(
+        { error: deleted ? `Previously deleted: ${deleted.lead_id}` : 'Already exists', duplicates: list },
+        { status: 409 },
+      )
     }
 
     const { data, error } = await supabase

@@ -9,7 +9,7 @@ type Supabase = ReturnType<typeof createServerSupabase>
 // middleware.ts only lets admin, super_admin and outreach tokens reach
 // /api/admin/outreach/*. Inside the section:
 //   outreach      view + edit leads, log actions, import
-//   admin         + delete, bulk changes, mailboxes, targets, DNC, erase
+//   admin         + delete/restore, bulk changes, mailboxes, targets, DNC, erase
 //   super_admin   + add team members
 
 export interface OutreachCaller {
@@ -75,6 +75,8 @@ const RPC_ERRORS: Record<string, [number, string]> = {
   outreach_undo_unsupported: [409, 'This action has no undo.'],
   outreach_import_too_large: [400, 'Import up to 5,000 rows at a time.'],
   outreach_bad_field: [400, 'This field is not editable.'],
+  outreach_deleted: [409, 'This lead was deleted. An admin restores it from the Deleted filter first.'],
+  outreach_too_many: [400, 'Send up to 1,000 leads at a time.'],
 }
 
 export interface MappedDbError {
@@ -138,7 +140,7 @@ export async function matchKeys(supabase: Supabase, keys: { type: string; value:
   const { data, error } = await supabase.rpc('outreach_match_keys', { p_values: values })
   if (error) {throw error}
   const payload = (data ?? {}) as {
-    leads?: { key_type: string; key_value: string; lead_type: LeadType; lead_id: string; owner_user_id: string | null; status: string | null }[]
+    leads?: { key_type: string; key_value: string; lead_type: LeadType; lead_id: string; owner_user_id: string | null; status: string | null; deleted?: boolean }[]
     dnc?: { key_type: string; key_value: string }[]
   }
 
@@ -153,6 +155,7 @@ export async function matchKeys(supabase: Supabase, keys: { type: string; value:
       lead_id: h.lead_id,
       owner_name: h.owner_user_id ? names.get(h.owner_user_id) ?? null : null,
       status: h.status,
+      deleted: h.deleted === true,
     })
   }
   for (const d of payload.dnc ?? []) {
@@ -200,6 +203,7 @@ export interface LeadFilters {
   platform: string | null
   channel: string | null
   missingEmail: boolean
+  deleted: boolean // true: only deleted leads (admin "Deleted" filter); false: deleted leads hidden
   q: string | null
   sort: string
   dir: 'asc' | 'desc'
@@ -226,6 +230,7 @@ export function parseLeadFilters(leadType: LeadType, params: URLSearchParams, ca
     platform: leadType === 'creator' ? params.get('platform') || null : null,
     channel: params.get('channel') || null,
     missingEmail: params.get('missing') === 'email',
+    deleted: params.get('deleted') === '1',
     // PostgREST's or() syntax treats , ( ) as separators; strip them and the
     // ilike wildcards so a search term can't change the filter itself.
     q: (params.get('q') ?? '').replace(/[,()%*\\"]/g, ' ').trim().slice(0, 100) || null,
@@ -238,11 +243,12 @@ export function leadListQuery(
   supabase: Supabase,
   leadType: LeadType,
   f: LeadFilters,
-  withCount: boolean | 'head',
+  // true: rows + count, 'head': count only, 'ids': lead ids only
+  mode: boolean | 'head' | 'ids',
 ) {
   let query = supabase.from(leadTable(leadType)).select(
-    withCount === 'head' ? 'lead_id' : '*',
-    withCount ? { count: 'exact', head: withCount === 'head' } : undefined,
+    mode === 'head' || mode === 'ids' ? 'lead_id' : '*',
+    mode === true || mode === 'head' ? { count: 'exact', head: mode === 'head' } : undefined,
   )
   if (f.owner === 'none') {query = query.is('owner_user_id', null)}
   else if (f.owner) {query = query.eq('owner_user_id', f.owner)}
@@ -252,6 +258,7 @@ export function leadListQuery(
   if (f.platform) {query = query.ilike('platform', f.platform)}
   if (f.channel) {query = query.eq('channel', f.channel)}
   if (f.missingEmail) {query = query.is('email', null)}
+  query = f.deleted ? query.not('deleted_at', 'is', null) : query.is('deleted_at', null)
   if (f.q) {
     const term = f.q
     query = query.or(SEARCH_COLUMNS[leadType].map((c) => `${c}.ilike.%${term}%`).join(','))

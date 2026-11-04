@@ -54,6 +54,9 @@ export async function editLead(
   if (loadError) {throw loadError}
   if (!existing) {return { status: 404, body: { error: 'Lead not found' } }}
   const current = existing as OutreachLead & Record<string, unknown>
+  if (current.deleted_at) {
+    return { status: 409, body: { error: 'This lead was deleted. Restore it before you edit it.' } }
+  }
 
   if ('owner_user_id' in values && values.owner_user_id !== current.owner_user_id) {
     if (!caller.isAdmin) {return fieldError(403, 'owner_user_id', 'Only admins change the owner')}
@@ -77,6 +80,10 @@ export async function editLead(
     if (dupes.length > 0) {
       const d = dupes[0]
       const field = fieldForKey({ type: d.key_type }, values)
+      if (d.deleted) {
+        const message = `Previously deleted: ${d.lead_id}`
+        return { status: 409, body: { error: message, fields: { [field]: [message] }, duplicates: dupes } }
+      }
       const owner = d.owner_name ? `, owned by ${d.owner_name}` : ', no owner'
       const status = d.status ? `, status ${STATUS_LABELS[d.status] ?? d.status}` : ''
       return {
@@ -116,6 +123,7 @@ export async function editLead(
       return fieldError(400, 'mailbox_id' in values ? 'mailbox_id' : 'owner_user_id', 'This mailbox or owner no longer exists')
     }
     if (error.message === 'outreach_not_found') {return { status: 404, body: { error: 'Lead not found' } }}
+    if (error.message === 'outreach_deleted') {return { status: 409, body: { error: 'This lead was deleted. Restore it before you edit it.' } }}
     if (error.message === 'outreach_bad_field') {
       return fieldError(400, String(error.details ?? 'field'), 'This field is not editable')
     }

@@ -18,6 +18,8 @@ export interface OutreachLeadBase {
   source: string | null
   extra: Record<string, string | number | boolean>
   email_norm: string | null
+  deleted_at: string | null // soft delete: hidden everywhere, keys still block duplicates
+  deleted_by: string | null
   created_at: string
   updated_at: string
 }
@@ -103,6 +105,7 @@ export interface DuplicateMatch {
   lead_id: string
   owner_name: string | null
   status: string | null
+  deleted: boolean // the lead holding the key was deleted (admin restores it)
 }
 
 export interface FieldChange {

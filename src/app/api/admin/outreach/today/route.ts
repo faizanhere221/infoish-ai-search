@@ -26,10 +26,10 @@ export async function GET(request: NextRequest) {
     const me = caller.userId
 
     const followUps = (table: 'outreach_creators' | 'outreach_brands') =>
-      supabase.from(table).select('*').eq('owner_user_id', me).eq('status', 'contacted')
+      supabase.from(table).select('*').eq('owner_user_id', me).eq('status', 'contacted').is('deleted_at', null)
         .lte('follow_up_date', today).order('follow_up_date').order('lead_id').limit(FOLLOW_UP_LIMIT)
     const newLeads = (table: 'outreach_creators' | 'outreach_brands') =>
-      supabase.from(table).select('*', { count: 'exact' }).eq('owner_user_id', me).eq('status', 'found')
+      supabase.from(table).select('*', { count: 'exact' }).eq('owner_user_id', me).eq('status', 'found').is('deleted_at', null)
         .order('created_at').order('lead_id').limit(NEW_LEADS_LIMIT)
 
     const [fuC, fuB, newC, newB, team, usage, stats] = await Promise.all([

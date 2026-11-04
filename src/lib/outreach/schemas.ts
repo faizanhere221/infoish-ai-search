@@ -97,6 +97,11 @@ export const actionSchema = z.object({
 
 export const undoSchema = z.object({ activity_id: z.string().min(1).max(255) })
 
+// Soft delete / restore: one batch of lead ids (the UI sends 200 at a time).
+export const leadIdsSchema = z.object({
+  lead_ids: z.array(z.string().min(1).max(255)).min(1).max(500),
+})
+
 export const bulkSchema = z.object({
   lead_ids: z.array(z.string().min(1).max(255)).min(1).max(500),
   owner_user_id: z.string().max(255).nullable().optional(),
