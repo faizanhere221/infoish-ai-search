@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '28',
+    title: 'How to Track B2B Influencer Campaigns with UTMs, Promo Codes and Your CRM',
+    excerpt: 'Set up UTM links, promo codes and CRM fields to track B2B influencer leads. Includes a naming convention and attribution windows for long sales cycles.',
+    date: '2026-11-04',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '11 min read',
+    slug: 'track-b2b-influencer-campaigns-utm',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '27',
     title: 'LinkedIn Tech Creator Rates 2026: What B2B Brands Pay',
     excerpt: 'See what B2B brands pay LinkedIn tech creators in 2026: rates by tier, whether tech carries a premium, and how to structure posts, newsletters and retainers.',
