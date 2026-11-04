@@ -53,14 +53,18 @@ export async function GET(request: NextRequest, { params }: { params: { type: st
     const dnc = new Set(dncRows.map((d) => `${d.key_type}:${d.key_value}`))
     const mailboxes = new Map((mailboxRows.data ?? []).map((m) => [m.id as string, m.address as string]))
 
+    // Every extra field (batch, tags, yc_url, ...) gets its own extra.<name> column.
+    const extraKeys = [...new Set(leads.flatMap((l) => Object.keys(l.extra ?? {})))].sort()
     const rows = leads.map((l) => ({
       ...l,
+      ...Object.fromEntries(extraKeys.map((k) => [`extra.${k}`, l.extra?.[k] ?? ''])),
       owner: l.owner_user_id ? names.get(l.owner_user_id) ?? l.owner_user_id : '',
       mailbox: l.mailbox_id ? mailboxes.get(l.mailbox_id) ?? '' : '',
       do_not_contact: storedLeadDncKeys(l).some((k) => dnc.has(`${k.type}:${k.value}`)) ? 'yes' : '',
     }))
 
-    const csv = toCsv(leadType === 'creator' ? CREATOR_COLUMNS : BRAND_COLUMNS, rows)
+    const baseColumns = leadType === 'creator' ? CREATOR_COLUMNS : BRAND_COLUMNS
+    const csv = toCsv([...baseColumns, ...extraKeys.map((k) => `extra.${k}`)], rows)
     const file = `outreach_${leadType}s_${karachiToday()}.csv`
     // UTF-8 BOM so Excel opens non-ASCII names correctly.
     return new NextResponse(String.fromCharCode(0xfeff) + csv, {

@@ -6,8 +6,9 @@ import { FileUp, Loader2 } from 'lucide-react'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { PLATFORMS } from '@/utils/constants'
 import {
-  BRAND_IMPORT_FIELDS, CREATOR_IMPORT_FIELDS, defaultMapping, detectFileType, IMPORT_FILE_TYPES, IMPORT_MAX_ROWS,
-  mapRow, parseCsv, suggestOwner, type ImportFileType, type ImportLead, type ImportMapping,
+  BRAND_IMPORT_FIELDS, CREATOR_IMPORT_FIELDS, defaultMapping, detectFileType, EXTRA, headerKey, IGNORED_COLUMNS,
+  IMPORT_FILE_TYPES, IMPORT_MAX_ROWS, isSpreadsheetFile, mapRow, parseCsv, suggestOwner,
+  type ImportFileType, type ImportLead, type ImportMapping,
 } from '@/lib/outreach/rules'
 import type { DuplicateMatch } from '@/lib/outreach/types'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
@@ -64,9 +65,19 @@ export default function OutreachImportPage() {
   const [viewOffset, setViewOffset] = useState(0)
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<CommitResult | null>(null)
+  const [fileError, setFileError] = useState('')
 
   const leadType = fileType ? IMPORT_FILE_TYPES[fileType].leadType : null
   const fields: readonly string[] = leadType === 'brand' ? BRAND_IMPORT_FIELDS : CREATOR_IMPORT_FIELDS
+
+  const mappingSummary = useMemo(() => {
+    const s = { field: 0, extra: 0, ignored: 0 }
+    for (const h of headers) {
+      const t = mapping[h] ?? ''
+      if (t === '') {s.ignored += 1} else if (t === EXTRA) {s.extra += 1} else {s.field += 1}
+    }
+    return s
+  }, [headers, mapping])
 
   const resetPreview = () => {
     setPreview(null)
@@ -76,6 +87,14 @@ export default function OutreachImportPage() {
 
   const onFile = async (file: File) => {
     resetPreview()
+    setFileError('')
+    if (isSpreadsheetFile(file.name)) {
+      setFileName('')
+      setHeaders([])
+      setDataRows([])
+      setFileError(`${file.name} is a spreadsheet file. Open it in Excel or Google Sheets, choose File > Save as (or Download) > CSV, then upload the .csv file.`)
+      return
+    }
     const text = await file.text()
     const rows = parseCsv(text)
     if (rows.length < 2) {
@@ -114,7 +133,7 @@ export default function OutreachImportPage() {
     }
     setBusy(true)
     setResult(null)
-    const mappedRows = dataRows.map((cells, i) => mapRow(leadType, headers, cells, mapping, i + 2, { platform: defaultPlatform }))
+    const mappedRows = dataRows.map((cells, i) => mapRow(leadType, headers, cells, mapping, i + 2, { platform: defaultPlatform, fileType: fileType || null }))
     const leads = mappedRows.map((m) => m.lead)
     const res = await fetch('/api/admin/outreach/import/preview', {
       method: 'POST',
@@ -184,7 +203,7 @@ export default function OutreachImportPage() {
         <div className="flex flex-wrap items-center gap-3">
           <label className={`${buttonClass} cursor-pointer`}>
             <FileUp className="h-4 w-4" /> Choose file
-            <input type="file" accept=".csv,text/csv" className="hidden"
+            <input type="file" accept=".csv,text/csv,.xlsx,.xls" className="hidden"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) {void onFile(f)}; e.target.value = '' }} />
           </label>
           {fileName && <span className="text-sm text-slate-300">{fileName} · {dataRows.length.toLocaleString()} rows</span>}
@@ -195,26 +214,66 @@ export default function OutreachImportPage() {
             </select>
           )}
         </div>
+        {fileError && (
+          <div className="mt-3 rounded-lg border border-amber-800 bg-amber-950/50 px-3 py-2 text-sm text-amber-200">{fileError}</div>
+        )}
         <p className="mt-2 text-xs text-slate-500">
           File names set the type: creators_new_*.csv, creators_review_new_*.csv, sponsor_brands_new_*.csv, yc_brands_new_*.csv.
-          Up to {IMPORT_MAX_ROWS.toLocaleString()} rows per import.
+          Up to {IMPORT_MAX_ROWS.toLocaleString()} rows per import. CSV only: save .xlsx files as CSV first.
         </p>
       </Card>
 
       {leadType && headers.length > 0 && (
-        <Card title="2. Check the column mapping">
-          <div className="grid gap-2 md:grid-cols-2">
-            {headers.map((h, idx) => (
-              <div key={`${h}-${idx}`} className="flex items-center gap-2 text-sm">
-                <span className="w-44 flex-shrink-0 truncate font-mono text-xs text-slate-300" title={h}>{h || `(column ${idx + 1})`}</span>
-                <select value={mapping[h] ?? ''} onChange={(e) => { setMapping({ ...mapping, [h]: e.target.value }); resetPreview() }} className={`${selectClass} flex-1`}>
-                  <option value="">Ignore</option>
-                  {fields.map((f) => <option key={f} value={f}>{f === 'notes' ? 'Add to notes' : f}</option>)}
-                </select>
-                <span className="hidden w-40 truncate text-xs text-slate-500 lg:block" title={dataRows[0]?.[idx]}>{dataRows[0]?.[idx]}</span>
-              </div>
-            ))}
+        <Card title="2. Check every column">
+          <p className="mb-3 text-sm text-slate-400">
+            {headers.length} columns: {mappingSummary.field} to lead fields, {mappingSummary.extra} kept as extra fields, {mappingSummary.ignored} ignored.
+            Change any of them below.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-2 py-2">Column in file</th>
+                  <th className="px-2 py-2">Goes to</th>
+                  <th className="px-2 py-2">Row 1</th>
+                  <th className="px-2 py-2">Row 2</th>
+                  <th className="px-2 py-2">Row 3</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/70">
+                {headers.map((h, idx) => {
+                  const target = mapping[h] ?? ''
+                  const ignoredWhy = target === '' ? IGNORED_COLUMNS[headerKey(h)] : undefined
+                  return (
+                    <tr key={`${h}-${idx}`} className={target === '' ? 'opacity-70' : ''}>
+                      <td className="whitespace-nowrap px-2 py-1.5 font-mono text-xs text-slate-200" title={h}>{h || `(column ${idx + 1})`}</td>
+                      <td className="px-2 py-1.5">
+                        <select value={target} onChange={(e) => { setMapping({ ...mapping, [h]: e.target.value }); resetPreview() }}
+                          className={`${selectClass} w-52 ${target === '' ? 'text-slate-400' : target === EXTRA ? 'text-sky-300' : ''}`}>
+                          <optgroup label="Lead field">
+                            {fields.map((f) => <option key={f} value={f}>{f === 'notes' ? 'notes (append)' : f}</option>)}
+                          </optgroup>
+                          <option value={EXTRA}>Extra field: {headerKey(h) || h}</option>
+                          <option value="">Ignore</option>
+                        </select>
+                        {ignoredWhy && <p className="mt-0.5 text-[11px] text-slate-500">Ignored: {ignoredWhy}</p>}
+                      </td>
+                      {[0, 1, 2].map((r) => (
+                        <td key={r} className="max-w-[180px] truncate px-2 py-1.5 text-xs text-slate-400" title={dataRows[r]?.[idx] ?? ''}>
+                          {dataRows[r]?.[idx] || <span className="text-slate-600">–</span>}
+                        </td>
+                      ))}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
+          {leadType === 'brand' && (
+            <p className="mt-2 text-xs text-slate-500">
+              Empty country is filled from the first entry in locations. Empty why them is built from batch, is_hiring and sponsor columns, like &quot;YC W24, hiring, sponsors creators&quot;.
+            </p>
+          )}
           <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-slate-800 pt-4 text-sm">
             {leadType === 'creator' && (
               <label className="flex items-center gap-2 text-slate-300">
@@ -278,6 +337,9 @@ export default function OutreachImportPage() {
                   <th className="px-2 py-2">{leadType === 'creator' ? 'Name' : 'Company'}</th>
                   <th className="px-2 py-2">{leadType === 'creator' ? 'Profile URL' : 'Domain'}</th>
                   <th className="px-2 py-2">Email</th>
+                  {leadType === 'brand' && <th className="px-2 py-2">Country</th>}
+                  {leadType === 'brand' && <th className="px-2 py-2">Why them</th>}
+                  <th className="px-2 py-2">Extra</th>
                   <th className="px-2 py-2">Owner</th>
                   <th className="px-2 py-2">Details</th>
                 </tr>
@@ -292,6 +354,12 @@ export default function OutreachImportPage() {
                       <td className="max-w-[180px] truncate px-2 py-1.5 text-slate-200">{String(lead?.[leadType === 'creator' ? 'name' : 'company'] ?? '')}</td>
                       <td className="max-w-[220px] truncate px-2 py-1.5 text-slate-400">{String(lead?.[leadType === 'creator' ? 'profile_url' : 'domain'] ?? lead?.website ?? '')}</td>
                       <td className="max-w-[180px] truncate px-2 py-1.5 text-slate-400">{String(lead?.email ?? '')}</td>
+                      {leadType === 'brand' && <td className="max-w-[120px] truncate px-2 py-1.5 text-slate-400">{String(lead?.country ?? '')}</td>}
+                      {leadType === 'brand' && <td className="max-w-[200px] truncate px-2 py-1.5 text-slate-400" title={String(lead?.why_them ?? '')}>{String(lead?.why_them ?? '')}</td>}
+                      <td className="max-w-[220px] truncate px-2 py-1.5 text-xs text-sky-300/80"
+                        title={Object.entries(lead?.extra ?? {}).map(([k, v]) => `${k}: ${v}`).join('\n')}>
+                        {Object.keys(lead?.extra ?? {}).join(', ')}
+                      </td>
                       <td className="px-2 py-1.5">
                         {r.status === 'new' ? (
                           <select value={owners[r.row] ?? ''} onChange={(e) => setOwners({ ...owners, [r.row]: e.target.value })} className="rounded-md border border-slate-700 bg-slate-800 px-1.5 py-1 text-xs text-slate-200">
