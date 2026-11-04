@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
+import { AdminSessionProvider, clearAdminStorage, useAdminSession } from '@/components/admin/AdminSession'
 import {
   LayoutDashboard, Users, UserSquare, Building2, Handshake,
   FileText, Mail, LogOut, Menu, X,
@@ -289,28 +290,37 @@ function NavEntry({
 // ─── Layout ──────────────────────────────────────────────────────────────────
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const router   = useRouter()
-  const [collapsed, setCollapsed]     = useState(false)
-  const [adminEmail, setAdminEmail]   = useState('')
-  const [showProfile, setShowProfile] = useState(false)
-  const [adminRole, setAdminRole]     = useState('')
-
-  useEffect(() => {
-    setAdminEmail(localStorage.getItem('admin_email') ?? 'Admin')
-    setAdminRole(localStorage.getItem('admin_role') ?? '')
-  }, [])
-
   if (pathname === '/admin/login' || pathname === '/admin/change-password') {return <>{children}</>}
+  return (
+    <AdminSessionProvider>
+      <AdminShell>{children}</AdminShell>
+    </AdminSessionProvider>
+  )
+}
+
+const ROLE_LABELS: Record<string, string> = { super_admin: 'Super admin', admin: 'Admin', outreach: 'Outreach' }
+
+function AdminShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const router   = useRouter()
+  const { user, loading, isOutreach: isOutreachRole } = useAdminSession()
+  const [collapsed, setCollapsed]     = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
+
+  // Who is signed in comes from the verified session (/api/admin/auth/me).
+  const adminEmail = user?.display_name ?? user?.email ?? (loading ? '' : 'Admin')
+  const roleLabel = user ? ROLE_LABELS[user.role] ?? user.role : ''
 
   // Outreach accounts see only the Outreach section. Cosmetic: middleware
   // is what blocks every other admin page and API for them.
-  const isOutreachRole = adminRole === 'outreach'
-  const navItems = isOutreachRole ? NAV.filter(item => item.href === '/admin/outreach') : NAV
+  // Nothing shows until the session is known, so no role sees a wrong menu.
+  const navItems = !user ? []
+    : isOutreachRole ? NAV.filter(item => item.href === '/admin/outreach')
+      : NAV
 
   const handleLogout = async () => {
     try { await fetch('/api/admin/auth/logout', { method: 'POST' }) } finally {
-      localStorage.removeItem('admin_email')
-      localStorage.removeItem('admin_role')
+      clearAdminStorage()
       router.push('/admin/login')
     }
   }
@@ -336,7 +346,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-3 border-t border-slate-800 space-y-1">
           {!collapsed && (
             <div className="px-2 mb-1">
-              <p className="text-xs text-slate-500 truncate">{adminEmail}</p>
+              <p className="text-xs text-slate-300 truncate" title={user?.email}>{adminEmail}</p>
+              {user && <p className="text-[11px] text-slate-500 truncate">{user.display_name ? `${user.email} · ` : ''}{roleLabel}</p>}
             </div>
           )}
           <button
@@ -390,7 +401,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {showProfile && (
               <div className="absolute right-0 top-10 z-50 bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-1 min-w-[160px]">
                 <div className="px-3 py-2 border-b border-slate-700 mb-1">
-                  <div className="text-xs text-slate-400 truncate">{adminEmail}</div>
+                  <div className="text-xs text-slate-300 truncate">{user?.email ?? adminEmail}</div>
+                  {roleLabel && <div className="text-[11px] text-slate-500">{roleLabel}</div>}
                 </div>
                 {!isOutreachRole && (
                   <Link href="/admin/settings" onClick={() => setShowProfile(false)}

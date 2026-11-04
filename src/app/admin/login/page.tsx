@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, Eye, EyeOff } from 'lucide-react'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { storeAdminSession } from '@/components/admin/AdminSession'
 
 export default function AdminLoginPage() {
   useDocumentTitle('Admin Access')
@@ -33,8 +34,8 @@ export default function AdminLoginPage() {
         return
       }
 
-      localStorage.setItem('admin_email', data.user?.email ?? email)
-      localStorage.setItem('admin_role', data.user?.role ?? 'admin')
+      // Replace whatever an earlier login in this browser stored.
+      storeAdminSession({ email: data.user?.email ?? email.trim(), role: data.user?.role ?? 'admin' })
       if (data.must_change_password) {
         router.push('/admin/change-password')
       } else {
