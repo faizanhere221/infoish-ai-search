@@ -1,7 +1,7 @@
 import { cache } from 'react'
 import { createServerSupabase } from '@/lib/db'
 import { isCreatorPublic } from '@/lib/creators/visibility'
-import { isSupportedPlatform } from '@/utils/constants'
+import { toPublicProfile } from '@/lib/creators/public-profile-shape'
 
 // Server-side loader for the public profile page (/creators/[username]).
 // Everything returned here is serialized into the page's HTML, which is
@@ -21,10 +21,10 @@ export interface PublicCreatorService {
   title: string
   description: string | null
   content_type: string
-  platform: string
-  price: number
-  delivery_days: number
-  revisions_included: number
+  platform: string // '' when the service names no platform
+  price: number | null // null: missing or invalid, the price is hidden
+  delivery_days: number | null
+  revisions_included: number | null
   is_active: boolean
 }
 
@@ -89,14 +89,8 @@ export const getPublicCreatorProfile = cache(async (username: string): Promise<P
       .order('created_at', { ascending: true }),
   ])
 
-  const { hidden_from_marketplace: _hidden, ...profile } = creator
-  return {
-    ...profile,
-    niches: profile.niches ?? [],
-    languages: profile.languages ?? [],
-    // Rows for a platform we dropped stay off the public page until
-    // remove_platforms_migration.sql deletes them.
-    creator_platforms: (platforms ?? []).filter((p) => isSupportedPlatform(p.platform)),
-    creator_services: (services ?? []).filter((s) => !s.platform || isSupportedPlatform(s.platform)),
-  } as PublicCreatorProfile
+  // Every value is checked and cleaned in toPublicProfile(), so no stored
+  // data shape (dropped platform, bad URL, null or string numbers, unknown
+  // niche, photo on another host) can crash the page.
+  return toPublicProfile(creator, platforms, services)
 })
