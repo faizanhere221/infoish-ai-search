@@ -4,18 +4,21 @@
 //   node scripts/outreach-check.mjs
 //     Pure-logic checks only (normalisation, CSV parsing, import mapping,
 //     owner rule, follow-up/no-reply dates, mailbox limits, working-day
-//     pace). Imports src/lib/outreach/rules.ts directly; needs Node 22.18+
+//     pace, profile links). Imports src/lib/outreach/rules.ts directly; needs Node 22.18+
 //     or 23.6+ (built-in TypeScript type stripping). Writes nothing.
 //
 //   node scripts/outreach-check.mjs --http --confirm=outreach-check
 //     Also runs HTTP checks against a running dev server (BASE_URL, default
 //     http://localhost:3000): duplicate blocking (incl. across creators and
 //     brands), DNC blocking, import preview/commit skipping duplicates and
-//     DNC rows, mailbox daily limit, undo. WRITES DATA: creates leads tagged
+//     DNC rows, mailbox daily limit, undo, edits, soft delete/restore (hidden
+//     from tables and exports, still blocks duplicates, still in
+//     already_in_sheet.txt). WRITES DATA: creates leads tagged
 //     source=outreach-check, a DNC entry and a mailbox with a 1/day limit,
-//     then deletes the leads and DNC entry and pauses the mailbox. Needs
-//     ADMIN_TOKEN (an admin's auth_token cookie, see .env.test.example) in
-//     .env.test.local. Run the migration first.
+//     then soft-deletes the leads (their rows stay, as deleted), removes the
+//     DNC entry and pauses the mailbox. Needs ADMIN_TOKEN (an admin's
+//     auth_token cookie, see .env.test.example) in .env.test.local;
+//     OUTREACH_TOKEN adds the member 403 checks. Run the migrations first.
 //
 // Outreach role access (403 outside the section) lives in
 // scripts/security-check.mjs (OUTREACH_TOKEN).
@@ -278,6 +281,41 @@ async function pureChecks() {
     assert.deepEqual(rules.validateLeadField('instagram', 'instagram.com/jane'), { ok: true, value: 'https://instagram.com/jane' })
   })
 
+  await check('profile links: creator main link is profile_url, then youtube/linkedin/x/instagram/tiktok/website', () => {
+    const lead = {
+      profile_url: 'youtube.com/@jane', linkedin: 'https://linkedin.com/in/jane', x: 'x.com/jane',
+      instagram: 'https://www.instagram.com/jane/', tiktok: 'tiktok.com/@jane', website: 'jane.dev',
+    }
+    const links = rules.leadLinks('creator', lead)
+    assert.deepEqual(links.map((l) => l.kind), ['youtube', 'linkedin', 'x', 'instagram', 'tiktok', 'website'])
+    assert.equal(links[0].url, 'https://youtube.com/@jane')
+    assert.deepEqual(rules.primaryLink('creator', { x: 'twitter.com/jane', website: 'jane.dev' }), { kind: 'x', url: 'https://twitter.com/jane' })
+    assert.equal(rules.primaryLink('creator', { extra: { youtube: 'youtu.be/abc' } }).kind, 'youtube')
+    assert.equal(rules.primaryLink('creator', {}), null)
+  })
+
+  await check('profile links: brands use website (or domain), then linkedin', () => {
+    assert.deepEqual(rules.leadLinks('brand', { website: 'acme.io', linkedin: 'linkedin.com/company/acme' }).map((l) => l.url),
+      ['https://acme.io', 'https://linkedin.com/company/acme'])
+    assert.equal(rules.primaryLink('brand', { domain: 'acme.io' }).url, 'https://acme.io')
+    assert.equal(rules.primaryLink('brand', { linkedin: 'linkedin.com/company/acme' }).kind, 'linkedin')
+  })
+
+  await check('profile links: only http(s); javascript:, data:, mailto: and junk never become links', () => {
+    for (const bad of ['javascript:alert(1)', 'JavaScript:alert(1)', 'data:text/html,hi', 'mailto:a@b.co', 'vbscript:x', '@handle', 'not a url', 'localhost']) {
+      assert.deepEqual(rules.leadLinks('creator', { profile_url: bad, website: bad }), [], bad)
+    }
+    const links = rules.leadLinks('creator', { profile_url: 'javascript:alert(1)', website: 'https://ok.dev' })
+    assert.deepEqual(links, [{ kind: 'website', url: 'https://ok.dev' }])
+    assert.ok(links.every((l) => /^https?:\/\//.test(l.url)))
+  })
+
+  await check('profile links: the same URL twice shows once', () => {
+    const links = rules.leadLinks('creator', { profile_url: 'https://www.linkedin.com/in/jane/', linkedin: 'linkedin.com/in/jane' })
+    assert.equal(links.length, 1)
+    assert.equal(links[0].kind, 'linkedin')
+  })
+
   await check('field validation: numbers >= 0, "5k" and "5,076" accepted', () => {
     assert.deepEqual(rules.validateLeadField('subscribers', '5,076'), { ok: true, value: 5076 })
     assert.deepEqual(rules.validateLeadField('avg_views', '1.25k'), { ok: true, value: 1250 })
@@ -392,6 +430,7 @@ async function httpChecks() {
   const getEnv = (k) => process.env[k] ?? fileEnv[k] ?? ''
   const BASE_URL = getEnv('BASE_URL') || 'http://localhost:3000'
   const ADMIN_TOKEN = getEnv('ADMIN_TOKEN')
+  const OUTREACH_TOKEN = getEnv('OUTREACH_TOKEN') // optional: member 403 checks
   console.log(`\nHTTP checks against ${BASE_URL} (writes data)\n`)
   if (!ADMIN_TOKEN) {
     skip('HTTP outreach checks', 'ADMIN_TOKEN not set in .env.test.local')
@@ -405,6 +444,10 @@ async function httpChecks() {
     try { json = await res.json() } catch { /* non-JSON */ }
     return { status: res.status, json }
   }
+  const raw = async (method, urlPath) => {
+    const res = await fetch(`${BASE_URL}${urlPath}`, { method, headers })
+    return { status: res.status, text: await res.text() }
+  }
 
   const tag = `oc${Date.now()}`
   const email1 = `${tag}.one@outreach-check.invalid`
@@ -415,7 +458,11 @@ async function httpChecks() {
   let mailboxId = null
 
   try {
-    const team = await call('GET', '/api/admin/outreach/team')
+    const team = await call('GET', '/api/admin/outreach/team').catch(() => null)
+    if (!team) {
+      skip('HTTP outreach checks', `no server at ${BASE_URL}; start the dev server first`)
+      return
+    }
     if (team.status !== 200) {
       skip('HTTP outreach checks', `GET /api/admin/outreach/team returned ${team.status}; is the migration applied and ADMIN_TOKEN fresh?`)
       return
@@ -597,13 +644,127 @@ async function httpChecks() {
       const after = (await call('GET', `/api/admin/outreach/leads/creators/${leadA}`)).json.lead
       assert.equal(after.dnc, false, 'undo should remove the DNC entry the opt-out added')
     })
+
+    // ── Soft delete / restore ──
+    const email4 = `${tag}.deleted@outreach-check.invalid`
+    let leadD = null
+    await check('add creator D (to delete)', async () => {
+      const r = await call('POST', '/api/admin/outreach/leads/creators', {
+        name: `${tag} D`, email: email4, profile_url: `youtube.com/@${tag}D`, x: `x.com/${tag}d`, source: 'outreach-check',
+      })
+      assert.equal(r.status, 201, JSON.stringify(r.json))
+      leadD = r.json.lead.lead_id
+      created.push(['creators', leadD])
+    })
+    const inTable = async (q, extra = '') =>
+      (await call('GET', `/api/admin/outreach/leads/creators?q=${encodeURIComponent(q)}&limit=200${extra}`)).json
+
+    await check('"select all matching": ids=1 returns every matching lead id', async () => {
+      const r = await call('GET', `/api/admin/outreach/leads/creators?q=${tag}&ids=1`)
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      assert.ok(r.json.ids.includes(leadA) && r.json.ids.includes(leadD))
+      assert.equal(r.json.total, (await inTable(tag)).total)
+    })
+
+    await check('delete: hidden from the table, counts and export; listed under the Deleted filter', async () => {
+      const r = await call('POST', '/api/admin/outreach/leads/creators/delete', { lead_ids: [leadD] })
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      assert.equal(r.json.deleted, 1)
+      const visible = await inTable(leadD)
+      assert.equal(visible.total, 0)
+      assert.ok(!(await inTable(tag)).leads.some((l) => l.lead_id === leadD))
+      const deleted = await inTable(leadD, '&deleted=1')
+      assert.equal(deleted.total, 1)
+      assert.ok(deleted.leads[0].deleted_at && deleted.leads[0].deleted_by)
+      const csv = await raw('GET', `/api/admin/outreach/leads/creators/export?q=${tag}`)
+      assert.equal(csv.status, 200)
+      assert.ok(!csv.text.includes(email4), 'deleted lead must not be exported')
+      assert.ok(csv.text.includes(leadA), 'other leads are still exported')
+    })
+
+    await check('delete again changes nothing (reported as skipped)', async () => {
+      const r = await call('POST', '/api/admin/outreach/leads/creators/delete', { lead_ids: [leadD] })
+      assert.equal(r.status, 200)
+      assert.equal(r.json.deleted, 0)
+      assert.equal(r.json.skipped, 1)
+    })
+
+    await check('a deleted lead still blocks duplicates: "Previously deleted: C-…" on add, check and import', async () => {
+      const add = await call('POST', '/api/admin/outreach/leads/creators', { name: 'again', email: email4.toUpperCase(), source: 'outreach-check' })
+      assert.equal(add.status, 409, JSON.stringify(add.json))
+      assert.equal(add.json.error, `Previously deleted: ${leadD}`)
+      const dup = await call('GET', `/api/admin/outreach/check-duplicate?type=creator&email=${encodeURIComponent(email4)}`)
+      assert.equal(dup.json.duplicates[0].lead_id, leadD)
+      assert.equal(dup.json.duplicates[0].deleted, true)
+      const preview = await call('POST', '/api/admin/outreach/import/preview', {
+        lead_type: 'creator', rows: [{ _row: 2, name: 'again', profile_url: `https://www.youtube.com/@${tag}d/` }],
+      })
+      assert.equal(preview.status, 200, JSON.stringify(preview.json))
+      assert.equal(preview.json.rows[0].status, 'duplicate')
+      assert.equal(preview.json.rows[0].reasons[0], `Previously deleted: ${leadD}`)
+      const edit = await call('PATCH', `/api/admin/outreach/leads/creators/${created[1][1]}`, { email: email4 })
+      assert.equal(edit.status, 409, JSON.stringify(edit.json))
+      assert.equal(edit.json.fields.email[0], `Previously deleted: ${leadD}`)
+    })
+
+    await check('a deleted lead stays in already_in_sheet.txt', async () => {
+      const r = await raw('GET', '/api/admin/outreach/export/already-in-sheet')
+      assert.equal(r.status, 200)
+      assert.ok(r.text.split('\n').includes(email4))
+    })
+
+    await check('a deleted lead takes no actions or edits until restored (409, never 500)', async () => {
+      const act = await call('POST', '/api/admin/outreach/actions', { lead_id: leadD, action: 'contacted', channel: 'linkedin' })
+      assert.equal(act.status, 409, JSON.stringify(act.json))
+      assert.equal(act.json.code, 'outreach_deleted')
+      const edit = await call('PATCH', `/api/admin/outreach/leads/creators/${leadD}`, { notes: 'x' })
+      assert.equal(edit.status, 409, JSON.stringify(edit.json))
+    })
+
+    await check('restore: back in the table; delete and restore both logged', async () => {
+      const r = await call('POST', '/api/admin/outreach/leads/creators/restore', { lead_ids: [leadD] })
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      assert.equal(r.json.restored, 1)
+      assert.equal((await inTable(leadD)).total, 1)
+      const detail = (await call('GET', `/api/admin/outreach/leads/creators/${leadD}`)).json
+      assert.equal(detail.lead.deleted_at, null)
+      const actions = detail.activity.map((a) => a.action)
+      assert.ok(actions.includes('deleted') && actions.includes('restored'), actions.join(','))
+    })
+
+    await check('per-row DELETE is a soft delete too', async () => {
+      const r = await call('DELETE', `/api/admin/outreach/leads/creators/${leadD}`)
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      const detail = (await call('GET', `/api/admin/outreach/leads/creators/${leadD}`)).json
+      assert.ok(detail.lead.deleted_at, 'row should still exist with deleted_at set')
+    })
+
+    if (OUTREACH_TOKEN) {
+      const member = (method, urlPath, body) => fetch(`${BASE_URL}${urlPath}`, {
+        method, headers: { Cookie: `auth_token=${OUTREACH_TOKEN}`, 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined,
+      })
+      await check('outreach members get 403 on delete, restore, the Deleted filter and ids=1', async () => {
+        for (const [method, p, body] of [
+          ['POST', '/api/admin/outreach/leads/creators/delete', { lead_ids: [leadA] }],
+          ['POST', '/api/admin/outreach/leads/creators/restore', { lead_ids: [leadD] }],
+          ['DELETE', `/api/admin/outreach/leads/creators/${leadA}`],
+          ['GET', '/api/admin/outreach/leads/creators?deleted=1'],
+          ['GET', '/api/admin/outreach/leads/creators?ids=1'],
+        ]) {
+          assert.equal((await member(method, p, body)).status, 403, `${method} ${p}`)
+        }
+      })
+    } else {
+      skip('outreach member 403 on delete/restore', 'OUTREACH_TOKEN not set in .env.test.local')
+    }
   } finally {
     for (const [segment, id] of created) {
-      await call('DELETE', `/api/admin/outreach/leads/${segment}/${id}`, { reason: 'outreach-check cleanup' })
+      await call('DELETE', `/api/admin/outreach/leads/${segment}/${id}`)
     }
     if (dncId) {await call('DELETE', `/api/admin/outreach/dnc/${dncId}`, { reason: 'outreach-check cleanup' })}
     if (mailboxId) {await call('PATCH', `/api/admin/outreach/mailboxes/${mailboxId}`, { is_active: false })}
-    console.log(`\nCleanup: deleted ${created.length} test leads${dncId ? ' and the DNC entry' : ''}${mailboxId ? `, paused mailbox ${tag}@outreach-check.invalid` : ''}.`)
+    console.log(`\nCleanup: soft-deleted ${created.length} test leads${dncId ? ' and the DNC entry' : ''}${mailboxId ? `, paused mailbox ${tag}@outreach-check.invalid` : ''}.`)
   }
 }
 
