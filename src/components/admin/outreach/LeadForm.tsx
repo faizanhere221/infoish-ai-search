@@ -69,14 +69,24 @@ export function DuplicateNotice({ duplicates }: { duplicates: DuplicateMatch[] }
       {duplicates.map((d) => (
         <div key={`${d.key_type}:${d.key_value}`} className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-          <span>
-            Already exists:{' '}
-            <Link href={`/admin/outreach/${d.lead_type === 'creator' ? 'creators' : 'brands'}?q=${encodeURIComponent(d.lead_id)}`} className="font-semibold underline">
-              {d.lead_id}
-            </Link>
-            {d.owner_name ? `, owned by ${d.owner_name}` : ', no owner'}
-            {d.status ? `, status ${STATUS_LABELS[d.status] ?? d.status}` : ''} (same {d.key_type.replace('_', ' ')})
-          </span>
+          {d.deleted ? (
+            <span>
+              Previously deleted:{' '}
+              <Link href={`/admin/outreach/${d.lead_type === 'creator' ? 'creators' : 'brands'}?q=${encodeURIComponent(d.lead_id)}&deleted=1`} className="font-semibold underline">
+                {d.lead_id}
+              </Link>{' '}
+              (same {d.key_type.replace('_', ' ')}). An admin restores it from the Deleted filter.
+            </span>
+          ) : (
+            <span>
+              Already exists:{' '}
+              <Link href={`/admin/outreach/${d.lead_type === 'creator' ? 'creators' : 'brands'}?q=${encodeURIComponent(d.lead_id)}`} className="font-semibold underline">
+                {d.lead_id}
+              </Link>
+              {d.owner_name ? `, owned by ${d.owner_name}` : ', no owner'}
+              {d.status ? `, status ${STATUS_LABELS[d.status] ?? d.status}` : ''} (same {d.key_type.replace('_', ' ')})
+            </span>
+          )}
         </div>
       ))}
     </div>

@@ -1,8 +1,10 @@
 'use client'
 
-import { Ban } from 'lucide-react'
+import { Ban, Globe, Instagram, Linkedin, Music2, Twitter, Youtube } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { STATUS_LABELS, type MailboxState } from '@/lib/outreach/rules'
+import {
+  LINK_LABELS, STATUS_LABELS, withHttps, type LeadLink, type LinkKind, type MailboxState,
+} from '@/lib/outreach/rules'
 
 // Small shared pieces for the outreach admin pages.
 
@@ -39,11 +41,44 @@ export function DncBadge() {
 // Only http(s) links render as links, so a "javascript:" profile URL in a
 // CSV never becomes a clickable script. Scheme-less values get https://.
 export function safeHref(v: string | null | undefined): string | null {
-  if (!v) {return null}
-  const s = v.trim()
-  if (/^https?:\/\//i.test(s)) {return s}
-  if (/^[a-z][a-z0-9+.-]*:/i.test(s)) {return null}
-  return `https://${s}`
+  return v ? withHttps(v) : null
+}
+
+const LINK_ICONS: Record<LinkKind, React.ComponentType<{ className?: string }>> = {
+  youtube: Youtube,
+  linkedin: Linkedin,
+  x: Twitter,
+  instagram: Instagram,
+  tiktok: Music2,
+  website: Globe,
+}
+
+export function LinkIcon({ kind, className }: { kind: LinkKind; className?: string }) {
+  const Icon = LINK_ICONS[kind]
+  return <Icon className={cn('h-3.5 w-3.5 flex-shrink-0', className)} aria-hidden="true" />
+}
+
+// One icon per link, each opening in a new tab. Links come from
+// leadLinks(), which only returns http(s) URLs.
+export function LinkIcons({ links }: { links: LeadLink[] }) {
+  if (links.length === 0) {return <span className="text-slate-600">–</span>}
+  return (
+    <span className="inline-flex items-center gap-1">
+      {links.map((l) => (
+        <a
+          key={l.url}
+          href={l.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={`${LINK_LABELS[l.kind]}: ${l.url}`}
+          aria-label={`Open ${LINK_LABELS[l.kind]}`}
+          className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-violet-300"
+        >
+          <LinkIcon kind={l.kind} />
+        </a>
+      ))}
+    </span>
+  )
 }
 
 export function ExternalLink({ href, children, className }: { href: string | null | undefined; children: React.ReactNode; className?: string }) {

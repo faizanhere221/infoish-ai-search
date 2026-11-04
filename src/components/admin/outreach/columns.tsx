@@ -1,10 +1,10 @@
 'use client'
 
 import { COUNTRIES, NICHES, PLATFORMS, platformName } from '@/utils/constants'
-import { CHANNEL_LABELS, CHANNELS, type LeadType } from '@/lib/outreach/rules'
+import { CHANNEL_LABELS, CHANNELS, LINK_LABELS, leadLinks, primaryLink, type LeadType } from '@/lib/outreach/rules'
 import type { OutreachLeadRow, OutreachTeamMember } from '@/lib/outreach/types'
 import type { CellEditor } from '@/components/admin/outreach/EditableCell'
-import { ExternalLink, formatCount, StatusBadge } from '@/components/admin/outreach/ui'
+import { ExternalLink, formatCount, LinkIcon, LinkIcons, StatusBadge } from '@/components/admin/outreach/ui'
 
 // Column definitions for the creator and brand tables. `field` is what a
 // cell edit PATCHes; columns without one are read-only. Extra columns
@@ -12,7 +12,7 @@ import { ExternalLink, formatCount, StatusBadge } from '@/components/admin/outre
 
 export type ColumnKind =
   | 'text' | 'email' | 'url' | 'int' | 'number' | 'platform' | 'country' | 'niche' | 'channel'
-  | 'owner' | 'bool' | 'status' | 'date' | 'extra'
+  | 'owner' | 'bool' | 'status' | 'date' | 'extra' | 'links'
 
 export interface LeadColumn {
   id: string
@@ -22,14 +22,18 @@ export interface LeadColumn {
   extraKey?: string
   sort?: string
   defaultVisible?: boolean
+  // Name / Company: shown as a link to the lead's main profile. The cell
+  // then edits through its pencil icon, so clicking the link never edits.
+  profileLink?: boolean
 }
 
 const col = (id: string, label: string, kind: ColumnKind, opts: Partial<LeadColumn> = {}): LeadColumn => ({
-  id, label, kind, field: kind === 'date' ? undefined : id, ...opts,
+  id, label, kind, field: kind === 'date' || kind === 'links' ? undefined : id, ...opts,
 })
 
 export const CREATOR_COLUMNS: LeadColumn[] = [
-  col('name', 'Name', 'text', { sort: 'name', defaultVisible: true }),
+  col('name', 'Name', 'text', { sort: 'name', defaultVisible: true, profileLink: true }),
+  col('links', 'Links', 'links', { defaultVisible: true }),
   col('profile_url', 'Profile URL', 'url'),
   col('platform', 'Platform', 'platform', { sort: 'platform', defaultVisible: true }),
   col('country', 'Country', 'country', { sort: 'country', defaultVisible: true }),
@@ -55,7 +59,8 @@ export const CREATOR_COLUMNS: LeadColumn[] = [
 ]
 
 export const BRAND_COLUMNS: LeadColumn[] = [
-  col('company', 'Company', 'text', { sort: 'company', defaultVisible: true }),
+  col('company', 'Company', 'text', { sort: 'company', defaultVisible: true, profileLink: true }),
+  col('links', 'Links', 'links', { defaultVisible: true }),
   col('website', 'Website', 'url'),
   col('domain', 'Domain', 'text', { defaultVisible: true }),
   col('country', 'Country', 'country', { sort: 'country', defaultVisible: true }),
@@ -94,9 +99,32 @@ export function cellValue(lead: OutreachLeadRow, c: LeadColumn): string {
   return String(raw)
 }
 
-export function cellDisplay(lead: OutreachLeadRow, c: LeadColumn, ownerName: (id: string | null) => string): React.ReactNode {
+export function cellDisplay(
+  lead: OutreachLeadRow,
+  c: LeadColumn,
+  ownerName: (id: string | null) => string,
+  leadType: LeadType,
+): React.ReactNode {
   const v = cellValue(lead, c)
+  const record = lead as unknown as Record<string, unknown>
+  if (c.profileLink) {
+    const link = primaryLink(leadType, record)
+    if (!link) {return v || <Empty />}
+    return (
+      <a
+        href={link.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={`Open ${LINK_LABELS[link.kind]}: ${link.url}`}
+        className="inline-flex max-w-full items-center gap-1.5 text-violet-200 hover:text-violet-100 hover:underline"
+      >
+        <LinkIcon kind={link.kind} className="text-slate-400" />
+        <span className="truncate">{v || link.url.replace(/^https?:\/\/(www\.)?/i, '')}</span>
+      </a>
+    )
+  }
   switch (c.kind) {
+    case 'links': return <LinkIcons links={leadLinks(leadType, record)} />
     case 'status': return <StatusBadge status={lead.status} />
     case 'owner': return ownerName(lead.owner_user_id)
     case 'platform': return v ? (platformName(v) === 'Other platform' ? v : platformName(v)) : <Empty />

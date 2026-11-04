@@ -452,6 +452,78 @@ export function withHttps(raw: string): string | null {
   }
 }
 
+// ─── Profile links (Name cell + Links column) ────────────────────────────────
+// Only http(s) links come out of here: withHttps() refuses javascript:,
+// data:, mailto: and every other scheme, and anything without a real host.
+
+export type LinkKind = 'youtube' | 'linkedin' | 'x' | 'instagram' | 'tiktok' | 'website'
+
+export const LINK_LABELS: Record<LinkKind, string> = {
+  youtube: 'YouTube',
+  linkedin: 'LinkedIn',
+  x: 'X',
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+  website: 'Website',
+}
+
+export interface LeadLink {
+  kind: LinkKind
+  url: string
+}
+
+// Platform of a URL by its host; anything else is a website.
+export function linkKind(url: string): LinkKind {
+  let host = ''
+  try { host = new URL(url).hostname.toLowerCase().replace(/^(www|m)\./, '') } catch { return 'website' }
+  const is = (...domains: string[]) => domains.some((d) => host === d || host.endsWith(`.${d}`))
+  if (is('youtube.com', 'youtu.be')) {return 'youtube'}
+  if (is('linkedin.com')) {return 'linkedin'}
+  if (is('x.com', 'twitter.com')) {return 'x'}
+  if (is('instagram.com')) {return 'instagram'}
+  if (is('tiktok.com')) {return 'tiktok'}
+  return 'website'
+}
+
+// Every usable link of a lead, main one first, duplicates removed.
+// Creators: profile_url, then youtube (extra), linkedin, x, instagram,
+// tiktok, website. Brands: website (or the domain), then linkedin.
+export function leadLinks(leadType: LeadType, lead: Record<string, unknown>): LeadLink[] {
+  const extra = (lead.extra && typeof lead.extra === 'object' ? lead.extra : {}) as Record<string, unknown>
+  const sources: [unknown, LinkKind | null][] = leadType === 'creator'
+    ? [
+        [lead.profile_url, null],
+        [extra.youtube ?? extra.youtube_url, 'youtube'],
+        [lead.linkedin, 'linkedin'],
+        [lead.x, 'x'],
+        [lead.instagram, 'instagram'],
+        [lead.tiktok, 'tiktok'],
+        [lead.website, null],
+      ]
+    : [
+        [lead.website || lead.domain, null],
+        [lead.linkedin, 'linkedin'],
+      ]
+
+  const links: LeadLink[] = []
+  const seen = new Set<string>()
+  for (const [raw, kind] of sources) {
+    if (typeof raw !== 'string') {continue}
+    const url = withHttps(raw)
+    if (!url) {continue}
+    const key = normalizeUrl(url) ?? url
+    if (seen.has(key)) {continue}
+    seen.add(key)
+    const detected = linkKind(url)
+    links.push({ kind: detected !== 'website' ? detected : kind ?? 'website', url })
+  }
+  return links
+}
+
+export function primaryLink(leadType: LeadType, lead: Record<string, unknown>): LeadLink | null {
+  return leadLinks(leadType, lead)[0] ?? null
+}
+
 export type FieldResult = { ok: true; value: unknown } | { ok: false; error: string }
 
 function asText(raw: unknown): string | null {

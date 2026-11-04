@@ -369,7 +369,9 @@ export default function OutreachImportPage() {
                         ) : null}
                       </td>
                       <td className="px-2 py-1.5 text-xs text-slate-400">
-                        {r.match ? (
+                        {r.match?.deleted ? (
+                          <>Previously deleted: <Link className="text-violet-300 underline" href={`/admin/outreach/${r.match.lead_type}s?q=${encodeURIComponent(r.match.lead_id)}&deleted=1`}>{r.match.lead_id}</Link></>
+                        ) : r.match ? (
                           <>Already exists: <Link className="text-violet-300 underline" href={`/admin/outreach/${r.match.lead_type}s?q=${encodeURIComponent(r.match.lead_id)}`}>{r.match.lead_id}</Link>
                             {r.match.owner_name ? `, owned by ${r.match.owner_name}` : ''}{r.match.status ? `, status ${r.match.status}` : ''}</>
                         ) : r.reasons.join('; ')}

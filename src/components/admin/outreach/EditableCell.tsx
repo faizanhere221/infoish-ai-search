@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 // One table cell that turns into an editor on click.
@@ -24,13 +24,16 @@ interface EditableCellProps {
   saving?: boolean
   className?: string
   title?: string
+  // The cell holds a link: clicking it opens the link, and editing starts
+  // only from the pencil icon.
+  editIcon?: boolean
   onStart: () => void
   onCancel: () => void
   onSave: (value: string) => void
 }
 
 export function EditableCell({
-  display, value, editor, editing, readOnly, initial, error, saving, className, title, onStart, onCancel, onSave,
+  display, value, editor, editing, readOnly, initial, error, saving, className, title, editIcon, onStart, onCancel, onSave,
 }: EditableCellProps) {
   const [draft, setDraft] = useState(initial ?? value)
   const done = useRef(false)
@@ -53,17 +56,28 @@ export function EditableCell({
   if (!editing) {
     return (
       <td
-        className={cn('group max-w-[240px] px-3 py-2', !readOnly && 'cursor-text hover:bg-slate-800/60', className)}
+        className={cn('group max-w-[240px] px-3 py-2', !readOnly && !editIcon && 'cursor-text hover:bg-slate-800/60', className)}
         title={title}
         onClick={(e) => {
-          if (readOnly) {return}
+          if (readOnly || editIcon) {return}
           if ((e.target as HTMLElement).closest('a')) {return} // let links open
           onStart()
         }}
       >
         <div className="flex items-center gap-1 truncate">
           {saving && <Loader2 className="h-3 w-3 flex-shrink-0 animate-spin text-slate-500" />}
-          <span className="truncate">{display}</span>
+          <span className="min-w-0 truncate">{display}</span>
+          {editIcon && !readOnly && (
+            <button
+              type="button"
+              onClick={onStart}
+              className="flex-shrink-0 rounded p-0.5 text-slate-500 opacity-60 hover:bg-slate-800 hover:text-white group-hover:opacity-100"
+              title="Edit"
+              aria-label="Edit this cell"
+            >
+              <Pencil className="h-3 w-3" />
+            </button>
+          )}
         </div>
       </td>
     )

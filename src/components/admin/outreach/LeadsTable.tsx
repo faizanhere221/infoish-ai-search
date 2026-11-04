@@ -3,15 +3,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
-  ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Columns3, Download, Eraser, MailWarning, PanelRight, Plus, Search,
-  SkipForward, Trash2,
+  ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Columns3, Download, Eraser, MailWarning, PanelRight, Plus, RotateCcw,
+  Search, SkipForward, Trash2,
 } from 'lucide-react'
 import { platformName } from '@/utils/constants'
 import {
-  BRAND_STATUSES, CHANNEL_LABELS, CHANNELS, CREATOR_STATUSES, STATUS_LABELS, type LeadType,
+  BRAND_STATUSES, CHANNEL_LABELS, CHANNELS, CREATOR_STATUSES, primaryLink, STATUS_LABELS, type LeadType,
 } from '@/lib/outreach/rules'
 import type { OutreachLeadRow } from '@/lib/outreach/types'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
+import { ConfirmDialog } from '@/components/admin/outreach/ConfirmDialog'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
 import { LeadActions } from '@/components/admin/outreach/LeadActions'
 import { LeadForm } from '@/components/admin/outreach/LeadForm'
@@ -24,13 +25,31 @@ import {
 } from '@/components/admin/outreach/ui'
 
 const PAGE_SIZE = 50
+const DELETE_BATCH = 200 // ids per delete/restore request
+const BULK_BATCH = 500 // ids per owner/status request (the route's max)
 
 interface FilterValues { countries: string[]; niches: string[]; platforms: string[] }
 
+// Owner/status bulk changes and "delete personal data" keep the reason step.
 interface Pending {
-  kind: 'delete' | 'erase' | 'bulk'
+  kind: 'erase' | 'bulk'
   lead?: OutreachLeadRow
   bulk?: { owner_user_id?: string | null; status?: string }
+}
+
+// Soft delete / restore: one row, or the selection (page or all matching).
+interface Confirming {
+  kind: 'delete' | 'restore'
+  lead?: OutreachLeadRow
+}
+
+function leadTitle(lead: OutreachLeadRow): string {
+  const l = lead as unknown as Record<string, unknown>
+  return String(l.name ?? l.company ?? l.email ?? '').trim()
+}
+
+function plural(n: number, word: string): string {
+  return `${n.toLocaleString()} ${n === 1 ? word : `${word}s`}`
 }
 
 interface EditingCell {
@@ -77,6 +96,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
   const [platform, setPlatform] = useState('')
   const [channel, setChannel] = useState('')
   const [missingEmail, setMissingEmail] = useState(sp.get('missing') === 'email')
+  const [showDeleted, setShowDeleted] = useState(sp.get('deleted') === '1')
   const [sort, setSort] = useState('created_at')
   const [dir, setDir] = useState<'asc' | 'desc'>('desc')
   const [offset, setOffset] = useState(0)
@@ -89,6 +109,11 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [panel, setPanel] = useState<OutreachLeadRow | null | 'new'>(null)
   const [pending, setPending] = useState<Pending | null>(null)
+  const [confirming, setConfirming] = useState<Confirming | null>(null)
+  const [progress, setProgress] = useState<string | null>(null)
+  // "Select all N matching this filter": the selection is every lead the
+  // filters match, not only this page. Ids are fetched when an action runs.
+  const [allMatching, setAllMatching] = useState(false)
   const [bulkOwner, setBulkOwner] = useState('')
   const [bulkStatus, setBulkStatus] = useState('')
   const [editing, setEditing] = useState<EditingCell | null>(null)
@@ -102,7 +127,17 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(columnsKey(leadType)) ?? 'null')
-      if (Array.isArray(saved) && saved.every((x) => typeof x === 'string')) {setVisibleIds(saved)}
+      if (Array.isArray(saved) && saved.every((x) => typeof x === 'string')) {
+        // Column choices saved before the Links column existed: add it once.
+        const seenKey = `${columnsKey(leadType)}_links`
+        if (!saved.includes('links') && !localStorage.getItem(seenKey)) {
+          const at = saved.indexOf(leadType === 'creator' ? 'name' : 'company')
+          saved.splice(at + 1, 0, 'links')
+          localStorage.setItem(columnsKey(leadType), JSON.stringify(saved))
+        }
+        localStorage.setItem(seenKey, '1')
+        setVisibleIds(saved)
+      }
     } catch {
       // storage blocked or bad JSON: keep the defaults
     }
@@ -118,7 +153,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     return () => clearTimeout(t)
   }, [q])
 
-  useEffect(() => { setOffset(0) }, [debouncedQ, owner, status, country, niche, platform, channel, missingEmail, sort, dir])
+  useEffect(() => { setOffset(0) }, [debouncedQ, owner, status, country, niche, platform, channel, missingEmail, showDeleted, sort, dir])
 
   const filterParams = useMemo(() => {
     const p = new URLSearchParams()
@@ -130,10 +165,12 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     if (platform) {p.set('platform', platform)}
     if (channel) {p.set('channel', channel)}
     if (missingEmail) {p.set('missing', 'email')}
+    if (showDeleted && isAdmin) {p.set('deleted', '1')}
     p.set('sort', sort)
     p.set('dir', dir)
     return p
-  }, [debouncedQ, owner, status, country, niche, platform, channel, missingEmail, sort, dir])
+  }, [debouncedQ, owner, status, country, niche, platform, channel, missingEmail, showDeleted, isAdmin, sort, dir])
+  const inDeletedView = showDeleted && isAdmin
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -161,7 +198,10 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
   }, [filterParams, offset, segment, toast])
 
   useEffect(() => { void load() }, [load, version])
-  useEffect(() => { setSelected(new Set()) }, [filterParams, offset])
+  useEffect(() => {
+    setSelected(new Set())
+    setAllMatching(false)
+  }, [filterParams, offset])
 
   // Extra keys: the known ones for this lead type plus any on this page.
   const extraKeys = useMemo(() => {
@@ -242,31 +282,114 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     if (c.id === 'email' && data.lead.email && !lead.email) {goToNextMissing(lead.lead_id)}
   }
 
-  const toggle = (id: string) => setSelected((prev) => {
-    const next = new Set(prev)
-    if (next.has(id)) {next.delete(id)} else {next.add(id)}
-    return next
-  })
+  const toggle = (id: string) => {
+    setAllMatching(false)
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {next.delete(id)} else {next.add(id)}
+      return next
+    })
+  }
   const allOnPage = leads.length > 0 && leads.every((l) => selected.has(l.lead_id))
+  const selectedCount = allMatching ? total : selected.size
+
+  const clearSelection = () => {
+    setSelected(new Set())
+    setAllMatching(false)
+  }
+
+  // The ids an action applies to: the checked rows, or every lead the
+  // filters match (fetched now, so the list is current).
+  const resolveSelection = async (): Promise<string[] | null> => {
+    if (!allMatching) {return [...selected]}
+    const res = await fetch(`/api/admin/outreach/leads/${segment}?${filterParams}&ids=1`)
+    const data = await readJson<{ ids: string[]; capped: boolean }>(res)
+    if (!res.ok) {
+      toast('error', data.error ?? 'Failed to load the matching leads')
+      return null
+    }
+    if (data.capped) {toast('error', `Only the first ${plural(data.ids.length, 'lead')} are included. Narrow the filter for the rest.`)}
+    return data.ids
+  }
+
+  // Sends ids in batches and adds up `countKey` from each response. Stops at
+  // the first failed batch and reports what was done before it.
+  const runInBatches = async (
+    ids: string[],
+    size: number,
+    send: (batch: string[]) => Promise<Response>,
+    countKey: string,
+    verb: string,
+  ): Promise<{ done: number; error: string | null }> => {
+    let done = 0
+    for (let i = 0; i < ids.length; i += size) {
+      if (ids.length > size) {setProgress(`${verb} ${Math.min(i, ids.length).toLocaleString()} of ${ids.length.toLocaleString()}…`)}
+      const res = await send(ids.slice(i, i + size))
+      const data = await readJson<Record<string, unknown>>(res)
+      if (!res.ok) {return { done, error: (data.error as string | undefined) ?? 'Request failed' }}
+      done += Number(data[countKey] ?? 0)
+    }
+    return { done, error: null }
+  }
+
+  const postIds = (path: string, extra: Record<string, unknown> = {}) => (batch: string[]) =>
+    fetch(`/api/admin/outreach/leads/${segment}/${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lead_ids: batch, ...extra }),
+    })
+
+  const afterBatch = () => {
+    setProgress(null)
+    clearSelection()
+    bump()
+  }
+
+  // Soft delete / restore, for one row or the selection.
+  const runConfirming = async () => {
+    if (!confirming) {return}
+    const deleting = confirming.kind === 'delete'
+    const ids = confirming.lead ? [confirming.lead.lead_id] : await resolveSelection()
+    if (!ids) {return}
+    if (ids.length === 0) {
+      toast('error', 'No leads selected')
+      return
+    }
+    const { done, error } = await runInBatches(
+      ids, DELETE_BATCH, postIds(deleting ? 'delete' : 'restore'),
+      deleting ? 'deleted' : 'restored', deleting ? 'Deleted' : 'Restored',
+    )
+    const summary = `${deleting ? 'Deleted' : 'Restored'} ${plural(done, 'lead')}`
+    if (error) {
+      toast('error', `${summary} of ${ids.length.toLocaleString()}. Stopped: ${error}`)
+    } else {
+      const skipped = ids.length - done
+      toast('success', skipped > 0 ? `${summary}. ${plural(skipped, 'lead')} skipped (already ${deleting ? 'deleted' : 'restored'}).` : summary)
+    }
+    setConfirming(null)
+    afterBatch()
+  }
 
   const runPending = async (reason: string) => {
     if (!pending) {return}
-    let res: Response
     if (pending.kind === 'bulk') {
-      res = await fetch(`/api/admin/outreach/leads/${segment}/bulk`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lead_ids: [...selected], ...pending.bulk, reason }),
-      })
-    } else {
-      const lead = pending.lead as OutreachLeadRow
-      const url = `/api/admin/outreach/leads/${segment}/${encodeURIComponent(lead.lead_id)}${pending.kind === 'erase' ? '/erase' : ''}`
-      res = await fetch(url, {
-        method: pending.kind === 'erase' ? 'POST' : 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason }),
-      })
+      const ids = await resolveSelection()
+      if (!ids) {return}
+      const { done, error } = await runInBatches(ids, BULK_BATCH, postIds('bulk', { ...pending.bulk, reason }), 'updated', 'Updated')
+      if (error) {toast('error', `Updated ${plural(done, 'lead')} of ${ids.length.toLocaleString()}. Stopped: ${error}`)}
+      else {toast('success', `Updated ${plural(done, 'lead')}`)}
+      setPending(null)
+      setBulkOwner('')
+      setBulkStatus('')
+      afterBatch()
+      return
     }
+    const lead = pending.lead as OutreachLeadRow
+    const res = await fetch(`/api/admin/outreach/leads/${segment}/${encodeURIComponent(lead.lead_id)}/erase`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+    })
     const data = await readJson<{ message: string }>(res)
     if (!res.ok) {
       toast('error', data.error ?? 'Failed')
@@ -274,9 +397,6 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     }
     toast('success', data.message)
     setPending(null)
-    setSelected(new Set())
-    setBulkOwner('')
-    setBulkStatus('')
     bump()
   }
 
@@ -338,9 +458,21 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
           <span className="rounded bg-slate-800 px-1.5 text-xs text-slate-300">{missingCount.toLocaleString()}</span>
         </button>
         <span className="text-sm text-slate-400">{missingCount.toLocaleString()} {missingCount === 1 ? 'lead' : 'leads'} without email</span>
-        {missingCount > 0 && (
+        {missingCount > 0 && !inDeletedView && (
           <button onClick={() => goToNextMissing(editing?.colId === 'email' ? editing.leadId : null)} className={ghostButtonClass}>
             <SkipForward className="h-4 w-4" /> Next without email
+          </button>
+        )}
+        {isAdmin && (
+          <button
+            onClick={() => { setEditing(null); setShowDeleted(!showDeleted) }}
+            className={inDeletedView
+              ? 'inline-flex items-center gap-1.5 rounded-lg border border-red-700 bg-red-950/50 px-3 py-2 text-sm text-red-200'
+              : ghostButtonClass}
+            aria-pressed={inDeletedView}
+            title="Show only deleted leads, to restore them"
+          >
+            <Trash2 className="h-4 w-4" /> Deleted
           </button>
         )}
         <div className="flex-1" />
@@ -374,9 +506,27 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
         <button onClick={() => setPanel('new')} className={buttonClass}><Plus className="h-4 w-4" /> Add {leadType}</button>
       </div>
 
-      {isAdmin && selected.size > 0 && (
+      {inDeletedView && (
+        <p className="rounded-lg border border-red-900 bg-red-950/30 px-3 py-2 text-sm text-red-200">
+          Deleted leads. They stay out of tables, Today and exports, and their email, URL and domain still block duplicates. Restore a lead to work on it again.
+        </p>
+      )}
+
+      {isAdmin && selectedCount > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-violet-800 bg-violet-950/40 px-3 py-2 text-sm text-slate-200">
-          <span className="font-medium">{selected.size} selected</span>
+          <span className="font-medium">{plural(selectedCount, 'lead')} selected</span>
+          {allOnPage && !allMatching && total > leads.length && (
+            <button onClick={() => setAllMatching(true)} className="text-violet-300 underline hover:text-violet-200">
+              Select all {total.toLocaleString()} matching this filter
+            </button>
+          )}
+          {allMatching && <span className="text-xs text-slate-400">(every lead matching this filter)</span>}
+          {inDeletedView ? (
+            <button onClick={() => setConfirming({ kind: 'restore' })} className={buttonClass}>
+              <RotateCcw className="h-4 w-4" /> Restore selected ({selectedCount.toLocaleString()})
+            </button>
+          ) : (
+            <>
           <select value={bulkOwner} onChange={(e) => setBulkOwner(e.target.value)} className={selectClass}>
             <option value="">Set owner</option>
             <option value="__none">Unassigned</option>
@@ -399,11 +549,21 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
           >
             Apply
           </button>
-          <button onClick={() => setSelected(new Set())} className="text-xs text-slate-400 hover:text-white">Clear</button>
+          <button
+            onClick={() => setConfirming({ kind: 'delete' })}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
+          >
+            <Trash2 className="h-4 w-4" /> Delete selected ({selectedCount.toLocaleString()})
+          </button>
+            </>
+          )}
+          <button onClick={clearSelection} className="text-xs text-slate-400 hover:text-white">Clear</button>
         </div>
       )}
 
-      <p className="text-xs text-slate-500">Click a cell to edit it. Enter saves, Esc cancels. Status changes go through actions so mailbox limits and undo apply.</p>
+      {!inDeletedView && (
+        <p className="text-xs text-slate-500">Click a cell to edit it. Enter saves, Esc cancels. The name opens the main profile; use the pencil to edit it. Status changes go through actions so mailbox limits and undo apply.</p>
+      )}
 
       <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900">
         <table className="w-full text-sm">
@@ -411,8 +571,11 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
             <tr>
               {isAdmin && (
                 <th className="w-8 px-3 py-2">
-                  <input type="checkbox" checked={allOnPage} aria-label="Select page"
-                    onChange={() => setSelected(allOnPage ? new Set() : new Set(leads.map((l) => l.lead_id)))} />
+                  <input type="checkbox" checked={allOnPage} aria-label="Select all on this page" title="Select all on this page"
+                    onChange={() => {
+                      setAllMatching(false)
+                      setSelected(allOnPage ? new Set() : new Set(leads.map((l) => l.lead_id)))
+                    }} />
                 </th>
               )}
               <SortHeader label="Lead" field="lead_id" sort={sort} dir={dir} onSort={onSort} />
@@ -431,7 +594,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
               <tr key={lead.lead_id} className={`text-slate-300 hover:bg-slate-800/30 ${loading ? 'opacity-60' : ''}`}>
                 {isAdmin && (
                   <td className="px-3 py-2">
-                    <input type="checkbox" checked={selected.has(lead.lead_id)} onChange={() => toggle(lead.lead_id)} aria-label={`Select ${lead.lead_id}`} />
+                    <input type="checkbox" checked={allMatching || selected.has(lead.lead_id)} onChange={() => toggle(lead.lead_id)} aria-label={`Select ${lead.lead_id}`} />
                   </td>
                 )}
                 <td className="whitespace-nowrap px-3 py-2">
@@ -442,6 +605,13 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                 </td>
                 {shownColumns.map((c) => {
                   const isEditing = editing?.leadId === lead.lead_id && editing.colId === c.id
+                  if (inDeletedView) {
+                    return (
+                      <td key={c.id} className="max-w-[240px] truncate px-3 py-2 opacity-70">
+                        {cellDisplay(lead, c, ownerName, leadType)}
+                      </td>
+                    )
+                  }
                   if (c.kind === 'status') {
                     return isEditing ? (
                       <td key={c.id} className="px-1.5 py-1">
@@ -449,15 +619,17 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                       </td>
                     ) : (
                       <td key={c.id} className="cursor-pointer px-3 py-2" onClick={() => setEditing({ leadId: lead.lead_id, colId: c.id })}>
-                        {cellDisplay(lead, c, ownerName)}
+                        {cellDisplay(lead, c, ownerName, leadType)}
                       </td>
                     )
                   }
                   const readOnly = !c.field || (c.kind === 'owner' && !isAdmin)
+                  const hasLink = !!c.profileLink && !!primaryLink(leadType, lead as unknown as Record<string, unknown>)
                   return (
                     <EditableCell
                       key={c.id}
-                      display={cellDisplay(lead, c, ownerName)}
+                      display={cellDisplay(lead, c, ownerName, leadType)}
+                      editIcon={hasLink}
                       value={cellValue(lead, c)}
                       editor={cellEditor(c, editorCtx)}
                       editing={isEditing}
@@ -474,6 +646,20 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                   )
                 })}
                 <td className="whitespace-nowrap px-3 py-2">
+                  {inDeletedView ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-500" title={lead.deleted_at ?? undefined}>
+                        Deleted {lead.deleted_at ? new Date(lead.deleted_at).toLocaleDateString() : ''}
+                        {lead.deleted_by ? ` by ${ownerName(lead.deleted_by)}` : ''}
+                      </span>
+                      <button onClick={() => setConfirming({ kind: 'restore', lead })} className="inline-flex items-center gap-1 rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800" aria-label={`Restore ${lead.lead_id}`}>
+                        <RotateCcw className="h-3.5 w-3.5" /> Restore
+                      </button>
+                      <button onClick={() => setPending({ kind: 'erase', lead })} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-amber-300" title="Delete personal data" aria-label={`Delete personal data of ${lead.lead_id}`}>
+                        <Eraser className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ) : (
                   <div className="flex items-center gap-1">
                     <LeadActions lead={lead} leadType={leadType} />
                     <button onClick={() => setPanel(lead)} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-white" title="Edit all fields" aria-label={`Edit ${lead.lead_id}`}>
@@ -484,12 +670,13 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                         <button onClick={() => setPending({ kind: 'erase', lead })} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-amber-300" title="Delete personal data" aria-label={`Delete personal data of ${lead.lead_id}`}>
                           <Eraser className="h-3.5 w-3.5" />
                         </button>
-                        <button onClick={() => setPending({ kind: 'delete', lead })} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-red-400" title="Delete lead" aria-label={`Delete ${lead.lead_id}`}>
+                        <button onClick={() => setConfirming({ kind: 'delete', lead })} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-red-400" title="Delete lead" aria-label={`Delete ${lead.lead_id}`}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </>
                     )}
                   </div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -526,20 +713,36 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
 
       {pending && (
         <ReasonDialog
-          danger={pending.kind !== 'bulk'}
-          title={
-            pending.kind === 'delete' ? `Delete ${pending.lead?.lead_id}?`
-              : pending.kind === 'erase' ? `Delete personal data of ${pending.lead?.lead_id}?`
-                : `Update ${selected.size} leads?`
-          }
+          danger={pending.kind === 'erase'}
+          title={pending.kind === 'erase' ? `Delete personal data of ${pending.lead?.lead_id}?` : `Update ${plural(selectedCount, 'lead')}?`}
           description={
-            pending.kind === 'delete' ? 'The lead row is removed. Its do-not-contact entries and activity history stay.'
-              : pending.kind === 'erase' ? 'Clears name, email, profile and social links, notes and edit history. The email and profile URL stay on the do-not-contact list so the lead never comes back.'
-                : 'Bulk changes skip the mailbox count and have no undo.'
+            pending.kind === 'erase'
+              ? 'Clears name, email, profile and social links, notes and edit history. The email and profile URL stay on the do-not-contact list so the lead never comes back.'
+              : 'Bulk changes skip the mailbox count and have no undo. Deleted leads are skipped.'
           }
-          confirmLabel={pending.kind === 'delete' ? 'Delete' : pending.kind === 'erase' ? 'Delete personal data' : 'Apply'}
+          confirmLabel={pending.kind === 'erase' ? 'Delete personal data' : 'Apply'}
           onConfirm={runPending}
           onClose={() => setPending(null)}
+        />
+      )}
+
+      {confirming && (
+        <ConfirmDialog
+          danger={confirming.kind === 'delete'}
+          title={
+            confirming.lead
+              ? `${confirming.kind === 'delete' ? 'Delete' : 'Restore'} ${confirming.lead.lead_id}${leadTitle(confirming.lead) ? ` (${leadTitle(confirming.lead)})` : ''}?`
+              : `${confirming.kind === 'delete' ? 'Delete' : 'Restore'} ${plural(selectedCount, 'lead')}?`
+          }
+          description={confirming.kind === 'delete'
+            ? 'Deleted leads leave every table, Today, counts and exports. Their email, URL and domain still block duplicates on import, and their activity stays in the stats. Restore them from the Deleted filter.'
+            : 'Restored leads come back to the tables and Today with their status and history.'}
+          confirmLabel={confirming.kind === 'delete'
+            ? (confirming.lead ? 'Delete' : `Delete ${plural(selectedCount, 'lead')}`)
+            : (confirming.lead ? 'Restore' : `Restore ${plural(selectedCount, 'lead')}`)}
+          progress={progress}
+          onConfirm={runConfirming}
+          onClose={() => { setConfirming(null); setProgress(null) }}
         />
       )}
     </div>
