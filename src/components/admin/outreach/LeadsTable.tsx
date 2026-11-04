@@ -1,19 +1,26 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Download, Eraser, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import {
+  ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Columns3, Download, Eraser, MailWarning, PanelRight, Plus, Search,
+  SkipForward, Trash2,
+} from 'lucide-react'
 import { platformName } from '@/utils/constants'
 import {
   BRAND_STATUSES, CHANNEL_LABELS, CHANNELS, CREATOR_STATUSES, STATUS_LABELS, type LeadType,
 } from '@/lib/outreach/rules'
-import type { OutreachBrand, OutreachCreator, OutreachLeadRow } from '@/lib/outreach/types'
+import type { OutreachLeadRow } from '@/lib/outreach/types'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
 import { LeadActions } from '@/components/admin/outreach/LeadActions'
 import { LeadForm } from '@/components/admin/outreach/LeadForm'
+import { EditableCell } from '@/components/admin/outreach/EditableCell'
 import {
-  buttonClass, DncBadge, ExternalLink, formatCount, ghostButtonClass, inputClass, selectClass, StatusBadge,
+  BRAND_COLUMNS, CREATOR_COLUMNS, cellDisplay, cellEditor, cellValue, extraColumn, KNOWN_EXTRAS, type LeadColumn,
+} from '@/components/admin/outreach/columns'
+import {
+  buttonClass, DncBadge, ghostButtonClass, inputClass, selectClass,
 } from '@/components/admin/outreach/ui'
 
 const PAGE_SIZE = 50
@@ -24,6 +31,17 @@ interface Pending {
   kind: 'delete' | 'erase' | 'bulk'
   lead?: OutreachLeadRow
   bulk?: { owner_user_id?: string | null; status?: string }
+}
+
+interface EditingCell {
+  leadId: string
+  colId: string
+  initial?: string
+  error?: string
+}
+
+function columnsKey(leadType: LeadType) {
+  return `outreach_columns_${leadType}`
 }
 
 function SortHeader({ label, field, sort, dir, onSort }: { label: string; field: string; sort: string; dir: string; onSort: (f: string) => void }) {
@@ -47,6 +65,8 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
   const { me, team, ownerName, toast, version, bump } = useOutreach()
   const segment = leadType === 'creator' ? 'creators' : 'brands'
   const statuses: readonly string[] = leadType === 'creator' ? CREATOR_STATUSES : BRAND_STATUSES
+  const baseColumns = leadType === 'creator' ? CREATOR_COLUMNS : BRAND_COLUMNS
+  const isAdmin = !!me?.is_admin
 
   const [q, setQ] = useState(sp.get('q') ?? '')
   const [debouncedQ, setDebouncedQ] = useState(q)
@@ -56,27 +76,49 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
   const [niche, setNiche] = useState('')
   const [platform, setPlatform] = useState('')
   const [channel, setChannel] = useState('')
+  const [missingEmail, setMissingEmail] = useState(sp.get('missing') === 'email')
   const [sort, setSort] = useState('created_at')
   const [dir, setDir] = useState<'asc' | 'desc'>('desc')
   const [offset, setOffset] = useState(0)
 
   const [leads, setLeads] = useState<OutreachLeadRow[]>([])
   const [total, setTotal] = useState(0)
+  const [missingCount, setMissingCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [filterValues, setFilterValues] = useState<FilterValues>({ countries: [], niches: [], platforms: [] })
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [editing, setEditing] = useState<OutreachLeadRow | null | 'new'>(null)
+  const [panel, setPanel] = useState<OutreachLeadRow | null | 'new'>(null)
   const [pending, setPending] = useState<Pending | null>(null)
   const [bulkOwner, setBulkOwner] = useState('')
   const [bulkStatus, setBulkStatus] = useState('')
+  const [editing, setEditing] = useState<EditingCell | null>(null)
+  const [saving, setSaving] = useState<Set<string>>(new Set())
+  const [visibleIds, setVisibleIds] = useState<string[]>(() => baseColumns.filter((c) => c.defaultVisible).map((c) => c.id))
+  const [pickerOpen, setPickerOpen] = useState(false)
+  // After a reload in "missing email" mode, open the first row's email cell.
+  const openFirstMissingAfterLoad = useRef(false)
+
+  // Column choice is a per-browser convenience.
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(columnsKey(leadType)) ?? 'null')
+      if (Array.isArray(saved) && saved.every((x) => typeof x === 'string')) {setVisibleIds(saved)}
+    } catch {
+      // storage blocked or bad JSON: keep the defaults
+    }
+  }, [leadType])
+
+  const setColumns = (ids: string[]) => {
+    setVisibleIds(ids)
+    try { localStorage.setItem(columnsKey(leadType), JSON.stringify(ids)) } catch { /* storage blocked */ }
+  }
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q), 300)
     return () => clearTimeout(t)
   }, [q])
 
-  // Any filter change goes back to page 1.
-  useEffect(() => { setOffset(0) }, [debouncedQ, owner, status, country, niche, platform, channel, sort, dir])
+  useEffect(() => { setOffset(0) }, [debouncedQ, owner, status, country, niche, platform, channel, missingEmail, sort, dir])
 
   const filterParams = useMemo(() => {
     const p = new URLSearchParams()
@@ -87,10 +129,11 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     if (niche) {p.set('niche', niche)}
     if (platform) {p.set('platform', platform)}
     if (channel) {p.set('channel', channel)}
+    if (missingEmail) {p.set('missing', 'email')}
     p.set('sort', sort)
     p.set('dir', dir)
     return p
-  }, [debouncedQ, owner, status, country, niche, platform, channel, sort, dir])
+  }, [debouncedQ, owner, status, country, niche, platform, channel, missingEmail, sort, dir])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -99,7 +142,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     p.set('offset', String(offset))
     if (offset === 0) {p.set('meta', '1')}
     const res = await fetch(`/api/admin/outreach/leads/${segment}?${p}`)
-    const data = await readJson<{ leads: OutreachLeadRow[]; total: number; filterValues?: FilterValues }>(res)
+    const data = await readJson<{ leads: OutreachLeadRow[]; total: number; filterValues?: FilterValues; missingEmailCount: number }>(res)
     setLoading(false)
     if (!res.ok) {
       toast('error', data.error ?? 'Failed to load leads')
@@ -107,18 +150,96 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     }
     setLeads(data.leads)
     setTotal(data.total)
+    setMissingCount(data.missingEmailCount)
     if (data.filterValues) {setFilterValues(data.filterValues)}
+    if (openFirstMissingAfterLoad.current) {
+      openFirstMissingAfterLoad.current = false
+      const first = data.leads.find((l) => !l.email)
+      if (first) {setEditing({ leadId: first.lead_id, colId: 'email' })}
+      else {toast('success', 'No leads without email left here.')}
+    }
   }, [filterParams, offset, segment, toast])
 
   useEffect(() => { void load() }, [load, version])
   useEffect(() => { setSelected(new Set()) }, [filterParams, offset])
 
+  // Extra keys: the known ones for this lead type plus any on this page.
+  const extraKeys = useMemo(() => {
+    const keys = new Set(KNOWN_EXTRAS[leadType])
+    for (const l of leads) {for (const k of Object.keys(l.extra ?? {})) {keys.add(k)}}
+    return [...keys].sort()
+  }, [leads, leadType])
+  const allColumns = useMemo(() => [...baseColumns, ...extraKeys.map(extraColumn)], [baseColumns, extraKeys])
+  const columns = allColumns.filter((c) => visibleIds.includes(c.id))
+  // Email stays reachable for the missing-email flow even if hidden.
+  const shownColumns = (missingEmail || editing?.colId === 'email') && !columns.some((c) => c.id === 'email')
+    ? [...columns, allColumns.find((c) => c.id === 'email') as LeadColumn]
+    : columns
+
   const onSort = (field: string) => {
     if (sort === field) {setDir(dir === 'asc' ? 'desc' : 'asc')}
     else {
       setSort(field)
-      setDir(field === 'lead_id' || field === 'name' || field === 'company' ? 'asc' : 'desc')
+      setDir(field === 'name' || field === 'company' ? 'asc' : 'desc')
     }
+  }
+
+  const replaceLead = (lead: OutreachLeadRow) => setLeads((ls) => ls.map((l) => (l.lead_id === lead.lead_id ? lead : l)))
+
+  const nextMissingAfter = (leadId: string | null) => {
+    const start = leadId ? leads.findIndex((l) => l.lead_id === leadId) + 1 : 0
+    return leads.slice(start).find((l) => !l.email && l.lead_id !== leadId) ?? null
+  }
+
+  const goToNextMissing = (afterLeadId: string | null) => {
+    const next = nextMissingAfter(afterLeadId)
+    if (next) {
+      setEditing({ leadId: next.lead_id, colId: 'email' })
+      return
+    }
+    if (missingEmail) {
+      // Rows with a new email have left the filter: reload for the next batch.
+      openFirstMissingAfterLoad.current = true
+      setOffset(0)
+      void load()
+    } else {
+      setEditing(null)
+      toast('success', 'No more leads without email on this page.')
+    }
+  }
+
+  // Optimistic cell save: show the new value now, roll back and reopen the
+  // cell with the error if the server refuses it.
+  const saveCell = async (lead: OutreachLeadRow, c: LeadColumn, text: string) => {
+    if (!c.field) {return}
+    const value: unknown = c.kind === 'extra'
+      ? { ...(lead.extra ?? {}), [c.extraKey as string]: text.trim() }
+      : text.trim() === '' ? null : text.trim()
+    const optimistic = c.kind === 'extra'
+      ? { ...lead, extra: value as OutreachLeadRow['extra'] }
+      : ({ ...lead, [c.field]: value } as OutreachLeadRow)
+
+    setEditing(null)
+    replaceLead(optimistic)
+    setSaving((s) => new Set(s).add(`${lead.lead_id}:${c.id}`))
+    const res = await fetch(`/api/admin/outreach/leads/${segment}/${encodeURIComponent(lead.lead_id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [c.field]: value }),
+    })
+    const data = await readJson<{ lead: OutreachLeadRow; changed: boolean; fields?: Record<string, string[]> }>(res)
+    setSaving((s) => { const n = new Set(s); n.delete(`${lead.lead_id}:${c.id}`); return n })
+
+    if (!res.ok) {
+      replaceLead(lead)
+      const message = data.fields?.[c.field]?.[0] ?? data.error ?? 'Save failed'
+      setEditing({ leadId: lead.lead_id, colId: c.id, initial: text, error: message })
+      toast('error', `${lead.lead_id}: ${message}`)
+      return
+    }
+    replaceLead(data.lead)
+    if (data.changed) {toast('success', 'Saved')}
+    if (c.id === 'email' && data.lead.email && !lead.email) {goToNextMissing(lead.lead_id)}
   }
 
   const toggle = (id: string) => setSelected((prev) => {
@@ -159,16 +280,16 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     bump()
   }
 
+  const editorCtx = { team, countries: filterValues.countries, niches: filterValues.niches }
   const exportHref = `/api/admin/outreach/leads/${segment}/export?${filterParams}`
-  const isAdmin = !!me?.is_admin
-  const colCount = (leadType === 'creator' ? 14 : 11) + (isAdmin ? 1 : 0)
+  const colCount = shownColumns.length + 2 + (isAdmin ? 1 : 0)
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[240px] flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={leadType === 'creator' ? 'Search id, name, email, URL' : 'Search id, company, domain, email'}
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={leadType === 'creator' ? 'Search id, name, email, URL, notes, extra' : 'Search id, company, domain, email, notes, extra'}
             className={`${inputClass} pl-9`} />
         </div>
         <select value={owner} onChange={(e) => setOwner(e.target.value)} className={selectClass} aria-label="Owner">
@@ -202,8 +323,55 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
           <option value="">All channels</option>
           {CHANNELS.map((c) => <option key={c} value={c}>{CHANNEL_LABELS[c]}</option>)}
         </select>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setMissingEmail(!missingEmail)}
+          className={missingEmail
+            ? 'inline-flex items-center gap-1.5 rounded-lg border border-amber-600 bg-amber-950/50 px-3 py-2 text-sm text-amber-200'
+            : ghostButtonClass}
+          aria-pressed={missingEmail}
+        >
+          <MailWarning className="h-4 w-4" />
+          Missing email
+          <span className="rounded bg-slate-800 px-1.5 text-xs text-slate-300">{missingCount.toLocaleString()}</span>
+        </button>
+        <span className="text-sm text-slate-400">{missingCount.toLocaleString()} {missingCount === 1 ? 'lead' : 'leads'} without email</span>
+        {missingCount > 0 && (
+          <button onClick={() => goToNextMissing(editing?.colId === 'email' ? editing.leadId : null)} className={ghostButtonClass}>
+            <SkipForward className="h-4 w-4" /> Next without email
+          </button>
+        )}
+        <div className="flex-1" />
+        <div className="relative">
+          <button onClick={() => setPickerOpen(!pickerOpen)} className={ghostButtonClass} aria-expanded={pickerOpen}>
+            <Columns3 className="h-4 w-4" /> Columns
+          </button>
+          {pickerOpen && (
+            <div className="absolute right-0 top-11 z-40 max-h-[420px] w-64 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 p-2 shadow-2xl">
+              <div className="mb-1 flex justify-between px-1 text-xs">
+                <button onClick={() => setColumns(baseColumns.filter((c) => c.defaultVisible).map((c) => c.id))} className="text-violet-300 hover:text-violet-200">Defaults</button>
+                <button onClick={() => setPickerOpen(false)} className="text-slate-400 hover:text-white">Close</button>
+              </div>
+              {allColumns.map((c, i) => (
+                <div key={c.id}>
+                  {i === baseColumns.length && <p className="mt-2 border-t border-slate-800 px-1 pt-2 text-[11px] uppercase tracking-wide text-slate-500">Extra fields</p>}
+                  <label className="flex items-center gap-2 rounded px-1 py-1 text-sm text-slate-300 hover:bg-slate-800">
+                    <input
+                      type="checkbox"
+                      checked={visibleIds.includes(c.id)}
+                      onChange={() => setColumns(visibleIds.includes(c.id) ? visibleIds.filter((x) => x !== c.id) : [...visibleIds, c.id])}
+                    />
+                    {c.label}
+                  </label>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <a href={exportHref} className={ghostButtonClass}><Download className="h-4 w-4" /> CSV</a>
-        <button onClick={() => setEditing('new')} className={buttonClass}><Plus className="h-4 w-4" /> Add {leadType}</button>
+        <button onClick={() => setPanel('new')} className={buttonClass}><Plus className="h-4 w-4" /> Add {leadType}</button>
       </div>
 
       {isAdmin && selected.size > 0 && (
@@ -235,6 +403,8 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
         </div>
       )}
 
+      <p className="text-xs text-slate-500">Click a cell to edit it. Enter saves, Esc cancels. Status changes go through actions so mailbox limits and undo apply.</p>
+
       <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900">
         <table className="w-full text-sm">
           <thead className="border-b border-slate-800 bg-slate-900/80">
@@ -246,29 +416,9 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                 </th>
               )}
               <SortHeader label="Lead" field="lead_id" sort={sort} dir={dir} onSort={onSort} />
-              {leadType === 'creator' ? (
-                <>
-                  <SortHeader label="Name" field="name" sort={sort} dir={dir} onSort={onSort} />
-                  <SortHeader label="Platform" field="platform" sort={sort} dir={dir} onSort={onSort} />
-                  <SortHeader label="Country" field="country" sort={sort} dir={dir} onSort={onSort} />
-                  <SortHeader label="Niche" field="niche" sort={sort} dir={dir} onSort={onSort} />
-                  <SortHeader label="Subs" field="subscribers" sort={sort} dir={dir} onSort={onSort} />
-                  <SortHeader label="Views" field="avg_views" sort={sort} dir={dir} onSort={onSort} />
-                  <PlainHeader label="Sponsors" />
-                </>
-              ) : (
-                <>
-                  <SortHeader label="Company" field="company" sort={sort} dir={dir} onSort={onSort} />
-                  <SortHeader label="Country" field="country" sort={sort} dir={dir} onSort={onSort} />
-                  <SortHeader label="Score" field="score" sort={sort} dir={dir} onSort={onSort} />
-                  <PlainHeader label="Contact" />
-                </>
-              )}
-              <PlainHeader label="Email" />
-              <PlainHeader label="Owner" />
-              <SortHeader label="Status" field="status" sort={sort} dir={dir} onSort={onSort} />
-              <SortHeader label="Contacted" field="date_contacted" sort={sort} dir={dir} onSort={onSort} />
-              <SortHeader label="Follow-up" field="follow_up_date" sort={sort} dir={dir} onSort={onSort} />
+              {shownColumns.map((c) => c.sort
+                ? <SortHeader key={c.id} label={c.label} field={c.sort} sort={sort} dir={dir} onSort={onSort} />
+                : <PlainHeader key={c.id} label={c.label} />)}
               <PlainHeader label="Actions" />
             </tr>
           </thead>
@@ -277,73 +427,72 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
               <tr><td colSpan={colCount} className="px-3 py-10 text-center text-slate-500">Loading…</td></tr>
             ) : leads.length === 0 ? (
               <tr><td colSpan={colCount} className="px-3 py-10 text-center text-slate-500">No leads match these filters.</td></tr>
-            ) : leads.map((lead) => {
-              const c = lead as OutreachCreator & { dnc: boolean }
-              const b = lead as OutreachBrand & { dnc: boolean }
-              return (
-                <tr key={lead.lead_id} className={`hover:bg-slate-800/40 ${loading ? 'opacity-60' : ''}`}>
-                  {isAdmin && (
-                    <td className="px-3 py-2">
-                      <input type="checkbox" checked={selected.has(lead.lead_id)} onChange={() => toggle(lead.lead_id)} aria-label={`Select ${lead.lead_id}`} />
-                    </td>
-                  )}
-                  <td className="whitespace-nowrap px-3 py-2">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-xs text-slate-300">{lead.lead_id}</span>
-                      {lead.dnc && <DncBadge />}
-                    </div>
+            ) : leads.map((lead) => (
+              <tr key={lead.lead_id} className={`text-slate-300 hover:bg-slate-800/30 ${loading ? 'opacity-60' : ''}`}>
+                {isAdmin && (
+                  <td className="px-3 py-2">
+                    <input type="checkbox" checked={selected.has(lead.lead_id)} onChange={() => toggle(lead.lead_id)} aria-label={`Select ${lead.lead_id}`} />
                   </td>
-                  {leadType === 'creator' ? (
-                    <>
-                      <td className="max-w-[220px] truncate px-3 py-2 text-white">
-                        <ExternalLink href={c.profile_url}>{c.name || c.profile_url || '(no name)'}</ExternalLink>
+                )}
+                <td className="whitespace-nowrap px-3 py-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-xs text-slate-300">{lead.lead_id}</span>
+                    {lead.dnc && <DncBadge />}
+                  </div>
+                </td>
+                {shownColumns.map((c) => {
+                  const isEditing = editing?.leadId === lead.lead_id && editing.colId === c.id
+                  if (c.kind === 'status') {
+                    return isEditing ? (
+                      <td key={c.id} className="px-1.5 py-1">
+                        <LeadActions lead={lead} leadType={leadType} selectOnly onDone={() => setEditing(null)} />
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-slate-300">{c.platform ? (platformName(c.platform) === 'Other platform' ? c.platform : platformName(c.platform)) : ''}</td>
-                      <td className="whitespace-nowrap px-3 py-2 text-slate-300">{c.country}</td>
-                      <td className="max-w-[140px] truncate px-3 py-2 text-slate-300">{c.niche}</td>
-                      <td className="whitespace-nowrap px-3 py-2 text-right text-slate-300">{formatCount(c.subscribers)}</td>
-                      <td className="whitespace-nowrap px-3 py-2 text-right text-slate-300">{formatCount(c.avg_views)}</td>
-                      <td className="max-w-[160px] truncate px-3 py-2 text-slate-400" title={c.sponsor_brands ?? ''}>
-                        {c.does_sponsorships === true ? 'Yes' : c.does_sponsorships === false ? 'No' : ''}
-                        {c.sponsor_brands ? ` · ${c.sponsor_brands}` : ''}
+                    ) : (
+                      <td key={c.id} className="cursor-pointer px-3 py-2" onClick={() => setEditing({ leadId: lead.lead_id, colId: c.id })}>
+                        {cellDisplay(lead, c, ownerName)}
                       </td>
-                    </>
-                  ) : (
-                    <>
-                      <td className="max-w-[220px] truncate px-3 py-2 text-white">
-                        <ExternalLink href={b.website || b.domain}>{b.company || b.domain || '(no name)'}</ExternalLink>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-slate-300">{b.country}</td>
-                      <td className="whitespace-nowrap px-3 py-2 text-right text-slate-300">{b.score ?? ''}</td>
-                      <td className="max-w-[180px] truncate px-3 py-2 text-slate-300">{[b.contact_name, b.role].filter(Boolean).join(', ')}</td>
-                    </>
-                  )}
-                  <td className="max-w-[200px] truncate px-3 py-2 text-slate-300">{lead.email}</td>
-                  <td className="whitespace-nowrap px-3 py-2 text-slate-300">{ownerName(lead.owner_user_id)}</td>
-                  <td className="px-3 py-2"><StatusBadge status={lead.status} /></td>
-                  <td className="whitespace-nowrap px-3 py-2 text-slate-400">{lead.date_contacted ?? ''}</td>
-                  <td className="whitespace-nowrap px-3 py-2 text-slate-400">{lead.follow_up_date ?? ''}</td>
-                  <td className="whitespace-nowrap px-3 py-2">
-                    <div className="flex items-center gap-1">
-                      <LeadActions lead={lead} leadType={leadType} />
-                      <button onClick={() => setEditing(lead)} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-white" title="Edit" aria-label={`Edit ${lead.lead_id}`}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      {isAdmin && (
-                        <>
-                          <button onClick={() => setPending({ kind: 'erase', lead })} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-amber-300" title="Delete personal data" aria-label={`Delete personal data of ${lead.lead_id}`}>
-                            <Eraser className="h-3.5 w-3.5" />
-                          </button>
-                          <button onClick={() => setPending({ kind: 'delete', lead })} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-red-400" title="Delete lead" aria-label={`Delete ${lead.lead_id}`}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
+                    )
+                  }
+                  const readOnly = !c.field || (c.kind === 'owner' && !isAdmin)
+                  return (
+                    <EditableCell
+                      key={c.id}
+                      display={cellDisplay(lead, c, ownerName)}
+                      value={cellValue(lead, c)}
+                      editor={cellEditor(c, editorCtx)}
+                      editing={isEditing}
+                      readOnly={readOnly}
+                      initial={isEditing ? editing?.initial : undefined}
+                      error={isEditing ? editing?.error : undefined}
+                      saving={saving.has(`${lead.lead_id}:${c.id}`)}
+                      title={c.kind === 'owner' && !isAdmin ? 'Only admins change the owner' : undefined}
+                      className={c.kind === 'int' || c.kind === 'number' ? 'text-right' : undefined}
+                      onStart={() => setEditing({ leadId: lead.lead_id, colId: c.id })}
+                      onCancel={() => setEditing(null)}
+                      onSave={(v) => void saveCell(lead, c, v)}
+                    />
+                  )
+                })}
+                <td className="whitespace-nowrap px-3 py-2">
+                  <div className="flex items-center gap-1">
+                    <LeadActions lead={lead} leadType={leadType} />
+                    <button onClick={() => setPanel(lead)} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-white" title="Edit all fields" aria-label={`Edit ${lead.lead_id}`}>
+                      <PanelRight className="h-3.5 w-3.5" />
+                    </button>
+                    {isAdmin && (
+                      <>
+                        <button onClick={() => setPending({ kind: 'erase', lead })} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-amber-300" title="Delete personal data" aria-label={`Delete personal data of ${lead.lead_id}`}>
+                          <Eraser className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => setPending({ kind: 'delete', lead })} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-red-400" title="Delete lead" aria-label={`Delete ${lead.lead_id}`}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -362,12 +511,16 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
         </div>
       </div>
 
-      {editing && (
+      {panel && (
         <LeadForm
           leadType={leadType}
-          lead={editing === 'new' ? null : editing}
-          onClose={() => setEditing(null)}
-          onSaved={() => { setEditing(null); bump() }}
+          lead={panel === 'new' ? null : panel}
+          extraKeys={extraKeys}
+          onClose={() => setPanel(null)}
+          onSaved={(saved) => {
+            setPanel(null)
+            if (saved && panel !== 'new') {replaceLead(saved)} else {bump()}
+          }}
         />
       )}
 
@@ -381,7 +534,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
           }
           description={
             pending.kind === 'delete' ? 'The lead row is removed. Its do-not-contact entries and activity history stay.'
-              : pending.kind === 'erase' ? 'Clears name, email, profile and social links and notes. The email and profile URL stay on the do-not-contact list so the lead never comes back.'
+              : pending.kind === 'erase' ? 'Clears name, email, profile and social links, notes and edit history. The email and profile URL stay on the do-not-contact list so the lead never comes back.'
                 : 'Bulk changes skip the mailbox count and have no undo.'
           }
           confirmLabel={pending.kind === 'delete' ? 'Delete' : pending.kind === 'erase' ? 'Delete personal data' : 'Apply'}

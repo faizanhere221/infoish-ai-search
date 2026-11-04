@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { AlertTriangle, Ban, Loader2, X } from 'lucide-react'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { PLATFORMS } from '@/utils/constants'
-import { CHANNEL_LABELS, CHANNELS, STATUS_LABELS, type LeadType } from '@/lib/outreach/rules'
+import { CHANNEL_LABELS, CHANNELS, headerKey, STATUS_LABELS, type LeadType } from '@/lib/outreach/rules'
 import type { DuplicateMatch, OutreachLeadRow } from '@/lib/outreach/types'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
 import { buttonClass, ghostButtonClass, inputClass, selectClass } from '@/components/admin/outreach/ui'
@@ -86,15 +86,16 @@ export function DuplicateNotice({ duplicates }: { duplicates: DuplicateMatch[] }
 interface LeadFormProps {
   leadType: LeadType
   lead?: OutreachLeadRow | null // edit when set
+  extraKeys?: string[] // extra fields to offer as inputs (batch, tags, ...)
   onClose: () => void
-  onSaved: () => void
+  onSaved: (lead: OutreachLeadRow | null) => void
 }
 
-export function LeadForm({ leadType, lead, onClose, onSaved }: LeadFormProps) {
+export function LeadForm({ leadType, lead, extraKeys = [], onClose, onSaved }: LeadFormProps) {
   const { team, mailboxes, me, toast } = useOutreach()
   useEscapeKey(onClose)
   const fields = leadType === 'creator' ? CREATOR_FIELDS : BRAND_FIELDS
-  const [values, setValues] = useState<Record<string, string>>(() => {
+  const [initialValues] = useState<Record<string, string>>(() => {
     const v: Record<string, string> = {}
     for (const f of fields) {
       const raw = lead ? (lead as unknown as Record<string, unknown>)[f.name] : undefined
@@ -103,6 +104,16 @@ export function LeadForm({ leadType, lead, onClose, onSaved }: LeadFormProps) {
     if (!lead && me) {v.owner_user_id = me.user_id}
     return v
   })
+  const [values, setValues] = useState<Record<string, string>>(initialValues)
+  const [initialExtra] = useState<Record<string, string>>(() =>
+    Object.fromEntries(Object.entries(lead?.extra ?? {}).map(([k, v]) => [k, String(v)])))
+  // Known extra fields show as empty inputs so they're easy to fill in.
+  const [extra, setExtra] = useState<Record<string, string>>(() => ({
+    ...Object.fromEntries(extraKeys.map((k) => [k, ''])),
+    ...initialExtra,
+  }))
+  const [newExtraKey, setNewExtraKey] = useState('')
+  const canChangeOwner = !!me?.is_admin
   const [duplicates, setDuplicates] = useState<DuplicateMatch[]>([])
   const [dncHits, setDncHits] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
@@ -132,15 +143,28 @@ export function LeadForm({ leadType, lead, onClose, onSaved }: LeadFormProps) {
   }, [keySignature, leadType, lead])
 
   const set = (name: string, v: string) => setValues((prev) => ({ ...prev, [name]: v }))
+  const setExtraValue = (key: string, v: string) => setExtra((prev) => ({ ...prev, [key]: v }))
 
   const save = async () => {
     setSaving(true)
     setErrors({})
+    // Edits send only what changed, so the activity log shows real changes
+    // and a member's untouched owner field never trips the admin-only rule.
     const body: Record<string, unknown> = {}
     for (const f of fields) {
       const v = values[f.name]
+      if (lead && v === initialValues[f.name]) {continue}
       if (f.kind === 'bool') {body[f.name] = v === '' ? null : v === 'true'}
       else {body[f.name] = v === '' ? null : v}
+    }
+    const extraOut = Object.fromEntries(Object.entries(extra).filter(([k, v]) => k.trim() && v.trim()).map(([k, v]) => [k.trim(), v.trim()]))
+    if (!lead ? Object.keys(extraOut).length > 0 : JSON.stringify(extraOut) !== JSON.stringify(initialExtra)) {
+      body.extra = extraOut
+    }
+    if (lead && Object.keys(body).length === 0) {
+      setSaving(false)
+      onClose()
+      return
     }
     const url = lead
       ? `/api/admin/outreach/leads/${leadType}s/${encodeURIComponent(lead.lead_id)}`
@@ -150,7 +174,7 @@ export function LeadForm({ leadType, lead, onClose, onSaved }: LeadFormProps) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-    const data = await readJson<{ duplicates?: DuplicateMatch[]; fields?: Record<string, string[]> }>(res)
+    const data = await readJson<{ lead?: OutreachLeadRow; duplicates?: DuplicateMatch[]; fields?: Record<string, string[]> }>(res)
     setSaving(false)
     if (!res.ok) {
       if (data.duplicates) {setDuplicates(data.duplicates)}
@@ -159,7 +183,7 @@ export function LeadForm({ leadType, lead, onClose, onSaved }: LeadFormProps) {
       return
     }
     toast('success', lead ? `${lead.lead_id} saved` : 'Lead added')
-    onSaved()
+    onSaved(data.lead ?? null)
   }
 
   const renderInput = (f: Field) => {
@@ -183,7 +207,8 @@ export function LeadForm({ leadType, lead, onClose, onSaved }: LeadFormProps) {
         )
       case 'owner':
         return (
-          <select value={v} onChange={(e) => set(f.name, e.target.value)} className={`${selectClass} w-full`}>
+          <select value={v} onChange={(e) => set(f.name, e.target.value)} disabled={!canChangeOwner}
+            title={canChangeOwner ? undefined : 'Only admins change the owner'} className={`${selectClass} w-full disabled:opacity-60`}>
             <option value="">Unassigned</option>
             {team.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
           </select>
@@ -230,6 +255,31 @@ export function LeadForm({ leadType, lead, onClose, onSaved }: LeadFormProps) {
                 {errors[f.name] && <p className="mt-1 text-xs text-red-400">{errors[f.name].join(', ')}</p>}
               </div>
             ))}
+          </div>
+
+          <div className="border-t border-slate-800 pt-4">
+            <h3 className="mb-1 text-sm font-semibold text-white">Extra fields</h3>
+            <p className="mb-3 text-xs text-slate-500">Source data with no column of its own (batch, tags, YC link, ...). Searchable and exported.</p>
+            <div className="grid grid-cols-2 gap-3">
+              {Object.keys(extra).sort().map((k) => (
+                <div key={k}>
+                  <label className="mb-1 block text-xs font-medium text-slate-400">{k.replace(/_/g, ' ')}</label>
+                  <input value={extra[k]} onChange={(e) => setExtraValue(k, e.target.value)} className={inputClass} />
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              <input value={newExtraKey} onChange={(e) => setNewExtraKey(e.target.value)} placeholder="New field name" className={`${inputClass} max-w-[220px]`} />
+              <button
+                type="button"
+                disabled={!headerKey(newExtraKey) || headerKey(newExtraKey) in extra}
+                onClick={() => { setExtraValue(headerKey(newExtraKey), ''); setNewExtraKey('') }}
+                className={ghostButtonClass}
+              >
+                Add field
+              </button>
+            </div>
+            {errors.extra && <p className="mt-1 text-xs text-red-400">{errors.extra.join(', ')}</p>}
           </div>
         </div>
         <div className="flex justify-end gap-2 border-t border-slate-800 px-5 py-3">

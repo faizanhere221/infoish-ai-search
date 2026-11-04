@@ -36,6 +36,7 @@ const email = z.preprocess(
 ).optional()
 
 const owner = text(255)
+const extra = z.record(z.union([z.string().max(5000), z.number(), z.boolean(), z.null()])).optional()
 const channel = z.enum(CHANNELS).nullable().optional()
 
 export const creatorFieldsSchema = z.object({
@@ -60,6 +61,7 @@ export const creatorFieldsSchema = z.object({
   channel,
   notes: text(20000),
   source: text(255),
+  extra,
 })
 
 export const brandFieldsSchema = z.object({
@@ -80,6 +82,7 @@ export const brandFieldsSchema = z.object({
   channel,
   notes: text(20000),
   source: text(255),
+  extra,
 })
 
 export const creatorStatusSchema = z.enum(CREATOR_STATUSES)

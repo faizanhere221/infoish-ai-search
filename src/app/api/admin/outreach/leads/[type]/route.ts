@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
-import { leadKeys } from '@/lib/outreach/rules'
-import { brandFieldsSchema, creatorFieldsSchema } from '@/lib/outreach/schemas'
+import { leadKeys, validateLeadUpdates } from '@/lib/outreach/rules'
 import {
   filterValues, findDuplicates, getOutreachCaller, leadListQuery, leadTable, leadTypeFromSegment,
   loadTeam, mapDbError, parseLeadFilters, unauthorized, withDncFlags,
@@ -40,7 +39,10 @@ export async function GET(request: NextRequest, { params }: Params) {
     const leads = await withDncFlags(supabase, (data ?? []) as OutreachLead[])
     const meta = sp.get('meta') === '1' ? await filterValues(supabase, leadType) : undefined
 
-    return NextResponse.json({ leads, total: count ?? 0, limit, offset, filterValues: meta })
+    // "N leads without email" under the same filters, for the quick filter.
+    const { count: missingEmailCount } = await leadListQuery(supabase, leadType, { ...filters, missingEmail: true }, 'head')
+
+    return NextResponse.json({ leads, total: count ?? 0, limit, offset, filterValues: meta, missingEmailCount: missingEmailCount ?? 0 })
   } catch (err) {
     captureError(err, { route: 'GET /api/admin/outreach/leads' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -57,12 +59,22 @@ export async function POST(request: NextRequest, { params }: Params) {
 
   try {
     const body = await request.json().catch(() => null)
-    const schema = leadType === 'creator' ? creatorFieldsSchema : brandFieldsSchema
-    const parsed = schema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid input', fields: parsed.error.flatten().fieldErrors }, { status: 400 })
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return NextResponse.json({ error: 'Send the lead fields' }, { status: 400 })
     }
-    const fields = parsed.data as Record<string, unknown>
+    // Same per-field rules as edits (email format, https:// added to URLs,
+    // numbers >= 0). Empty fields are left out of the insert.
+    const { values, errors } = validateLeadUpdates(leadType, body as Record<string, unknown>)
+    const errorFields = Object.keys(errors)
+    if (errorFields.length > 0) {
+      return NextResponse.json(
+        { error: errors[errorFields[0]], fields: Object.fromEntries(errorFields.map((f) => [f, [errors[f]]])) },
+        { status: 400 },
+      )
+    }
+    const fields = Object.fromEntries(Object.entries(values).filter(([, v]) => v !== null)) as Record<string, unknown>
+    // Members add leads for themselves; only admins pick another owner.
+    if (!caller.isAdmin) {fields.owner_user_id = caller.userId}
 
     const keys = leadKeys(leadType, fields)
     if (keys.length === 0) {

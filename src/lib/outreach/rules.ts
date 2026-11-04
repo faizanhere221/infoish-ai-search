@@ -386,6 +386,177 @@ export function toCsv(headers: string[], rows: Record<string, unknown>[]): strin
   return [headers.map(csvCell).join(','), ...rows.map((r) => headers.map((h) => csvCell(r[h])).join(','))].join('\r\n')
 }
 
+// ─── Field validation (edits and manual adds) ────────────────────────────────
+
+export const CREATOR_EDIT_FIELDS = [
+  'name', 'platform', 'profile_url', 'country', 'niche', 'subscribers', 'avg_views', 'engagement_pct',
+  'does_sponsorships', 'sponsor_brands', 'email', 'instagram', 'x', 'linkedin', 'tiktok', 'website',
+  'owner_user_id', 'mailbox_id', 'channel', 'notes', 'source', 'extra',
+] as const
+export const BRAND_EDIT_FIELDS = [
+  'company', 'website', 'domain', 'country', 'product', 'team_size', 'why_them', 'score', 'contact_name',
+  'role', 'email', 'linkedin', 'owner_user_id', 'mailbox_id', 'channel', 'notes', 'source', 'extra',
+] as const
+
+export function editableFields(leadType: LeadType): readonly string[] {
+  return leadType === 'creator' ? CREATOR_EDIT_FIELDS : BRAND_EDIT_FIELDS
+}
+
+type FieldKind = 'text' | 'email' | 'url' | 'social' | 'domain' | 'int' | 'number' | 'bool' | 'channel' | 'id' | 'extra'
+
+const FIELD_KINDS: Record<string, FieldKind> = {
+  email: 'email',
+  profile_url: 'url', website: 'url', linkedin: 'url',
+  instagram: 'social', x: 'social', tiktok: 'social',
+  domain: 'domain',
+  subscribers: 'int', avg_views: 'int',
+  engagement_pct: 'number', score: 'number',
+  does_sponsorships: 'bool',
+  channel: 'channel',
+  owner_user_id: 'id', mailbox_id: 'id',
+  extra: 'extra',
+}
+
+const TEXT_LIMITS: Record<string, number> = {
+  notes: 20000, product: 5000, why_them: 5000, sponsor_brands: 5000, platform: 50, team_size: 50,
+  country: 100, niche: 100,
+}
+
+const SOCIAL_BASE: Record<string, string> = {
+  instagram: 'https://instagram.com/',
+  x: 'https://x.com/',
+  tiktok: 'https://www.tiktok.com/@',
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const DOMAIN_RE = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/
+const HANDLE_RE = /^@?[A-Za-z0-9._]{1,40}$/
+
+// "acme.io/pricing" → "https://acme.io/pricing". null when it isn't a web
+// address (other schemes such as javascript: are refused, not rewritten).
+export function withHttps(raw: string): string | null {
+  const s = raw.trim()
+  if (!s || /\s/.test(s)) {return null}
+  let candidate = s
+  if (!/^https?:\/\//i.test(s)) {
+    if (/^[a-z][a-z0-9+.-]*:(?!\d)/i.test(s)) {return null}
+    candidate = `https://${s.replace(/^\/+/, '')}`
+  }
+  try {
+    const u = new URL(candidate)
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') {return null}
+    if (!u.hostname.includes('.')) {return null}
+    return candidate
+  } catch {
+    return null
+  }
+}
+
+export type FieldResult = { ok: true; value: unknown } | { ok: false; error: string }
+
+function asText(raw: unknown): string | null {
+  if (raw === null || raw === undefined) {return null}
+  if (typeof raw === 'number' || typeof raw === 'boolean') {return String(raw)}
+  if (typeof raw !== 'string') {return null}
+  return raw.trim() || null
+}
+
+// One field of a lead, as typed in a cell or the edit panel. Empty → null.
+export function validateLeadField(field: string, raw: unknown): FieldResult {
+  const kind = FIELD_KINDS[field] ?? 'text'
+
+  if (kind === 'extra') {
+    if (raw === null || raw === undefined) {return { ok: true, value: {} }}
+    if (typeof raw !== 'object' || Array.isArray(raw)) {return { ok: false, error: 'Extra fields must be a list of name/value pairs' }}
+    const out: Record<string, string | number | boolean> = {}
+    const entries = Object.entries(raw as Record<string, unknown>)
+    if (entries.length > 60) {return { ok: false, error: 'Up to 60 extra fields' }}
+    for (const [k, v] of entries) {
+      const key = headerKey(k)
+      if (!key) {return { ok: false, error: `"${k}" is not a valid field name` }}
+      if (v === null || v === undefined || v === '') {continue}
+      if (typeof v === 'string') {
+        if (v.length > 5000) {return { ok: false, error: `${key} is too long` }}
+        if (v.trim()) {out[key] = v.trim()}
+      } else if (typeof v === 'number' || typeof v === 'boolean') {
+        out[key] = v
+      } else {
+        return { ok: false, error: `${key} must be text, a number or yes/no` }
+      }
+    }
+    return { ok: true, value: out }
+  }
+
+  if (kind === 'bool') {
+    if (raw === null || raw === undefined || raw === '') {return { ok: true, value: null }}
+    const b = parseBool(raw)
+    return b === null ? { ok: false, error: 'Choose Yes or No' } : { ok: true, value: b }
+  }
+
+  if (kind === 'int' || kind === 'number') {
+    if (raw === null || raw === undefined || raw === '') {return { ok: true, value: null }}
+    const n = parseNumber(raw)
+    if (n === null) {return { ok: false, error: 'Enter a number, like 5076 or 5k' }}
+    if (n < 0) {return { ok: false, error: 'Enter 0 or more' }}
+    return { ok: true, value: kind === 'int' ? Math.round(n) : n }
+  }
+
+  const text = asText(raw)
+  if (text === null) {return { ok: true, value: null }}
+
+  switch (kind) {
+    case 'email': {
+      const e = normalizeEmail(text)
+      return e && EMAIL_RE.test(e) && e.length <= 255 ? { ok: true, value: e } : { ok: false, error: 'Enter a valid email address' }
+    }
+    case 'url': {
+      const url = withHttps(text)
+      return url && url.length <= 2000 ? { ok: true, value: url } : { ok: false, error: 'Enter a web address, like acme.io or https://acme.io' }
+    }
+    case 'social': {
+      // "@jane" or "jane" → the platform's profile URL
+      if (HANDLE_RE.test(text) && (text.startsWith('@') || !text.includes('.'))) {
+        return { ok: true, value: `${SOCIAL_BASE[field]}${text.replace(/^@/, '')}` }
+      }
+      const url = withHttps(text)
+      return url && url.length <= 2000 ? { ok: true, value: url } : { ok: false, error: 'Enter a profile URL or an @handle' }
+    }
+    case 'domain': {
+      const d = normalizeDomain(text)
+      return d && DOMAIN_RE.test(d) ? { ok: true, value: d } : { ok: false, error: 'Enter a domain, like acme.io' }
+    }
+    case 'channel':
+      return (CHANNELS as readonly string[]).includes(text) ? { ok: true, value: text } : { ok: false, error: 'Pick a channel' }
+    case 'id':
+      return text.length <= 255 ? { ok: true, value: text } : { ok: false, error: 'Invalid value' }
+    default: {
+      const max = TEXT_LIMITS[field] ?? 255
+      return text.length <= max ? { ok: true, value: text } : { ok: false, error: `Keep it under ${max.toLocaleString('en-US')} characters` }
+    }
+  }
+}
+
+// Validates every key of an edit. Unknown or non-editable keys are errors,
+// never silently dropped.
+export function validateLeadUpdates(
+  leadType: LeadType,
+  body: Record<string, unknown>,
+): { values: Record<string, unknown>; errors: Record<string, string> } {
+  const allowed = editableFields(leadType)
+  const values: Record<string, unknown> = {}
+  const errors: Record<string, string> = {}
+  for (const [field, raw] of Object.entries(body)) {
+    if (!allowed.includes(field)) {
+      errors[field] = 'This field is not editable'
+      continue
+    }
+    const r = validateLeadField(field, raw)
+    if (r.ok) {values[field] = r.value}
+    else {errors[field] = r.error}
+  }
+  return { values, errors }
+}
+
 // ─── Import mapping ──────────────────────────────────────────────────────────
 
 export type ImportFileType = 'creators_new' | 'creators_review_new' | 'sponsor_brands_new' | 'yc_brands_new'
@@ -408,8 +579,16 @@ export function detectFileType(fileName: string): ImportFileType | null {
   return null
 }
 
-// Lead fields an import can fill. 'notes' collects every column mapped to it
-// as "header: value" lines; '' means ignore the column.
+// Excel/Numbers/ODS files need saving as CSV first (no spreadsheet library).
+export function isSpreadsheetFile(fileName: string): boolean {
+  return /\.(xlsx|xlsm|xls|ods|numbers)$/i.test(fileName.trim())
+}
+
+// Mapping targets: a lead field, EXTRA (kept in the lead's `extra` JSON
+// under the column's name) or '' (ignored). 'notes' is a field too: every
+// column mapped to it is appended as "header: value".
+export const EXTRA = 'extra'
+
 export const CREATOR_IMPORT_FIELDS = [
   'name', 'platform', 'profile_url', 'country', 'niche', 'subscribers', 'avg_views',
   'engagement_pct', 'does_sponsorships', 'sponsor_brands', 'email', 'instagram', 'x',
@@ -420,11 +599,17 @@ export const BRAND_IMPORT_FIELDS = [
   'contact_name', 'role', 'email', 'linkedin', 'notes',
 ] as const
 
-export type ImportMapping = Record<string, string> // CSV header → lead field ('' = ignore)
+export type ImportMapping = Record<string, string> // CSV header → field | EXTRA | ''
 
-// Header matchers per file type: exact names first, then prefixes, since the
-// sheets truncate some headers (channel_n…, sponsor_b…). The user can edit
-// every mapping in the import screen.
+// Columns ignored on purpose (every import starts at 'found'). The import
+// screen says so next to them.
+export const IGNORED_COLUMNS: Record<string, string> = {
+  status: 'Every import starts at Found',
+  status_outreach: 'Every import starts at Found',
+}
+
+// Exact names first, then prefixes, since the sheets truncate some headers
+// (channel_n…, sponsor_b…). The user can change every mapping on screen.
 const DEFAULT_MATCHERS: Record<LeadType, { field: string; exact?: string[]; prefix?: string[] }[]> = {
   creator: [
     { field: 'name', exact: ['name', 'channel_name', 'creator', 'creator_name'], prefix: ['channel_n'] },
@@ -444,7 +629,7 @@ const DEFAULT_MATCHERS: Record<LeadType, { field: string; exact?: string[]; pref
     { field: 'tiktok', exact: ['tiktok'] },
     { field: 'website', exact: ['website'], prefix: ['website'] },
     {
-      field: 'notes',
+      field: EXTRA,
       exact: ['date_found', 'found_by', 'views_to_subs', 'days_since_last_upload', 'recent_video', 'recent_videos'],
       prefix: ['views_to', 'days_sinc', 'uploads_', 'recent_vi', 'date_fou', 'found_b'],
     },
@@ -463,8 +648,10 @@ const DEFAULT_MATCHERS: Record<LeadType, { field: string; exact?: string[]; pref
     { field: 'email', exact: ['email'] },
     { field: 'linkedin', exact: ['linkedin'] },
     {
-      field: 'notes',
-      exact: ['batch', 'batch_year', 'locations', 'industry', 'tags', 'is_hiring', 'yc_url', 'creators', 'creators_count', 'first_seen'],
+      // outreach_brands has no niche/category column, so industry goes here.
+      field: EXTRA,
+      exact: ['batch', 'batch_year', 'locations', 'industry', 'tags', 'is_hiring', 'yc_url', 'creators', 'creators_count',
+        'first_seen', 'sponsors_creators', 'sponsor_creators'],
       prefix: ['creators_c', 'example_', 'sponsors_', 'sponsor_c'],
     },
   ],
@@ -478,6 +665,9 @@ export function defaultMapping(leadType: LeadType, headers: string[]): ImportMap
   const mapping: ImportMapping = {}
   const taken = new Set<string>()
   const matchers = DEFAULT_MATCHERS[leadType]
+  for (const h of headers) {
+    if (IGNORED_COLUMNS[headerKey(h)]) {mapping[h] = ''}
+  }
   // Exact matches first across all headers, then prefixes, so a prefix never
   // steals a field an exact header claims later in the row.
   for (const pass of ['exact', 'prefix'] as const) {
@@ -488,7 +678,8 @@ export function defaultMapping(leadType: LeadType, headers: string[]): ImportMap
         pass === 'exact' ? mm.exact?.includes(key) : mm.prefix?.some((p) => key.startsWith(p)),
       )
       if (!m) {continue}
-      if (m.field !== 'notes' && taken.has(m.field)) {continue}
+      const multi = m.field === 'notes' || m.field === EXTRA
+      if (!multi && taken.has(m.field)) {continue}
       mapping[h] = m.field
       taken.add(m.field)
     }
@@ -499,7 +690,40 @@ export function defaultMapping(leadType: LeadType, headers: string[]): ImportMap
   return mapping
 }
 
-export type ImportLead = Record<string, string | number | boolean | null> & { _row: number }
+// "San Francisco, CA, USA; Remote" → "USA"
+export function countryFromLocations(v: unknown): string | null {
+  if (typeof v !== 'string') {return null}
+  const first = v.split(/[;|\n]/)[0]?.trim()
+  if (!first) {return null}
+  const parts = first.split(',').map((s) => s.trim()).filter(Boolean)
+  return parts[parts.length - 1] ?? null
+}
+
+function truthyFlag(v: unknown): boolean {
+  if (v === null || v === undefined) {return false}
+  const b = parseBool(v)
+  if (b !== null) {return b}
+  const n = parseNumber(v)
+  if (n !== null) {return n > 0}
+  return typeof v === 'string' && v.trim() !== ''
+}
+
+// why_them for a brand row with none: "YC W24, hiring, sponsors creators".
+export function buildWhyThem(extra: Record<string, unknown>, fileType?: ImportFileType | null): string | null {
+  const parts: string[] = []
+  const batch = typeof extra.batch === 'string' ? extra.batch.trim() : ''
+  if (batch) {parts.push(fileType === 'yc_brands_new' || extra.yc_url ? `YC ${batch}` : batch)}
+  if (truthyFlag(extra.is_hiring)) {parts.push('hiring')}
+  if (truthyFlag(extra.sponsors_creators) || truthyFlag(extra.sponsor_creators)) {parts.push('sponsors creators')}
+  return parts.length > 0 ? parts.join(', ') : null
+}
+
+export type ImportValue = string | number | boolean | null
+export type ImportLead = {
+  _row: number
+  extra?: Record<string, string>
+  [field: string]: ImportValue | Record<string, string> | undefined
+}
 
 export interface MappedRow {
   lead: ImportLead
@@ -509,7 +733,6 @@ export interface MappedRow {
 const NUMBER_FIELDS = new Set(['subscribers', 'avg_views', 'engagement_pct', 'score'])
 const INTEGER_FIELDS = new Set(['subscribers', 'avg_views'])
 const BOOL_FIELDS = new Set(['does_sponsorships'])
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 // Turns one CSV row into a typed lead using the mapping. _row is the
 // 1-based line number in the file (header = line 1).
@@ -519,9 +742,10 @@ export function mapRow(
   cells: string[],
   mapping: ImportMapping,
   rowNumber: number,
-  defaults: { platform?: string } = {},
+  defaults: { platform?: string; fileType?: ImportFileType | null } = {},
 ): MappedRow {
   const lead: ImportLead = { _row: rowNumber }
+  const extra: Record<string, string> = {}
   const errors: string[] = []
   const notes: string[] = []
 
@@ -529,6 +753,11 @@ export function mapRow(
     const field = mapping[h]
     const raw = (cells[idx] ?? '').trim()
     if (!field || !raw) {return}
+    if (field === EXTRA) {
+      const key = headerKey(h)
+      if (key) {extra[key] = raw}
+      return
+    }
     if (field === 'notes') {
       notes.push(`${h}: ${raw}`)
       return
@@ -549,6 +778,7 @@ export function mapRow(
   })
 
   if (notes.length > 0) {lead.notes = notes.join('\n')}
+  if (Object.keys(extra).length > 0) {lead.extra = extra}
   if (leadType === 'creator' && !lead.platform && defaults.platform) {lead.platform = defaults.platform}
 
   if (typeof lead.email === 'string') {
@@ -565,6 +795,14 @@ export function mapRow(
     if (!lead.company) {
       const d = normalizeDomain(lead.domain ?? lead.website)
       if (d) {lead.company = d}
+    }
+    if (!lead.country) {
+      const c = countryFromLocations(extra.locations)
+      if (c) {lead.country = c}
+    }
+    if (!lead.why_them) {
+      const why = buildWhyThem(extra, defaults.fileType)
+      if (why) {lead.why_them = why}
     }
   }
 

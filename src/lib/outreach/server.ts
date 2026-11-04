@@ -74,6 +74,7 @@ const RPC_ERRORS: Record<string, [number, string]> = {
   outreach_undo_not_latest: [409, 'A newer action exists on this lead. Only the latest action is undone.'],
   outreach_undo_unsupported: [409, 'This action has no undo.'],
   outreach_import_too_large: [400, 'Import up to 5,000 rows at a time.'],
+  outreach_bad_field: [400, 'This field is not editable.'],
 }
 
 export interface MappedDbError {
@@ -198,6 +199,7 @@ export interface LeadFilters {
   niche: string | null
   platform: string | null
   channel: string | null
+  missingEmail: boolean
   q: string | null
   sort: string
   dir: 'asc' | 'desc'
@@ -209,8 +211,8 @@ const SORTABLE: Record<LeadType, string[]> = {
 }
 
 const SEARCH_COLUMNS: Record<LeadType, string[]> = {
-  creator: ['lead_id', 'name', 'email', 'profile_url', 'sponsor_brands'],
-  brand: ['lead_id', 'company', 'domain', 'email', 'contact_name', 'product'],
+  creator: ['lead_id', 'name', 'email', 'profile_url', 'sponsor_brands', 'notes', 'extra_text'],
+  brand: ['lead_id', 'company', 'domain', 'email', 'contact_name', 'product', 'why_them', 'notes', 'extra_text'],
 }
 
 export function parseLeadFilters(leadType: LeadType, params: URLSearchParams, callerId: string): LeadFilters {
@@ -223,6 +225,7 @@ export function parseLeadFilters(leadType: LeadType, params: URLSearchParams, ca
     niche: leadType === 'creator' ? params.get('niche') || null : null,
     platform: leadType === 'creator' ? params.get('platform') || null : null,
     channel: params.get('channel') || null,
+    missingEmail: params.get('missing') === 'email',
     // PostgREST's or() syntax treats , ( ) as separators; strip them and the
     // ilike wildcards so a search term can't change the filter itself.
     q: (params.get('q') ?? '').replace(/[,()%*\\"]/g, ' ').trim().slice(0, 100) || null,
@@ -235,9 +238,12 @@ export function leadListQuery(
   supabase: Supabase,
   leadType: LeadType,
   f: LeadFilters,
-  withCount: boolean,
+  withCount: boolean | 'head',
 ) {
-  let query = supabase.from(leadTable(leadType)).select('*', withCount ? { count: 'exact' } : undefined)
+  let query = supabase.from(leadTable(leadType)).select(
+    withCount === 'head' ? 'lead_id' : '*',
+    withCount ? { count: 'exact', head: withCount === 'head' } : undefined,
+  )
   if (f.owner === 'none') {query = query.is('owner_user_id', null)}
   else if (f.owner) {query = query.eq('owner_user_id', f.owner)}
   if (f.status.length > 0) {query = query.in('status', f.status)}
@@ -245,6 +251,7 @@ export function leadListQuery(
   if (f.niche) {query = query.ilike('niche', f.niche)}
   if (f.platform) {query = query.ilike('platform', f.platform)}
   if (f.channel) {query = query.eq('channel', f.channel)}
+  if (f.missingEmail) {query = query.is('email', null)}
   if (f.q) {
     const term = f.q
     query = query.or(SEARCH_COLUMNS[leadType].map((c) => `${c}.ilike.%${term}%`).join(','))

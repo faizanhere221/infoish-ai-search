@@ -16,6 +16,7 @@ export interface OutreachLeadBase {
   replied_at: string | null
   notes: string | null
   source: string | null
+  extra: Record<string, string | number | boolean>
   email_norm: string | null
   created_at: string
   updated_at: string
@@ -102,6 +103,22 @@ export interface DuplicateMatch {
   lead_id: string
   owner_name: string | null
   status: string | null
+}
+
+export interface FieldChange {
+  old: unknown
+  new: unknown
+}
+
+export interface OutreachActivityRow {
+  id: string
+  user_id: string | null
+  action: string
+  mailbox_id: string | null
+  channel: string | null
+  changes: Record<string, FieldChange> | null
+  undone_at: string | null
+  created_at: string
 }
 
 export interface ActionResult {

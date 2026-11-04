@@ -135,7 +135,16 @@ function SendPicker({ lead, action, onClose }: SendPickerProps) {
   )
 }
 
-export function LeadActions({ lead, leadType }: { lead: OutreachLeadRow; leadType: LeadType }) {
+interface LeadActionsProps {
+  lead: OutreachLeadRow
+  leadType: LeadType
+  // Status cell editing: just the action select, opened and focused.
+  // Status only changes through actions so mailbox limits, DNC and undo apply.
+  selectOnly?: boolean
+  onDone?: () => void
+}
+
+export function LeadActions({ lead, leadType, selectOnly, onDone }: LeadActionsProps) {
   const { logAction } = useOutreach()
   const [picker, setPicker] = useState<'contacted' | 'followed_up' | null>(null)
   const [busy, setBusy] = useState(false)
@@ -164,6 +173,35 @@ export function LeadActions({ lead, leadType }: { lead: OutreachLeadRow; leadTyp
   }
 
   const sendBlocked = lead.dnc
+
+  if (selectOnly) {
+    return (
+      <>
+        <select
+          autoFocus
+          value=""
+          disabled={busy}
+          onChange={(e) => {
+            const v = e.target.value
+            if (!v) {return}
+            void run(v).then(() => { if (v !== 'contacted' && !(v === 'followed_up' && !lead.channel)) {onDone?.()} })
+          }}
+          onKeyDown={(e) => { if (e.key === 'Escape') {onDone?.()} }}
+          onBlur={() => { if (!picker) {onDone?.()} }}
+          className="rounded-md border border-violet-500 bg-slate-800 px-1.5 py-1 text-xs text-slate-200 focus:outline-none"
+          aria-label={`Change status of ${lead.lead_id}`}
+        >
+          <option value="">{STATUS_LABELS[lead.status] ?? lead.status}: pick an action</option>
+          {actions.map((a) => (
+            <option key={a} value={a} disabled={sendBlocked && (a === 'contacted' || a === 'followed_up')}>
+              {STATUS_LABELS[a]}
+            </option>
+          ))}
+        </select>
+        {picker && <SendPicker lead={lead} action={picker} onClose={() => { setPicker(null); onDone?.() }} />}
+      </>
+    )
+  }
 
   return (
     <div className="flex items-center gap-1.5">
