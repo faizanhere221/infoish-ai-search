@@ -194,13 +194,17 @@ const ROUTE_NAMES: Record<string, string> = {
   dnc: 'Do not contact', mailboxes: 'Mailboxes', team: 'Team',
 }
 
+const ADMIN_HOME = '/admin'
+
 function Breadcrumbs() {
   const pathname = usePathname()
   const segments = pathname.split('/').filter(Boolean)
   return (
     <nav className="flex items-center gap-1 text-sm">
       {segments.map((seg, i) => {
-        const href = '/' + segments.slice(0, i + 1).join('/')
+        // The "Admin" root goes to /admin (src/app/admin/page.tsx), which
+        // sends each role to its home page.
+        const href = i === 0 ? ADMIN_HOME : '/' + segments.slice(0, i + 1).join('/')
         const isLast = i === segments.length - 1
         const name = ROUTE_NAMES[seg] ?? seg
         return (
