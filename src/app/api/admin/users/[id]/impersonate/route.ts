@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireSuperAdmin } from '@/lib/admin-auth'
 import { logAdminAction } from '@/lib/admin-action'
 
 export const dynamic = 'force-dynamic'
@@ -13,6 +14,10 @@ export const fetchCache = 'force-no-store'
 // — 410 Gone, not 404, since the route existing-but-retired is the point.
 // Planned future work if this is wanted: see docs/ADMIN_AUDIT.md.
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+  // Impersonation (disabled anyway) is super admin only (src/lib/admin-auth.ts).
+  const forbidden = requireSuperAdmin(request)
+  if (forbidden) {return forbidden}
+
   logAdminAction({
     request,
     adminId: request.headers.get('x-user-id'),

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useAdminSession } from '@/components/admin/AdminSession'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
@@ -150,11 +151,9 @@ function AdminUsersContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // The "Deleted" status filter is super_admin only — client-side this is
-  // just UX (hide the option), the server-side 403 on status=deleted for
-  // a plain admin is the real gate.
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  useEffect(() => { setIsSuperAdmin(localStorage.getItem('admin_role') === 'super_admin') }, [])
+  // Super admin only, from the verified session: the "Deleted" filter and
+  // suspend/activate/delete. Hiding them is UX; the API 403 is the gate.
+  const { isSuperAdmin } = useAdminSession()
 
   // Data state
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -451,7 +450,7 @@ function AdminUsersContent() {
       </div>
 
       {/* Bulk action bar */}
-      {selected.size > 0 && (
+      {isSuperAdmin && selected.size > 0 && (
         <div className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
           <span className="text-sm font-medium text-violet-700">{selected.size} selected</span>
           <button onClick={() => setPendingAction({ type: 'bulk-activate' })} className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Activate</button>
@@ -524,15 +523,19 @@ function AdminUsersContent() {
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button onClick={() => setPendingAction({ type: u.is_active ? 'suspend' : 'activate', userId: u.id })}
-                          title={u.is_active ? 'Suspend' : 'Activate'}
-                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-amber-600 transition-colors">
-                          {u.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-                        </button>
-                        <button onClick={() => openDeleteConfirm(u.id)} title="Delete"
-                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {isSuperAdmin && (
+                          <>
+                            <button onClick={() => setPendingAction({ type: u.is_active ? 'suspend' : 'activate', userId: u.id })}
+                              title={u.is_active ? 'Suspend' : 'Activate'}
+                              className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-amber-600 transition-colors">
+                              {u.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                            </button>
+                            <button onClick={() => openDeleteConfirm(u.id)} title="Delete"
+                              className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -827,7 +830,8 @@ function AdminUsersContent() {
                   )}
                 </div>
 
-                {/* Actions */}
+                {/* Actions (super admin only) */}
+                {isSuperAdmin && (
                 <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap gap-2">
                   <button onClick={() => setPendingAction({ type: modalUser.user.is_active ? 'suspend' : 'activate', userId: modalUser.user.id })}
                     className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -842,6 +846,7 @@ function AdminUsersContent() {
                     Delete
                   </button>
                 </div>
+                )}
               </>
             )}
           </div>

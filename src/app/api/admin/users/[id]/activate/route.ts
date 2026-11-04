@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireSuperAdmin } from '@/lib/admin-auth'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
@@ -11,6 +12,10 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Activating an account is super admin only (src/lib/admin-auth.ts).
+  const forbidden = requireSuperAdmin(request)
+  if (forbidden) {return forbidden}
+
   try {
     const body = await request.json().catch(() => ({}))
     const reasonCheck = requireReason(body)

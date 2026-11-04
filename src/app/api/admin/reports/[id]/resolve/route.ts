@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isSuperAdminRequest } from '@/lib/admin-auth'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction, requireReason } from '@/lib/admin-action'
@@ -11,7 +12,7 @@ const VALID_ACTIONS = ['warned', 'suspended', 'dismissed']
 
 // POST /api/admin/reports/[id]/resolve — action is one of:
 //  - 'warned': sends the reported user an 'admin_warning' notification here.
-//  - 'suspended': does NOT suspend here — the admin UI calls the existing,
+//  - 'suspended' (super admin only): does NOT suspend here — the admin UI calls the existing,
 //    already-logged POST /api/admin/users/[userId]/suspend first (the one
 //    path every suspension goes through, per Phase 7A), then this route
 //    just records that outcome on the report.
@@ -24,6 +25,10 @@ export async function POST(
     const body = await request.json().catch(() => ({}))
     if (!VALID_ACTIONS.includes(body.action)) {
       return NextResponse.json({ error: `action must be one of: ${VALID_ACTIONS.join(', ')}` }, { status: 400 })
+    }
+    // The 'suspended' outcome goes with a suspension, which is super admin only.
+    if (body.action === 'suspended' && !isSuperAdminRequest(request)) {
+      return NextResponse.json({ error: 'Super admin only' }, { status: 403 })
     }
     const reasonCheck = requireReason(body)
     if (!reasonCheck.ok) {

@@ -40,7 +40,8 @@ const NAV = [
   { label: 'Contacts',    href: '/admin/contacts',    icon: FileText },
   { label: 'Newsletter',  href: '/admin/newsletter',  icon: Mail },
   {
-    label: 'Settings', icon: Settings, children: [
+    // Super admin only (settings + admin management).
+    label: 'Settings', icon: Settings, superOnly: true, children: [
       { label: 'Platform', href: '/admin/settings', icon: Settings },
       { label: 'Admins',   href: '/admin/admins',   icon: UserCog },
     ],
@@ -303,7 +304,7 @@ const ROLE_LABELS: Record<string, string> = { super_admin: 'Super admin', admin:
 function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router   = useRouter()
-  const { user, loading, isOutreach: isOutreachRole } = useAdminSession()
+  const { user, loading, isSuperAdmin, isOutreach: isOutreachRole } = useAdminSession()
   const [collapsed, setCollapsed]     = useState(false)
   const [showProfile, setShowProfile] = useState(false)
 
@@ -311,12 +312,12 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   const adminEmail = user?.display_name ?? user?.email ?? (loading ? '' : 'Admin')
   const roleLabel = user ? ROLE_LABELS[user.role] ?? user.role : ''
 
-  // Outreach accounts see only the Outreach section. Cosmetic: middleware
-  // is what blocks every other admin page and API for them.
+  // Outreach accounts see only the Outreach section; Settings and Admins are
+  // super admin only. Cosmetic: middleware and the API routes enforce it.
   // Nothing shows until the session is known, so no role sees a wrong menu.
   const navItems = !user ? []
     : isOutreachRole ? NAV.filter(item => item.href === '/admin/outreach')
-      : NAV
+      : NAV.filter(item => !('superOnly' in item && item.superOnly) || isSuperAdmin)
 
   const handleLogout = async () => {
     try { await fetch('/api/admin/auth/logout', { method: 'POST' }) } finally {
@@ -404,7 +405,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
                   <div className="text-xs text-slate-300 truncate">{user?.email ?? adminEmail}</div>
                   {roleLabel && <div className="text-[11px] text-slate-500">{roleLabel}</div>}
                 </div>
-                {!isOutreachRole && (
+                {isSuperAdmin && (
                   <Link href="/admin/settings" onClick={() => setShowProfile(false)}
                     className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-lg transition-colors">
                     <Settings className="w-4 h-4" /> Settings

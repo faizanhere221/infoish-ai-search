@@ -67,7 +67,8 @@ JWT-based, **NOT Supabase Auth**. Never use `supabase.auth.*` methods.
 1. `/api/auth/login` and `/api/auth/register` validate credentials against the `users` table, hash with bcrypt (cost 12), and issue JWTs using `jsonwebtoken`
 2. `src/middleware.ts` verifies JWTs using `jose` from either the `Authorization: Bearer` header or the `auth_token` cookie, then injects trusted `x-user-id`, `x-user-type`, `x-profile-id`, `x-user-role` headers. It strips any client-supplied versions of these headers first, so routes can trust them unconditionally.
 3. API routes read identity ONLY from these injected headers, never from request body or query params
-4. `/admin/*` page routes and `/api/admin/*` routes additionally require `role === 'admin' | 'super_admin'`, or `'outreach'`, which middleware limits to `/admin/outreach/*` and `/api/admin/outreach/*` (see **Outreach** below). A token carrying `mustChangePassword` reaches only `/admin/change-password` and `POST /api/admin/account/password`.
+4. `/admin/*` page routes and `/api/admin/*` routes additionally require `role === 'admin' | 'super_admin'`, or `'outreach'`, which middleware limits to `/admin/outreach/*` and `/api/admin/outreach/*` (see **Outreach** below). A token carrying `mustChangePassword` reaches only `/admin/change-password` and `POST /api/admin/account/password`. Inside admin, anything that changes who sees a marketplace account or who runs the admin is **super_admin only**, enforced in the route with `requireSuperAdmin()` (`src/lib/admin-auth.ts`, 403): hide/unhide, suspend/activate, delete, role changes, impersonation, settings, admin management, founder emails/profile reminders, the user export and the "Deleted" filter, plus resolving a report as `suspended`. Plain admins keep reads and day-to-day work (reports, notes, contracts, payment disputes, verify/feature badges, deals, partners, contacts, newsletter). New admin write routes default to that split; hide the matching buttons with `useAdminSession().isSuperAdmin`.
+   The admin UI's identity (header, sidebar, role-based buttons) comes only from `GET /api/admin/auth/me`, which verifies the `auth_token` cookie itself (`/api/admin/auth/*` is on the public list, so middleware injects nothing there), read through `AdminSessionProvider`/`useAdminSession()` in `src/components/admin/AdminSession.tsx`. Never read `admin_email`/`admin_role` from localStorage for this: they outlive a session and showed one person's email to another. `/admin` itself (`src/app/admin/page.tsx`) is a server redirect to each role's home.
 5. Client-side reads `localStorage` directly: `auth_token`, `auth_user`, `auth_profile`. **`src/hooks/useAuth.tsx` (`AuthProvider`/`useAuth`) is fully built but never mounted anywhere. Do not use it or assume it is wired up.**
 
 ### Data Layer
@@ -168,7 +169,7 @@ export async function GET(request: NextRequest) {
 }
 ```
 
-**Admin route pattern:**
+**Admin route pattern** (use `requireSuperAdmin(request)` from `src/lib/admin-auth.ts` instead for super-admin-only actions):
 ```typescript
 const userRole = request.headers.get('x-user-role')
 if (userRole !== 'admin' && userRole !== 'super_admin') {

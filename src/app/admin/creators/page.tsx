@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useAdminSession } from '@/components/admin/AdminSession'
 import { useRouter } from 'next/navigation'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
@@ -123,11 +124,9 @@ export default function AdminCreatorsPage() {
   useDocumentTitle('Creators')
   const router = useRouter()
 
-  // The "Deleted" status filter is super_admin only — client-side this is
-  // just UX (hide the option), the server-side 403 on status=deleted for
-  // a plain admin is the real gate.
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  useEffect(() => { setIsSuperAdmin(localStorage.getItem('admin_role') === 'super_admin') }, [])
+  // Super admin only, from the verified session: the "Deleted" filter,
+  // hide/unhide and suspend/activate. Hiding them is UX; the API 403 is the gate.
+  const { isSuperAdmin } = useAdminSession()
 
   const [creators, setCreators] = useState<AdminCreator[]>([])
   const [total, setTotal] = useState(0)
@@ -381,7 +380,7 @@ export default function AdminCreatorsPage() {
       </div>
 
       {/* Bulk bar */}
-      {selected.size > 0 && (
+      {isSuperAdmin && selected.size > 0 && (
         <div className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center gap-3">
           <span className="text-sm font-medium text-violet-700">{selected.size} selected</span>
           <button onClick={() => setPendingAction({ kind: 'bulk-suspend' })} className="px-3 py-1.5 text-xs font-medium bg-amber-600 text-white rounded-lg">Suspend All</button>
@@ -482,16 +481,20 @@ export default function AdminCreatorsPage() {
                           className={`p-1.5 rounded hover:bg-gray-100 ${c.is_featured ? 'text-amber-500' : 'text-gray-400 hover:text-amber-500'}`}>
                           <Sparkles className="w-4 h-4" />
                         </button>
-                        <button onClick={() => setPendingAction({ kind: 'hide', creatorId: c.id, nextHidden: !c.hidden_from_marketplace })}
-                          title={c.hidden_from_marketplace ? 'Unhide from marketplace' : 'Hide from marketplace'}
-                          className={`p-1.5 rounded hover:bg-gray-100 ${c.hidden_from_marketplace ? 'text-violet-600' : 'text-gray-400 hover:text-violet-600'}`}>
-                          <EyeOff className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => setPendingAction({ kind: c.is_active ? 'suspend' : 'activate', creatorId: c.id, userId: c.user_id })}
-                          title={c.is_active ? 'Suspend' : 'Activate'}
-                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-amber-600">
-                          {c.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-                        </button>
+                        {isSuperAdmin && (
+                          <>
+                            <button onClick={() => setPendingAction({ kind: 'hide', creatorId: c.id, nextHidden: !c.hidden_from_marketplace })}
+                              title={c.hidden_from_marketplace ? 'Unhide from marketplace' : 'Hide from marketplace'}
+                              className={`p-1.5 rounded hover:bg-gray-100 ${c.hidden_from_marketplace ? 'text-violet-600' : 'text-gray-400 hover:text-violet-600'}`}>
+                              <EyeOff className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setPendingAction({ kind: c.is_active ? 'suspend' : 'activate', creatorId: c.id, userId: c.user_id })}
+                              title={c.is_active ? 'Suspend' : 'Activate'}
+                              className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-amber-600">
+                              {c.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -600,14 +603,18 @@ export default function AdminCreatorsPage() {
                       className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${c.is_featured ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'}`}>
                       {c.is_featured ? 'Unfeature' : 'Feature'}
                     </button>
-                    <button onClick={() => setPendingAction({ kind: 'hide', creatorId: String(c.id), nextHidden: !c.hidden_from_marketplace })}
-                      className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${c.hidden_from_marketplace ? 'bg-violet-50 text-violet-700 hover:bg-violet-100 border-violet-200' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'}`}>
-                      {c.hidden_from_marketplace ? 'Unhide from Marketplace' : 'Hide from Marketplace'}
-                    </button>
-                    <button onClick={() => setPendingAction({ kind: c.is_active ? 'suspend' : 'activate', creatorId: String(c.id), userId: String(c.user_id) })}
-                      className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${c.is_active ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}>
-                      {c.is_active ? 'Suspend' : 'Activate'}
-                    </button>
+                    {isSuperAdmin && (
+                      <>
+                        <button onClick={() => setPendingAction({ kind: 'hide', creatorId: String(c.id), nextHidden: !c.hidden_from_marketplace })}
+                          className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${c.hidden_from_marketplace ? 'bg-violet-50 text-violet-700 hover:bg-violet-100 border-violet-200' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'}`}>
+                          {c.hidden_from_marketplace ? 'Unhide from Marketplace' : 'Hide from Marketplace'}
+                        </button>
+                        <button onClick={() => setPendingAction({ kind: c.is_active ? 'suspend' : 'activate', creatorId: String(c.id), userId: String(c.user_id) })}
+                          className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${c.is_active ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}>
+                          {c.is_active ? 'Suspend' : 'Activate'}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </>
               )
