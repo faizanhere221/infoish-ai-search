@@ -7,12 +7,13 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { PLATFORMS } from '@/utils/constants'
 import {
   BRAND_IMPORT_FIELDS, CREATOR_IMPORT_FIELDS, defaultMapping, detectFileType, EXTRA, headerKey, IGNORED_COLUMNS,
-  IMPORT_FILE_TYPES, IMPORT_MAX_ROWS, isSpreadsheetFile, mapRow, parseCsv, suggestOwner,
+  IMPORT_FILE_TYPES, IMPORT_MAX_ROWS, isApolloHeaders, isSpreadsheetFile, mapRow, parseCsv, suggestOwner,
   type ImportFileType, type ImportLead, type ImportMapping,
 } from '@/lib/outreach/rules'
 import type { DuplicateMatch } from '@/lib/outreach/types'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
 import { buttonClass, Card, ghostButtonClass, selectClass } from '@/components/admin/outreach/ui'
+import { ApolloImport } from '@/components/admin/outreach/ApolloImport'
 
 type RowStatus = 'new' | 'duplicate' | 'dnc' | 'error'
 
@@ -66,6 +67,8 @@ export default function OutreachImportPage() {
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<CommitResult | null>(null)
   const [fileError, setFileError] = useState('')
+  // Apollo contacts exports are recognised by their headers, whatever the file name.
+  const [apollo, setApollo] = useState<{ headers: string[]; rows: string[][] } | null>(null)
 
   const leadType = fileType ? IMPORT_FILE_TYPES[fileType].leadType : null
   const fields: readonly string[] = leadType === 'brand' ? BRAND_IMPORT_FIELDS : CREATOR_IMPORT_FIELDS
@@ -88,6 +91,7 @@ export default function OutreachImportPage() {
   const onFile = async (file: File) => {
     resetPreview()
     setFileError('')
+    setApollo(null)
     if (isSpreadsheetFile(file.name)) {
       setFileName('')
       setHeaders([])
@@ -101,8 +105,17 @@ export default function OutreachImportPage() {
       toast('error', 'The file has no data rows.')
       return
     }
-    const detected = detectFileType(file.name)
     const hdrs = rows[0].map((h) => h.trim())
+    if (isApolloHeaders(hdrs)) {
+      setFileName(file.name)
+      setFileType('')
+      setHeaders([])
+      setDataRows(rows.slice(1))
+      setApollo({ headers: hdrs, rows: rows.slice(1) })
+      if (rows.length - 1 > IMPORT_MAX_ROWS) {toast('error', `This file has ${(rows.length - 1).toLocaleString()} rows. Import up to ${IMPORT_MAX_ROWS.toLocaleString()} at a time.`)}
+      return
+    }
+    const detected = detectFileType(file.name)
     setFileName(file.name)
     setFileType(detected ?? '')
     setHeaders(hdrs)
@@ -219,9 +232,14 @@ export default function OutreachImportPage() {
         )}
         <p className="mt-2 text-xs text-slate-500">
           File names set the type: creators_new_*.csv, creators_review_new_*.csv, sponsor_brands_new_*.csv, yc_brands_new_*.csv.
+          Apollo contact exports are recognised by their columns.
           Up to {IMPORT_MAX_ROWS.toLocaleString()} rows per import. CSV only: save .xlsx files as CSV first.
         </p>
       </Card>
+
+      {apollo && (
+        <ApolloImport key={fileName} fileName={fileName} headers={apollo.headers} rows={apollo.rows} defaultOwner={ownerPref.faizan} />
+      )}
 
       {leadType && headers.length > 0 && (
         <Card title="2. Check every column">

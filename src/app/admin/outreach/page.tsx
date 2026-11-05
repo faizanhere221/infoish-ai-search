@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Download } from 'lucide-react'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { CHANNEL_LABELS, mailboxState, type Pace } from '@/lib/outreach/rules'
+import { CHANNEL_LABELS, karachiSlotLabel, mailboxState, type Pace } from '@/lib/outreach/rules'
 import type { OutreachBrand, OutreachCreator, OutreachLeadRow, OutreachMailboxWithUsage, OutreachTeamMember } from '@/lib/outreach/types'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
 import { LeadActions } from '@/components/admin/outreach/LeadActions'
@@ -144,7 +144,9 @@ export default function OutreachTodayPage() {
                   <li key={m.id}>
                     <div className="mb-1 flex justify-between gap-2">
                       <span className="truncate text-slate-300">{m.address}</span>
-                      <span className={mailboxStateClass(state)}>{Math.max(m.daily_limit - m.sent_today, 0)} left</span>
+                      <span className={mailboxStateClass(state)}>
+                        {state === 'full' && karachiSlotLabel(m.next_free_at) ? `Full until ${karachiSlotLabel(m.next_free_at)}` : `${Math.max(m.daily_limit - m.sent_today, 0)} left${m.window_hours ? ` in ${m.window_hours} h` : ''}`}
+                      </span>
                     </div>
                     <ProgressBar value={m.sent_today} max={m.daily_limit} state={state === 'full' ? 'bad' : state === 'warn' ? 'warn' : 'ok'} />
                   </li>

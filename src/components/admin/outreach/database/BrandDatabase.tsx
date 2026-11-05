@@ -203,7 +203,7 @@ export function BrandDatabase() {
                   <td className="px-3 py-2">
                     <div>{r.contact_name || r.email || '–'}</div>
                     {r.role && <div className="text-xs text-slate-500">{r.role}</div>}
-                    {r.extra_contacts > 0 && <div className="text-xs text-slate-500">+{r.extra_contacts} more</div>}
+                    {r.extra_contacts > 1 && <div className="text-xs text-slate-500">+{r.extra_contacts - 1} more</div>}
                   </td>
                   <td className="max-w-[200px] truncate px-3 py-2" title={r.promotes ?? undefined}>{r.promotes || r.product || '–'}</td>
                   <td className="max-w-[220px] truncate px-3 py-2 text-xs text-slate-400" title={targets.join(', ')}>{targets.join(', ') || '–'}</td>

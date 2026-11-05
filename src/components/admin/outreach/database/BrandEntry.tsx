@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Check, Crown, Loader2, PanelRight, Pencil, Plus, Trash2, Users, X } from 'lucide-react'
+import { Check, Loader2, PanelRight, Pencil, Plus, Trash2, Users } from 'lucide-react'
 import { NICHES } from '@/utils/constants'
 import { cn } from '@/lib/utils'
 import {
@@ -11,12 +11,13 @@ import {
   formatMoney, matchingCreatorsQuery,
 } from '@/lib/outreach/database'
 import { karachiToday, leadLinks } from '@/lib/outreach/rules'
-import type { BrandCampaign, BrandContact, BrandDbFields, OutreachActivityRow, OutreachBrand } from '@/lib/outreach/types'
+import type { BrandCampaign, BrandDbFields, OutreachActivityRow, OutreachBrand } from '@/lib/outreach/types'
+import { ContactsEditor } from '@/components/admin/outreach/ContactsEditor'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
 import { ConfirmDialog } from '@/components/admin/outreach/ConfirmDialog'
 import { LeadForm } from '@/components/admin/outreach/LeadForm'
 import {
-  buttonClass, Card, DncBadge, ExternalLink, ghostButtonClass, inputClass, LinkIcons, selectClass, StatusBadge,
+  buttonClass, Card, DncBadge, ghostButtonClass, inputClass, LinkIcons, selectClass, StatusBadge,
 } from '@/components/admin/outreach/ui'
 import { budgetLabel } from '@/components/admin/outreach/database/BrandDatabase'
 import {
@@ -26,7 +27,6 @@ import {
 interface EntryData {
   lead: OutreachBrand & { dnc: boolean }
   entry: BrandDbFields & { added_at: string }
-  contacts: BrandContact[]
   campaigns: BrandCampaign[]
   activity: OutreachActivityRow[]
 }
@@ -175,7 +175,10 @@ export function BrandEntry({ leadId }: { leadId: string }) {
         </div>
       </div>
 
-      <ContactsCard leadId={leadId} lead={lead} contacts={data.contacts} onEditLead={() => setEditingLead(true)} />
+      <Card title="Contacts">
+        <ContactsEditor lead={lead} />
+        <p className="mt-3 text-xs text-slate-500">Each contact has its own status. The brand status follows the furthest-along contact.</p>
+      </Card>
 
       <Card
         title="Client details"
@@ -251,7 +254,7 @@ export function BrandEntry({ leadId }: { leadId: string }) {
 
 // ─── Small item editor (contacts, campaigns) ─────────────────────────────────
 
-function useItemApi(leadId: string, kind: 'contacts' | 'campaigns') {
+function useItemApi(leadId: string, kind: 'campaigns') {
   const { toast, bump } = useOutreach()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
@@ -271,96 +274,11 @@ function useItemApi(leadId: string, kind: 'contacts' | 'campaigns') {
       toast('error', d.error ?? 'Save failed')
       return false
     }
-    if (method !== 'PATCH' || path.endsWith('/primary')) {toast('success', d.message)}
+    if (method !== 'PATCH') {toast('success', d.message)}
     bump()
     return true
   }
   return { send, errors, busy, setErrors }
-}
-
-const emptyContact = { name: '', role: '', email: '', linkedin: '' }
-
-function ContactsCard({ leadId, lead, contacts, onEditLead }: {
-  leadId: string; lead: OutreachBrand; contacts: BrandContact[]; onEditLead: () => void
-}) {
-  const { send, errors, busy, setErrors } = useItemApi(leadId, 'contacts')
-  const [draft, setDraft] = useState<typeof emptyContact | null>(null)
-  const [editId, setEditId] = useState<string | null>(null)
-
-  const inputs = (
-    draft && (
-      <div className="grid gap-2 sm:grid-cols-4">
-        {(['name', 'role', 'email', 'linkedin'] as const).map((k) => (
-          <div key={k}>
-            <input className={cn(inputClass, errors[k] && 'border-red-600')} placeholder={k === 'linkedin' ? 'LinkedIn URL' : k[0].toUpperCase() + k.slice(1)}
-              value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} aria-label={k} />
-            {errors[k] && <span className="text-xs text-red-300">{errors[k]}</span>}
-          </div>
-        ))}
-      </div>
-    )
-  )
-
-  const submit = async () => {
-    if (!draft) {return}
-    const body = Object.fromEntries(Object.entries(draft).map(([k, v]) => [k, v.trim() || null]))
-    const ok = editId ? await send(`/${editId}`, 'PATCH', body) : await send('', 'POST', body)
-    if (ok) {
-      setDraft(null)
-      setEditId(null)
-    }
-  }
-
-  return (
-    <Card title="Contacts" actions={!draft && <button onClick={() => { setDraft({ ...emptyContact }); setEditId(null) }} className={ghostButtonClass}><Plus className="h-4 w-4" /> Add contact</button>}>
-      <ul className="divide-y divide-slate-800/70 text-sm">
-        <li className="flex flex-wrap items-center justify-between gap-2 py-2">
-          <div>
-            <span className="mr-2 inline-flex items-center gap-1 rounded-full bg-violet-900/50 px-2 py-0.5 text-[11px] font-medium text-violet-200"><Crown className="h-3 w-3" /> Primary</span>
-            <span className="text-slate-200">{lead.contact_name || 'No name'}</span>
-            {lead.role && <span className="text-slate-500"> · {lead.role}</span>}
-            {lead.email && <span className="text-slate-400"> · {lead.email}</span>}
-            {lead.linkedin && <> · <ExternalLink href={lead.linkedin}>LinkedIn</ExternalLink></>}
-          </div>
-          <button onClick={onEditLead} className="text-xs text-slate-400 hover:text-white">Edit on the lead</button>
-        </li>
-        {contacts.map((c) => editId === c.id ? (
-          <li key={c.id} className="py-2">{inputs}
-            <div className="mt-2 flex gap-2">
-              <button disabled={busy} className={buttonClass} onClick={() => void submit()}><Check className="h-4 w-4" /> Save</button>
-              <button className={ghostButtonClass} onClick={() => { setDraft(null); setEditId(null); setErrors({}) }}><X className="h-4 w-4" /> Cancel</button>
-            </div>
-          </li>
-        ) : (
-          <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-            <div>
-              <span className="text-slate-200">{c.name || 'No name'}</span>
-              {c.role && <span className="text-slate-500"> · {c.role}</span>}
-              {c.email && <span className="text-slate-400"> · {c.email}</span>}
-              {c.linkedin && <> · <ExternalLink href={c.linkedin}>LinkedIn</ExternalLink></>}
-            </div>
-            <div className="flex items-center gap-1">
-              <button disabled={busy} onClick={() => void send(`/${c.id}/primary`, 'POST')} className="rounded px-2 py-1 text-xs text-slate-400 hover:bg-slate-800 hover:text-white" title="Make this the primary contact (moves onto the lead)">
-                Make primary
-              </button>
-              <button onClick={() => { setEditId(c.id); setDraft({ name: c.name ?? '', role: c.role ?? '', email: c.email ?? '', linkedin: c.linkedin ?? '' }) }} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-white" aria-label="Edit contact"><Pencil className="h-3.5 w-3.5" /></button>
-              <button onClick={() => { if (window.confirm('Delete this contact?')) {void send(`/${c.id}`, 'DELETE')} }} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-red-400" aria-label="Delete contact"><Trash2 className="h-3.5 w-3.5" /></button>
-            </div>
-          </li>
-        ))}
-      </ul>
-      {draft && !editId && (
-        <div className="mt-3 rounded-lg border border-slate-800 p-3">
-          {inputs}
-          <div className="mt-2 flex gap-2">
-            <button disabled={busy} className={buttonClass} onClick={() => void submit()}><Check className="h-4 w-4" /> Add contact</button>
-            <button className={ghostButtonClass} onClick={() => { setDraft(null); setErrors({}) }}>Cancel</button>
-          </div>
-        </div>
-      )}
-      <p className="mt-3 text-xs text-slate-500">The primary contact lives on the lead, so its email is checked for duplicates. Make primary swaps them.</p>
-    </Card>
-  )
 }
 
 interface CampaignDraft {

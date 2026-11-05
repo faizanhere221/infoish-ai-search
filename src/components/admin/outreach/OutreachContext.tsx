@@ -37,7 +37,7 @@ interface OutreachContextValue {
   refreshTeam: () => Promise<void>
   refreshMailboxes: () => Promise<void>
   toast: (kind: Toast['kind'], message: string) => void
-  logAction: (input: { leadId: string; action: string; mailboxId?: string | null; channel?: string | null }) => Promise<ActionResult | null>
+  logAction: (input: { leadId: string; action: string; mailboxId?: string | null; channel?: string | null; contactId?: string | null }) => Promise<ActionResult | null>
   // Bumped after every action/undo so pages reload their data.
   version: number
   bump: () => void
@@ -115,11 +115,11 @@ export function OutreachProvider({ children }: { children: React.ReactNode }) {
     [team],
   )
 
-  const logAction = useCallback<OutreachContextValue['logAction']>(async ({ leadId, action, mailboxId, channel }) => {
+  const logAction = useCallback<OutreachContextValue['logAction']>(async ({ leadId, action, mailboxId, channel, contactId }) => {
     const res = await fetch('/api/admin/outreach/actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lead_id: leadId, action, mailbox_id: mailboxId ?? null, channel: channel ?? null }),
+      body: JSON.stringify({ lead_id: leadId, action, mailbox_id: mailboxId ?? null, channel: channel ?? null, ...(contactId ? { contact_id: contactId } : {}) }),
     })
     const data = await readJson<{ result: ActionResult; dmWarning: { channel: string; sent: number; limit: number } | null; dbOffer?: boolean }>(res)
     if (!res.ok) {
@@ -131,7 +131,7 @@ export function OutreachProvider({ children }: { children: React.ReactNode }) {
     setNow(Date.now())
     const r = data.result
     if (r.mailbox_limit && r.mailbox_sent_today !== null && r.mailbox_sent_today >= Math.ceil(r.mailbox_limit * 0.8)) {
-      toast('warn', `Mailbox at ${r.mailbox_sent_today}/${r.mailbox_limit} sends today.`)
+      toast('warn', `Mailbox at ${r.mailbox_sent_today}/${r.mailbox_limit} sends ${r.mailbox_window_hours ? `in the last ${r.mailbox_window_hours} hours` : 'today'}.`)
     }
     if (data.dmWarning) {
       toast('warn', `${data.dmWarning.sent} ${data.dmWarning.channel} messages today. Your soft limit is ${data.dmWarning.limit}.`)

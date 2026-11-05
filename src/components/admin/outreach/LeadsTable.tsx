@@ -1,15 +1,15 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import {
-  ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Columns3, Database, Download, Eraser, MailWarning, PanelRight, Plus, RotateCcw,
+  ArrowDown, ArrowUp, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Columns3, Database, Download, Eraser, MailWarning, PanelRight, Plus, RotateCcw,
   Search, SkipForward, Trash2,
 } from 'lucide-react'
 import { platformName } from '@/utils/constants'
 import {
-  BRAND_STATUSES, CHANNEL_LABELS, CHANNELS, CREATOR_STATUSES, primaryLink, STATUS_LABELS, type LeadType,
+  BRAND_STATUSES, CHANNEL_LABELS, CHANNELS, CREATOR_STATUSES, LIST_LABELS, listsFor, primaryLink, STATUS_LABELS, type LeadType,
 } from '@/lib/outreach/rules'
 import type { OutreachLeadRow } from '@/lib/outreach/types'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
@@ -17,6 +17,7 @@ import { ConfirmDialog } from '@/components/admin/outreach/ConfirmDialog'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
 import { LeadActions } from '@/components/admin/outreach/LeadActions'
 import { LeadForm } from '@/components/admin/outreach/LeadForm'
+import { ContactsEditor } from '@/components/admin/outreach/ContactsEditor'
 import { EditableCell } from '@/components/admin/outreach/EditableCell'
 import {
   BRAND_COLUMNS, CREATOR_COLUMNS, cellDisplay, cellEditor, cellValue, extraColumn, KNOWN_EXTRAS, type LeadColumn,
@@ -96,6 +97,10 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
   const [niche, setNiche] = useState('')
   const [platform, setPlatform] = useState('')
   const [channel, setChannel] = useState('')
+  const [list, setList] = useState(sp.get('list') ?? '')
+  // What the database has (lists, brand contacts: outreach_contacts_lists_migration.sql).
+  const [features, setFeatures] = useState<{ lists: boolean; contacts: boolean }>({ lists: false, contacts: false })
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [missingEmail, setMissingEmail] = useState(sp.get('missing') === 'email')
   const [showDeleted, setShowDeleted] = useState(sp.get('deleted') === '1')
   const [sort, setSort] = useState('created_at')
@@ -137,6 +142,15 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
           localStorage.setItem(columnsKey(leadType), JSON.stringify(saved))
         }
         localStorage.setItem(seenKey, '1')
+        // Saved before the List / Contacts columns existed: add them once.
+        const v2Key = `${columnsKey(leadType)}_v2`
+        if (!localStorage.getItem(v2Key)) {
+          for (const id of leadType === 'brand' ? ['contacts', 'list'] : ['list']) {
+            if (!saved.includes(id)) {saved.splice(id === 'contacts' ? saved.indexOf('links') + 1 : saved.length, 0, id)}
+          }
+          localStorage.setItem(columnsKey(leadType), JSON.stringify(saved))
+          localStorage.setItem(v2Key, '1')
+        }
         setVisibleIds(saved)
       }
     } catch {
@@ -154,7 +168,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     return () => clearTimeout(t)
   }, [q])
 
-  useEffect(() => { setOffset(0) }, [debouncedQ, owner, status, country, niche, platform, channel, missingEmail, showDeleted, sort, dir])
+  useEffect(() => { setOffset(0) }, [debouncedQ, owner, status, country, niche, platform, channel, list, missingEmail, showDeleted, sort, dir])
 
   const filterParams = useMemo(() => {
     const p = new URLSearchParams()
@@ -165,12 +179,13 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     if (niche) {p.set('niche', niche)}
     if (platform) {p.set('platform', platform)}
     if (channel) {p.set('channel', channel)}
+    if (list) {p.set('list', list)}
     if (missingEmail) {p.set('missing', 'email')}
     if (showDeleted && isAdmin) {p.set('deleted', '1')}
     p.set('sort', sort)
     p.set('dir', dir)
     return p
-  }, [debouncedQ, owner, status, country, niche, platform, channel, missingEmail, showDeleted, isAdmin, sort, dir])
+  }, [debouncedQ, owner, status, country, niche, platform, channel, list, missingEmail, showDeleted, isAdmin, sort, dir])
   const inDeletedView = showDeleted && isAdmin
 
   const load = useCallback(async () => {
@@ -180,7 +195,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     p.set('offset', String(offset))
     if (offset === 0) {p.set('meta', '1')}
     const res = await fetch(`/api/admin/outreach/leads/${segment}?${p}`)
-    const data = await readJson<{ leads: OutreachLeadRow[]; total: number; filterValues?: FilterValues; missingEmailCount: number }>(res)
+    const data = await readJson<{ leads: OutreachLeadRow[]; total: number; filterValues?: FilterValues; missingEmailCount: number; features?: { lists: boolean; contacts: boolean } }>(res)
     setLoading(false)
     if (!res.ok) {
       toast('error', data.error ?? 'Failed to load leads')
@@ -189,6 +204,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     setLeads(data.leads)
     setTotal(data.total)
     setMissingCount(data.missingEmailCount)
+    if (data.features) {setFeatures(data.features)}
     if (data.filterValues) {setFilterValues(data.filterValues)}
     if (openFirstMissingAfterLoad.current) {
       openFirstMissingAfterLoad.current = false
@@ -210,7 +226,9 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     for (const l of leads) {for (const k of Object.keys(l.extra ?? {})) {keys.add(k)}}
     return [...keys].sort()
   }, [leads, leadType])
-  const allColumns = useMemo(() => [...baseColumns, ...extraKeys.map(extraColumn)], [baseColumns, extraKeys])
+  // List and Contacts columns only once the database has them.
+  const available = useMemo(() => baseColumns.filter((c) => (c.kind !== 'list' || features.lists) && (c.kind !== 'contacts' || features.contacts)), [baseColumns, features])
+  const allColumns = useMemo(() => [...available, ...extraKeys.map(extraColumn)], [available, extraKeys])
   const columns = allColumns.filter((c) => visibleIds.includes(c.id))
   // Email stays reachable for the missing-email flow even if hidden.
   const shownColumns = (missingEmail || editing?.colId === 'email') && !columns.some((c) => c.id === 'email')
@@ -401,7 +419,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     bump()
   }
 
-  const editorCtx = { team, countries: filterValues.countries, niches: filterValues.niches }
+  const editorCtx = { team, countries: filterValues.countries, niches: filterValues.niches, leadType }
   const exportHref = `/api/admin/outreach/leads/${segment}/export?${filterParams}`
   const colCount = shownColumns.length + 2 + (isAdmin ? 1 : 0)
 
@@ -444,6 +462,12 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
           <option value="">All channels</option>
           {CHANNELS.map((c) => <option key={c} value={c}>{CHANNEL_LABELS[c]}</option>)}
         </select>
+        {features.lists && (
+          <select value={list} onChange={(e) => setList(e.target.value)} className={selectClass} aria-label="List">
+            <option value="">All lists</option>
+            {listsFor(leadType).map((l) => <option key={l} value={l}>{LIST_LABELS[l]}</option>)}
+          </select>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -489,7 +513,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
               </div>
               {allColumns.map((c, i) => (
                 <div key={c.id}>
-                  {i === baseColumns.length && <p className="mt-2 border-t border-slate-800 px-1 pt-2 text-[11px] uppercase tracking-wide text-slate-500">Extra fields</p>}
+                  {i === available.length && <p className="mt-2 border-t border-slate-800 px-1 pt-2 text-[11px] uppercase tracking-wide text-slate-500">Extra fields</p>}
                   <label className="flex items-center gap-2 rounded px-1 py-1 text-sm text-slate-300 hover:bg-slate-800">
                     <input
                       type="checkbox"
@@ -592,7 +616,8 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
             ) : leads.length === 0 ? (
               <tr><td colSpan={colCount} className="px-3 py-10 text-center text-slate-500">No leads match these filters.</td></tr>
             ) : leads.map((lead) => (
-              <tr key={lead.lead_id} className={`text-slate-300 hover:bg-slate-800/30 ${loading ? 'opacity-60' : ''}`}>
+              <Fragment key={lead.lead_id}>
+              <tr className={`text-slate-300 hover:bg-slate-800/30 ${loading ? 'opacity-60' : ''}`}>
                 {isAdmin && (
                   <td className="px-3 py-2">
                     <input type="checkbox" checked={allMatching || selected.has(lead.lead_id)} onChange={() => toggle(lead.lead_id)} aria-label={`Select ${lead.lead_id}`} />
@@ -622,6 +647,21 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                       </td>
                     )
                   }
+                  if (c.kind === 'contacts') {
+                    const open = expanded.has(lead.lead_id)
+                    return (
+                      <td key={c.id} className="max-w-[220px] px-3 py-2">
+                        <button
+                          onClick={() => setExpanded((prev) => { const n = new Set(prev); if (open) {n.delete(lead.lead_id)} else {n.add(lead.lead_id)}; return n })}
+                          className="flex max-w-full items-center gap-1 text-left hover:text-white" aria-expanded={open}
+                          title={open ? 'Hide contacts' : 'Show and edit contacts'}
+                        >
+                          {open ? <ChevronUp className="h-3.5 w-3.5 flex-shrink-0" /> : <ChevronDown className="h-3.5 w-3.5 flex-shrink-0" />}
+                          {cellDisplay(lead, c, ownerName, leadType)}
+                        </button>
+                      </td>
+                    )
+                  }
                   if (c.kind === 'status') {
                     return isEditing ? (
                       <td key={c.id} className="px-1.5 py-1">
@@ -633,7 +673,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                       </td>
                     )
                   }
-                  const readOnly = !c.field || (c.kind === 'owner' && !isAdmin)
+                  const readOnly = !c.field || ((c.kind === 'owner' || c.kind === 'list') && !isAdmin)
                   const hasLink = !!c.profileLink && !!primaryLink(leadType, lead as unknown as Record<string, unknown>)
                   return (
                     <EditableCell
@@ -647,7 +687,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                       initial={isEditing ? editing?.initial : undefined}
                       error={isEditing ? editing?.error : undefined}
                       saving={saving.has(`${lead.lead_id}:${c.id}`)}
-                      title={c.kind === 'owner' && !isAdmin ? 'Only admins change the owner' : undefined}
+                      title={!isAdmin && c.kind === 'owner' ? 'Only admins change the owner' : !isAdmin && c.kind === 'list' ? 'Only admins change the list' : undefined}
                       className={c.kind === 'int' || c.kind === 'number' ? 'text-right' : undefined}
                       onStart={() => setEditing({ leadId: lead.lead_id, colId: c.id })}
                       onCancel={() => setEditing(null)}
@@ -694,6 +734,14 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                   )}
                 </td>
               </tr>
+              {expanded.has(lead.lead_id) && (
+                <tr className="bg-slate-950/40">
+                  <td colSpan={colCount} className="px-6 py-3">
+                    <ContactsEditor lead={lead} readOnly={inDeletedView} compact />
+                  </td>
+                </tr>
+              )}
+              </Fragment>
             ))}
           </tbody>
         </table>

@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { CHANNEL_LABELS, STATUS_LABELS, type Channel, type Pace } from '@/lib/outreach/rules'
-import type { Capacity, MemberPace } from '@/lib/outreach/stats'
+import { CHANNEL_LABELS, LIST_LABELS, STATUS_LABELS, type Channel, type Pace } from '@/lib/outreach/rules'
+import type { Capacity, ListCounts, ListResult, MemberPace } from '@/lib/outreach/stats'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
 import { Card, formatPct, ProgressBar } from '@/components/admin/outreach/ui'
 
@@ -35,6 +35,71 @@ interface DashboardData {
   byChannel: (RateRow & { channel: string })[]
   rateWindowDays: number
   capacity: Capacity
+  lists: ListResult[] | null // null before the contacts/lists migration
+}
+
+// Results per list (and per person within a list), to compare lists.
+function ListsCard({ lists, ownerName }: { lists: ListResult[]; ownerName: (id: string | null) => string }) {
+  const [period, setPeriod] = useState<Period>('week')
+  const [open, setOpen] = useState<string | null>(null)
+  const cols = (leadType: 'creator' | 'brand') => [
+    ['leads', 'Leads'], ['contacted', 'Contacted'], ['replied', 'Replied'], ['reply_rate', 'Reply rate'],
+    ...(leadType === 'brand' ? [['call_booked', 'Calls booked'], ['won', 'Won']] : [['signed_up', 'Signed up']]),
+  ] as [keyof ListCounts['today'], string][]
+  const cell = (c: ListCounts, k: keyof ListCounts['today']) => {
+    const v = c[period][k]
+    return k === 'reply_rate' ? formatPct(v as number | null) : Number(v).toLocaleString()
+  }
+  return (
+    <Card
+      title="Results by list"
+      actions={
+        <div className="flex gap-1">
+          {(['today', 'week', 'month'] as Period[]).map((p) => (
+            <button key={p} onClick={() => setPeriod(p)}
+              className={`rounded-md px-2 py-1 text-xs ${period === p ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+              {p === 'today' ? 'Today' : p === 'week' ? 'This week' : 'This month'}
+            </button>
+          ))}
+        </div>
+      }
+    >
+      {lists.length === 0 ? <p className="text-sm text-slate-500">No activity yet.</p> : (['brand', 'creator'] as const).map((t) => {
+        const rows = lists.filter((l) => l.lead_type === t)
+        if (rows.length === 0) {return null}
+        return (
+          <div key={t} className="mb-4 overflow-x-auto last:mb-0">
+            <table className="w-full text-sm">
+              <thead className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-2 py-1.5">{t === 'brand' ? 'Brand list' : 'Creator list'}</th>
+                  {cols(t).map(([k, label]) => <th key={k} className="px-2 py-1.5 text-right">{label}</th>)}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/70">
+                {rows.map((l) => {
+                  const key = `${t}:${l.list}`
+                  return [
+                    <tr key={key} className="cursor-pointer text-slate-200 hover:bg-slate-800/30" onClick={() => setOpen(open === key ? null : key)}>
+                      <td className="px-2 py-1.5 font-medium">{open === key ? '▾' : '▸'} {LIST_LABELS[l.list] ?? l.list}</td>
+                      {cols(t).map(([k]) => <td key={k} className="px-2 py-1.5 text-right">{cell(l.totals, k)}</td>)}
+                    </tr>,
+                    ...(open === key ? l.people.map((p) => (
+                      <tr key={`${key}:${p.user_id ?? 'none'}`} className="text-xs text-slate-400">
+                        <td className="px-2 py-1 pl-7">{ownerName(p.user_id)}</td>
+                        {cols(t).map(([k]) => <td key={k} className="px-2 py-1 text-right">{cell(p.counts, k)}</td>)}
+                      </tr>
+                    )) : []),
+                  ]
+                })}
+              </tbody>
+            </table>
+          </div>
+        )
+      })}
+      <p className="text-xs text-slate-500">Leads = new leads (by owner). The rest count each lead once, by who logged it. Click a list for each person.</p>
+    </Card>
+  )
 }
 
 function PaceRow({ label, pace }: { label: string; pace: Pace }) {
@@ -85,7 +150,7 @@ function RateTable({ title, rows, label, windowDays }: { title: string; rows: (R
 
 export default function OutreachDashboardPage() {
   useDocumentTitle('Outreach dashboard')
-  const { toast, version } = useOutreach()
+  const { toast, version, ownerName } = useOutreach()
   const [data, setData] = useState<DashboardData | null>(null)
   const [period, setPeriod] = useState<Period>('today')
 
@@ -164,6 +229,8 @@ export default function OutreachDashboardPage() {
             : <span className="text-emerald-300"> Capacity covers the targets.</span>}
         </p>
       </Card>
+
+      {data.lists && <ListsCard lists={data.lists} ownerName={ownerName} />}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <RateTable

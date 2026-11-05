@@ -1,7 +1,7 @@
 'use client'
 
 import { COUNTRIES, NICHES, PLATFORMS, platformName } from '@/utils/constants'
-import { CHANNEL_LABELS, CHANNELS, LINK_LABELS, leadLinks, primaryLink, type LeadType } from '@/lib/outreach/rules'
+import { CHANNEL_LABELS, CHANNELS, LINK_LABELS, LIST_LABELS, leadLinks, listsFor, primaryLink, type LeadType } from '@/lib/outreach/rules'
 import type { OutreachLeadRow, OutreachTeamMember } from '@/lib/outreach/types'
 import type { CellEditor } from '@/components/admin/outreach/EditableCell'
 import { ExternalLink, formatCount, LinkIcon, LinkIcons, StatusBadge } from '@/components/admin/outreach/ui'
@@ -12,7 +12,7 @@ import { ExternalLink, formatCount, LinkIcon, LinkIcons, StatusBadge } from '@/c
 
 export type ColumnKind =
   | 'text' | 'email' | 'url' | 'int' | 'number' | 'platform' | 'country' | 'niche' | 'channel'
-  | 'owner' | 'bool' | 'status' | 'date' | 'extra' | 'links'
+  | 'owner' | 'bool' | 'status' | 'date' | 'extra' | 'links' | 'list' | 'contacts'
 
 export interface LeadColumn {
   id: string
@@ -28,7 +28,7 @@ export interface LeadColumn {
 }
 
 const col = (id: string, label: string, kind: ColumnKind, opts: Partial<LeadColumn> = {}): LeadColumn => ({
-  id, label, kind, field: kind === 'date' || kind === 'links' ? undefined : id, ...opts,
+  id, label, kind, field: kind === 'date' || kind === 'links' || kind === 'contacts' ? undefined : id, ...opts,
 })
 
 export const CREATOR_COLUMNS: LeadColumn[] = [
@@ -50,6 +50,7 @@ export const CREATOR_COLUMNS: LeadColumn[] = [
   col('tiktok', 'TikTok', 'url'),
   col('website', 'Website', 'url'),
   col('owner_user_id', 'Owner', 'owner', { defaultVisible: true }),
+  col('list', 'List', 'list', { defaultVisible: true }),
   col('channel', 'Channel', 'channel'),
   col('status', 'Status', 'status', { sort: 'status', defaultVisible: true, field: undefined }),
   col('date_contacted', 'Contacted', 'date', { sort: 'date_contacted', defaultVisible: true }),
@@ -61,6 +62,8 @@ export const CREATOR_COLUMNS: LeadColumn[] = [
 export const BRAND_COLUMNS: LeadColumn[] = [
   col('company', 'Company', 'text', { sort: 'company', defaultVisible: true, profileLink: true }),
   col('links', 'Links', 'links', { defaultVisible: true }),
+  // Several people per brand (contacts migration): count + primary; the row expands.
+  col('contacts', 'Contacts', 'contacts', { defaultVisible: true }),
   col('website', 'Website', 'url'),
   col('domain', 'Domain', 'text', { defaultVisible: true }),
   col('country', 'Country', 'country', { sort: 'country', defaultVisible: true }),
@@ -68,11 +71,13 @@ export const BRAND_COLUMNS: LeadColumn[] = [
   col('team_size', 'Team', 'text', { sort: 'team_size' }),
   col('why_them', 'Why them', 'text'),
   col('score', 'Score', 'number', { sort: 'score', defaultVisible: true }),
+  // Primary contact (a copy of it, once contacts exist). Edits go to that contact.
   col('contact_name', 'Contact', 'text', { defaultVisible: true }),
   col('role', 'Role', 'text', { defaultVisible: true }),
   col('email', 'Email', 'email', { defaultVisible: true }),
   col('linkedin', 'LinkedIn', 'url'),
   col('owner_user_id', 'Owner', 'owner', { defaultVisible: true }),
+  col('list', 'List', 'list', { defaultVisible: true }),
   col('channel', 'Channel', 'channel'),
   col('status', 'Status', 'status', { sort: 'status', defaultVisible: true, field: undefined }),
   col('date_contacted', 'Contacted', 'date', { sort: 'date_contacted', defaultVisible: true }),
@@ -126,6 +131,18 @@ export function cellDisplay(
   switch (c.kind) {
     case 'links': return <LinkIcons links={leadLinks(leadType, record)} />
     case 'status': return <StatusBadge status={lead.status} />
+    case 'list': return v ? LIST_LABELS[v] ?? v : <Empty />
+    case 'contacts': {
+      const cs = lead.contacts
+      if (!cs) {return <Empty />}
+      if (cs.count === 0) {return <span className="text-slate-500">None</span>}
+      return (
+        <span className="inline-flex max-w-full items-center gap-1.5">
+          <span className="rounded bg-slate-800 px-1.5 text-xs text-slate-300">{cs.count}</span>
+          <span className="truncate">{cs.primary?.name}</span>
+        </span>
+      )
+    }
     case 'owner': return ownerName(lead.owner_user_id)
     case 'platform': return v ? (platformName(v) === 'Other platform' ? v : platformName(v)) : <Empty />
     case 'channel': return v ? CHANNEL_LABELS[v as keyof typeof CHANNEL_LABELS] ?? v : <Empty />
@@ -144,9 +161,11 @@ function Empty() {
 
 export function cellEditor(
   c: LeadColumn,
-  ctx: { team: OutreachTeamMember[]; countries: string[]; niches: string[] },
+  ctx: { team: OutreachTeamMember[]; countries: string[]; niches: string[]; leadType: LeadType },
 ): CellEditor {
   switch (c.kind) {
+    case 'list':
+      return { type: 'select', options: listsFor(ctx.leadType).map((l) => ({ value: l, label: LIST_LABELS[l] })) }
     case 'platform':
       return { type: 'select', options: [{ value: '', label: 'None' }, ...PLATFORMS.map((p) => ({ value: p.id, label: p.name }))] }
     case 'channel':

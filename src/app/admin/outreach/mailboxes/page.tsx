@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { karachiToday, mailboxState, MAILBOX_MAX_LIMIT } from '@/lib/outreach/rules'
+import {
+  karachiSlotLabel, karachiToday, mailboxState, MAILBOX_MAX_LIMIT, MAILBOX_WINDOW_MAX, MAILBOX_WINDOW_MIN,
+} from '@/lib/outreach/rules'
 import type { OutreachMailboxWithUsage } from '@/lib/outreach/types'
 import type { Capacity } from '@/lib/outreach/stats'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
@@ -34,6 +36,9 @@ export default function OutreachMailboxesPage() {
   const [today, setToday] = useState('')
   const [form, setForm] = useState<MailboxForm>({ address: '', owner_user_id: '', start_date: karachiToday(), is_personal: false, custom_limit: '' })
   const [saving, setSaving] = useState(false)
+  // Hours a send counts against its mailbox (null before the contacts/lists migration).
+  const [windowHours, setWindowHours] = useState<number | null>(null)
+  const [windowDraft, setWindowDraft] = useState('')
 
   const load = useCallback(async () => {
     const res = await fetch('/api/admin/outreach/mailboxes')
@@ -45,6 +50,12 @@ export default function OutreachMailboxesPage() {
     setMailboxes(data.mailboxes)
     setCapacity(data.capacity)
     setToday(data.today)
+    const sr = await fetch('/api/admin/outreach/settings')
+    const sd = await readJson<{ settings: { mailbox_window_hours: number | null } }>(sr)
+    if (sr.ok) {
+      setWindowHours(sd.settings.mailbox_window_hours)
+      setWindowDraft(sd.settings.mailbox_window_hours ? String(sd.settings.mailbox_window_hours) : '')
+    }
   }, [toast])
 
   useEffect(() => { void load() }, [load, version])
@@ -79,12 +90,52 @@ export default function OutreachMailboxesPage() {
     if (ok) {setForm({ ...form, address: '', custom_limit: '' })}
   }
 
+  const saveWindow = async () => {
+    const hours = Number(windowDraft)
+    if (!Number.isInteger(hours) || hours < MAILBOX_WINDOW_MIN || hours > MAILBOX_WINDOW_MAX) {
+      toast('error', `Pick ${MAILBOX_WINDOW_MIN} to ${MAILBOX_WINDOW_MAX} hours`)
+      return
+    }
+    const res = await fetch('/api/admin/outreach/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mailbox_window_hours: hours }),
+    })
+    const data = await readJson<{ message: string }>(res)
+    if (!res.ok) {
+      toast('error', data.error ?? 'Save failed')
+      return
+    }
+    toast('success', data.message)
+    await load()
+    void refreshMailboxes()
+  }
+
   const isAdmin = !!me?.is_admin
   const short = capacity ? capacity.sendsNeededPerDay - capacity.mailboxCapacityToday : 0
 
   return (
     <div className="space-y-5">
       <h1 className="text-xl font-semibold text-white">Mailboxes</h1>
+
+      <Card title="Sending window">
+        {windowHours ? (
+          <div className="flex flex-wrap items-center gap-3 text-sm text-slate-300">
+            <span>A send counts against its mailbox for</span>
+            {isAdmin ? (
+              <>
+                <input type="number" min={MAILBOX_WINDOW_MIN} max={MAILBOX_WINDOW_MAX} value={windowDraft} onChange={(e) => setWindowDraft(e.target.value)}
+                  className="w-20 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-sm text-white" aria-label="Window in hours" />
+                <span>hours, then frees up.</span>
+                {Number(windowDraft) !== windowHours && <button onClick={() => void saveWindow()} className={buttonClass}>Save</button>}
+              </>
+            ) : <span>{windowHours} hours, then frees up.</span>}
+            <span className="text-xs text-slate-500">Between {MAILBOX_WINDOW_MIN} and {MAILBOX_WINDOW_MAX} hours. Dashboard and targets still count per Karachi day.</span>
+          </div>
+        ) : (
+          <p className="text-sm text-slate-400">Limits reset at midnight Karachi time. Run supabase/outreach_contacts_lists_migration.sql for a rolling window.</p>
+        )}
+      </Card>
 
       {capacity && (
         <div className="grid gap-4 md:grid-cols-3">
@@ -112,7 +163,7 @@ export default function OutreachMailboxesPage() {
           <thead className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-3 py-2">Mailbox</th><th className="px-3 py-2">Owner</th><th className="px-3 py-2">Start</th>
-              <th className="px-3 py-2">Schedule</th><th className="w-56 px-3 py-2">Today</th>
+              <th className="px-3 py-2">Schedule</th><th className="w-56 px-3 py-2">{windowHours ? `Last ${windowHours} hours` : 'Today'}</th>
               {isAdmin && <th className="px-3 py-2">Custom limit</th>}
               <th className="px-3 py-2">Active</th>
             </tr>
@@ -138,6 +189,9 @@ export default function OutreachMailboxesPage() {
                   <td className="px-3 py-2">
                     <div className={`mb-1 text-xs ${mailboxStateClass(state)}`}>{m.sent_today} / {m.daily_limit}{state === 'warn' ? ' · over 80%' : state === 'full' ? ' · limit reached' : ''}</div>
                     <ProgressBar value={m.sent_today} max={m.daily_limit} state={state === 'full' ? 'bad' : state === 'warn' ? 'warn' : 'ok'} />
+                    {state === 'full' && karachiSlotLabel(m.next_free_at) && (
+                      <div className="mt-1 text-xs text-red-300">Next slot frees at {karachiSlotLabel(m.next_free_at)} (Karachi)</div>
+                    )}
                   </td>
                   {isAdmin && (
                     <td className="px-3 py-2">
