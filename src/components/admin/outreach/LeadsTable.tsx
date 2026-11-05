@@ -1,9 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import {
-  ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Columns3, Download, Eraser, MailWarning, PanelRight, Plus, RotateCcw,
+  ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Columns3, Database, Download, Eraser, MailWarning, PanelRight, Plus, RotateCcw,
   Search, SkipForward, Trash2,
 } from 'lucide-react'
 import { platformName } from '@/utils/constants'
@@ -81,7 +82,7 @@ function PlainHeader({ label }: { label: string }) {
 
 export function LeadsTable({ leadType }: { leadType: LeadType }) {
   const sp = useSearchParams()
-  const { me, team, ownerName, toast, version, bump } = useOutreach()
+  const { me, team, ownerName, toast, version, bump, addToDatabase } = useOutreach()
   const segment = leadType === 'creator' ? 'creators' : 'brands'
   const statuses: readonly string[] = leadType === 'creator' ? CREATOR_STATUSES : BRAND_STATUSES
   const baseColumns = leadType === 'creator' ? CREATOR_COLUMNS : BRAND_COLUMNS
@@ -601,6 +602,15 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                   <div className="flex items-center gap-1.5">
                     <span className="font-mono text-xs text-slate-300">{lead.lead_id}</span>
                     {lead.dnc && <DncBadge />}
+                    {lead.in_db && !inDeletedView && (
+                      <Link
+                        href={`/admin/outreach/database/${leadType === 'creator' ? 'creators' : 'brands'}/${lead.lead_id}`}
+                        className="rounded bg-violet-900/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-200 hover:bg-violet-800"
+                        title={`Open in the ${leadType === 'creator' ? 'Creator' : 'Client'} Database`}
+                      >
+                        DB
+                      </Link>
+                    )}
                   </div>
                 </td>
                 {shownColumns.map((c) => {
@@ -665,6 +675,11 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                     <button onClick={() => setPanel(lead)} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-white" title="Edit all fields" aria-label={`Edit ${lead.lead_id}`}>
                       <PanelRight className="h-3.5 w-3.5" />
                     </button>
+                    {!lead.in_db && (
+                      <button onClick={() => void addToDatabase(lead.lead_id)} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-violet-300" title="Add to Database" aria-label={`Add ${lead.lead_id} to the Database`}>
+                        <Database className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                     {isAdmin && (
                       <>
                         <button onClick={() => setPending({ kind: 'erase', lead })} className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-amber-300" title="Delete personal data" aria-label={`Delete personal data of ${lead.lead_id}`}>

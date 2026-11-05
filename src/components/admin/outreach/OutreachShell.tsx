@@ -9,6 +9,8 @@ const TABS = [
   { href: '/admin/outreach', label: 'Today' },
   { href: '/admin/outreach/creators', label: 'Creators' },
   { href: '/admin/outreach/brands', label: 'Brands' },
+  { href: '/admin/outreach/database/creators', label: 'Creator DB' },
+  { href: '/admin/outreach/database/brands', label: 'Client DB' },
   { href: '/admin/outreach/import', label: 'Import' },
   { href: '/admin/outreach/dashboard', label: 'Dashboard' },
   { href: '/admin/outreach/mailboxes', label: 'Mailboxes' },

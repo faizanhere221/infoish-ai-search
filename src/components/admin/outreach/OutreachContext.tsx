@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { CheckCircle, AlertTriangle, Undo2, X } from 'lucide-react'
+import { CheckCircle, AlertTriangle, Database, Undo2, X } from 'lucide-react'
 import { STATUS_LABELS, UNDO_WINDOW_MS } from '@/lib/outreach/rules'
 import type { ActionResult, OutreachMailboxWithUsage, OutreachTeamMember } from '@/lib/outreach/types'
 
@@ -41,6 +41,7 @@ interface OutreachContextValue {
   // Bumped after every action/undo so pages reload their data.
   version: number
   bump: () => void
+  addToDatabase: (leadId: string) => Promise<boolean>
 }
 
 const Ctx = createContext<OutreachContextValue | null>(null)
@@ -65,6 +66,8 @@ export function OutreachProvider({ children }: { children: React.ReactNode }) {
   const [mailboxes, setMailboxes] = useState<OutreachMailboxWithUsage[]>([])
   const [toasts, setToasts] = useState<Toast[]>([])
   const [undo, setUndo] = useState<UndoEntry | null>(null)
+  // "Add to Database?" after replied (creators) / call booked or won (brands).
+  const [dbOffer, setDbOffer] = useState<string | null>(null)
   const [version, setVersion] = useState(0)
   const [now, setNow] = useState(() => Date.now())
   const toastId = useRef(0)
@@ -118,7 +121,7 @@ export function OutreachProvider({ children }: { children: React.ReactNode }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ lead_id: leadId, action, mailbox_id: mailboxId ?? null, channel: channel ?? null }),
     })
-    const data = await readJson<{ result: ActionResult; dmWarning: { channel: string; sent: number; limit: number } | null }>(res)
+    const data = await readJson<{ result: ActionResult; dmWarning: { channel: string; sent: number; limit: number } | null; dbOffer?: boolean }>(res)
     if (!res.ok) {
       toast('error', data.error ?? 'Action failed')
       return null
@@ -133,10 +136,28 @@ export function OutreachProvider({ children }: { children: React.ReactNode }) {
     if (data.dmWarning) {
       toast('warn', `${data.dmWarning.sent} ${data.dmWarning.channel} messages today. Your soft limit is ${data.dmWarning.limit}.`)
     }
+    setDbOffer(data.dbOffer ? leadId : null)
     bump()
     void refreshMailboxes()
     return r
   }, [toast, bump, refreshMailboxes])
+
+  const addToDatabase = useCallback(async (leadId: string) => {
+    const segment = leadId.startsWith('B-') ? 'brands' : 'creators'
+    const res = await fetch(`/api/admin/outreach/database/${segment}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lead_id: leadId }),
+    })
+    const data = await readJson<{ message: string }>(res)
+    if (!res.ok) {
+      toast('error', data.error ?? 'Could not add to the Database')
+      return false
+    }
+    toast('success', data.message)
+    bump()
+    return true
+  }, [toast, bump])
 
   const runUndo = async () => {
     if (!undo) {return}
@@ -160,7 +181,7 @@ export function OutreachProvider({ children }: { children: React.ReactNode }) {
   const secondsLeft = undo ? Math.max(Math.ceil((undo.expiresAt - now) / 1000), 0) : 0
 
   return (
-    <Ctx.Provider value={{ me, team, mailboxes, ownerName, refreshTeam, refreshMailboxes, toast, logAction, version, bump }}>
+    <Ctx.Provider value={{ me, team, mailboxes, ownerName, refreshTeam, refreshMailboxes, toast, logAction, version, bump, addToDatabase }}>
       {children}
 
       <div className="pointer-events-none fixed bottom-4 right-4 z-[60] flex w-96 max-w-[calc(100vw-2rem)] flex-col gap-2">
@@ -172,6 +193,23 @@ export function OutreachProvider({ children }: { children: React.ReactNode }) {
               <Undo2 className="h-3.5 w-3.5" /> Undo {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, '0')}
             </button>
             <button onClick={() => setUndo(null)} className="text-slate-500 hover:text-slate-300" aria-label="Dismiss">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+        {dbOffer && (
+          <div className="pointer-events-auto flex items-center gap-3 rounded-xl border border-violet-700 bg-slate-800 px-4 py-3 text-sm text-slate-200 shadow-2xl">
+            <Database className="h-4 w-4 flex-shrink-0 text-violet-400" />
+            <span className="flex-1">
+              Add {dbOffer} to the {dbOffer.startsWith('B-') ? 'Client' : 'Creator'} Database?
+            </span>
+            <button
+              onClick={() => { const id = dbOffer; setDbOffer(null); void addToDatabase(id) }}
+              className="rounded-md bg-violet-600 px-2 py-1 text-xs font-medium text-white hover:bg-violet-700"
+            >
+              Add
+            </button>
+            <button onClick={() => setDbOffer(null)} className="text-slate-500 hover:text-slate-300" aria-label="Not now">
               <X className="h-4 w-4" />
             </button>
           </div>
