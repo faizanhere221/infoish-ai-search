@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '29',
+    title: 'The Six Types of B2B Tech Influencers and When to Hire Each',
+    excerpt: 'Analysts, developer advocates, practitioners, YouTubers and more: learn the six types of B2B tech influencers and which one fits your product and funnel stage.',
+    date: '2026-11-05',
+    author: 'Infoishai Team',
+    category: 'Guide',
+    readTime: '9 min read',
+    slug: 'types-of-b2b-tech-influencers',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '28',
     title: 'How to Track B2B Influencer Campaigns with UTMs, Promo Codes and Your CRM',
     excerpt: 'Set up UTM links, promo codes and CRM fields to track B2B influencer leads. Includes a naming convention and attribution windows for long sales cycles.',
