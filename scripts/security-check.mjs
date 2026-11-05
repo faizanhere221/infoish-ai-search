@@ -75,9 +75,13 @@ const CREATOR_A_NOTIFICATION_ID = getEnv('CREATOR_A_NOTIFICATION_ID')
 // Optional — Phase 7A (admin hardening) checks, skipped if blank.
 const ADMIN_TOKEN = getEnv('ADMIN_TOKEN')
 const SUPER_ADMIN_TOKEN = getEnv('SUPER_ADMIN_TOKEN')
-// A disposable test user's id — ADMIN_TOKEN suspends then reactivates it to
-// verify suspension actually writes an activity_logs row. Never a real account.
+// A disposable test user's id. ADMIN_TOKEN must get 403 suspending/deleting
+// it; SUPER_ADMIN_TOKEN suspends then reactivates it (and hides/unhides it
+// if it is a creator) to verify those work and are logged. Never a real account.
 const ADMIN_TEST_TARGET_USER_ID = getEnv('ADMIN_TEST_TARGET_USER_ID')
+// Optional and destructive: a second throwaway user that the super admin
+// DELETE check really deletes. Leave blank to skip that one check.
+const ADMIN_DELETE_TARGET_USER_ID = getEnv('ADMIN_DELETE_TARGET_USER_ID')
 
 // Optional — Phase 7B (admin visibility: payments/workflow/contracts/
 // reports/email) checks, skipped if blank.
@@ -105,6 +109,12 @@ const HIDDEN_CREATOR_USERNAME = getEnv('HIDDEN_CREATOR_USERNAME')
 // to the fixed value below. Only ever use a disposable test account.
 const PASSWORD_RESET_TOKEN = getEnv('PASSWORD_RESET_TOKEN')
 const PASSWORD_RESET_TEST_NEW_PASSWORD = 'SecurityCheckReset123'
+
+// Optional — outreach role checks, skipped if blank. The auth_token cookie
+// of a role='outreach' account that has already set its own password
+// (log in at /admin/login, then DevTools → Cookies → auth_token).
+// Read-only.
+const OUTREACH_TOKEN = getEnv('OUTREACH_TOKEN')
 
 const required = { BRAND_A_TOKEN, CREATOR_A_TOKEN, CREATOR_B_TOKEN, CONVERSATION_ID, PRIVATE_CAMPAIGN_ID }
 const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k)
@@ -826,39 +836,155 @@ async function main() {
       return { pass: res.status === 403, detail: `status ${res.status}` }
     })
 
-    if (ADMIN_TEST_TARGET_USER_ID) {
-      await checkAsAdmin('Admin suspending a user writes a real activity_logs row (and reactivating undoes it)', async () => {
-        try {
-          const suspendRes = await request(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}/suspend`, {
-            method: 'POST',
-            headers: { ...adminCookieHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason: 'security-check probe — reactivated immediately after' }),
-          })
-          if (suspendRes.status !== 200) {
-            return { pass: false, detail: `suspend returned ${suspendRes.status}, expected 200` }
-          }
+    // Marketplace visibility and account state are super admin only
+    // (src/lib/admin-auth.ts). The role check runs before any lookup, so a
+    // bogus id is enough to prove the 403.
+    const adminPost = (urlPath, body) => request(urlPath, {
+      method: 'POST',
+      headers: { ...adminCookieHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: 'security-check probe — should never reach the DB', ...body }),
+    })
+    for (const [label, urlPath, body] of [
+      ['hiding a creator (POST /api/admin/creators/:id/hide)', `/api/admin/creators/${BOGUS_ID}/hide`, { hidden: true }],
+      ['unhiding a creator (POST /api/admin/creators/:id/hide, hidden=false)', `/api/admin/creators/${BOGUS_ID}/hide`, { hidden: false }],
+      ['suspending a user (POST /api/admin/users/:id/suspend)', `/api/admin/users/${BOGUS_ID}/suspend`, {}],
+      ['activating a user (POST /api/admin/users/:id/activate)', `/api/admin/users/${BOGUS_ID}/activate`, {}],
+      ['impersonation (POST /api/admin/users/:id/impersonate)', `/api/admin/users/${BOGUS_ID}/impersonate`, {}],
+      ['resolving a report as "suspended"', `/api/admin/reports/${BOGUS_ID}/resolve`, { action: 'suspended' }],
+    ]) {
+      await checkAsAdmin(`Admin (not super) gets 403 ${label}`, async () => {
+        const res = await adminPost(urlPath, body)
+        return { pass: res.status === 403, detail: `status ${res.status}` }
+      })
+    }
 
-          const logsRes = await request('/api/admin/activity/entries?group=admin&limit=5', { headers: adminCookieHeaders(ADMIN_TOKEN) })
-          const logsData = await logsRes.json().catch(() => ({ logs: [] }))
-          const wrote = (logsData.logs ?? []).some(
-            (l) => l.action === 'user_suspended' && l.entity_id === ADMIN_TEST_TARGET_USER_ID
-          )
-          return { pass: logsRes.status === 200 && wrote, detail: `activity log status ${logsRes.status}, matching row found: ${wrote}` }
-        } finally {
-          // Always reactivate, even if the assertion above failed, so this
-          // check never leaves the test account suspended.
-          await request(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}/activate`, {
-            method: 'POST',
-            headers: { ...adminCookieHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason: 'security-check probe — restoring state' }),
-          })
+    if (ADMIN_TEST_TARGET_USER_ID) {
+      // Same 403 against a real account, and the account is left untouched.
+      await checkAsAdmin('Admin (not super) gets 403 suspending and deleting the real test target, which stays active', async () => {
+        const suspend = await adminPost(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}/suspend`, {})
+        const del = await request(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}`, {
+          method: 'DELETE',
+          headers: { ...adminCookieHeaders(ADMIN_TOKEN), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: 'security-check probe — should never reach the DB' }),
+        })
+        const detail = await request(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}`, { headers: adminCookieHeaders(ADMIN_TOKEN) })
+        const data = await detail.json().catch(() => ({}))
+        const stillActive = data.user?.is_active === true && !data.user?.deleted_at
+        return {
+          pass: suspend.status === 403 && del.status === 403 && stillActive,
+          detail: `suspend ${suspend.status}, delete ${del.status}, read ${detail.status}, still active: ${stillActive}`,
         }
       })
-    } else {
-      skip('Admin suspending a user writes a real activity_logs row', 'ADMIN_TEST_TARGET_USER_ID not set')
     }
   } else {
-    skip('Admin (not super) gets 403 on delete/role-change/settings', 'ADMIN_TOKEN not set')
+    skip('Admin (not super) gets 403 on delete/role-change/settings/hide/suspend', 'ADMIN_TOKEN not set')
+  }
+
+  // Super admin: the same actions go through. WRITES DATA on a disposable
+  // account (ADMIN_TEST_TARGET_USER_ID): suspends then reactivates it, and
+  // if it is a creator, hides then restores its marketplace visibility.
+  // Delete is checked through deletion-preview (super admin only) so the
+  // target survives for the next run; a real DELETE only runs against
+  // ADMIN_DELETE_TARGET_USER_ID, a second, throwaway account.
+  if (SUPER_ADMIN_TOKEN && ADMIN_TEST_TARGET_USER_ID) {
+    const superPost = (urlPath, body) => request(urlPath, {
+      method: 'POST',
+      headers: { ...adminCookieHeaders(SUPER_ADMIN_TOKEN), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: 'security-check probe — restored immediately after', ...body }),
+    })
+
+    await check('Super admin suspends (200, logged in activity_logs) and reactivates (200) the test target', async () => {
+      let activateStatus = 0
+      try {
+        const suspendRes = await superPost(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}/suspend`, {})
+        if (suspendRes.status !== 200) {
+          return { pass: false, detail: `suspend returned ${suspendRes.status}, expected 200` }
+        }
+        const logsRes = await request('/api/admin/activity/entries?group=admin&limit=5', { headers: adminCookieHeaders(SUPER_ADMIN_TOKEN) })
+        const logsData = await logsRes.json().catch(() => ({ logs: [] }))
+        const wrote = (logsData.logs ?? []).some((l) => l.action === 'user_suspended' && l.entity_id === ADMIN_TEST_TARGET_USER_ID)
+        return { pass: logsRes.status === 200 && wrote, detail: `activity log status ${logsRes.status}, matching row found: ${wrote}` }
+      } finally {
+        // Always reactivate so the test account is never left suspended.
+        activateStatus = (await superPost(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}/activate`, {})).status
+        if (activateStatus !== 200) {console.log(`      reactivate returned ${activateStatus}; check the test account by hand`)}
+      }
+    })
+
+    const targetRes = await request(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}`, { headers: adminCookieHeaders(SUPER_ADMIN_TOKEN) })
+    const target = await targetRes.json().catch(() => ({}))
+    const creatorId = target.user?.user_type === 'creator' ? target.profile?.id : null
+    if (creatorId) {
+      await check('Super admin hides (200) and unhides (200) the test creator, original visibility restored', async () => {
+        const before = await request(`/api/admin/creators/${creatorId}`, { headers: adminCookieHeaders(SUPER_ADMIN_TOKEN) })
+        const wasHidden = (await before.json().catch(() => ({}))).creator?.hidden_from_marketplace === true
+        const hide = await superPost(`/api/admin/creators/${creatorId}/hide`, { hidden: true })
+        const unhide = await superPost(`/api/admin/creators/${creatorId}/hide`, { hidden: false })
+        if (wasHidden) {await superPost(`/api/admin/creators/${creatorId}/hide`, { hidden: true })}
+        return { pass: hide.status === 200 && unhide.status === 200, detail: `hide ${hide.status}, unhide ${unhide.status}` }
+      })
+    } else {
+      skip('Super admin hides and unhides a creator', 'ADMIN_TEST_TARGET_USER_ID is not a creator')
+    }
+
+    await check('Super admin reaches the delete gate (GET deletion-preview → 200)', async () => {
+      const res = await request(`/api/admin/users/${ADMIN_TEST_TARGET_USER_ID}/deletion-preview`, { headers: adminCookieHeaders(SUPER_ADMIN_TOKEN) })
+      return { pass: res.status === 200, detail: `status ${res.status}` }
+    })
+  } else {
+    skip('Super admin suspend/activate/hide/unhide on the test target', 'SUPER_ADMIN_TOKEN or ADMIN_TEST_TARGET_USER_ID not set')
+  }
+
+  if (SUPER_ADMIN_TOKEN && ADMIN_DELETE_TARGET_USER_ID) {
+    await check('Admin gets 403, super admin gets 200 deleting the throwaway account', async () => {
+      const del = (token) => request(`/api/admin/users/${ADMIN_DELETE_TARGET_USER_ID}`, {
+        method: 'DELETE',
+        headers: { ...adminCookieHeaders(token), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'security-check delete probe (throwaway account)' }),
+      })
+      const asAdmin = ADMIN_TOKEN ? (await del(ADMIN_TOKEN)).status : 403
+      const asSuper = (await del(SUPER_ADMIN_TOKEN)).status
+      return { pass: asAdmin === 403 && asSuper === 200, detail: `admin ${asAdmin}, super admin ${asSuper}` }
+    })
+  } else {
+    skip('Super admin DELETE on a throwaway account', 'ADMIN_DELETE_TARGET_USER_ID not set (optional; it deletes that account)')
+  }
+
+  // ── Admin session identity (GET /api/admin/auth/me) and the /admin root ──
+  await check('GET /api/admin/auth/me with no session → 401', async () => {
+    const res = await request('/api/admin/auth/me')
+    return { pass: res.status === 401, detail: `status ${res.status}` }
+  })
+  await check('GET /api/admin/auth/me with a creator token → 401 (not an admin session)', async () => {
+    const res = await request('/api/admin/auth/me', { headers: adminCookieHeaders(CREATOR_A_TOKEN) })
+    return { pass: res.status === 401, detail: `status ${res.status}` }
+  })
+  await check('/admin with no session redirects to /admin/login', async () => {
+    const res = await request('/admin', { redirect: 'manual' })
+    const to = res.headers.get('location') ?? ''
+    return { pass: res.status >= 300 && res.status < 400 && to.endsWith('/admin/login'), detail: `${res.status} → ${to}` }
+  })
+  for (const [label, token, role, home] of [
+    ['ADMIN_TOKEN', ADMIN_TOKEN, 'admin', '/admin/dashboard'],
+    ['SUPER_ADMIN_TOKEN', SUPER_ADMIN_TOKEN, 'super_admin', '/admin/dashboard'],
+    ['OUTREACH_TOKEN', OUTREACH_TOKEN, 'outreach', '/admin/outreach'],
+  ]) {
+    if (!token) {
+      skip(`/api/admin/auth/me and /admin for ${label}`, `${label} not set`)
+      continue
+    }
+    const claims = decodeJwtPayload(token) ?? {}
+    await check(`GET /api/admin/auth/me for ${label} returns that session's own email and role (${role})`, async () => {
+      const res = await request('/api/admin/auth/me', { headers: adminCookieHeaders(token) })
+      const data = await res.json().catch(() => ({}))
+      const ok = res.status === 200 && data.user?.role === role && data.user?.email === claims.email && data.user?.id === claims.userId
+      return { pass: ok, detail: `status ${res.status}, role ${data.user?.role}, email matches token: ${data.user?.email === claims.email}` }
+    })
+    await check(`/admin for ${label} redirects to ${home}`, async () => {
+      const res = await request('/admin', { headers: adminCookieHeaders(token), redirect: 'manual' })
+      const to = res.headers.get('location') ?? ''
+      return { pass: res.status >= 300 && res.status < 400 && to.endsWith(home), detail: `${res.status} → ${to}` }
+    })
   }
 
   // ── Phase 7B — admin visibility (payments/workflow/contracts/reports/email) ────
@@ -1006,6 +1132,28 @@ async function main() {
     return { pass: bad.length === 0, detail: `${paths.length} creator URLs${bad.length ? `, non-200: ${bad.join(', ')}` : ''}` }
   })
 
+  // Every creator the public marketplace lists must have a profile page
+  // that renders (200), whatever its stored data looks like. Built from
+  // GET /api/creators (every page), not the sitemap, so a profile the
+  // sitemap leaves out is still covered. Read-only, no env vars needed.
+  await check('Every public creator profile (all of GET /api/creators) returns 200', async () => {
+    const usernames = []
+    for (let offset = 0; offset < 10000; offset += 50) {
+      const res = await request(`/api/creators?limit=50&offset=${offset}`)
+      if (res.status !== 200) {return { pass: false, detail: `GET /api/creators?offset=${offset} returned ${res.status}` }}
+      const page = (await res.json().catch(() => ({}))).creators ?? []
+      usernames.push(...page.map((c) => c.username).filter((u) => typeof u === 'string' && u))
+      if (page.length < 50) {break}
+    }
+    if (usernames.length === 0) {return { pass: false, detail: 'GET /api/creators listed no creators' }}
+    const bad = []
+    for (const username of [...new Set(usernames)]) {
+      const r = await request(`/creators/${encodeURIComponent(username)}`, { redirect: 'manual' })
+      if (r.status !== 200) {bad.push(`${r.status} /creators/${username}`)}
+    }
+    return { pass: bad.length === 0, detail: `${usernames.length} profiles${bad.length ? `, non-200: ${bad.join(', ')}` : ''}` }
+  })
+
   // Positive controls — if these fail, every 404 above might just mean the
   // route is broken for everyone, not that access control actually works.
   await check('[control] Brand A CAN read the conversation', async () => {
@@ -1032,6 +1180,75 @@ async function main() {
     skip('[control] Brand A / Creator A CAN read the contract', 'CONTRACT_ID not set')
   }
 
+  // ── Outreach role ────────────────────────────────────────────────────────────
+  // role='outreach' tokens work only inside /admin/outreach/* and
+  // /api/admin/outreach/* (middleware.ts), and inside the section only
+  // admins manage mailboxes, the DNC list and the team.
+
+  if (OUTREACH_TOKEN) {
+    const claims = decodeJwtPayload(OUTREACH_TOKEN)
+    if (claims?.role !== 'outreach') {
+      await check('[control] OUTREACH_TOKEN really is an outreach account', async () => ({ pass: false, detail: `role claim is ${claims?.role ?? 'missing'}` }))
+    } else {
+      const outreachHeaders = adminCookieHeaders(OUTREACH_TOKEN)
+
+      for (const urlPath of ['/api/admin/users?limit=1', '/api/admin/payments?limit=1', '/api/admin/settings', '/api/admin/search?q=ab']) {
+        await check(`Outreach token gets 403 on ${urlPath.split('?')[0]}`, async () => {
+          const res = await request(urlPath, { headers: outreachHeaders })
+          return { pass: res.status === 403, detail: `status ${res.status}` }
+        })
+      }
+
+      await check('Outreach token gets 403 on a user-area API (/api/dashboard/action-needed)', async () => {
+        const res = await request('/api/dashboard/action-needed', { headers: outreachHeaders })
+        return { pass: res.status === 403, detail: `status ${res.status}` }
+      })
+
+      for (const urlPath of ['/api/admin/outreach/team', '/api/admin/outreach/today', '/api/admin/outreach/leads/creators?limit=1', '/api/admin/outreach/mailboxes', '/api/admin/outreach/dnc?limit=1']) {
+        await check(`Outreach token gets 200 on ${urlPath.split('?')[0]}`, async () => {
+          const res = await request(urlPath, { headers: outreachHeaders })
+          return { pass: res.status === 200, detail: `status ${res.status}` }
+        })
+      }
+
+      // Admin-only writes inside the section. Bodies are valid, so a 403 here
+      // is the permission check and not validation.
+      const adminOnlyWrites = [
+        ['POST', '/api/admin/outreach/mailboxes', { address: 'security-check@outreach-check.invalid', start_date: '2026-01-01' }],
+        ['POST', '/api/admin/outreach/dnc', { key_type: 'email', value: 'security-check@outreach-check.invalid', reason: 'other' }],
+        ['POST', '/api/admin/outreach/team', { email: 'security-check@outreach-check.invalid', display_name: 'x', role: 'outreach', temp_password: 'xxxxxxxxxxxx', reason: 'security check' }],
+        ['POST', '/api/admin/outreach/leads/creators/bulk', { lead_ids: ['C-0000'], status: 'found', reason: 'security check' }],
+        ['DELETE', '/api/admin/outreach/leads/creators/C-0000', { reason: 'security check' }],
+      ]
+      for (const [method, urlPath, body] of adminOnlyWrites) {
+        await check(`Outreach token gets 403 on ${method} ${urlPath}`, async () => {
+          const res = await request(urlPath, { method, headers: { ...outreachHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+          return { pass: res.status === 403, detail: `status ${res.status}` }
+        })
+      }
+
+      for (const pagePath of ['/admin/users', '/admin/dashboard', '/dashboard/brand']) {
+        await check(`Outreach cookie on ${pagePath} redirects to /admin/outreach`, async () => {
+          const res = await request(pagePath, { headers: outreachHeaders, redirect: 'manual' })
+          const location = res.headers.get('location') ?? ''
+          return { pass: res.status >= 300 && res.status < 400 && location.endsWith('/admin/outreach'), detail: `status ${res.status} → ${location}` }
+        })
+      }
+    }
+  } else {
+    skip('Outreach role access checks', 'OUTREACH_TOKEN not set')
+  }
+
+  await check('Creator token gets 403 on /api/admin/outreach/*', async () => {
+    const res = await request('/api/admin/outreach/team', { headers: authHeaders(CREATOR_A_TOKEN) })
+    return { pass: res.status === 403, detail: `status ${res.status}` }
+  })
+
+  await check('Logged-out caller gets 401 on /api/admin/outreach/*', async () => {
+    const res = await request('/api/admin/outreach/leads/creators')
+    return { pass: res.status === 401, detail: `status ${res.status}` }
+  })
+
   // ── Supabase public-schema lockdown ─────────────────────────────────────────
   // Hits the Supabase REST API directly with ONLY the anon key — not this
   // app's own routes — to prove supabase/lockdown_migration.sql actually
@@ -1045,7 +1262,7 @@ async function main() {
       'Content-Type': 'application/json',
     }
 
-    const LOCKED_TABLES = ['users', 'messages', 'creator_payments', 'payout_methods']
+    const LOCKED_TABLES = ['users', 'messages', 'creator_payments', 'payout_methods', 'outreach_creators', 'outreach_brands', 'outreach_dnc']
     for (const table of LOCKED_TABLES) {
       await check(`Anon key gets an error or empty array (never rows) reading public.${table}`, async () => {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&limit=1`, { headers: anonHeaders })
@@ -1076,6 +1293,9 @@ async function main() {
       'split_payment', 'sync_campaign_creator_status', 'update_influencer_auth_timestamp',
       'update_newsletter_updated_at', 'update_tool_subscription', 'update_updated_at',
       'update_updated_at_column',
+      // supabase/outreach_migration.sql
+      'outreach_log_action', 'outreach_undo_action', 'outreach_import', 'outreach_erase_lead',
+      'outreach_mark_no_reply', 'outreach_all_keys', 'outreach_match_keys', 'outreach_filter_values',
     ]
     for (const fn of RPC_FUNCTIONS) {
       await check(`Anon POST to /rest/v1/rpc/${fn} fails`, async () => {

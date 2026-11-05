@@ -4,11 +4,12 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
+import { AdminSessionProvider, clearAdminStorage, useAdminSession } from '@/components/admin/AdminSession'
 import {
   LayoutDashboard, Users, UserSquare, Building2, Handshake,
   FileText, Mail, LogOut, Menu, X,
   Activity, BarChart2, Search, ChevronDown, Settings, UserCog, Share2,
-  Wallet, ClipboardList, FileSignature, Flag,
+  Wallet, ClipboardList, FileSignature, Flag, Send,
 } from 'lucide-react'
 
 // ─── Nav structure ────────────────────────────────────────────────────────────
@@ -29,6 +30,7 @@ const NAV = [
       { label: 'Payments',  href: '/admin/payments',          icon: Wallet },
     ],
   },
+  { label: 'Outreach',    href: '/admin/outreach',    icon: Send },
   { label: 'Reports',     href: '/admin/reports',     icon: Flag },
   { label: 'Partners',    href: '/admin/partners',    icon: Share2 },
   { label: 'Analytics',   href: '/admin/analytics',   icon: BarChart2 },
@@ -38,7 +40,8 @@ const NAV = [
   { label: 'Contacts',    href: '/admin/contacts',    icon: FileText },
   { label: 'Newsletter',  href: '/admin/newsletter',  icon: Mail },
   {
-    label: 'Settings', icon: Settings, children: [
+    // Super admin only (settings + admin management).
+    label: 'Settings', icon: Settings, superOnly: true, children: [
       { label: 'Platform', href: '/admin/settings', icon: Settings },
       { label: 'Admins',   href: '/admin/admins',   icon: UserCog },
     ],
@@ -187,8 +190,11 @@ const ROUTE_NAMES: Record<string, string> = {
   contacts: 'Contacts', newsletter: 'Newsletter', subscriptions: 'Subscriptions',
   partners: 'Partners', payouts: 'Payouts',
   'campaign-creators': 'Workflow Tracker', contracts: 'Contracts', email: 'Email',
-  reports: 'Reports',
+  reports: 'Reports', outreach: 'Outreach', today: 'Today', import: 'Import',
+  dnc: 'Do not contact', mailboxes: 'Mailboxes', team: 'Team',
 }
+
+const ADMIN_HOME = '/admin'
 
 function Breadcrumbs() {
   const pathname = usePathname()
@@ -196,7 +202,9 @@ function Breadcrumbs() {
   return (
     <nav className="flex items-center gap-1 text-sm">
       {segments.map((seg, i) => {
-        const href = '/' + segments.slice(0, i + 1).join('/')
+        // The "Admin" root goes to /admin (src/app/admin/page.tsx), which
+        // sends each role to its home page.
+        const href = i === 0 ? ADMIN_HOME : '/' + segments.slice(0, i + 1).join('/')
         const isLast = i === segments.length - 1
         const name = ROUTE_NAMES[seg] ?? seg
         return (
@@ -287,19 +295,37 @@ function NavEntry({
 // ─── Layout ──────────────────────────────────────────────────────────────────
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  if (pathname === '/admin/login' || pathname === '/admin/change-password') {return <>{children}</>}
+  return (
+    <AdminSessionProvider>
+      <AdminShell>{children}</AdminShell>
+    </AdminSessionProvider>
+  )
+}
+
+const ROLE_LABELS: Record<string, string> = { super_admin: 'Super admin', admin: 'Admin', outreach: 'Outreach' }
+
+function AdminShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
   const router   = useRouter()
+  const { user, loading, isSuperAdmin, isOutreach: isOutreachRole } = useAdminSession()
   const [collapsed, setCollapsed]     = useState(false)
-  const [adminEmail, setAdminEmail]   = useState('')
   const [showProfile, setShowProfile] = useState(false)
 
-  useEffect(() => { setAdminEmail(localStorage.getItem('admin_email') ?? 'Admin') }, [])
+  // Who is signed in comes from the verified session (/api/admin/auth/me).
+  const adminEmail = user?.display_name ?? user?.email ?? (loading ? '' : 'Admin')
+  const roleLabel = user ? ROLE_LABELS[user.role] ?? user.role : ''
 
-  if (pathname === '/admin/login') {return <>{children}</>}
+  // Outreach accounts see only the Outreach section; Settings and Admins are
+  // super admin only. Cosmetic: middleware and the API routes enforce it.
+  // Nothing shows until the session is known, so no role sees a wrong menu.
+  const navItems = !user ? []
+    : isOutreachRole ? NAV.filter(item => item.href === '/admin/outreach')
+      : NAV.filter(item => !('superOnly' in item && item.superOnly) || isSuperAdmin)
 
   const handleLogout = async () => {
     try { await fetch('/api/admin/auth/logout', { method: 'POST' }) } finally {
-      localStorage.removeItem('admin_email')
-      localStorage.removeItem('admin_role')
+      clearAdminStorage()
       router.push('/admin/login')
     }
   }
@@ -316,7 +342,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Nav */}
         <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
-          {(NAV as NavItem[]).map((item) => (
+          {(navItems as NavItem[]).map((item) => (
             <NavEntry key={item.label} item={item} pathname={pathname} collapsed={collapsed} />
           ))}
         </nav>
@@ -325,7 +351,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-3 border-t border-slate-800 space-y-1">
           {!collapsed && (
             <div className="px-2 mb-1">
-              <p className="text-xs text-slate-500 truncate">{adminEmail}</p>
+              <p className="text-xs text-slate-300 truncate" title={user?.email}>{adminEmail}</p>
+              {user && <p className="text-[11px] text-slate-500 truncate">{user.display_name ? `${user.email} · ` : ''}{roleLabel}</p>}
             </div>
           )}
           <button
@@ -358,9 +385,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex-1" />
 
           {/* Global Search */}
-          <div className="hidden lg:block">
-            <GlobalSearch />
-          </div>
+          {!isOutreachRole && (
+            <div className="hidden lg:block">
+              <GlobalSearch />
+            </div>
+          )}
 
           {/* Profile dropdown */}
           <div className="relative">
@@ -377,12 +406,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {showProfile && (
               <div className="absolute right-0 top-10 z-50 bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-1 min-w-[160px]">
                 <div className="px-3 py-2 border-b border-slate-700 mb-1">
-                  <div className="text-xs text-slate-400 truncate">{adminEmail}</div>
+                  <div className="text-xs text-slate-300 truncate">{user?.email ?? adminEmail}</div>
+                  {roleLabel && <div className="text-[11px] text-slate-500">{roleLabel}</div>}
                 </div>
-                <Link href="/admin/settings" onClick={() => setShowProfile(false)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-lg transition-colors">
-                  <Settings className="w-4 h-4" /> Settings
-                </Link>
+                {isSuperAdmin && (
+                  <Link href="/admin/settings" onClick={() => setShowProfile(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-lg transition-colors">
+                    <Settings className="w-4 h-4" /> Settings
+                  </Link>
+                )}
                 <button onClick={handleLogout}
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:bg-slate-700 rounded-lg transition-colors">
                   <LogOut className="w-4 h-4" /> Logout

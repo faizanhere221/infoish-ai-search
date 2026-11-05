@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, AlertCircle, RefreshCw, MessageSquare } from 'lucide-react'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
+import { useAdminSession } from '@/components/admin/AdminSession'
 
 interface ReportDetail {
   id: string
@@ -42,6 +43,8 @@ function fmtDateTime(d: string) {
 
 export default function AdminReportDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
+  // Suspending is super admin only (the API returns 403 for admins).
+  const { isSuperAdmin } = useAdminSession()
   const [report, setReport] = useState<ReportDetail | null>(null)
   const [reporter, setReporter] = useState<UserSummary | null>(null)
   const [reported, setReported] = useState<UserSummary | null>(null)
@@ -161,9 +164,11 @@ export default function AdminReportDetailPage({ params }: { params: { id: string
               <button onClick={() => setPendingAction({ kind: 'warned' })} className="px-3 py-2 border border-amber-200 bg-amber-50 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-100">
                 Warn
               </button>
-              <button onClick={() => setPendingAction({ kind: 'suspended' })} className="px-3 py-2 border border-red-200 bg-red-50 text-red-700 rounded-lg text-sm font-medium hover:bg-red-100">
-                Suspend User
-              </button>
+              {isSuperAdmin && (
+                <button onClick={() => setPendingAction({ kind: 'suspended' })} className="px-3 py-2 border border-red-200 bg-red-50 text-red-700 rounded-lg text-sm font-medium hover:bg-red-100">
+                  Suspend User
+                </button>
+              )}
               <button onClick={() => setPendingAction({ kind: 'dismissed' })} className="px-3 py-2 border border-gray-200 bg-white text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
                 Dismiss
               </button>

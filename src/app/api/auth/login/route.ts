@@ -77,6 +77,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Outreach team accounts sign in through the admin login only. Checked
+    // after the password so this message never reveals an account exists.
+    if (user.role === 'outreach') {
+      return NextResponse.json(
+        { error: 'This is an Infoishai team account. Sign in at /admin/login.' },
+        { status: 403 }
+      )
+    }
+
     // Update last login
     await supabase
       .from('users')

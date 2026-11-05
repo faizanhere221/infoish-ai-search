@@ -199,11 +199,11 @@ export default function CreatorProfileClient({ creator }: { creator: PublicCreat
 
   const activeServices = creator.creator_services?.filter(s => s.is_active) || []
   const platforms = creator.creator_platforms || []
-  const minPrice = activeServices.length > 0 
-    ? Math.min(...activeServices.map(s => s.price))
-    : null
+  const prices = activeServices.map(s => s.price).filter((p): p is number => p !== null)
+  const minPrice = prices.length > 0 ? Math.min(...prices) : null
 
-  const formatFollowers = (num: number): string => {
+  const formatFollowers = (num: number | null | undefined): string => {
+    if (typeof num !== 'number' || !Number.isFinite(num)) {return '0'}
     if (num >= 1000000) {return (num / 1000000).toFixed(1) + 'M'}
     if (num >= 1000) {return (num / 1000).toFixed(1) + 'K'}
     return num.toString()
@@ -323,10 +323,12 @@ export default function CreatorProfileClient({ creator }: { creator: PublicCreat
                         {[creator.city, creator.country ? COUNTRY_NAMES[creator.country] || creator.country : null].filter(Boolean).join(', ')}
                       </span>
                     )}
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      Joined {formatMonthYear(creator.created_at)}
-                    </span>
+                    {creator.created_at && formatMonthYear(creator.created_at) !== '—' && (
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        Joined {formatMonthYear(creator.created_at)}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -472,7 +474,7 @@ export default function CreatorProfileClient({ creator }: { creator: PublicCreat
           <div className="space-y-6">
             {/* Contact Card */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 sticky top-6">
-              {minPrice && (
+              {minPrice !== null && minPrice > 0 && (
                 <div className="mb-4">
                   <p className="text-sm text-gray-500">Starting at</p>
                   <p className="text-3xl font-bold text-gray-900">${minPrice.toLocaleString()}</p>
@@ -596,24 +598,35 @@ function ServiceCard({ service }: { service: Service }) {
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-gray-900">{service.title}</h3>
-            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
-              {platformName(service.platform)}
-            </span>
+            {service.platform && (
+              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                {platformName(service.platform)}
+              </span>
+            )}
           </div>
           {service.description && (
             <p className="text-sm text-gray-600 mt-2">{service.description}</p>
           )}
-          <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
-            <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              {service.delivery_days} days delivery
-            </span>
-            <span>{service.revisions_included} revision{service.revisions_included !== 1 ? 's' : ''}</span>
+          {/* Missing values (null) are hidden, never shown as "null days". */}
+          {(service.delivery_days !== null || service.revisions_included !== null) && (
+            <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
+              {service.delivery_days !== null && (
+                <span className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  {service.delivery_days} days delivery
+                </span>
+              )}
+              {service.revisions_included !== null && (
+                <span>{service.revisions_included} revision{service.revisions_included !== 1 ? 's' : ''}</span>
+              )}
+            </div>
+          )}
+        </div>
+        {service.price !== null && (
+          <div className="text-right ml-4">
+            <p className="text-xl font-bold text-gray-900">${service.price.toLocaleString()}</p>
           </div>
-        </div>
-        <div className="text-right ml-4">
-          <p className="text-xl font-bold text-gray-900">${service.price.toLocaleString()}</p>
-        </div>
+        )}
       </div>
     </div>
   )

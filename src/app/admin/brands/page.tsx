@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useAdminSession } from '@/components/admin/AdminSession'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
@@ -117,11 +118,9 @@ export default function AdminBrandsPage() {
   useDocumentTitle('Brands')
   const router = useRouter()
 
-  // The "Deleted" status filter is super_admin only — client-side this is
-  // just UX (hide the option), the server-side 403 on status=deleted for
-  // a plain admin is the real gate.
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  useEffect(() => { setIsSuperAdmin(localStorage.getItem('admin_role') === 'super_admin') }, [])
+  // Super admin only, from the verified session: the "Deleted" filter,
+  // suspend/activate and delete. Hiding them is UX; the API 403 is the gate.
+  const { isSuperAdmin } = useAdminSession()
 
   // Shown in the delete confirmation dialog so the admin knows which mode
   // will actually apply (hard delete vs soft-delete + anonymization)
@@ -356,7 +355,7 @@ export default function AdminBrandsPage() {
       </div>
 
       {/* Bulk bar */}
-      {selected.size > 0 && (
+      {isSuperAdmin && selected.size > 0 && (
         <div className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center gap-3">
           <span className="text-sm font-medium text-violet-700">{selected.size} selected</span>
           <button onClick={() => setPendingAction({ kind: 'bulk-activate' })} className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg">Activate All</button>
@@ -432,11 +431,13 @@ export default function AdminBrandsPage() {
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-emerald-600">
                           {b.verification_status === 'verified' ? <ShieldX className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
                         </button>
-                        <button onClick={() => setPendingAction({ kind: b.is_active ? 'suspend' : 'activate', brandId: b.id, userId: b.user_id })}
-                          title={b.is_active ? 'Suspend' : 'Activate'}
-                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-amber-600">
-                          {b.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-                        </button>
+                        {isSuperAdmin && (
+                          <button onClick={() => setPendingAction({ kind: b.is_active ? 'suspend' : 'activate', brandId: b.id, userId: b.user_id })}
+                            title={b.is_active ? 'Suspend' : 'Activate'}
+                            className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-amber-600">
+                            {b.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -528,14 +529,18 @@ export default function AdminBrandsPage() {
                       className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${b.verification_status === 'verified' ? 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}>
                       {b.verification_status === 'verified' ? 'Remove Verification' : 'Verify Brand'}
                     </button>
-                    <button onClick={() => setPendingAction({ kind: b.is_active ? 'suspend' : 'activate', brandId: String(b.id), userId: String(b.user_id) })}
-                      className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${b.is_active ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}>
-                      {b.is_active ? 'Suspend' : 'Activate'}
-                    </button>
-                    <button onClick={() => openDeleteConfirm(String(b.id), String(b.user_id))}
-                      className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-lg text-sm font-medium">
-                      Delete Account
-                    </button>
+                    {isSuperAdmin && (
+                      <>
+                        <button onClick={() => setPendingAction({ kind: b.is_active ? 'suspend' : 'activate', brandId: String(b.id), userId: String(b.user_id) })}
+                          className={`flex-1 min-w-28 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${b.is_active ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}>
+                          {b.is_active ? 'Suspend' : 'Activate'}
+                        </button>
+                        <button onClick={() => openDeleteConfirm(String(b.id), String(b.user_id))}
+                          className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-lg text-sm font-medium">
+                          Delete Account
+                        </button>
+                      </>
+                    )}
                   </div>
                 </>
               )
