@@ -18,7 +18,8 @@
 //     from tables and exports, still blocks duplicates, still in
 //     already_in_sheet.txt), and the Database (add / restore, fields,
 //     rates, campaigns, search filters, export,
-//     remove, members can't set the rating or remove). WRITES DATA: creates leads tagged
+//     remove, members can't set the rating or remove), brand contacts
+//     (soft removal, admin restore). WRITES DATA: creates leads tagged
 //     source=outreach-check, a DNC entry and a mailbox with a 1/day limit,
 //     then soft-deletes the leads (their rows stay, as deleted), removes the
 //     DNC entry and pauses the mailbox. Needs ADMIN_TOKEN (an admin's
@@ -659,6 +660,12 @@ async function contactsListsChecks() {
     assert.ok(rules.validateContactFields({ title: 'CMO' }, false).errors.first_name, 'needs a name, email or LinkedIn')
     assert.deepEqual(rules.validateContactFields({ title: 'CMO' }, true).errors, {}, 'an edit can change only the title')
     assert.ok(rules.validateContactFields({ is_primary: 'yes' }, true).errors.is_primary)
+  })
+
+  await check('duplicate labels: removed contact, deleted lead, live lead', () => {
+    assert.equal(rules.previouslyLabel({ lead_id: 'B-0012', contact_removed: true, deleted: false }), 'Previously removed contact of B-0012')
+    assert.equal(rules.previouslyLabel({ lead_id: 'C-0123', deleted: true }), 'Previously deleted: C-0123')
+    assert.equal(rules.previouslyLabel({ lead_id: 'C-0123', deleted: false }), null)
   })
 
   await check('Apollo: detected by headers (exact spellings "Employes", "Tittle"), case-insensitive, typos tolerated', () => {
@@ -1321,17 +1328,59 @@ async function httpChecks() {
         assert.ok(taken.json.fields?.email, 'reported on the email field')
       })
 
-      await check('remove a contact: logged, key freed, the other contact becomes primary', async () => {
+      // outreach_contact_soft_delete_migration.sql: removing is a soft delete.
+      const softRemove = probe.json?.features?.contactRemoval === true
+      await check(softRemove
+        ? 'remove a contact (soft): hidden, the other contact becomes primary, its email still blocks duplicates'
+        : 'remove a contact: logged, key freed, the other contact becomes primary', async () => {
         assert.equal((await call('DELETE', `${cbase()}/${bo.id}`)).status, 200)
         const list = (await call('GET', cbase())).json.contacts
-        assert.equal(list.length, 1)
+        assert.equal(list.length, 1, 'removed contact hidden from the list')
         assert.equal(list[0].is_primary, true)
-        const free = await call('GET', `/api/admin/outreach/check-duplicate?type=creator&email=${encodeURIComponent(`bo2@${domain}`)}`)
-        assert.equal(free.status, 200)
-        assert.equal(free.json.duplicates.length, 0, 'the email is free again')
+        const row = (await call('GET', `/api/admin/outreach/leads/brands?q=${contactBrand}`)).json.leads[0]
+        assert.equal(row.contacts.count, 1, 'removed contact not counted')
+        assert.notEqual(row.email, `bo2@${domain}`, 'the brand copy no longer shows the removed contact')
+        const dup = await call('GET', `/api/admin/outreach/check-duplicate?type=creator&email=${encodeURIComponent(`bo2@${domain}`)}`)
+        assert.equal(dup.status, 200)
+        if (softRemove) {
+          assert.equal(dup.json.duplicates.length, 1, 'still blocks duplicates')
+          assert.equal(dup.json.duplicates[0].contact_removed, true)
+          const add = await call('POST', '/api/admin/outreach/leads/creators', { name: 'dup', email: `BO2@${domain}`, source: 'outreach-check' })
+          assert.equal(add.status, 409, JSON.stringify(add.json))
+          assert.equal(add.json.error, `Previously removed contact of ${contactBrand}`)
+          const again = await call('POST', cbase(), { first_name: 'Bo', email: `bo2@${domain}` })
+          assert.equal(again.status, 409)
+          assert.match(again.json.error, new RegExp(`^Previously removed contact of ${contactBrand}`))
+          const keys = await raw('GET', '/api/admin/outreach/export/already-in-sheet')
+          assert.ok(keys.text.includes(`bo2@${domain}`), 'stays in already_in_sheet.txt')
+          assert.equal((await call('POST', '/api/admin/outreach/actions', { lead_id: contactBrand, action: 'replied', contact_id: bo.id })).status, 404, 'no actions on a removed contact')
+          assert.equal((await call('PATCH', `${cbase()}/${bo.id}`, { title: 'x' })).status, 404, 'no edits on a removed contact')
+        } else {
+          assert.equal(dup.json.duplicates.length, 0, 'the email is free again (hard delete before the migration)')
+        }
         const acts = (await call('GET', `/api/admin/outreach/leads/brands/${contactBrand}`)).json.activity.map((a) => a.action)
         assert.ok(['contact_added', 'contact_edited', 'contact_removed'].every((a) => acts.includes(a)), acts.join(','))
       })
+
+      if (softRemove) {
+        await check('removed contacts: admins list and restore them (status and email intact), logged', async () => {
+          const removed = await call('GET', `${cbase()}?removed=1`)
+          assert.equal(removed.status, 200, JSON.stringify(removed.json))
+          assert.deepEqual(removed.json.contacts.map((c) => c.id), [bo.id])
+          assert.ok(removed.json.contacts[0].deleted_at && removed.json.contacts[0].deleted_by)
+          const r = await call('POST', `${cbase()}/${bo.id}/restore`)
+          assert.equal(r.status, 200, JSON.stringify(r.json))
+          assert.equal(r.json.contact.is_primary, false, 'the active primary stays primary')
+          const list = (await call('GET', cbase())).json.contacts
+          assert.equal(list.length, 2)
+          assert.equal(list.find((c) => c.id === bo.id).email, `bo2@${domain}`)
+          assert.equal((await call('POST', `${cbase()}/${bo.id}/restore`)).status, 200, 'restoring twice changes nothing')
+          const acts = (await call('GET', `/api/admin/outreach/leads/brands/${contactBrand}`)).json.activity.map((a) => a.action)
+          assert.ok(acts.includes('contact_restored'), acts.join(','))
+          // Back to one active contact for the checks below.
+          assert.equal((await call('DELETE', `${cbase()}/${bo.id}`)).status, 200)
+        })
+      }
 
       await check('lists: manual adds land on "manual"; admins change the list; filter by list; bad list → 400', async () => {
         const row = (await call('GET', `/api/admin/outreach/leads/brands?q=${contactBrand}`)).json.leads[0]
@@ -1398,6 +1447,13 @@ async function httpChecks() {
         assert.equal((await m('POST', `/api/admin/outreach/leads/brands/${contactBrand}/contacts`, { first_name: 'Member', email: `member@${domain}` })).status, 201)
         assert.equal((await m('PATCH', `/api/admin/outreach/leads/brands/${contactBrand}`, { list: 'sponsor' })).status, 403)
         assert.equal((await m('PATCH', '/api/admin/outreach/settings', { mailbox_window_hours: 15 })).status, 403)
+        if (probe.json?.features?.contactRemoval) {
+          // Members remove contacts; only admins see removed ones and restore.
+          const added = await (await m('POST', `/api/admin/outreach/leads/brands/${contactBrand}/contacts`, { first_name: 'Temp', email: `temp@${domain}` })).json()
+          assert.equal((await m('DELETE', `/api/admin/outreach/leads/brands/${contactBrand}/contacts/${added.contact.id}`)).status, 200)
+          assert.equal((await m('GET', `/api/admin/outreach/leads/brands/${contactBrand}/contacts?removed=1`)).status, 403)
+          assert.equal((await m('POST', `/api/admin/outreach/leads/brands/${contactBrand}/contacts/${added.contact.id}/restore`)).status, 403)
+        }
       })
     }
 
