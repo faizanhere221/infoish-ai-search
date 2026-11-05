@@ -1201,6 +1201,7 @@ async function httpChecks() {
     const probe = await call('GET', '/api/admin/outreach/leads/brands?limit=1')
     const v2 = probe.json?.features?.contacts === true
     let contactBrand = null
+    const domain = `${tag}-contacts.invalid` // the contacts brand, also used by the member checks below
     if (!v2) {
       await check('before the contacts/lists migration: old paths keep working, new features answer 409 (never 500)', async () => {
         assert.equal(probe.status, 200)
@@ -1247,7 +1248,6 @@ async function httpChecks() {
         }
       })
 
-      const domain = `${tag}-contacts.invalid`
       await check('brand contacts: the brand\'s own contact becomes the primary contact row', async () => {
         const b = await call('POST', '/api/admin/outreach/leads/brands', { company: `${tag} Contacts`, domain, contact_name: 'Ann Lee', role: 'CMO', email: `ann@${domain}`, source: 'outreach-check' })
         assert.equal(b.status, 201, JSON.stringify(b.json))
