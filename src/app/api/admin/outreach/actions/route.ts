@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
-import { BRAND_ACTIONS, CREATOR_ACTIONS, DM_CHANNELS, karachiDayStart, karachiToday, type Channel } from '@/lib/outreach/rules'
+import {
+  BRAND_ACTIONS, CREATOR_ACTIONS, DM_CHANNELS, karachiDayStart, karachiSlotLabel, karachiToday, parseMailboxFullDetail, type Channel,
+} from '@/lib/outreach/rules'
+import { isMissingSchema, NEEDS_MIGRATION } from '@/lib/outreach/schema'
 import { DB_OFFER_ACTIONS } from '@/lib/outreach/database'
 import { dbMembership } from '@/lib/outreach/database-server'
 import { actionSchema } from '@/lib/outreach/schemas'
@@ -12,7 +15,7 @@ export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
 
 // POST /api/admin/outreach/actions: one-click action on a lead.
-// Body: { lead_id, action, mailbox_id?, channel? }. The status change,
+// Body: { lead_id, action, mailbox_id?, channel?, contact_id? }. The status change,
 // mailbox limit check and activity row all happen in outreach_log_action()
 // (one transaction, mailbox row locked). Response includes a DM warning
 // once the caller passes their soft daily limit for that platform, and
@@ -27,7 +30,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid input', fields: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
-    const { lead_id, action, mailbox_id, channel } = parsed.data
+    const { lead_id, action, mailbox_id, channel, contact_id } = parsed.data
     const leadType = leadTypeFromId(lead_id)
     if (!leadType) {return NextResponse.json({ error: 'Lead not found' }, { status: 404 })}
     const allowed: readonly string[] = leadType === 'creator' ? CREATOR_ACTIONS : BRAND_ACTIONS
@@ -43,10 +46,20 @@ export async function POST(request: NextRequest) {
       p_action: action,
       p_mailbox_id: mailbox_id ?? null,
       p_channel: channel ?? null,
+      // Only sent when given, so this route works before the contacts migration.
+      ...(contact_id ? { p_contact_id: contact_id } : {}),
     })
     if (error) {
+      if (contact_id && isMissingSchema(error)) {return NextResponse.json(NEEDS_MIGRATION, { status: 409 })}
       const mapped = mapDbError(error)
-      if (mapped) {return NextResponse.json({ error: mapped.message, code: mapped.code, detail: mapped.detail }, { status: mapped.status })}
+      if (mapped) {
+        let message = mapped.message
+        // Rolling window: say when the next slot frees up.
+        const full = mapped.code === 'outreach_mailbox_full' ? parseMailboxFullDetail(mapped.detail) : null
+        const at = karachiSlotLabel(full?.nextFreeAt)
+        if (at) {message = `This mailbox is full (${full?.sent}/${full?.limit}). The next slot frees at ${at} (Karachi). Use another mailbox or wait.`}
+        return NextResponse.json({ error: message, code: mapped.code, detail: mapped.detail, next_free_at: full?.nextFreeAt ?? null }, { status: mapped.status })
+      }
       captureError(error, { route: 'POST /api/admin/outreach/actions' })
       return NextResponse.json({ error: 'Failed to log action' }, { status: 500 })
     }

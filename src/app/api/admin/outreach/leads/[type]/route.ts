@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
+import { withContactSummaries } from '@/lib/outreach/contacts'
 import { createLead } from '@/lib/outreach/create'
+import { outreachFeatures } from '@/lib/outreach/schema'
 import { withDbFlags } from '@/lib/outreach/database-server'
 import {
   adminOnly, fetchAllRows, filterValues, getOutreachCaller, leadListQuery, leadTypeFromSegment,
@@ -22,6 +24,8 @@ const MAX_IDS = 50_000
 // otherwise deleted leads are hidden). Sort: sort + dir. Paging: limit (max
 // 200) + offset. meta=1 adds the filter dropdown values. ids=1 (admins)
 // returns every matching lead id instead, for "select all N matching".
+// list (after the contacts/lists migration; ignored before it). Brand rows
+// carry contacts {count, primary}; `features` says what the database has.
 export async function GET(request: NextRequest, { params }: Params) {
   const caller = getOutreachCaller(request)
   if (!caller) {return unauthorized()}
@@ -36,6 +40,9 @@ export async function GET(request: NextRequest, { params }: Params) {
     if (filters.deleted && !caller.isAdmin) {return adminOnly()}
 
     const supabase = createServerSupabase()
+    // Lists and contacts exist once outreach_contacts_lists_migration.sql ran.
+    const features = await outreachFeatures(supabase)
+    if (!features.lists) {filters.list = null}
 
     if (sp.get('ids') === '1') {
       if (!caller.isAdmin) {return adminOnly()}
@@ -52,13 +59,14 @@ export async function GET(request: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Failed to load leads' }, { status: 500 })
     }
 
-    const leads = await withDbFlags(supabase, leadType, await withDncFlags(supabase, (data ?? []) as OutreachLead[]))
+    const flagged = await withDbFlags(supabase, leadType, await withDncFlags(supabase, (data ?? []) as OutreachLead[]))
+    const leads = leadType === 'brand' && features.contacts ? await withContactSummaries(supabase, flagged) : flagged
     const meta = sp.get('meta') === '1' ? await filterValues(supabase, leadType) : undefined
 
     // "N leads without email" under the same filters, for the quick filter.
     const { count: missingEmailCount } = await leadListQuery(supabase, leadType, { ...filters, missingEmail: true }, 'head')
 
-    return NextResponse.json({ leads, total: count ?? 0, limit, offset, filterValues: meta, missingEmailCount: missingEmailCount ?? 0 })
+    return NextResponse.json({ leads, total: count ?? 0, limit, offset, filterValues: meta, missingEmailCount: missingEmailCount ?? 0, features })
   } catch (err) {
     captureError(err, { route: 'GET /api/admin/outreach/leads' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

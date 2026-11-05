@@ -242,10 +242,12 @@ const BRAND_DB_FIELDS: Record<string, DbFieldKind> = {
   notes: 'longtext',
 }
 
-export const DB_ITEM_KINDS = { creator: ['rates'], brand: ['contacts', 'campaigns'] } as const
-export type DbItemKind = 'rates' | 'contacts' | 'campaigns'
+// Brand contacts are not a Database item: they belong to the lead
+// (/api/admin/outreach/leads/brands/[leadId]/contacts).
+export const DB_ITEM_KINDS = { creator: ['rates'], brand: ['campaigns'] } as const
+export type DbItemKind = 'rates' | 'campaigns'
 // URL segment → the kind name outreach_db_item() takes
-export const DB_ITEM_SQL_KIND: Record<DbItemKind, string> = { rates: 'rate', contacts: 'contact', campaigns: 'campaign' }
+export const DB_ITEM_SQL_KIND: Record<DbItemKind, string> = { rates: 'rate', campaigns: 'campaign' }
 
 const ITEM_FIELDS: Record<DbItemKind, Record<string, DbFieldKind>> = {
   rates: {
@@ -257,7 +259,6 @@ const ITEM_FIELDS: Record<DbItemKind, Record<string, DbFieldKind>> = {
     usage_note: 'text',
     quoted_at: 'date',
   },
-  contacts: { name: 'text', role: 'text', email: 'text', linkedin: 'text' }, // email/linkedin checked by the API with the lead rules
   campaigns: {
     title: 'text',
     run_date: 'date',
@@ -270,7 +271,6 @@ const ITEM_FIELDS: Record<DbItemKind, Record<string, DbFieldKind>> = {
 
 const ITEM_REQUIRED: Record<DbItemKind, string[]> = {
   rates: ['platform', 'format', 'price'],
-  contacts: [],
   campaigns: ['title'],
 }
 
@@ -438,9 +438,6 @@ export function validateDbItem(kind: DbItemKind, body: Record<string, unknown>, 
   for (const req of ITEM_REQUIRED[kind]) {
     const sent = req in body
     if ((!partial || sent) && (values[req] === null || values[req] === undefined) && !errors[req]) {errors[req] = 'Required'}
-  }
-  if (kind === 'contacts' && !partial && !values.name && !values.email && !values.linkedin && Object.keys(errors).length === 0) {
-    errors.name = 'Add a name, email or LinkedIn'
   }
   // Defaults the SQL would apply anyway; explicit so the API response is complete.
   if (!partial && (kind === 'rates' || kind === 'campaigns') && !values.currency) {values.currency = 'USD'}

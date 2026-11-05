@@ -2,8 +2,7 @@ import { createServerSupabase } from '@/lib/db'
 import { isCreatorPublic } from '@/lib/creators/visibility'
 import type { PlatformId } from '@/utils/constants'
 import type { DbLeadType, DbPlatform } from '@/lib/outreach/database'
-import { emailDomain, validateLeadField } from '@/lib/outreach/rules'
-import { leadTable, matchKeys, type OutreachCaller } from '@/lib/outreach/server'
+import { leadTable, type OutreachCaller } from '@/lib/outreach/server'
 import type { BrandDbRow, CreatorDbRow } from '@/lib/outreach/types'
 
 type Supabase = ReturnType<typeof createServerSupabase>
@@ -138,36 +137,3 @@ export async function loadDbEntry(supabase: Supabase, leadType: DbLeadType, lead
   return { lead, entry: entry && !entry.removed_at ? entry : null, removed: !!entry?.removed_at }
 }
 
-export interface ContactCheck {
-  values: Record<string, unknown>
-  error: { status: number; field: string; message: string } | null
-}
-
-// An extra brand contact follows the lead rules for its email and LinkedIn
-// (format, https:// added), and its email can't belong to another lead or
-// sit on the do-not-contact list. It isn't claimed as a key: only the
-// primary contact (on the lead) is, once it's made primary.
-export async function checkContact(supabase: Supabase, leadId: string, values: Record<string, unknown>): Promise<ContactCheck> {
-  const out = { ...values }
-  for (const field of ['email', 'linkedin'] as const) {
-    if (!(field in out)) {continue}
-    const r = validateLeadField(field, out[field])
-    if (!r.ok) {return { values: out, error: { status: 400, field, message: r.error } }}
-    out[field] = r.value
-  }
-  const email = typeof out.email === 'string' ? out.email : null
-  if (email) {
-    const domain = emailDomain(email)
-    const keys = [{ type: 'email', value: email }, ...(domain ? [{ type: 'domain', value: domain }] : [])]
-    const hits = await matchKeys(supabase, keys)
-    const dup = hits.duplicates.get(`email:${email}`)
-    if (dup && !(dup.lead_type === 'brand' && dup.lead_id === leadId)) {
-      const who = dup.deleted ? `Previously deleted: ${dup.lead_id}` : `Already used by ${dup.lead_id}${dup.owner_name ? `, owned by ${dup.owner_name}` : ''}`
-      return { values: out, error: { status: 409, field: 'email', message: who } }
-    }
-    if (hits.dnc.size > 0) {
-      return { values: out, error: { status: 409, field: 'email', message: 'This email is on the do-not-contact list.' } }
-    }
-  }
-  return { values: out, error: null }
-}

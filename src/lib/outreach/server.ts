@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
-import { emailDomain, type LeadType } from '@/lib/outreach/rules'
+import { emailDomain, listsFor, type LeadType } from '@/lib/outreach/rules'
 import type { DuplicateMatch, OutreachLead, OutreachTeamMember } from '@/lib/outreach/types'
 
 type Supabase = ReturnType<typeof createServerSupabase>
@@ -78,6 +78,8 @@ const RPC_ERRORS: Record<string, [number, string]> = {
   outreach_deleted: [409, 'This lead was deleted. An admin restores it from the Deleted filter first.'],
   outreach_too_many: [400, 'Send up to 1,000 leads at a time.'],
   outreach_db_not_found: [404, 'This lead is not in the Database.'],
+  outreach_contact_required: [409, 'Pick which contact this was. Every contact of this brand is past this step.'],
+  outreach_contact_not_found: [404, 'Contact not found. Reload the page.'],
   outreach_db_item_not_found: [404, 'This row no longer exists. Reload the page.'],
 }
 
@@ -211,6 +213,7 @@ export interface LeadFilters {
   channel: string | null
   missingEmail: boolean
   deleted: boolean // true: only deleted leads (admin "Deleted" filter); false: deleted leads hidden
+  list: string | null // needs the contacts/lists migration; routes clear it before then
   q: string | null
   sort: string
   dir: 'asc' | 'desc'
@@ -238,6 +241,7 @@ export function parseLeadFilters(leadType: LeadType, params: URLSearchParams, ca
     channel: params.get('channel') || null,
     missingEmail: params.get('missing') === 'email',
     deleted: params.get('deleted') === '1',
+    list: (listsFor(leadType) as readonly string[]).includes(params.get('list') ?? '') ? params.get('list') : null,
     // PostgREST's or() syntax treats , ( ) as separators; strip them and the
     // ilike wildcards so a search term can't change the filter itself.
     q: (params.get('q') ?? '').replace(/[,()%*\\"]/g, ' ').trim().slice(0, 100) || null,
@@ -265,6 +269,7 @@ export function leadListQuery(
   if (f.platform) {query = query.ilike('platform', f.platform)}
   if (f.channel) {query = query.eq('channel', f.channel)}
   if (f.missingEmail) {query = query.is('email', null)}
+  if (f.list) {query = query.eq('list', f.list)}
   query = f.deleted ? query.not('deleted_at', 'is', null) : query.is('deleted_at', null)
   if (f.q) {
     const term = f.q

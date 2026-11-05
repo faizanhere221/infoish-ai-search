@@ -18,6 +18,7 @@ export interface OutreachLeadBase {
   source: string | null
   extra: Record<string, string | number | boolean>
   email_norm: string | null
+  list?: string // after outreach_contacts_lists_migration.sql
   deleted_at: string | null // soft delete: hidden everywhere, keys still block duplicates
   deleted_by: string | null
   created_at: string
@@ -57,7 +58,13 @@ export interface OutreachBrand extends OutreachLeadBase {
 export type OutreachLead = OutreachCreator | OutreachBrand
 
 // What list routes return per row: the lead plus computed flags.
-export type OutreachLeadRow = OutreachLead & { dnc: boolean; in_db?: boolean }
+// Brand rows: their contacts, once the contacts migration ran.
+export interface ContactSummary {
+  count: number
+  primary: { id: string; name: string; title: string | null; email: string | null; status: string } | null
+}
+
+export type OutreachLeadRow = OutreachLead & { dnc: boolean; in_db?: boolean; contacts?: ContactSummary }
 
 export interface OutreachMailbox {
   id: string
@@ -72,7 +79,11 @@ export interface OutreachMailbox {
 
 export interface OutreachMailboxWithUsage extends OutreachMailbox {
   daily_limit: number
+  // Sends in the rolling window (window_hours), or since Karachi midnight
+  // before the migration (window_hours null).
   sent_today: number
+  window_hours: number | null
+  next_free_at: string | null // when full: when the next slot frees up
 }
 
 export interface OutreachTeamMember {
@@ -120,6 +131,7 @@ export interface OutreachActivityRow {
   mailbox_id: string | null
   channel: string | null
   changes: Record<string, FieldChange> | null
+  contact_id?: string | null
   undone_at: string | null
   created_at: string
 }
@@ -130,6 +142,9 @@ export interface ActionResult {
   mailbox_id: string | null
   mailbox_sent_today: number | null
   mailbox_limit: number | null
+  mailbox_window_hours?: number | null
+  contact_id?: string | null
+  contact_status?: string | null
 }
 
 // ─── Creator Database / Client Database (outreach_database_migration.sql) ────
@@ -197,10 +212,23 @@ export interface CreatorDbRow extends Omit<CreatorDbFields, 'notes'> {
 
 export interface BrandContact {
   id: string
-  name: string | null
-  role: string | null
+  lead_id: string
+  first_name: string | null
+  last_name: string | null
+  title: string | null
   email: string | null
   linkedin: string | null
+  is_primary: boolean
+  status: string
+  date_contacted: string | null
+  follow_up_date: string | null
+  followed_up_date: string | null
+  replied_at: string | null
+  mailbox_id: string | null
+  channel: string | null
+  notes: string | null
+  source: string | null
+  created_at: string
 }
 
 export interface BrandCampaign {
@@ -245,7 +273,7 @@ export interface BrandDbRow extends Omit<BrandDbFields, 'notes'> {
   db_notes: string | null
   added_at: string
   added_by: string | null
-  extra_contacts: number
+  extra_contacts: number // all contacts of the brand, primary included
   campaigns_count: number
   last_campaign_date: string | null
 }

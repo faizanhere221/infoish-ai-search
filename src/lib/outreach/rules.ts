@@ -880,3 +880,282 @@ export function mapRow(
 
   return { lead, errors }
 }
+
+// ─── Rolling mailbox window ──────────────────────────────────────────────────
+// A send counts against its mailbox for N hours after it was logged (an
+// admin setting, outreach_settings.mailbox_window_hours). Mirrors
+// outreach_mailbox_window_hours(): anything unreadable or out of range → 15.
+
+export const MAILBOX_WINDOW_DEFAULT = 15
+export const MAILBOX_WINDOW_MIN = 12
+export const MAILBOX_WINDOW_MAX = 24
+
+export function mailboxWindowHours(v: unknown): number {
+  const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN
+  return Number.isFinite(n) && n >= MAILBOX_WINDOW_MIN && n <= MAILBOX_WINDOW_MAX ? Math.round(n) : MAILBOX_WINDOW_DEFAULT
+}
+
+// "14:05" in Karachi time (UTC+5, no DST) for an ISO timestamp.
+export function karachiClock(iso: string | null | undefined): string | null {
+  if (!iso) {return null}
+  const t = Date.parse(iso)
+  if (!Number.isFinite(t)) {return null}
+  const d = new Date(t + 5 * 3600_000)
+  return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+// "14:05" today, "6 Nov 14:05" on another day (Karachi).
+export function karachiSlotLabel(iso: string | null | undefined, now: Date = new Date()): string | null {
+  const clock = karachiClock(iso)
+  if (!clock || !iso) {return null}
+  const day = karachiToday(new Date(Date.parse(iso)))
+  if (day === karachiToday(now)) {return clock}
+  const d = new Date(`${day}T00:00:00Z`)
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${clock}`
+}
+
+// outreach_mailbox_full's DETAIL is "sent/limit/next_free_at" (a Postgres
+// timestamptz text, e.g. "2026-11-06 13:21:20.94+05").
+export function parseMailboxFullDetail(detail: string | null | undefined): { sent: number; limit: number; nextFreeAt: string | null } | null {
+  if (!detail) {return null}
+  const [sent, limit, ...rest] = detail.split('/')
+  const s = Number(sent)
+  const l = Number(limit)
+  if (!Number.isFinite(s) || !Number.isFinite(l)) {return null}
+  const at = rest.join('/').trim()
+  if (!at) {return { sent: s, limit: l, nextFreeAt: null }}
+  const t = Date.parse(at.replace(' ', 'T').replace(/([+-]\d\d)$/, '$1:00'))
+  return { sent: s, limit: l, nextFreeAt: Number.isFinite(t) ? new Date(t).toISOString() : null }
+}
+
+// ─── Lists ───────────────────────────────────────────────────────────────────
+// Which list a lead came from. Mirrors outreach_list_from_source().
+
+export const BRAND_LISTS = ['yc', 'sponsor', 'apollo', 'manual'] as const
+export const CREATOR_LISTS = ['creators_new', 'creators_review', 'manual'] as const
+export const LIST_LABELS: Record<string, string> = {
+  yc: 'YC', sponsor: 'Sponsor', apollo: 'Apollo', manual: 'Manual',
+  creators_new: 'Creators (new)', creators_review: 'Creators (review)',
+}
+
+export function listsFor(leadType: LeadType): readonly string[] {
+  return leadType === 'creator' ? CREATOR_LISTS : BRAND_LISTS
+}
+
+export function listFromSource(leadType: LeadType, source: unknown): string {
+  const s = typeof source === 'string' ? source.trim().toLowerCase() : ''
+  if (leadType === 'brand') {
+    if (s.startsWith('yc_brands')) {return 'yc'}
+    if (s.startsWith('sponsor_brands')) {return 'sponsor'}
+    if (s.startsWith('apollo')) {return 'apollo'}
+    return 'manual'
+  }
+  if (s.startsWith('creators_review')) {return 'creators_review'}
+  if (s.startsWith('creators')) {return 'creators_new'}
+  return 'manual'
+}
+
+// ─── Brand contacts ──────────────────────────────────────────────────────────
+
+export const CONTACT_STATUSES = [
+  'found', 'contacted', 'followed_up', 'replied', 'bounced', 'opted_out', 'not_interested', 'no_reply',
+] as const
+// Brand actions that apply to one contact (call booked / won are brand level).
+export const CONTACT_ACTIONS = ['contacted', 'followed_up', 'replied', 'bounced', 'opted_out', 'not_interested'] as const
+
+// The brand's old contact_name, split the same way as the SQL migration.
+export function splitName(full: unknown): { first_name: string | null; last_name: string | null } {
+  const s = typeof full === 'string' ? full.trim().replace(/\s+/g, ' ') : ''
+  if (!s) {return { first_name: null, last_name: null }}
+  const i = s.indexOf(' ')
+  return i === -1 ? { first_name: s, last_name: null } : { first_name: s.slice(0, i), last_name: s.slice(i + 1) }
+}
+
+export function contactName(c: { first_name?: string | null; last_name?: string | null; email?: string | null }): string {
+  return [c.first_name, c.last_name].filter(Boolean).join(' ').trim() || c.email || 'No name'
+}
+
+// Mirrors outreach_brand_rollup(): furthest along wins (replied >
+// followed_up > contacted); with none of those, an end state beats found;
+// call_booked / won stay.
+export function brandStatusFromContacts(statuses: string[], current: string): string {
+  if (statuses.length === 0 || current === 'call_booked' || current === 'won') {return current}
+  for (const s of ['replied', 'followed_up', 'contacted', 'not_interested', 'opted_out', 'bounced', 'no_reply']) {
+    if (statuses.includes(s)) {return s}
+  }
+  return 'found'
+}
+
+const CONTACT_TEXT_FIELDS = ['first_name', 'last_name', 'title', 'notes', 'source']
+
+// One contact as typed in the table or the edit panel. partial = an edit.
+// Status and dates move through actions, never here.
+export function validateContactFields(body: Record<string, unknown>, partial: boolean): { values: Record<string, unknown>; errors: Record<string, string> } {
+  const values: Record<string, unknown> = {}
+  const errors: Record<string, string> = {}
+  for (const [k, raw] of Object.entries(body)) {
+    if (CONTACT_TEXT_FIELDS.includes(k)) {
+      const t = raw === null || raw === undefined ? '' : typeof raw === 'string' ? raw.trim() : null
+      const max = k === 'notes' ? 20000 : 255
+      if (t === null) {errors[k] = 'Enter text'}
+      else if (t.length > max) {errors[k] = `Keep it under ${max.toLocaleString('en-US')} characters`}
+      else {values[k] = t || null}
+    } else if (k === 'email' || k === 'linkedin') {
+      const r = validateLeadField(k, raw)
+      if (r.ok) {values[k] = r.value}
+      else {errors[k] = r.error}
+    } else if (k === 'is_primary') {
+      if (typeof raw !== 'boolean') {errors[k] = 'Choose Yes or No'}
+      else {values[k] = raw}
+    } else {
+      errors[k] = 'This field is not editable'
+    }
+  }
+  if (!partial && !values.first_name && !values.last_name && !values.email && !values.linkedin && Object.keys(errors).length === 0) {
+    errors.first_name = 'Add a name, email or LinkedIn'
+  }
+  return { values, errors }
+}
+
+// ─── Apollo contacts import ──────────────────────────────────────────────────
+// Detected by headers, not the file name: Company Name, Website, Employes
+// size, First Name, Last Name, Tittle, Email, Linkedin (Apollo's own
+// spellings). Matched case-insensitively, ignoring spaces and punctuation,
+// with one or two typos allowed on longer names.
+
+export const APOLLO_FIELDS = ['company', 'website', 'team_size', 'first_name', 'last_name', 'title', 'email', 'linkedin'] as const
+export type ApolloField = (typeof APOLLO_FIELDS)[number]
+export const APOLLO_FIELD_LABELS: Record<ApolloField, string> = {
+  company: 'Company', website: 'Website (+ domain)', team_size: 'Team size', first_name: 'First name',
+  last_name: 'Last name', title: 'Title', email: 'Email', linkedin: 'LinkedIn',
+}
+
+const APOLLO_HEADERS: Record<ApolloField, string[]> = {
+  company: ['companyname', 'company', 'organization', 'organizationname', 'account'],
+  website: ['website', 'companywebsite', 'url', 'domain'],
+  team_size: ['employessize', 'employeessize', 'employees', 'employeecount', 'numberofemployees', 'companysize'],
+  first_name: ['firstname', 'first'],
+  last_name: ['lastname', 'last', 'surname'],
+  title: ['tittle', 'title', 'jobtitle', 'position'],
+  email: ['email', 'emailaddress', 'workemail'],
+  linkedin: ['linkedin', 'linkedinurl', 'personlinkedinurl', 'linkedinprofile'],
+}
+
+function squash(h: string): string {
+  return h.toLowerCase().replace(/[^a-z]/g, '')
+}
+
+// Edits between two strings; a swap of two neighbours counts as one.
+function editDistance(a: string, b: string): number {
+  const d: number[][] = Array.from({ length: a.length + 1 }, (_, i) => Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)))
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost)
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1)}
+    }
+  }
+  return d[a.length][b.length]
+}
+
+// CSV header → Apollo field ('' when nothing matches). Exact names win,
+// then the closest typo; each field is used once.
+export function apolloMapping(headers: string[]): Record<string, ApolloField | ''> {
+  const out: Record<string, ApolloField | ''> = {}
+  const used = new Set<ApolloField>()
+  for (const pass of ['exact', 'fuzzy'] as const) {
+    for (const h of headers) {
+      if (out[h]) {continue}
+      const s = squash(h)
+      let best: ApolloField | null = null
+      let bestD = Infinity
+      for (const f of APOLLO_FIELDS) {
+        if (used.has(f)) {continue}
+        for (const name of APOLLO_HEADERS[f]) {
+          const max = pass === 'exact' ? 0 : name.length >= 7 ? 2 : name.length >= 4 ? 1 : 0
+          const d = s === name ? 0 : pass === 'exact' ? Infinity : editDistance(s, name)
+          if (d <= max && d < bestD) {
+            best = f
+            bestD = d
+          }
+        }
+      }
+      if (best) {
+        out[h] = best
+        used.add(best)
+      } else {
+        out[h] = ''
+      }
+    }
+  }
+  return out
+}
+
+// An Apollo export: company, email and first name, five fields in all.
+export function isApolloHeaders(headers: string[]): boolean {
+  const fields = new Set(Object.values(apolloMapping(headers)).filter(Boolean))
+  return fields.has('company') && fields.has('email') && fields.has('first_name') && fields.size >= 5
+}
+
+export interface ApolloRow {
+  _row: number
+  company: string | null
+  website: string | null
+  domain: string | null
+  team_size: string | null
+  first_name: string | null
+  last_name: string | null
+  title: string | null
+  email: string | null
+  linkedin: string | null
+}
+
+export function mapApolloRow(headers: string[], cells: string[], mapping: Record<string, ApolloField | ''>, rowNumber: number): { row: ApolloRow; errors: string[] } {
+  const row: ApolloRow = {
+    _row: rowNumber, company: null, website: null, domain: null, team_size: null,
+    first_name: null, last_name: null, title: null, email: null, linkedin: null,
+  }
+  headers.forEach((h, i) => {
+    const f = mapping[h]
+    const raw = (cells[i] ?? '').trim()
+    if (f && raw) {row[f] = raw}
+  })
+  return cleanApolloRow(row)
+}
+
+// Validates one mapped row (in the browser, and again on the server).
+export function cleanApolloRow(input: Partial<Record<keyof ApolloRow, unknown>>): { row: ApolloRow; errors: string[] } {
+  const text = (v: unknown, max: number) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null)
+  const row: ApolloRow = {
+    _row: typeof input._row === 'number' ? input._row : 0,
+    company: text(input.company, 255), website: text(input.website, 2000), domain: null,
+    team_size: text(input.team_size, 50), first_name: text(input.first_name, 255), last_name: text(input.last_name, 255),
+    title: text(input.title, 255), email: text(input.email, 255), linkedin: text(input.linkedin, 2000),
+  }
+  const errors: string[] = []
+  if (row.email) {
+    const e = validateLeadField('email', row.email)
+    if (e.ok) {row.email = e.value as string}
+    else {errors.push(`email: "${row.email}" is not a valid address`)}
+  }
+  if (row.website) {
+    const w = validateLeadField('website', row.website)
+    if (w.ok) {
+      row.website = w.value as string
+      row.domain = normalizeDomain(row.website)
+    } else {
+      errors.push(`website: "${row.website}" is not a web address`)
+    }
+  }
+  if (row.linkedin) {
+    const l = validateLeadField('linkedin', row.linkedin)
+    if (l.ok) {row.linkedin = l.value as string}
+    else {errors.push(`linkedin: "${row.linkedin}" is not a web address`)}
+  }
+  if (!row.company && !row.domain) {errors.push('Needs a company name or website to find the brand')}
+  if (!row.email && !row.linkedin && !row.first_name && !row.last_name) {errors.push('Needs a name, email or LinkedIn for the contact')}
+  if (!row.company && row.domain) {row.company = row.domain}
+  return { row, errors }
+}

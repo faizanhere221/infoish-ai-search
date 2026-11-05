@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { DB_ITEM_SQL_KIND, isDbItemKind, validateDbItem, type DbItemKind } from '@/lib/outreach/database'
-import { checkContact } from '@/lib/outreach/database-server'
 import { getOutreachCaller, leadTypeFromSegment, mapDbError, unauthorized } from '@/lib/outreach/server'
 
-// Shared handler for rate / contact / campaign rows:
+// Shared handler for rate / campaign rows:
 //   POST   /api/admin/outreach/database/[type]/[leadId]/[kind]           add
 //   PATCH  /api/admin/outreach/database/[type]/[leadId]/[kind]/[itemId]  edit
 //   DELETE /api/admin/outreach/database/[type]/[leadId]/[kind]/[itemId]  delete
-// kinds: creators → rates; brands → contacts, campaigns. Members and admins
+// kinds: creators → rates; brands → campaigns (contacts have their own routes). Members and admins
 // both add, edit and delete rows (deleting the whole entry is admin only).
 // The write is outreach_db_item(): one transaction, logged as 'db_edited'.
 
@@ -46,13 +45,6 @@ export async function handleDbItem(request: NextRequest, params: ItemParams, op:
         )
       }
       row = values
-      if (kind === 'contacts') {
-        const checked = await checkContact(supabase, params.leadId, values)
-        if (checked.error) {
-          return NextResponse.json({ error: checked.error.message, fields: { [checked.error.field]: [checked.error.message] } }, { status: checked.error.status })
-        }
-        row = checked.values
-      }
     }
 
     const { data, error } = await supabase.rpc('outreach_db_item', {

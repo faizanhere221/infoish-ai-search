@@ -1,5 +1,9 @@
 import { createServerSupabase } from '@/lib/db'
-import { dncKeys, leadKeys, STATUS_LABELS, validateLeadUpdates, type LeadKey, type LeadType } from '@/lib/outreach/rules'
+import { loadContacts, saveContact } from '@/lib/outreach/contacts'
+import {
+  dncKeys, leadKeys, LIST_LABELS, listsFor, splitName, STATUS_LABELS, validateLeadUpdates, type LeadKey, type LeadType,
+} from '@/lib/outreach/rules'
+import { NEEDS_MIGRATION, outreachFeatures } from '@/lib/outreach/schema'
 import { findDncHits, findDuplicates, leadTable, loadTeam, type OutreachCaller, withDncFlags } from '@/lib/outreach/server'
 import type { OutreachLead } from '@/lib/outreach/types'
 
@@ -29,6 +33,8 @@ function fieldForKey(key: LeadKey | { type: string }, values: Record<string, unk
 //   404 unknown lead, 409 key already used by another lead or on the DNC list.
 // The write itself is outreach_edit_lead() (one transaction: lock, update
 // only changed fields, log an 'edited' activity row with old → new).
+const CONTACT_FIELD_MAP: Record<string, string> = { contact_name: 'first_name', role: 'title', email: 'email', linkedin: 'linkedin' }
+
 export async function editLead(
   supabase: Supabase,
   caller: OutreachCaller,
@@ -39,7 +45,68 @@ export async function editLead(
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return { status: 400, body: { error: 'Send the fields to change' } }
   }
-  const { values, errors } = validateLeadUpdates(leadType, body as Record<string, unknown>)
+  const rest = { ...(body as Record<string, unknown>) }
+  const hasList = 'list' in rest
+  const contactKeys = leadType === 'brand' ? Object.keys(CONTACT_FIELD_MAP).filter((k) => k in rest) : []
+  if (!hasList && contactKeys.length === 0) {return editLeadFields(supabase, caller, leadType, leadId, rest)}
+
+  // list and brand contact fields need outreach_contacts_lists_migration.sql.
+  const features = await outreachFeatures(supabase)
+
+  if (hasList) {
+    const list = rest.list
+    delete rest.list
+    if (!features.lists) {return { status: 409, body: NEEDS_MIGRATION }}
+    if (!caller.isAdmin) {return fieldError(403, 'list', 'Only admins change the list')}
+    if (typeof list !== 'string' || !listsFor(leadType).includes(list)) {
+      return fieldError(400, 'list', `Pick one of: ${listsFor(leadType).map((l) => LIST_LABELS[l]).join(', ')}`)
+    }
+    const { error } = await supabase.rpc('outreach_set_list', { p_lead_type: leadType, p_lead_ids: [leadId], p_list: list, p_user_id: caller.userId })
+    if (error) {
+      if (error.message === 'outreach_deleted') {return { status: 409, body: { error: 'This lead was deleted. Restore it before you edit it.' } }}
+      throw error
+    }
+  }
+
+  // A brand's contact_name / role / email / linkedin are a copy of its
+  // primary contact once contacts exist: edits go to that contact.
+  if (contactKeys.length > 0 && features.contacts) {
+    const fields: Record<string, unknown> = {}
+    for (const k of contactKeys) {
+      if (k === 'contact_name') {Object.assign(fields, splitName(rest[k]))}
+      else {fields[CONTACT_FIELD_MAP[k]] = rest[k] ?? null}
+      delete rest[k]
+    }
+    const contacts = await loadContacts(supabase, leadId)
+    const primary = contacts.find((c) => c.is_primary) ?? contacts[0]
+    const empty = Object.values(fields).every((v) => v === null || v === '')
+    if (primary || !empty) {
+      const out = await saveContact(supabase, caller, leadId, primary?.id ?? null, fields, 'PATCH /api/admin/outreach/leads/[leadId]')
+      if (out.status >= 400) {
+        // Report errors on the brand field the user typed in.
+        const back: Record<string, string> = { first_name: 'contact_name', last_name: 'contact_name', title: 'role', email: 'email', linkedin: 'linkedin' }
+        const errs = (out.body.fields ?? {}) as Record<string, string[]>
+        return { status: out.status, body: { ...out.body, fields: Object.fromEntries(Object.entries(errs).map(([k, v]) => [back[k] ?? k, v])) } }
+      }
+    }
+  }
+
+  if (Object.keys(rest).length > 0) {return editLeadFields(supabase, caller, leadType, leadId, rest)}
+  const { data, error } = await supabase.from(leadTable(leadType)).select('*').eq('lead_id', leadId).maybeSingle()
+  if (error) {throw error}
+  if (!data) {return { status: 404, body: { error: 'Lead not found' } }}
+  const [lead] = await withDncFlags(supabase, [data as OutreachLead])
+  return { status: 200, body: { lead, changed: true } }
+}
+
+async function editLeadFields(
+  supabase: Supabase,
+  caller: OutreachCaller,
+  leadType: LeadType,
+  leadId: string,
+  body: Record<string, unknown>,
+): Promise<EditOutcome> {
+  const { values, errors } = validateLeadUpdates(leadType, body)
   const errorFields = Object.keys(errors)
   if (errorFields.length > 0) {
     return {

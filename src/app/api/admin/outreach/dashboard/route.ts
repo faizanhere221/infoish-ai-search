@@ -3,7 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { addDays, BOUNCE_RATE_FLAG, karachiDayStart, karachiToday } from '@/lib/outreach/rules'
 import { getOutreachCaller, loadTeam, unauthorized } from '@/lib/outreach/server'
-import { capacitySummary, loadMailboxesWithUsage, loadUserStats, memberPaces } from '@/lib/outreach/stats'
+import { capacitySummary, loadListStats, loadMailboxesWithUsage, loadUserStats, memberPaces } from '@/lib/outreach/stats'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -22,7 +22,8 @@ interface RateRow {
 
 // GET /api/admin/outreach/dashboard: per person today/week/month counts,
 // month pace vs targets, reply and bounce rates by mailbox and channel
-// (last 30 days), and mailbox capacity vs what targets need.
+// (last 30 days), mailbox capacity vs what targets need, and results per
+// list (and per list per person).
 export async function GET(request: NextRequest) {
   const caller = getOutreachCaller(request)
   if (!caller) {return unauthorized()}
@@ -30,11 +31,12 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createServerSupabase()
     const today = karachiToday()
-    const [team, stats, mailboxes, ratesRes] = await Promise.all([
+    const [team, stats, mailboxes, ratesRes, lists] = await Promise.all([
       loadTeam(supabase),
       loadUserStats(supabase, today),
       loadMailboxesWithUsage(supabase, today),
       supabase.rpc('outreach_channel_stats', { p_from: karachiDayStart(addDays(today, -RATE_WINDOW_DAYS + 1)).toISOString() }),
+      loadListStats(supabase, today),
     ])
     if (ratesRes.error) {throw ratesRes.error}
 
@@ -89,6 +91,7 @@ export async function GET(request: NextRequest) {
       byChannel,
       rateWindowDays: RATE_WINDOW_DAYS,
       capacity: capacitySummary(mailboxes, paces),
+      lists, // per list results (null before the contacts/lists migration)
     })
   } catch (err) {
     captureError(err, { route: 'GET /api/admin/outreach/dashboard' })

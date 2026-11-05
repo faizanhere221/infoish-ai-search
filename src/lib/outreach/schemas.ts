@@ -93,6 +93,8 @@ export const actionSchema = z.object({
   action: z.string().min(1).max(30),
   mailbox_id: z.string().max(255).nullable().optional(),
   channel,
+  // Brands with contacts: which contact this was (else the obvious one).
+  contact_id: z.string().min(1).max(255).nullable().optional(),
 })
 
 export const undoSchema = z.object({ activity_id: z.string().min(1).max(255) })

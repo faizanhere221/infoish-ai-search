@@ -6,6 +6,7 @@ import {
   fetchAllRows, getOutreachCaller, leadListQuery, leadTypeFromSegment, loadTeam, parseLeadFilters,
   storedLeadDncKeys, teamNameMap, unauthorized,
 } from '@/lib/outreach/server'
+import { outreachFeatures } from '@/lib/outreach/schema'
 import type { OutreachLead } from '@/lib/outreach/types'
 
 export const dynamic = 'force-dynamic'
@@ -16,12 +17,12 @@ const MAX_EXPORT_ROWS = 50_000
 const CREATOR_COLUMNS = [
   'lead_id', 'name', 'platform', 'profile_url', 'country', 'niche', 'subscribers', 'avg_views',
   'engagement_pct', 'does_sponsorships', 'sponsor_brands', 'email', 'instagram', 'x', 'linkedin',
-  'tiktok', 'website', 'owner', 'mailbox', 'channel', 'status', 'do_not_contact', 'date_contacted',
+  'tiktok', 'website', 'list', 'owner', 'mailbox', 'channel', 'status', 'do_not_contact', 'date_contacted',
   'follow_up_date', 'followed_up_date', 'replied_at', 'notes', 'source', 'created_at', 'updated_at',
 ]
 const BRAND_COLUMNS = [
   'lead_id', 'company', 'website', 'domain', 'country', 'product', 'team_size', 'why_them', 'score',
-  'contact_name', 'role', 'email', 'linkedin', 'owner', 'mailbox', 'channel', 'status', 'do_not_contact',
+  'contact_name', 'role', 'email', 'linkedin', 'list', 'owner', 'mailbox', 'channel', 'status', 'do_not_contact',
   'date_contacted', 'follow_up_date', 'followed_up_date', 'replied_at', 'notes', 'source', 'created_at', 'updated_at',
 ]
 
@@ -36,7 +37,9 @@ export async function GET(request: NextRequest, { params }: { params: { type: st
   try {
     const supabase = createServerSupabase()
     // Deleted leads never go into an export.
+    const features = await outreachFeatures(supabase)
     const filters = { ...parseLeadFilters(leadType, request.nextUrl.searchParams, caller.userId), deleted: false }
+    if (!features.lists) {filters.list = null}
     const leads = await fetchAllRows<OutreachLead>(
       (from, to) => leadListQuery(supabase, leadType, filters, false).range(from, to),
       MAX_EXPORT_ROWS,

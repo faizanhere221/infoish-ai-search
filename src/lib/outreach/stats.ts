@@ -2,6 +2,7 @@ import { createServerSupabase } from '@/lib/db'
 import {
   karachiDayStart, mailboxDailyLimit, monthPace, monthStart, weekStart, type Pace,
 } from '@/lib/outreach/rules'
+import { isMissingSchema } from '@/lib/outreach/schema'
 import type { OutreachMailbox, OutreachMailboxWithUsage, OutreachTeamMember } from '@/lib/outreach/types'
 
 type Supabase = ReturnType<typeof createServerSupabase>
@@ -20,9 +21,28 @@ export async function loadTodayUsage(supabase: Supabase, today: string): Promise
   return ((data ?? []) as UsageRow[]).map((r) => ({ ...r, sent: Number(r.sent) }))
 }
 
+// Mailboxes with their usage. After the contacts/lists migration a send
+// counts for N hours (outreach_mailbox_usage(), the same count
+// outreach_log_action() enforces); before it, since Karachi midnight.
 export async function loadMailboxesWithUsage(supabase: Supabase, today: string, usage?: UsageRow[]): Promise<OutreachMailboxWithUsage[]> {
   const { data, error } = await supabase.from('outreach_mailboxes').select('*').order('address')
   if (error) {throw error}
+  const windowed = await supabase.rpc('outreach_mailbox_usage')
+  if (!windowed.error) {
+    const byId = new Map(((windowed.data ?? []) as { mailbox_id: string; sent: number; daily_limit: number; window_hours: number; next_free_at: string | null }[])
+      .map((u) => [u.mailbox_id, u]))
+    return ((data ?? []) as OutreachMailbox[]).map((m) => {
+      const u = byId.get(m.id)
+      return {
+        ...m,
+        daily_limit: u ? Number(u.daily_limit) : mailboxDailyLimit(m, today),
+        sent_today: u ? Number(u.sent) : 0,
+        window_hours: u ? Number(u.window_hours) : null,
+        next_free_at: u?.next_free_at ?? null,
+      }
+    })
+  }
+  if (!isMissingSchema(windowed.error)) {throw windowed.error}
   const rows = usage ?? (await loadTodayUsage(supabase, today))
   const sentByMailbox = new Map<string, number>()
   for (const r of rows) {
@@ -32,6 +52,8 @@ export async function loadMailboxesWithUsage(supabase: Supabase, today: string, 
     ...m,
     daily_limit: mailboxDailyLimit(m, today),
     sent_today: sentByMailbox.get(m.id) ?? 0,
+    window_hours: null,
+    next_free_at: null,
   }))
 }
 
@@ -52,6 +74,69 @@ export async function loadUserStats(supabase: Supabase, today: string): Promise<
   })
   if (error) {throw error}
   return ((data ?? []) as UserStatRow[]).map((r) => ({ ...r, today: Number(r.today), week: Number(r.week), month: Number(r.month) }))
+}
+
+// ─── Results per list ────────────────────────────────────────────────────────
+
+export const LIST_METRICS = ['leads', 'contacted', 'replied', 'call_booked', 'won', 'signed_up'] as const
+export type ListMetric = (typeof LIST_METRICS)[number]
+export type ListPeriod = 'today' | 'week' | 'month'
+export type ListCounts = Record<ListPeriod, Record<ListMetric, number> & { reply_rate: number | null }>
+
+export interface ListResult {
+  lead_type: 'creator' | 'brand'
+  list: string
+  totals: ListCounts
+  people: { user_id: string | null; counts: ListCounts }[]
+}
+
+function emptyCounts(): ListCounts {
+  const one = () => ({ leads: 0, contacted: 0, replied: 0, call_booked: 0, won: 0, signed_up: 0, reply_rate: null as number | null })
+  return { today: one(), week: one(), month: one() }
+}
+
+// Leads, contacted, replied, reply rate, calls booked, won / signed up per
+// list for today / week / month, plus the same per person. Counts are
+// distinct leads (a brand with three contacts emailed counts once). null
+// before outreach_contacts_lists_migration.sql.
+export async function loadListStats(supabase: Supabase, today: string): Promise<ListResult[] | null> {
+  const { data, error } = await supabase.rpc('outreach_list_stats', {
+    p_today_start: karachiDayStart(today).toISOString(),
+    p_week_start: karachiDayStart(weekStart(today)).toISOString(),
+    p_month_start: karachiDayStart(monthStart(today)).toISOString(),
+  })
+  if (error) {
+    if (isMissingSchema(error)) {return null}
+    throw error
+  }
+  const results = new Map<string, ListResult>()
+  for (const r of (data ?? []) as { lead_type: 'creator' | 'brand'; list: string; user_id: string | null; is_total: boolean; metric: string; today: number; week: number; month: number }[]) {
+    if (!(LIST_METRICS as readonly string[]).includes(r.metric)) {continue}
+    const key = `${r.lead_type}:${r.list}`
+    let res = results.get(key)
+    if (!res) {
+      res = { lead_type: r.lead_type, list: r.list, totals: emptyCounts(), people: [] }
+      results.set(key, res)
+    }
+    let target = res.totals
+    if (!r.is_total) {
+      let person = res.people.find((p) => p.user_id === r.user_id)
+      if (!person) {
+        person = { user_id: r.user_id, counts: emptyCounts() }
+        res.people.push(person)
+      }
+      target = person.counts
+    }
+    for (const p of ['today', 'week', 'month'] as const) {target[p][r.metric as ListMetric] = Number(r[p])}
+  }
+  const withRates = (c: ListCounts) => {
+    for (const p of ['today', 'week', 'month'] as const) {c[p].reply_rate = c[p].contacted > 0 ? c[p].replied / c[p].contacted : null}
+  }
+  for (const res of results.values()) {
+    withRates(res.totals)
+    res.people.forEach((p) => withRates(p.counts))
+  }
+  return [...results.values()].sort((a, b) => a.lead_type.localeCompare(b.lead_type) || a.list.localeCompare(b.list))
 }
 
 export function contactedThisMonth(stats: UserStatRow[], userId: string, leadType: 'creator' | 'brand'): number {
