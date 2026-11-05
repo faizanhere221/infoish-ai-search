@@ -17,7 +17,7 @@
 //     DNC rows, mailbox daily limit, undo, edits, soft delete/restore (hidden
 //     from tables and exports, still blocks duplicates, still in
 //     already_in_sheet.txt), and the Database (add / restore, fields,
-//     rates, contacts, make primary, campaigns, search filters, export,
+//     rates, campaigns, search filters, export,
 //     remove, members can't set the rating or remove). WRITES DATA: creates leads tagged
 //     source=outreach-check, a DNC entry and a mailbox with a 1/day limit,
 //     then soft-deletes the leads (their rows stay, as deleted), removes the
@@ -553,11 +553,10 @@ async function databaseChecks() {
     assert.deepEqual(db.validateDbItem('rates', { price: 900 }, true).errors, {})
     assert.ok(db.validateDbItem('rates', { price: '' }, true).errors.price, 'price stays required on edit')
     assert.ok(db.validateDbItem('rates', { id: 'x', lead_id: 'C-1' }, true).errors.lead_id)
-    assert.ok(db.validateDbItem('contacts', { role: 'CMO' }, false).errors.name)
-    assert.deepEqual(db.validateDbItem('contacts', { name: 'Carl' }, false).errors, {})
     assert.ok(db.validateDbItem('campaigns', { run_date: '2026-09-01' }, false).errors.title)
     assert.equal(db.isDbItemKind('creator', 'rates'), true)
-    assert.equal(db.isDbItemKind('creator', 'contacts'), false)
+    assert.equal(db.isDbItemKind('creator', 'campaigns'), false)
+    assert.equal(db.isDbItemKind('brand', 'contacts'), false) // brand contacts live on the lead now
     assert.equal(db.isDbItemKind('brand', 'campaigns'), true)
   })
 
@@ -580,6 +579,120 @@ async function databaseChecks() {
   await check('"Add to Database" is offered after replied (creators) and call booked / won (brands)', () => {
     assert.deepEqual([...db.DB_OFFER_ACTIONS.creator], ['replied'])
     assert.deepEqual([...db.DB_OFFER_ACTIONS.brand], ['call_booked', 'won'])
+  })
+}
+
+// ─── Pure logic: mailbox window, contacts, Apollo, lists ─────────────────────
+
+async function contactsListsChecks() {
+  console.log('\nMailbox window, contacts, Apollo and lists pure-logic checks\n')
+
+  await check('mailbox window: 12 to 24 hours, anything else → 15 (same as outreach_mailbox_window_hours)', () => {
+    assert.equal(rules.mailboxWindowHours(15), 15)
+    assert.equal(rules.mailboxWindowHours('12'), 12)
+    assert.equal(rules.mailboxWindowHours(24), 24)
+    assert.equal(rules.mailboxWindowHours(11), 15)
+    assert.equal(rules.mailboxWindowHours(25), 15)
+    assert.equal(rules.mailboxWindowHours('abc'), 15)
+    assert.equal(rules.mailboxWindowHours(null), 15)
+  })
+
+  await check('"next slot frees at HH:MM (Karachi)": UTC+5, other days show the date', () => {
+    assert.equal(rules.karachiClock('2026-11-06T08:21:20Z'), '13:21')
+    assert.equal(rules.karachiClock('2026-11-05T20:05:00Z'), '01:05')
+    assert.equal(rules.karachiClock(null), null)
+    const now = new Date('2026-11-06T06:00:00Z') // 11:00 Karachi
+    assert.equal(rules.karachiSlotLabel('2026-11-06T08:21:20Z', now), '13:21')
+    assert.equal(rules.karachiSlotLabel('2026-11-06T20:00:00Z', now), '7 Nov 01:00')
+  })
+
+  await check('outreach_mailbox_full detail "sent/limit/next_free_at" parses (Postgres timestamptz text)', () => {
+    assert.deepEqual(rules.parseMailboxFullDetail('2/2/2026-11-06 13:21:20.94032+05'), { sent: 2, limit: 2, nextFreeAt: '2026-11-06T08:21:20.940Z' })
+    assert.deepEqual(rules.parseMailboxFullDetail('30/30'), { sent: 30, limit: 30, nextFreeAt: null })
+    assert.equal(rules.parseMailboxFullDetail('junk'), null)
+    assert.equal(rules.parseMailboxFullDetail(null), null)
+  })
+
+  await check('lists from the source file name (same as outreach_list_from_source)', () => {
+    assert.equal(rules.listFromSource('brand', 'yc_brands_new_2026-11-01.csv'), 'yc')
+    assert.equal(rules.listFromSource('brand', 'sponsor_brands.csv'), 'sponsor')
+    assert.equal(rules.listFromSource('brand', 'Apollo export.csv'), 'apollo')
+    assert.equal(rules.listFromSource('brand', 'manual'), 'manual')
+    assert.equal(rules.listFromSource('brand', null), 'manual')
+    assert.equal(rules.listFromSource('creator', 'creators_review.csv'), 'creators_review')
+    assert.equal(rules.listFromSource('creator', 'creators_review_new_x.csv'), 'creators_review')
+    assert.equal(rules.listFromSource('creator', 'creators.csv'), 'creators_new')
+    assert.equal(rules.listFromSource('creator', 'creators_new_x.csv'), 'creators_new')
+    assert.equal(rules.listFromSource('creator', 'manual'), 'manual')
+    assert.deepEqual([...rules.listsFor('brand')], ['yc', 'sponsor', 'apollo', 'manual'])
+    assert.deepEqual([...rules.listsFor('creator')], ['creators_new', 'creators_review', 'manual'])
+  })
+
+  await check('contacts: old contact_name splits into first / last name like the migration', () => {
+    assert.deepEqual(rules.splitName('Ann Lee Smith'), { first_name: 'Ann', last_name: 'Lee Smith' })
+    assert.deepEqual(rules.splitName('  Olga  '), { first_name: 'Olga', last_name: null })
+    assert.deepEqual(rules.splitName(''), { first_name: null, last_name: null })
+    assert.equal(rules.contactName({ first_name: 'Ann', last_name: 'Lee' }), 'Ann Lee')
+    assert.equal(rules.contactName({ email: 'x@y.com' }), 'x@y.com')
+  })
+
+  await check('brand status follows the furthest-along contact; call booked / won never drop', () => {
+    const s = rules.brandStatusFromContacts
+    assert.equal(s(['found', 'replied', 'contacted'], 'contacted'), 'replied')
+    assert.equal(s(['found', 'followed_up'], 'contacted'), 'followed_up')
+    assert.equal(s(['contacted', 'bounced'], 'found'), 'contacted')
+    assert.equal(s(['found', 'not_interested'], 'contacted'), 'not_interested')
+    assert.equal(s(['bounced', 'no_reply'], 'followed_up'), 'bounced')
+    assert.equal(s(['found', 'found'], 'found'), 'found')
+    assert.equal(s(['bounced'], 'call_booked'), 'call_booked')
+    assert.equal(s(['replied'], 'won'), 'won')
+    assert.equal(s([], 'contacted'), 'contacted')
+  })
+
+  await check('contact fields: email / LinkedIn follow the lead rules; status is never editable here', () => {
+    const ok = rules.validateContactFields({ first_name: ' Ann ', email: ' ANN@acme.io ', linkedin: 'linkedin.com/in/ann', is_primary: true }, false)
+    assert.deepEqual(ok.errors, {})
+    assert.deepEqual(ok.values, { first_name: 'Ann', email: 'ann@acme.io', linkedin: 'https://linkedin.com/in/ann', is_primary: true })
+    assert.ok(rules.validateContactFields({ email: 'nope' }, false).errors.email)
+    assert.ok(rules.validateContactFields({ linkedin: 'javascript:alert(1)' }, false).errors.linkedin)
+    assert.ok(rules.validateContactFields({ status: 'replied' }, true).errors.status)
+    assert.ok(rules.validateContactFields({ title: 'CMO' }, false).errors.first_name, 'needs a name, email or LinkedIn')
+    assert.deepEqual(rules.validateContactFields({ title: 'CMO' }, true).errors, {}, 'an edit can change only the title')
+    assert.ok(rules.validateContactFields({ is_primary: 'yes' }, true).errors.is_primary)
+  })
+
+  await check('Apollo: detected by headers (exact spellings "Employes", "Tittle"), case-insensitive, typos tolerated', () => {
+    const h = ['Company Name', 'Website', 'Employes size', 'First Name', 'Last Name', 'Tittle', 'Email', 'Linkedin']
+    assert.deepEqual(rules.apolloMapping(h), {
+      'Company Name': 'company', Website: 'website', 'Employes size': 'team_size', 'First Name': 'first_name',
+      'Last Name': 'last_name', Tittle: 'title', Email: 'email', Linkedin: 'linkedin',
+    })
+    assert.equal(rules.isApolloHeaders(h), true)
+    assert.equal(rules.isApolloHeaders(h.map((x) => x.toUpperCase())), true)
+    const typos = rules.apolloMapping(['Comapny Name', 'webiste', 'Emploees size', 'Frist Name', 'Last Nme', 'Titel', 'Emial', 'Linkdin', 'Phone'])
+    assert.deepEqual(Object.values(typos), ['company', 'website', 'team_size', 'first_name', 'last_name', 'title', 'email', 'linkedin', ''])
+    // Other files are not Apollo
+    assert.equal(rules.isApolloHeaders(['company', 'website', 'domain', 'country', 'batch']), false)
+    assert.equal(rules.isApolloHeaders(['channel_name', 'channel_url', 'subscribers', 'email']), false)
+  })
+
+  await check('Apollo rows: website → website + domain, email / LinkedIn checked, needs a brand and a person', () => {
+    const h = ['Company Name', 'Website', 'Employes size', 'First Name', 'Last Name', 'Tittle', 'Email', 'Linkedin']
+    const m = rules.apolloMapping(h)
+    const { row, errors } = rules.mapApolloRow(h, ['Acme', 'www.acme.io/about', '11-50', 'Ann', 'Lee', 'CMO', 'ANN@acme.io', 'linkedin.com/in/ann'], m, 2)
+    assert.deepEqual(errors, [])
+    assert.equal(row.website, 'https://www.acme.io/about')
+    assert.equal(row.domain, 'acme.io')
+    assert.equal(row.email, 'ann@acme.io')
+    assert.equal(row.team_size, '11-50')
+    assert.equal(row._row, 2)
+    assert.ok(rules.mapApolloRow(h, ['Acme', '', '', 'Ann', '', '', 'bad-email', ''], m, 3).errors.some((e) => /email/.test(e)))
+    assert.ok(rules.mapApolloRow(h, ['', '', '', 'Ann', '', '', 'a@b.co', ''], m, 4).errors.some((e) => /company/.test(e)))
+    assert.ok(rules.mapApolloRow(h, ['Acme', 'acme.io', '', '', '', 'CMO', '', ''], m, 5).errors.some((e) => /contact/.test(e)))
+    assert.ok(rules.mapApolloRow(h, ['Acme', 'javascript:alert(1)', '', 'Ann', '', '', '', ''], m, 6).errors.some((e) => /website/.test(e)))
+    // Server re-check of an already mapped row gives the same result
+    assert.deepEqual(rules.cleanApolloRow({ ...row }).row, row)
+    assert.equal(rules.mapApolloRow(h, ['', 'beta.io', '', 'Bo', '', '', '', ''], m, 7).row.company, 'beta.io')
   })
 }
 
@@ -1036,7 +1149,7 @@ async function httpChecks() {
       assert.equal(noOffer.json.dbOffer, false)
     })
 
-    await check('client database: fields, budget order, contacts (duplicate email → 409), make primary, campaigns, search', async () => {
+    await check('client database: fields, budget order, campaigns, search', async () => {
       const domain = `${tag}-brand.invalid`
       const lead = await call('POST', '/api/admin/outreach/leads/brands', { company: `${tag} Brand`, domain, contact_name: 'Ann', email: `ann@${domain}`, country: 'Germany', source: 'outreach-check' })
       assert.equal(lead.status, 201, JSON.stringify(lead.json))
@@ -1047,20 +1160,8 @@ async function httpChecks() {
       assert.equal(f.status, 200, JSON.stringify(f.json))
       const order = await call('PATCH', `${dbApi}/brands/${dbB}`, { budget_min: 9000 })
       assert.equal(order.status, 400, JSON.stringify(order.json))
-      const c = `${dbApi}/brands/${dbB}/contacts`
-      const dup = await call('POST', c, { name: 'Dup', email: `${tag}.db@outreach-check.invalid` })
-      assert.equal(dup.status, 409, JSON.stringify(dup.json))
-      assert.match(dup.json.error, new RegExp(dbC))
-      const carl = await call('POST', c, { name: 'Carl', role: 'CMO', email: `carl@${domain}`, linkedin: 'linkedin.com/in/carl' })
-      assert.equal(carl.status, 201, JSON.stringify(carl.json))
-      assert.equal(carl.json.item.linkedin, 'https://linkedin.com/in/carl')
-      assert.equal((await call('POST', c, { role: 'no name' })).status, 400)
-      const primary = await call('POST', `${c}/${carl.json.item.id}/primary`)
-      assert.equal(primary.status, 200, JSON.stringify(primary.json))
-      const d = await call('GET', `${dbApi}/brands/${dbB}`)
-      assert.equal(d.json.lead.contact_name, 'Carl')
-      assert.equal(d.json.lead.email, `carl@${domain}`)
-      assert.deepEqual(d.json.contacts.map((x) => x.name), ['Ann'])
+      // Contacts belong to the lead now (/leads/brands/[id]/contacts), not the Database.
+      assert.equal((await call('POST', `${dbApi}/brands/${dbB}/contacts`, { first_name: 'x' })).status, 404)
       const camp = await call('POST', `${dbApi}/brands/${dbB}/campaigns`, { title: 'Launch', run_date: '2026-09-01', total_budget: '4k' })
       assert.equal(camp.status, 201, JSON.stringify(camp.json))
       assert.equal((await call('POST', `${dbApi}/brands/${dbB}/rates`, { price: 1 })).status, 404)
@@ -1088,6 +1189,217 @@ async function httpChecks() {
       assert.equal(back.json.restored, true)
       assert.equal((await call('GET', `${dbApi}/creators/${dbC}`)).json.rates.length, 3)
     })
+
+    // ── Mailbox window, brand contacts, lists, Apollo ──
+    const probe = await call('GET', '/api/admin/outreach/leads/brands?limit=1')
+    const v2 = probe.json?.features?.contacts === true
+    let contactBrand = null
+    if (!v2) {
+      await check('before the contacts/lists migration: old paths keep working, new features answer 409 (never 500)', async () => {
+        assert.equal(probe.status, 200)
+        assert.equal((await call('GET', '/api/admin/outreach/leads/brands?list=yc&limit=1')).status, 200, 'list filter is ignored')
+        const s = await call('GET', '/api/admin/outreach/settings')
+        assert.equal(s.status, 200)
+        assert.equal(s.json.settings.mailbox_window_hours, null)
+        assert.equal((await call('PATCH', '/api/admin/outreach/settings', { mailbox_window_hours: 15 })).status, 409)
+        const mb = await call('GET', '/api/admin/outreach/mailboxes')
+        assert.equal(mb.status, 200)
+        assert.ok(mb.json.mailboxes.every((m) => m.window_hours === null), 'calendar-day limit before the migration')
+        const apollo = await call('POST', '/api/admin/outreach/import/apollo', { source: 'apollo.csv', rows: [{ company: 'x', email: 'x@y.co' }], commit: false })
+        assert.equal(apollo.status, 409)
+        assert.equal((await call('GET', '/api/admin/outreach/dashboard')).json.lists, null)
+      })
+      skip('mailbox window / contacts / lists / Apollo HTTP checks', 'run supabase/outreach_contacts_lists_migration.sql first')
+    } else {
+      let originalHours = 15
+      await check('mailbox window setting: 12 to 24 hours, admins only; mailboxes report the window', async () => {
+        const s = await call('GET', '/api/admin/outreach/settings')
+        assert.equal(s.status, 200, JSON.stringify(s.json))
+        originalHours = s.json.settings.mailbox_window_hours
+        assert.ok(originalHours >= 12 && originalHours <= 24)
+        assert.equal((await call('PATCH', '/api/admin/outreach/settings', { mailbox_window_hours: 11 })).status, 400)
+        assert.equal((await call('PATCH', '/api/admin/outreach/settings', { mailbox_window_hours: 25 })).status, 400)
+        assert.equal((await call('PATCH', '/api/admin/outreach/settings', { mailbox_window_hours: 12.5 })).status, 400)
+        const ok = await call('PATCH', '/api/admin/outreach/settings', { mailbox_window_hours: originalHours })
+        assert.equal(ok.status, 200, JSON.stringify(ok.json))
+        const mb = await call('GET', '/api/admin/outreach/mailboxes')
+        assert.ok(mb.json.mailboxes.every((m) => m.window_hours === originalHours), 'every mailbox counts over the window')
+      })
+
+      await check('a 1-send mailbox that is full says when its next slot frees up (Karachi time)', async () => {
+        if (!mailboxId) {throw new Error('the mailbox from the earlier check is missing')}
+        const mb = (await call('GET', '/api/admin/outreach/mailboxes')).json.mailboxes.find((m) => m.id === mailboxId)
+        assert.ok(mb, 'test mailbox listed')
+        if (mb.sent_today >= mb.daily_limit) {
+          assert.ok(mb.next_free_at && Date.parse(mb.next_free_at) > Date.now(), 'next_free_at in the future')
+          const lead = await call('POST', '/api/admin/outreach/leads/creators', { name: `${tag} W`, email: `${tag}.w@outreach-check.invalid`, source: 'outreach-check' })
+          created.push(['creators', lead.json.lead.lead_id])
+          const r = await call('POST', '/api/admin/outreach/actions', { lead_id: lead.json.lead.lead_id, action: 'contacted', channel: 'email', mailbox_id: mailboxId })
+          assert.equal(r.status, 409)
+          assert.match(r.json.error, /next slot frees at \d\d:\d\d|frees at \d+ \w+ \d\d:\d\d/i)
+        }
+      })
+
+      const domain = `${tag}-contacts.invalid`
+      await check('brand contacts: the brand\'s own contact becomes the primary contact row', async () => {
+        const b = await call('POST', '/api/admin/outreach/leads/brands', { company: `${tag} Contacts`, domain, contact_name: 'Ann Lee', role: 'CMO', email: `ann@${domain}`, source: 'outreach-check' })
+        assert.equal(b.status, 201, JSON.stringify(b.json))
+        contactBrand = b.json.lead.lead_id
+        created.push(['brands', contactBrand])
+        const c = await call('GET', `/api/admin/outreach/leads/brands/${contactBrand}/contacts`)
+        assert.equal(c.status, 200, JSON.stringify(c.json))
+        assert.equal(c.json.contacts.length, 1)
+        assert.deepEqual([c.json.contacts[0].first_name, c.json.contacts[0].last_name, c.json.contacts[0].title, c.json.contacts[0].is_primary], ['Ann', 'Lee', 'CMO', true])
+      })
+
+      const cbase = () => `/api/admin/outreach/leads/brands/${contactBrand}/contacts`
+      let bo = null
+      await check('brand contacts: add; an email used by any lead or contact → 409 naming it; DNC → 409; bad values → 400', async () => {
+        const r = await call('POST', cbase(), { first_name: 'Bo', title: 'CEO', email: `bo@${domain}`, linkedin: 'linkedin.com/in/bo' })
+        assert.equal(r.status, 201, JSON.stringify(r.json))
+        bo = r.json.contact
+        assert.equal(bo.linkedin, 'https://linkedin.com/in/bo')
+        assert.equal(bo.is_primary, false)
+        const dupLead = await call('POST', cbase(), { first_name: 'X', email: email1.toUpperCase() })
+        assert.equal(dupLead.status, 409, JSON.stringify(dupLead.json))
+        assert.match(dupLead.json.error, /Already used by C-\d+/)
+        const dupContact = await call('POST', cbase(), { first_name: 'Y', email: `bo@${domain}` })
+        assert.equal(dupContact.status, 409)
+        const dnc = await call('POST', cbase(), { first_name: 'Z', email: email2 })
+        assert.equal(dnc.status, 409, JSON.stringify(dnc.json))
+        assert.match(dnc.json.error, /do-not-contact/)
+        assert.equal((await call('POST', cbase(), { first_name: 'Q', email: 'nope' })).status, 400)
+        assert.equal((await call('POST', cbase(), { title: 'no name' })).status, 400)
+        assert.equal((await call('PATCH', `${cbase()}/${bo.id}`, { status: 'replied' })).status, 400, 'status moves through actions')
+      })
+
+      await check('one email, one record: a creator lead with a contact\'s email is blocked', async () => {
+        const r = await call('POST', '/api/admin/outreach/leads/creators', { name: 'dup', email: `BO@${domain}`, source: 'outreach-check' })
+        assert.equal(r.status, 409, JSON.stringify(r.json))
+        assert.equal(r.json.duplicates?.[0]?.lead_id, contactBrand)
+      })
+
+      await check('actions pick the contact; the brand status follows the furthest-along contact; undo restores both', async () => {
+        const c1 = await call('POST', '/api/admin/outreach/actions', { lead_id: contactBrand, action: 'contacted', channel: 'linkedin', contact_id: bo.id })
+        assert.equal(c1.status, 200, JSON.stringify(c1.json))
+        assert.equal(c1.json.result.contact_id, bo.id)
+        assert.equal(c1.json.result.status, 'contacted')
+        const list = (await call('GET', cbase())).json.contacts
+        assert.equal(list.find((x) => x.id === bo.id).status, 'contacted')
+        assert.equal(list.find((x) => x.first_name === 'Ann').status, 'found')
+        // No contact given: the server picks the one that was contacted.
+        const rep = await call('POST', '/api/admin/outreach/actions', { lead_id: contactBrand, action: 'replied' })
+        assert.equal(rep.status, 200, JSON.stringify(rep.json))
+        assert.equal(rep.json.result.contact_id, bo.id)
+        assert.equal(rep.json.result.status, 'replied')
+        const undo = await call('POST', '/api/admin/outreach/actions/undo', { activity_id: rep.json.result.activity_id })
+        assert.equal(undo.status, 200, JSON.stringify(undo.json))
+        const lead = (await call('GET', `/api/admin/outreach/leads/brands/${contactBrand}`)).json.lead
+        assert.equal(lead.status, 'contacted')
+        assert.equal((await call('GET', cbase())).json.contacts.find((x) => x.id === bo.id).status, 'contacted')
+        const wrong = await call('POST', '/api/admin/outreach/actions', { lead_id: contactBrand, action: 'replied', contact_id: 'not-a-contact' })
+        assert.equal(wrong.status, 404)
+        const booked = await call('POST', '/api/admin/outreach/actions', { lead_id: contactBrand, action: 'call_booked' })
+        assert.equal(booked.json.result.status, 'call_booked')
+        const bounce = await call('POST', '/api/admin/outreach/actions', { lead_id: contactBrand, action: 'bounced', contact_id: bo.id })
+        assert.equal(bounce.json.result.status, 'call_booked', 'a contact bounce never drops a booked call')
+        await call('POST', '/api/admin/outreach/actions/undo', { activity_id: bounce.json.result.activity_id })
+      })
+
+      await check('make primary: the brand row shows it; editing the brand email edits the primary contact', async () => {
+        assert.equal((await call('PATCH', `${cbase()}/${bo.id}`, { is_primary: true })).status, 200)
+        const row = (await call('GET', `/api/admin/outreach/leads/brands?q=${contactBrand}`)).json.leads[0]
+        assert.equal(row.contacts.count, 2)
+        assert.equal(row.contacts.primary.name, 'Bo')
+        assert.equal(row.email, `bo@${domain}`)
+        const e = await call('PATCH', `/api/admin/outreach/leads/brands/${contactBrand}`, { email: `bo2@${domain}` })
+        assert.equal(e.status, 200, JSON.stringify(e.json))
+        const list = (await call('GET', cbase())).json.contacts
+        assert.equal(list.find((x) => x.id === bo.id).email, `bo2@${domain}`)
+        const taken = await call('PATCH', `/api/admin/outreach/leads/brands/${contactBrand}`, { email: email1 })
+        assert.equal(taken.status, 409, JSON.stringify(taken.json))
+        assert.ok(taken.json.fields?.email, 'reported on the email field')
+      })
+
+      await check('remove a contact: logged, key freed, the other contact becomes primary', async () => {
+        assert.equal((await call('DELETE', `${cbase()}/${bo.id}`)).status, 200)
+        const list = (await call('GET', cbase())).json.contacts
+        assert.equal(list.length, 1)
+        assert.equal(list[0].is_primary, true)
+        const free = await call('GET', `/api/admin/outreach/check-duplicate?type=creator&email=${encodeURIComponent(`bo2@${domain}`)}`)
+        assert.equal(free.status, 200)
+        assert.equal(free.json.duplicates.length, 0, 'the email is free again')
+        const acts = (await call('GET', `/api/admin/outreach/leads/brands/${contactBrand}`)).json.activity.map((a) => a.action)
+        assert.ok(['contact_added', 'contact_edited', 'contact_removed'].every((a) => acts.includes(a)), acts.join(','))
+      })
+
+      await check('lists: manual adds land on "manual"; admins change the list; filter by list; bad list → 400', async () => {
+        const row = (await call('GET', `/api/admin/outreach/leads/brands?q=${contactBrand}`)).json.leads[0]
+        assert.equal(row.list, 'manual')
+        assert.equal((await call('GET', `/api/admin/outreach/leads/brands?q=${contactBrand}&list=manual`)).json.total, 1)
+        const r = await call('PATCH', `/api/admin/outreach/leads/brands/${contactBrand}`, { list: 'yc' })
+        assert.equal(r.status, 200, JSON.stringify(r.json))
+        assert.equal((await call('GET', `/api/admin/outreach/leads/brands?q=${contactBrand}&list=yc`)).json.total, 1)
+        assert.equal((await call('GET', `/api/admin/outreach/leads/brands?q=${contactBrand}&list=sponsor`)).json.total, 0)
+        assert.equal((await call('PATCH', `/api/admin/outreach/leads/brands/${contactBrand}`, { list: 'creators_new' })).status, 400)
+        const csv = await raw('GET', `/api/admin/outreach/leads/brands/export?q=${contactBrand}`)
+        assert.ok(csv.text.split('\n')[0].includes('list'), 'export has a list column')
+      })
+
+      await check('Apollo import: preview writes nothing; commit adds contacts to existing brands, creates "apollo" brands, keeps lists', async () => {
+        const rows = [
+          { _row: 2, company: `${tag} Contacts`, website: `https://${domain}`, team_size: '11-50', first_name: 'Cy', last_name: 'C', title: 'CTO', email: `cy@${domain}` },
+          { _row: 3, company: `${tag} Newco`, website: `${tag}-newco.invalid`, first_name: 'Nia', email: `nia@${tag}-newco.invalid` },
+          { _row: 4, company: `${tag} Newco`, website: `${tag}-newco.invalid`, first_name: 'Ned', email: `ned@${tag}-newco.invalid` },
+          { _row: 5, company: `${tag} Contacts`, website: domain, first_name: 'Again', email: `ann@${domain}` },
+          { _row: 6, company: 'Bad', website: 'javascript:alert(1)', first_name: 'B', email: 'b@x.co' },
+          { _row: 7, company: 'X', first_name: 'D', email: email2 },
+        ]
+        const body = (commit) => ({ source: `apollo_${tag}.csv`, rows, commit })
+        const p = await call('POST', '/api/admin/outreach/import/apollo', body(false))
+        assert.equal(p.status, 200, JSON.stringify(p.json))
+        assert.deepEqual(p.json.counts, { contacts_added: 3, existing_brands: 1, new_brands: 1, duplicates: 1, dnc: 1, errors: 1 })
+        assert.equal(p.json.report.existing[0].lead_id, contactBrand)
+        assert.equal((await call('GET', `/api/admin/outreach/leads/brands?q=${encodeURIComponent(`${tag} Newco`)}`)).json.total, 0, 'preview wrote nothing')
+        const c = await call('POST', '/api/admin/outreach/import/apollo', body(true))
+        assert.equal(c.status, 200, JSON.stringify(c.json))
+        assert.equal(c.json.counts.contacts_added, 3)
+        const newco = c.json.report.created[0]
+        created.push(['brands', newco.lead_id])
+        const nb = (await call('GET', `/api/admin/outreach/leads/brands?q=${newco.lead_id}`)).json.leads[0]
+        assert.equal(nb.list, 'apollo')
+        assert.equal(nb.contacts.count, 2)
+        const existing = (await call('GET', `/api/admin/outreach/leads/brands?q=${contactBrand}`)).json.leads[0]
+        assert.equal(existing.list, 'yc', 'Apollo never changes an existing brand\'s list')
+        assert.equal(existing.team_size, '11-50', 'empty field filled')
+        assert.equal(existing.company, `${tag} Contacts`, 'existing value kept')
+        const again = await call('POST', '/api/admin/outreach/import/apollo', body(false))
+        assert.equal(again.json.counts.contacts_added, 0)
+        assert.equal(again.json.counts.duplicates, 4)
+      })
+
+      await check('dashboard: results per list (leads, contacted, replied, reply rate) with a per-person breakdown', async () => {
+        const d = await call('GET', '/api/admin/outreach/dashboard')
+        assert.equal(d.status, 200)
+        assert.ok(Array.isArray(d.json.lists), 'lists present')
+        const yc = d.json.lists.find((l) => l.lead_type === 'brand' && l.list === 'yc')
+        assert.ok(yc && yc.totals.today.contacted >= 1, 'the yc brand above was contacted today')
+        assert.ok(Array.isArray(yc.people) && yc.people.length >= 1)
+        assert.ok('reply_rate' in yc.totals.week)
+      })
+    }
+
+    if (OUTREACH_TOKEN && v2 && contactBrand) {
+      await check('members: edit and add contacts, but only admins change a lead\'s list or the mailbox window', async () => {
+        const m = (method, p, body) => fetch(`${BASE_URL}${p}`, {
+          method, headers: { Cookie: `auth_token=${OUTREACH_TOKEN}`, 'Content-Type': 'application/json' },
+          body: body ? JSON.stringify(body) : undefined,
+        })
+        assert.equal((await m('POST', `/api/admin/outreach/leads/brands/${contactBrand}/contacts`, { first_name: 'Member', email: `member@${domain}` })).status, 201)
+        assert.equal((await m('PATCH', `/api/admin/outreach/leads/brands/${contactBrand}`, { list: 'sponsor' })).status, 403)
+        assert.equal((await m('PATCH', '/api/admin/outreach/settings', { mailbox_window_hours: 15 })).status, 403)
+      })
+    }
 
     if (OUTREACH_TOKEN && dbDirect) {
       const asMember = async (method, urlPath, body) => {
@@ -1162,6 +1474,7 @@ async function httpChecks() {
 
 await pureChecks()
 await databaseChecks()
+await contactsListsChecks()
 const args = process.argv.slice(2)
 if (args.includes('--http')) {
   if (!args.includes('--confirm=outreach-check')) {
