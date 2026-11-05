@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
-import { leadKeys, validateLeadUpdates } from '@/lib/outreach/rules'
+import { createLead } from '@/lib/outreach/create'
+import { withDbFlags } from '@/lib/outreach/database-server'
 import {
-  adminOnly, fetchAllRows, filterValues, findDuplicates, getOutreachCaller, leadListQuery, leadTable, leadTypeFromSegment,
-  loadTeam, mapDbError, parseLeadFilters, unauthorized, withDncFlags,
+  adminOnly, fetchAllRows, filterValues, getOutreachCaller, leadListQuery, leadTypeFromSegment,
+  parseLeadFilters, unauthorized, withDncFlags,
 } from '@/lib/outreach/server'
 import type { OutreachLead } from '@/lib/outreach/types'
 
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Failed to load leads' }, { status: 500 })
     }
 
-    const leads = await withDncFlags(supabase, (data ?? []) as OutreachLead[])
+    const leads = await withDbFlags(supabase, leadType, await withDncFlags(supabase, (data ?? []) as OutreachLead[]))
     const meta = sp.get('meta') === '1' ? await filterValues(supabase, leadType) : undefined
 
     // "N leads without email" under the same filters, for the quick filter.
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 }
 
 // POST /api/admin/outreach/leads/creators|brands: add one lead by hand.
-// 409 with `duplicates` when the email/URL/domain already exists.
+// 409 with `duplicates` when the email/URL/domain already exists (createLead).
 export async function POST(request: NextRequest, { params }: Params) {
   const caller = getOutreachCaller(request)
   if (!caller) {return unauthorized()}
@@ -74,62 +75,10 @@ export async function POST(request: NextRequest, { params }: Params) {
 
   try {
     const body = await request.json().catch(() => null)
-    if (!body || typeof body !== 'object' || Array.isArray(body)) {
-      return NextResponse.json({ error: 'Send the lead fields' }, { status: 400 })
-    }
-    // Same per-field rules as edits (email format, https:// added to URLs,
-    // numbers >= 0). Empty fields are left out of the insert.
-    const { values, errors } = validateLeadUpdates(leadType, body as Record<string, unknown>)
-    const errorFields = Object.keys(errors)
-    if (errorFields.length > 0) {
-      return NextResponse.json(
-        { error: errors[errorFields[0]], fields: Object.fromEntries(errorFields.map((f) => [f, [errors[f]]])) },
-        { status: 400 },
-      )
-    }
-    const fields = Object.fromEntries(Object.entries(values).filter(([, v]) => v !== null)) as Record<string, unknown>
-    // Members add leads for themselves; only admins pick another owner.
-    if (!caller.isAdmin) {fields.owner_user_id = caller.userId}
-
-    const keys = leadKeys(leadType, fields)
-    if (keys.length === 0) {
-      const need = leadType === 'creator' ? 'a profile URL or email' : 'a domain, website or email'
-      return NextResponse.json({ error: `Add ${need} so duplicates are caught.` }, { status: 400 })
-    }
-
     const supabase = createServerSupabase()
-    const team = await loadTeam(supabase)
-    if (fields.owner_user_id && !team.some((t) => t.user_id === fields.owner_user_id)) {
-      return NextResponse.json({ error: 'Owner must be a team member' }, { status: 400 })
-    }
-
-    const duplicates = await findDuplicates(supabase, keys)
-    if (duplicates.size > 0) {
-      const list = [...duplicates.values()]
-      const deleted = list.find((d) => d.deleted)
-      return NextResponse.json(
-        { error: deleted ? `Previously deleted: ${deleted.lead_id}` : 'Already exists', duplicates: list },
-        { status: 409 },
-      )
-    }
-
-    const { data, error } = await supabase
-      .from(leadTable(leadType))
-      .insert({ ...fields, owner_user_id: fields.owner_user_id ?? caller.userId, source: fields.source ?? 'manual' })
-      .select('*')
-      .single()
-
-    if (error) {
-      const mapped = mapDbError(error)
-      if (mapped) {
-        const dupes = mapped.code === 'outreach_duplicate' ? [...(await findDuplicates(supabase, keys)).values()] : undefined
-        return NextResponse.json({ error: mapped.message, duplicates: dupes }, { status: mapped.status })
-      }
-      captureError(error, { route: 'POST /api/admin/outreach/leads' })
-      return NextResponse.json({ error: 'Failed to add lead' }, { status: 500 })
-    }
-
-    return NextResponse.json({ message: 'Lead added', lead: data }, { status: 201 })
+    const outcome = await createLead(supabase, caller, leadType, body, 'POST /api/admin/outreach/leads')
+    if (!outcome.ok) {return NextResponse.json(outcome.body, { status: outcome.status })}
+    return NextResponse.json({ message: 'Lead added', lead: outcome.lead }, { status: 201 })
   } catch (err) {
     captureError(err, { route: 'POST /api/admin/outreach/leads' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

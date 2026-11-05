@@ -77,6 +77,8 @@ const RPC_ERRORS: Record<string, [number, string]> = {
   outreach_bad_field: [400, 'This field is not editable.'],
   outreach_deleted: [409, 'This lead was deleted. An admin restores it from the Deleted filter first.'],
   outreach_too_many: [400, 'Send up to 1,000 leads at a time.'],
+  outreach_db_not_found: [404, 'This lead is not in the Database.'],
+  outreach_db_item_not_found: [404, 'This row no longer exists. Reload the page.'],
 }
 
 export interface MappedDbError {
@@ -91,6 +93,11 @@ export function mapDbError(error: { message?: string; code?: string; details?: s
   const known = error.message ? RPC_ERRORS[error.message] : undefined
   if (known) {
     return { status: known[0], message: known[1], code: error.message ?? null, detail: error.details ?? null }
+  }
+  // A CHECK constraint: the API validates first, so this is a value the
+  // validators missed. Still the caller's input, not a server fault.
+  if (error.code === '23514') {
+    return { status: 400, message: 'A value is out of range. Check the fields and try again.', code: 'outreach_check', detail: null }
   }
   if (error.code === '23505' || error.message === 'outreach_duplicate') {
     return { status: 409, message: 'A lead with this email, URL or domain already exists.', code: 'outreach_duplicate', detail: error.details ?? null }

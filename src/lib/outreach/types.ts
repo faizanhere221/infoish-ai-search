@@ -57,7 +57,7 @@ export interface OutreachBrand extends OutreachLeadBase {
 export type OutreachLead = OutreachCreator | OutreachBrand
 
 // What list routes return per row: the lead plus computed flags.
-export type OutreachLeadRow = OutreachLead & { dnc: boolean }
+export type OutreachLeadRow = OutreachLead & { dnc: boolean; in_db?: boolean }
 
 export interface OutreachMailbox {
   id: string
@@ -130,4 +130,122 @@ export interface ActionResult {
   mailbox_id: string | null
   mailbox_sent_today: number | null
   mailbox_limit: number | null
+}
+
+// ─── Creator Database / Client Database (outreach_database_migration.sql) ────
+// Rows as outreach_db_creator_search() / outreach_db_brand_search() return
+// them: the lead's own fields plus the Database fields. Internal only.
+
+export interface CreatorRate {
+  id: string
+  platform: string
+  format: string
+  price: number
+  currency: string
+  usage_rights: boolean
+  usage_note: string | null
+  quoted_at: string | null
+  created_at?: string
+  updated_at?: string
+}
+
+export interface CreatorDbFields {
+  availability: string | null
+  next_available_date: string | null
+  min_lead_days: number | null
+  payment_methods: string[]
+  upfront_pct: number | null
+  audience_countries: string[]
+  audience_languages: string[]
+  past_collabs: string[]
+  followers: Record<string, number>
+  quality_rating?: number | null // admins only: the API leaves it out for members
+  tags: string[]
+  notes: string | null
+}
+
+export interface CreatorDbRow extends Omit<CreatorDbFields, 'notes'> {
+  lead_id: string
+  name: string | null
+  platform: string | null
+  platform_id: string | null
+  profile_url: string | null
+  country: string | null
+  niche: string | null
+  subscribers: number | null
+  email: string | null
+  linkedin: string | null
+  instagram: string | null
+  x: string | null
+  tiktok: string | null
+  website: string | null
+  extra: Record<string, string | number | boolean>
+  status: string
+  owner_user_id: string | null
+  db_notes: string | null
+  added_at: string
+  added_by: string | null
+  total_followers: number
+  all_platforms: string[]
+  rates: CreatorRate[]
+  last_quoted_at: string | null
+  rate_currency: string | null
+  cheapest: number | null
+  typical: number | null
+  on_infoishai: string | null // public profile username, when the same email signed up
+}
+
+export interface BrandContact {
+  id: string
+  name: string | null
+  role: string | null
+  email: string | null
+  linkedin: string | null
+}
+
+export interface BrandCampaign {
+  id: string
+  title: string
+  run_date: string | null
+  creators_used: string | null
+  total_budget: number | null
+  currency: string
+  result_notes: string | null
+}
+
+export interface BrandDbFields {
+  promotes: string | null
+  target_countries: string[]
+  niches: string[]
+  platforms: string[]
+  budget_min: number | null
+  budget_max: number | null
+  budget_currency: string
+  creator_sizes: string[]
+  stage: string
+  start_date: string | null
+  payment_terms: string | null
+  notes: string | null
+}
+
+export interface BrandDbRow extends Omit<BrandDbFields, 'notes'> {
+  lead_id: string
+  company: string | null
+  website: string | null
+  domain: string | null
+  country: string | null
+  product: string | null
+  contact_name: string | null
+  role: string | null
+  email: string | null
+  linkedin: string | null
+  status: string
+  owner_user_id: string | null
+  extra: Record<string, string | number | boolean>
+  db_notes: string | null
+  added_at: string
+  added_by: string | null
+  extra_contacts: number
+  campaigns_count: number
+  last_campaign_date: string | null
 }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { BRAND_ACTIONS, CREATOR_ACTIONS, DM_CHANNELS, karachiDayStart, karachiToday, type Channel } from '@/lib/outreach/rules'
+import { DB_OFFER_ACTIONS } from '@/lib/outreach/database'
+import { dbMembership } from '@/lib/outreach/database-server'
 import { actionSchema } from '@/lib/outreach/schemas'
 import { getOutreachCaller, leadTypeFromId, loadTeam, mapDbError, unauthorized } from '@/lib/outreach/server'
 import type { ActionResult } from '@/lib/outreach/types'
@@ -13,7 +15,9 @@ export const fetchCache = 'force-no-store'
 // Body: { lead_id, action, mailbox_id?, channel? }. The status change,
 // mailbox limit check and activity row all happen in outreach_log_action()
 // (one transaction, mailbox row locked). Response includes a DM warning
-// once the caller passes their soft daily limit for that platform.
+// once the caller passes their soft daily limit for that platform, and
+// `dbOffer` after replied (creators) / call booked or won (brands) when the
+// lead isn't in the Database yet, so the UI offers "Add to Database".
 export async function POST(request: NextRequest) {
   const caller = getOutreachCaller(request)
   if (!caller) {return unauthorized()}
@@ -64,7 +68,10 @@ export async function POST(request: NextRequest) {
       if ((count ?? 0) >= limit) {dmWarning = { channel: usedChannel, sent: count ?? 0, limit }}
     }
 
-    return NextResponse.json({ result, dmWarning })
+    const dbOffer = DB_OFFER_ACTIONS[leadType].includes(action)
+      && !(await dbMembership(supabase, leadType, [lead_id])).has(lead_id)
+
+    return NextResponse.json({ result, dmWarning, dbOffer })
   } catch (err) {
     captureError(err, { route: 'POST /api/admin/outreach/actions' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
