@@ -1,5 +1,5 @@
 import { createServerSupabase } from '@/lib/db'
-import { dncKeys, IMPORT_MAX_ROWS, leadKeys, type LeadType } from '@/lib/outreach/rules'
+import { dncKeys, IMPORT_MAX_ROWS, leadKeys, previouslyLabel, type LeadType } from '@/lib/outreach/rules'
 import { brandFieldsSchema, creatorFieldsSchema } from '@/lib/outreach/schemas'
 import { matchKeys } from '@/lib/outreach/server'
 import type { DuplicateMatch } from '@/lib/outreach/types'
@@ -57,7 +57,7 @@ export async function classifyImportRows(
       if (match) {
         return {
           row: r.row, status: 'duplicate', match,
-          reasons: [match.deleted ? `Previously deleted: ${match.lead_id}` : `Already exists: ${match.lead_id}${match.owner_name ? `, owned by ${match.owner_name}` : ''}${match.status ? `, status ${match.status}` : ''}`],
+          reasons: [previouslyLabel(match) ?? `Already exists: ${match.lead_id}${match.owner_name ? `, owned by ${match.owner_name}` : ''}${match.status ? `, status ${match.status}` : ''}`],
         }
       }
     }

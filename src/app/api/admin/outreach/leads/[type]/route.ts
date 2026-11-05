@@ -60,7 +60,7 @@ export async function GET(request: NextRequest, { params }: Params) {
     }
 
     const flagged = await withDbFlags(supabase, leadType, await withDncFlags(supabase, (data ?? []) as OutreachLead[]))
-    const leads = leadType === 'brand' && features.contacts ? await withContactSummaries(supabase, flagged) : flagged
+    const leads = leadType === 'brand' && features.contacts ? await withContactSummaries(supabase, flagged, features.contactRemoval) : flagged
     const meta = sp.get('meta') === '1' ? await filterValues(supabase, leadType) : undefined
 
     // "N leads without email" under the same filters, for the quick filter.

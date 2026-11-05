@@ -26,8 +26,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   }
 }
 
-// DELETE: remove a contact. If it was the primary, the oldest other
-// contact becomes primary. Its email key is freed.
+// DELETE: remove a contact (members too). After the soft-delete migration
+// the row and its email key stay, so it still blocks duplicates and an
+// admin restores it (POST .../restore). If it was the primary, the oldest
+// other contact becomes primary.
 export async function DELETE(request: NextRequest, { params }: Params) {
   const caller = getOutreachCaller(request)
   if (!caller) {return unauthorized()}

@@ -69,7 +69,13 @@ export function DuplicateNotice({ duplicates }: { duplicates: DuplicateMatch[] }
       {duplicates.map((d) => (
         <div key={`${d.key_type}:${d.key_value}`} className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-          {d.deleted ? (
+          {d.contact_removed ? (
+            <span>
+              Previously removed contact of{' '}
+              <Link href={`/admin/outreach/brands?q=${encodeURIComponent(d.lead_id)}`} className="font-semibold underline">{d.lead_id}</Link>{' '}
+              (same email). An admin restores it from the brand's removed contacts.
+            </span>
+          ) : d.deleted ? (
             <span>
               Previously deleted:{' '}
               <Link href={`/admin/outreach/${d.lead_type === 'creator' ? 'creators' : 'brands'}?q=${encodeURIComponent(d.lead_id)}&deleted=1`} className="font-semibold underline">

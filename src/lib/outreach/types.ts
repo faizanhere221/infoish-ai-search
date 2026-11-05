@@ -117,6 +117,8 @@ export interface DuplicateMatch {
   owner_name: string | null
   status: string | null
   deleted: boolean // the lead holding the key was deleted (admin restores it)
+  contact_removed?: boolean // the key belongs to a removed brand contact (admin restores it)
+  contact_id?: string | null // the brand contact holding the key (after the soft-delete migration)
 }
 
 export interface FieldChange {
@@ -229,6 +231,8 @@ export interface BrandContact {
   notes: string | null
   source: string | null
   created_at: string
+  deleted_at?: string | null // removed (soft delete, outreach_contact_soft_delete_migration.sql)
+  deleted_by?: string | null
 }
 
 export interface BrandCampaign {

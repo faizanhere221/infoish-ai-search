@@ -17,11 +17,14 @@ export interface OutreachFeatures {
   contacts: boolean
   lists: boolean
   mailboxWindow: boolean
+  // outreach_contact_soft_delete_migration.sql (version 3): removing a
+  // contact is a soft delete, restorable by admins
+  contactRemoval: boolean
 }
 
 export async function outreachFeatures(supabase: Supabase): Promise<OutreachFeatures> {
-  const v2 = (await outreachSchemaVersion(supabase)) >= 2
-  return { contacts: v2, lists: v2, mailboxWindow: v2 }
+  const v = await outreachSchemaVersion(supabase)
+  return { contacts: v >= 2, lists: v >= 2, mailboxWindow: v >= 2, contactRemoval: v >= 3 }
 }
 
 // PostgREST: function or column not there yet (the migration hasn't run).

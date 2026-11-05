@@ -149,7 +149,7 @@ export async function matchKeys(supabase: Supabase, keys: { type: string; value:
   const { data, error } = await supabase.rpc('outreach_match_keys', { p_values: values })
   if (error) {throw error}
   const payload = (data ?? {}) as {
-    leads?: { key_type: string; key_value: string; lead_type: LeadType; lead_id: string; owner_user_id: string | null; status: string | null; deleted?: boolean }[]
+    leads?: { key_type: string; key_value: string; lead_type: LeadType; lead_id: string; owner_user_id: string | null; status: string | null; deleted?: boolean; contact_removed?: boolean; contact_id?: string | null }[]
     dnc?: { key_type: string; key_value: string }[]
   }
 
@@ -165,6 +165,8 @@ export async function matchKeys(supabase: Supabase, keys: { type: string; value:
       owner_name: h.owner_user_id ? names.get(h.owner_user_id) ?? null : null,
       status: h.status,
       deleted: h.deleted === true,
+      contact_removed: h.contact_removed === true,
+      contact_id: h.contact_id ?? null,
     })
   }
   for (const d of payload.dnc ?? []) {

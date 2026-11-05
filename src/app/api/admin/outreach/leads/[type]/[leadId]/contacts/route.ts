@@ -10,17 +10,22 @@ export const fetchCache = 'force-no-store'
 
 type Params = { params: { type: string; leadId: string } }
 
-// GET /api/admin/outreach/leads/brands/[leadId]/contacts: every contact of
-// the brand, primary first. Before the contacts migration: an empty list
-// and migrated: false.
+// GET /api/admin/outreach/leads/brands/[leadId]/contacts: the brand's active
+// contacts, primary first. removed=1 (admins): the removed ones, to restore.
+// Before the contacts migration: an empty list and migrated: false.
 export async function GET(request: NextRequest, { params }: Params) {
   const caller = getOutreachCaller(request)
   if (!caller) {return unauthorized()}
   if (params.type !== 'brands') {return NextResponse.json({ error: 'Not found' }, { status: 404 })}
   try {
     const supabase = createServerSupabase()
-    if (!(await outreachFeatures(supabase)).contacts) {return NextResponse.json({ contacts: [], migrated: false })}
-    return NextResponse.json({ contacts: await loadContacts(supabase, params.leadId), migrated: true })
+    const features = await outreachFeatures(supabase)
+    if (!features.contacts) {return NextResponse.json({ contacts: [], migrated: false, removal: false })}
+    const removed = request.nextUrl.searchParams.get('removed') === '1'
+    if (removed && !caller.isAdmin) {return NextResponse.json({ error: 'Admin access required' }, { status: 403 })}
+    if (removed && !features.contactRemoval) {return NextResponse.json({ contacts: [], migrated: true, removal: false })}
+    const contacts = await loadContacts(supabase, params.leadId, { softDelete: features.contactRemoval, removed })
+    return NextResponse.json({ contacts, migrated: true, removal: features.contactRemoval })
   } catch (err) {
     captureError(err, { route: 'GET /api/admin/outreach/leads/[leadId]/contacts' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

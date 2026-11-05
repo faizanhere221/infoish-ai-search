@@ -1,6 +1,6 @@
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
-import { contactName, emailDomain, validateContactFields } from '@/lib/outreach/rules'
+import { contactName, emailDomain, previouslyLabel, validateContactFields } from '@/lib/outreach/rules'
 import { mapDbError, matchKeys, type OutreachCaller } from '@/lib/outreach/server'
 import { NEEDS_MIGRATION, outreachFeatures } from '@/lib/outreach/schema'
 import type { BrandContact, ContactSummary } from '@/lib/outreach/types'
@@ -16,11 +16,16 @@ export interface ContactOutcome {
 // per brand; the primary one is copied onto the brand's old contact
 // columns by the database. Status and dates move through actions.
 
-export async function loadContacts(supabase: Supabase, leadId: string): Promise<BrandContact[]> {
-  const { data, error } = await supabase
-    .from('outreach_brand_contacts')
-    .select('*')
-    .eq('lead_id', leadId)
+// Active contacts, or (removed: true) the removed ones. Removed contacts
+// exist once outreach_contact_soft_delete_migration.sql ran (softDelete).
+export async function loadContacts(
+  supabase: Supabase,
+  leadId: string,
+  opts: { softDelete: boolean; removed?: boolean } = { softDelete: false },
+): Promise<BrandContact[]> {
+  let query = supabase.from('outreach_brand_contacts').select('*').eq('lead_id', leadId)
+  if (opts.softDelete) {query = opts.removed ? query.not('deleted_at', 'is', null) : query.is('deleted_at', null)}
+  const { data, error } = await query
     .order('is_primary', { ascending: false })
     .order('created_at')
     .order('id')
@@ -29,12 +34,18 @@ export async function loadContacts(supabase: Supabase, leadId: string): Promise<
 }
 
 // Adds `contacts: {count, primary}` to brand rows of a page.
-export async function withContactSummaries<T extends { lead_id: string }>(supabase: Supabase, leads: T[]): Promise<(T & { contacts: ContactSummary })[]> {
+export async function withContactSummaries<T extends { lead_id: string }>(
+  supabase: Supabase,
+  leads: T[],
+  softDelete: boolean,
+): Promise<(T & { contacts: ContactSummary })[]> {
   if (leads.length === 0) {return []}
-  const { data, error } = await supabase
+  let query = supabase
     .from('outreach_brand_contacts')
     .select('id, lead_id, first_name, last_name, title, email, status, is_primary, created_at')
     .in('lead_id', leads.map((l) => l.lead_id))
+  if (softDelete) {query = query.is('deleted_at', null)} // removed contacts are hidden
+  const { data, error } = await query
     .order('is_primary', { ascending: false })
     .order('created_at')
   if (error) {throw error}
@@ -86,8 +97,15 @@ export async function saveContact(
     const domain = emailDomain(email)
     const hits = await matchKeys(supabase, [{ type: 'email', value: email }, ...(domain ? [{ type: 'domain', value: domain }] : [])])
     const dup = hits.duplicates.get(`email:${email}`)
+    // A removed contact keeps its email, at this brand too: restore it instead.
+    if (dup?.contact_removed && dup.contact_id !== contactId) {
+      return fail(409, 'email', `${previouslyLabel(dup)}. An admin restores it from Removed contacts.`)
+    }
     if (dup && !(dup.lead_type === 'brand' && dup.lead_id === leadId)) {
-      return fail(409, 'email', dup.deleted ? `Previously deleted: ${dup.lead_id}` : `Already used by ${dup.lead_id}${dup.owner_name ? `, owned by ${dup.owner_name}` : ''}`)
+      return fail(409, 'email', previouslyLabel(dup) ?? `Already used by ${dup.lead_id}${dup.owner_name ? `, owned by ${dup.owner_name}` : ''}`)
+    }
+    if (dup?.contact_id && dup.contact_id !== contactId) {
+      return fail(409, 'email', 'Another contact of this brand already has this email')
     }
     if (hits.dnc.size > 0) {return fail(409, 'email', 'This email is on the do-not-contact list.')}
   }
@@ -99,7 +117,7 @@ export async function saveContact(
     const mapped = mapDbError(error)
     if (mapped) {
       const message = mapped.code === 'outreach_duplicate'
-        ? `Already used by ${String(mapped.detail ?? '').split(':')[0] || 'another contact'}`
+        ? (/^[CB]-\d+:/.test(mapped.detail ?? '') ? `Already used by ${String(mapped.detail).split(':')[0]}` : 'Already used by another contact')
         : mapped.message
       return fail(mapped.status, mapped.code === 'outreach_duplicate' || mapped.code === 'outreach_dnc' ? 'email' : null, message)
     }
@@ -118,5 +136,22 @@ export async function deleteContact(supabase: Supabase, caller: OutreachCaller, 
     captureError(error, { route })
     return { status: 500, body: { error: 'Failed to remove the contact' } }
   }
-  return { status: 200, body: { message: 'Contact removed' } }
+  const soft = (await outreachFeatures(supabase)).contactRemoval
+  return { status: 200, body: { message: soft ? 'Contact removed. An admin restores it from Removed contacts.' : 'Contact removed' } }
+}
+
+// Admins: brings a removed contact back (status, dates and email intact).
+export async function restoreContact(supabase: Supabase, caller: OutreachCaller, leadId: string, contactId: string, route: string): Promise<ContactOutcome> {
+  if (!caller.isAdmin) {return { status: 403, body: { error: 'Only admins restore contacts' } }}
+  if (!(await outreachFeatures(supabase)).contactRemoval) {
+    return { status: 409, body: { error: 'Run supabase/outreach_contact_soft_delete_migration.sql in the Supabase SQL Editor first.', code: 'outreach_needs_migration' } }
+  }
+  const { data, error } = await supabase.rpc('outreach_contact_restore', { p_lead_id: leadId, p_contact_id: contactId, p_user_id: caller.userId })
+  if (error) {
+    const mapped = mapDbError(error)
+    if (mapped) {return { status: mapped.status, body: { error: mapped.message } }}
+    captureError(error, { route })
+    return { status: 500, body: { error: 'Failed to restore the contact' } }
+  }
+  return { status: 200, body: { message: 'Contact restored', contact: data } }
 }

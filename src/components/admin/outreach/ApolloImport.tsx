@@ -12,7 +12,7 @@ import { buttonClass, Card, selectClass } from '@/components/admin/outreach/ui'
 interface Report {
   existing: { lead_id: string; company: string | null; contacts: number }[]
   created: { lead_id: string; company: string | null; contacts: number }[]
-  duplicates: { row: number; email: string | null; lead_id?: string | null; same_as_row?: number }[]
+  duplicates: { row: number; email: string | null; lead_id?: string | null; same_as_row?: number; removed?: boolean }[]
   dnc: { row: number; key: string }[]
   errors: { row: number; reason: string }[]
 }
@@ -162,7 +162,7 @@ export function ApolloImport({ fileName, headers, rows, defaultOwner }: {
               <summary className="cursor-pointer text-sm font-medium text-slate-200">Skipped rows ({shown.report.duplicates.length + shown.report.dnc.length + shown.report.errors.length})</summary>
               <ul className="mt-2 max-h-72 space-y-0.5 overflow-y-auto text-xs text-slate-400">
                 {[
-                  ...shown.report.duplicates.map((d) => ({ row: d.row, text: `Duplicate contact ${d.email ?? ''}${d.lead_id ? `, already on ${d.lead_id}` : d.same_as_row ? `, same as row ${d.same_as_row}` : ''}` })),
+                  ...shown.report.duplicates.map((d) => ({ row: d.row, text: `Duplicate contact ${d.email ?? ''}${d.removed && d.lead_id ? `, previously removed contact of ${d.lead_id}` : d.lead_id ? `, already on ${d.lead_id}` : d.same_as_row ? `, same as row ${d.same_as_row}` : ''}` })),
                   ...shown.report.dnc.map((d) => ({ row: d.row, text: `Do not contact (${d.key})` })),
                   ...shown.report.errors.map((e) => ({ row: e.row, text: e.reason })),
                 ].sort((a, b) => a.row - b.row).map((x, i) => <li key={`${x.row}-${i}`}>Row {x.row}: {x.text}</li>)}

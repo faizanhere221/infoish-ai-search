@@ -1,7 +1,7 @@
 import { createServerSupabase } from '@/lib/db'
 import { loadContacts, saveContact } from '@/lib/outreach/contacts'
 import {
-  dncKeys, leadKeys, LIST_LABELS, listsFor, splitName, STATUS_LABELS, validateLeadUpdates, type LeadKey, type LeadType,
+  dncKeys, leadKeys, LIST_LABELS, listsFor, previouslyLabel, splitName, STATUS_LABELS, validateLeadUpdates, type LeadKey, type LeadType,
 } from '@/lib/outreach/rules'
 import { NEEDS_MIGRATION, outreachFeatures } from '@/lib/outreach/schema'
 import { findDncHits, findDuplicates, leadTable, loadTeam, type OutreachCaller, withDncFlags } from '@/lib/outreach/server'
@@ -77,7 +77,7 @@ export async function editLead(
       else {fields[CONTACT_FIELD_MAP[k]] = rest[k] ?? null}
       delete rest[k]
     }
-    const contacts = await loadContacts(supabase, leadId)
+    const contacts = await loadContacts(supabase, leadId, { softDelete: features.contactRemoval })
     const primary = contacts.find((c) => c.is_primary) ?? contacts[0]
     const empty = Object.values(fields).every((v) => v === null || v === '')
     if (primary || !empty) {
@@ -147,8 +147,9 @@ async function editLeadFields(
     if (dupes.length > 0) {
       const d = dupes[0]
       const field = fieldForKey({ type: d.key_type }, values)
-      if (d.deleted) {
-        const message = `Previously deleted: ${d.lead_id}`
+      const gone = previouslyLabel(d)
+      if (gone) {
+        const message = gone
         return { status: 409, body: { error: message, fields: { [field]: [message] }, duplicates: dupes } }
       }
       const owner = d.owner_name ? `, owned by ${d.owner_name}` : ', no owner'

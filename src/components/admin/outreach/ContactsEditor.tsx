@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Check, Crown, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { Check, Crown, Loader2, Pencil, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CONTACT_ACTIONS, contactName, STATUS_LABELS } from '@/lib/outreach/rules'
 import type { BrandContact, OutreachLeadRow } from '@/lib/outreach/types'
@@ -35,9 +35,14 @@ interface ContactsEditorProps {
 }
 
 export function ContactsEditor({ lead, readOnly, compact }: ContactsEditorProps) {
-  const { toast, bump, version } = useOutreach()
+  const { me, toast, bump, version } = useOutreach()
+  const isAdmin = !!me?.is_admin
   const [contacts, setContacts] = useState<BrandContact[] | null>(null)
   const [migrated, setMigrated] = useState(true)
+  // Removed contacts (soft delete): admins see and restore them.
+  const [removal, setRemoval] = useState(false)
+  const [showRemoved, setShowRemoved] = useState(false)
+  const [removed, setRemoved] = useState<BrandContact[]>([])
   const [editId, setEditId] = useState<string | 'new' | null>(null)
   const [draft, setDraft] = useState<Draft>(empty())
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -47,14 +52,20 @@ export function ContactsEditor({ lead, readOnly, compact }: ContactsEditorProps)
 
   const load = useCallback(async () => {
     const res = await fetch(base)
-    const data = await readJson<{ contacts: BrandContact[]; migrated: boolean }>(res)
+    const data = await readJson<{ contacts: BrandContact[]; migrated: boolean; removal?: boolean }>(res)
     if (!res.ok) {
       toast('error', data.error ?? 'Failed to load contacts')
       return
     }
     setContacts(data.contacts)
     setMigrated(data.migrated)
-  }, [base, toast])
+    setRemoval(!!data.removal)
+    if (showRemoved && isAdmin && data.removal) {
+      const r = await fetch(`${base}?removed=1`)
+      const rd = await readJson<{ contacts: BrandContact[] }>(r)
+      if (r.ok) {setRemoved(rd.contacts)}
+    }
+  }, [base, toast, showRemoved, isAdmin])
 
   useEffect(() => { void load() }, [load, version])
 
@@ -160,7 +171,7 @@ export function ContactsEditor({ lead, readOnly, compact }: ContactsEditorProps)
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
                 <button disabled={busy}
-                  onClick={() => { if (window.confirm(`Remove ${contactName(c)} from ${lead.lead_id}?`)) {void send(`${base}/${c.id}`, 'DELETE').then((ok) => { if (ok) {toast('success', 'Contact removed')} })} }}
+                  onClick={() => { if (window.confirm(`Remove ${contactName(c)} from ${lead.lead_id}?${removal ? ' Their email still blocks duplicates, and an admin restores them from Removed contacts.' : ''}`)) {void send(`${base}/${c.id}`, 'DELETE').then((ok) => { if (ok) {toast('success', 'Contact removed')} })} }}
                   className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-red-400" aria-label={`Remove ${contactName(c)}`}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -173,6 +184,33 @@ export function ContactsEditor({ lead, readOnly, compact }: ContactsEditorProps)
         <button onClick={() => { setEditId('new'); setDraft(empty()); setErrors({}) }} className={cn(ghostButtonClass, 'px-2.5 py-1 text-xs')}>
           <Plus className="h-3.5 w-3.5" /> Add contact
         </button>
+      )}
+      {isAdmin && removal && !readOnly && (
+        <div className="pt-1">
+          <button onClick={() => setShowRemoved(!showRemoved)} className="text-xs text-slate-400 hover:text-white" aria-expanded={showRemoved}>
+            {showRemoved ? 'Hide removed contacts' : 'Removed contacts'}
+          </button>
+          {showRemoved && (
+            removed.length === 0 ? <p className="mt-1 text-xs text-slate-500">No removed contacts.</p> : (
+              <ul className="mt-1 divide-y divide-slate-800/70 rounded-lg border border-slate-800 bg-slate-950/40 px-2">
+                {removed.map((c) => (
+                  <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-xs text-slate-400">
+                    <span>
+                      <span className="text-slate-300">{contactName(c)}</span>
+                      {c.email ? ` · ${c.email}` : ''}
+                      {c.deleted_at ? ` · removed ${new Date(c.deleted_at).toLocaleDateString()}` : ''}
+                    </span>
+                    <button disabled={busy}
+                      onClick={() => void send(`${base}/${c.id}/restore`, 'POST').then((ok) => { if (ok) {toast('success', `${contactName(c)} restored`)} })}
+                      className="inline-flex items-center gap-1 rounded-md border border-slate-700 px-2 py-0.5 text-xs text-slate-200 hover:bg-slate-800">
+                      <RotateCcw className="h-3 w-3" /> Restore
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )
+          )}
+        </div>
       )}
       {action && (
         <ActionDialog lead={lead} leadType="brand" action={action.action} contact={action.contact} onClose={() => setAction(null)} />

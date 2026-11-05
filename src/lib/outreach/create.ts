@@ -1,6 +1,6 @@
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
-import { leadKeys, validateLeadUpdates, type LeadType } from '@/lib/outreach/rules'
+import { leadKeys, previouslyLabel, validateLeadUpdates, type LeadType } from '@/lib/outreach/rules'
 import { findDuplicates, leadTable, loadTeam, mapDbError, type OutreachCaller } from '@/lib/outreach/server'
 import type { OutreachLead } from '@/lib/outreach/types'
 
@@ -52,11 +52,11 @@ export async function createLead(
   const duplicates = await findDuplicates(supabase, keys)
   if (duplicates.size > 0) {
     const list = [...duplicates.values()]
-    const deleted = list.find((d) => d.deleted)
+    const gone = list.map(previouslyLabel).find(Boolean)
     return {
       ok: false,
       status: 409,
-      body: { error: deleted ? `Previously deleted: ${deleted.lead_id}` : 'Already exists', duplicates: list },
+      body: { error: gone ?? 'Already exists', duplicates: list },
     }
   }
 
