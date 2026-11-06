@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '30',
+    title: 'B2B and SaaS Influencers in India: Who to Hire Beyond Gadget Reviewers',
+    excerpt: 'Most Indian tech creator lists cover smartphones. See how B2B and SaaS brands find developer, DevOps and LinkedIn creators in India, with rate tips.',
+    date: '2026-11-06',
+    author: 'Infoishai Team',
+    category: 'India',
+    readTime: '10 min read',
+    slug: 'b2b-saas-influencers-india',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '29',
     title: 'The Six Types of B2B Tech Influencers and When to Hire Each',
     excerpt: 'Analysts, developer advocates, practitioners, YouTubers and more: learn the six types of B2B tech influencers and which one fits your product and funnel stage.',
