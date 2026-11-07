@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '31',
+    title: 'Influencer Disclosure Rules for B2B Tech Campaigns: What Brands Must Brief',
+    excerpt: 'Plain-English guide to FTC and ASA disclosure for B2B tech influencer campaigns: what counts as a material connection, where to disclose, and what to brief.',
+    date: '2026-11-07',
+    author: 'Infoishai Team',
+    category: 'Guide',
+    readTime: '9 min read',
+    slug: 'influencer-disclosure-rules-b2b',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '30',
     title: 'B2B and SaaS Influencers in India: Who to Hire Beyond Gadget Reviewers',
     excerpt: 'Most Indian tech creator lists cover smartphones. See how B2B and SaaS brands find developer, DevOps and LinkedIn creators in India, with rate tips.',
