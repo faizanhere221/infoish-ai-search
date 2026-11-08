@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '32',
+    title: 'YouTube Sponsorship Cost for B2B SaaS: Dedicated Videos, Integrations and CPM',
+    excerpt: 'How much does a tech YouTube sponsorship cost for SaaS? See CPM math, dedicated vs integration pricing, and a sample budget before you contact a creator.',
+    date: '2026-11-08',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '9 min read',
+    slug: 'youtube-sponsorship-cost-b2b-saas',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '31',
     title: 'Influencer Disclosure Rules for B2B Tech Campaigns: What Brands Must Brief',
     excerpt: 'Plain-English guide to FTC and ASA disclosure for B2B tech influencer campaigns: what counts as a material connection, where to disclose, and what to brief.',
