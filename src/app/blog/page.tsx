@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '33',
+    title: 'SaaS Influencer Marketing Playbook: From Awareness to Trial Sign-Ups',
+    excerpt: 'A funnel-based SaaS influencer marketing playbook: which creators, platforms and deliverables fit each stage, plus KPIs and a first campaign budget.',
+    date: '2026-11-09',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '11 min read',
+    slug: 'saas-influencer-marketing-playbook',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '32',
     title: 'YouTube Sponsorship Cost for B2B SaaS: Dedicated Videos, Integrations and CPM',
     excerpt: 'How much does a tech YouTube sponsorship cost for SaaS? See CPM math, dedicated vs integration pricing, and a sample budget before you contact a creator.',
