@@ -222,6 +222,12 @@ export const config = {
   // Previously only /api and /admin — widened so every page response also
   // gets the security headers below. Static assets are excluded since they
   // don't need these headers and this keeps the middleware off the hot path
-  // for every image/font/js chunk request.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|ico|woff2?)$).*)'],
+  // for every image/font/js chunk request. Also skipped: everything under
+  // /_next/, the Sentry tunnel (/monitoring, needs no auth), and public
+  // files by extension (robots.txt, sitemap.xml, llms.txt, the web
+  // manifest, the demo video). No page or API route ends in one of these
+  // extensions; /badge/[file] serves .svg/.png, already skipped before.
+  matcher: [
+    '/((?!_next/|monitoring|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|woff2?|ttf|otf|css|js|map|txt|xml|html|webmanifest|mp4|webm|pdf)$).*)',
+  ],
 }
