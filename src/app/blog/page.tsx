@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '34',
+    title: 'Marketplace, Agency or Freelancer? How Tech Brands Should Buy Influencer Marketing',
+    excerpt: 'Compare influencer marketplaces, agencies, freelancers and in-house teams for tech brands: costs, speed, control and when each delivery model makes sense.',
+    date: '2026-11-10',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '10 min read',
+    slug: 'influencer-marketplace-vs-agency-tech',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '33',
     title: 'SaaS Influencer Marketing Playbook: From Awareness to Trial Sign-Ups',
     excerpt: 'A funnel-based SaaS influencer marketing playbook: which creators, platforms and deliverables fit each stage, plus KPIs and a first campaign budget.',
