@@ -15,8 +15,8 @@ Sentry.init({
 
   // httpIntegration is included by default; re-declared here (same
   // integration name, so this overrides rather than adds a second one) to
-  // set ignoreIncomingRequests: usePolling hits GET /api/conversations and
-  // GET /api/conversations/*/messages every 3-10s, and an incoming-request
+  // set ignoreIncomingRequests: polling hits GET /api/dashboard/activity and
+  // GET /api/conversations/*/messages every 10-60s, and an incoming-request
   // span would otherwise be created for every poll tick on the server side
   // too, on top of the client-side filtering in instrumentation-client.ts.
   integrations: [

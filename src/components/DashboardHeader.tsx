@@ -11,8 +11,7 @@ import {
   X
 } from 'lucide-react'
 import ProfileDropdown, { type ProfileDropdownProfile } from './ProfileDropdown'
-import { useConversationsList } from '@/hooks/useConversationsList'
-import { usePolling } from '@/hooks/usePolling'
+import { useActivity } from '@/hooks/useActivity'
 import { captureError } from '@/lib/error-tracking'
 import { getEventTab, campaignCreatorGoUrl } from '@/lib/campaign-creator-cta'
 
@@ -45,7 +44,6 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [latestNotifications, setLatestNotifications] = useState<HeaderNotification[]>([])
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false)
-  const [campaignBadgeCount, setCampaignBadgeCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [emailVerified, setEmailVerified] = useState(true) // assume verified until we know otherwise — avoids a flash of the banner
   const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle')
@@ -79,12 +77,16 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
     }
   }
 
-  // Messages unread badge: polled every 10s (paused while hidden, refetched
-  // on refocus) by the same hook the inbox itself uses.
-  const { unreadTotal: unreadMessages } = useConversationsList(userType, profile?.id ?? null, authToken)
+  // Messages + notifications badges and the nav count all come from one
+  // shared, cheap poll (GET /api/dashboard/activity, once a minute, paused
+  // while the tab is hidden or idle). See useActivity.
+  const { activity, campaignBadge } = useActivity(authToken, { badges: true })
+  const unreadMessages = activity?.messages.unread ?? 0
+  const campaignBadgeCount = campaignBadge ?? 0
+  const notificationsVersion = activity?.notifications.version ?? null
 
-  // Latest 10 + unread count for the bell dropdown, polled every 20s while
-  // the tab is visible (usePolling pauses in the background automatically).
+  // Latest 10 for the bell dropdown: loaded once, then again only when the
+  // activity check says the notifications changed.
   const fetchNotifications = useCallback(async () => {
     if (!profile?.id || !authToken) {return}
     try {
@@ -101,39 +103,15 @@ export default function DashboardHeader({ userType, profile, hideNotifications =
     }
   }, [profile, authToken])
 
-  useEffect(() => { fetchNotifications() }, [fetchNotifications])
-  usePolling(fetchNotifications, 20000, { enabled: Boolean(profile?.id && authToken) })
-
-  const fetchCampaignBadgeCount = useCallback(async () => {
-    if (!profile?.id || !authToken) {return}
-    try {
-      // Active campaigns for brands, total applications for creators
-      if (userType === 'brand') {
-        const campaignsRes = await fetch('/api/campaigns?status=published&limit=50', {
-          headers: { Authorization: `Bearer ${authToken}` },
-        })
-        if (campaignsRes.ok) {
-          const campaignsData = await campaignsRes.json()
-          setCampaignBadgeCount(campaignsData.total ?? (campaignsData.campaigns || []).length)
-        }
-      } else {
-        const applicationsRes = await fetch('/api/applications', {
-          headers: { Authorization: `Bearer ${authToken}` },
-        })
-        if (applicationsRes.ok) {
-          const applicationsData = await applicationsRes.json()
-          setCampaignBadgeCount((applicationsData.applications || []).length)
-        }
-      }
-    } catch (err) {
-      captureError(err, { context: 'DashboardHeader: fetchCampaignBadgeCount' })
-    }
-  }, [profile, userType, authToken])
-
+  const loadedVersionRef = useRef<string | null>(null)
   useEffect(() => {
-    fetchCampaignBadgeCount()
-  }, [fetchCampaignBadgeCount])
-  usePolling(fetchCampaignBadgeCount, 5000, { enabled: Boolean(profile?.id && authToken) })
+    if (!profile?.id || !authToken) {return}
+    // Wait for the first activity answer so the list loads once, not twice.
+    if (notificationsVersion === null) {return}
+    if (loadedVersionRef.current === notificationsVersion) {return}
+    loadedVersionRef.current = notificationsVersion
+    void fetchNotifications()
+  }, [profile?.id, authToken, notificationsVersion, fetchNotifications])
 
   // Close the notification dropdown on an outside click.
   useEffect(() => {

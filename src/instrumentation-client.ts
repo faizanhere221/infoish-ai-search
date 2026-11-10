@@ -23,8 +23,8 @@ try {
     // is included by default whenever tracesSampleRate is set, but is re-declared
     // explicitly here (same integration name, so this overrides the default
     // rather than adding a second one) to set shouldCreateSpanForRequest: our
-    // usePolling hook hits GET /api/conversations and
-    // GET /api/conversations/*/messages every 3-10s, and a span would
+    // polling hits GET /api/dashboard/activity (1/min) and
+    // GET /api/conversations/*/messages (every 10s), and a span would
     // otherwise be created for every single poll tick, burning trace quota on
     // requests that are never interesting on their own.
     // Session Replay is not listed here: it's added lazily below, only for

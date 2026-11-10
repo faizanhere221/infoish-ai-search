@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { usePolling } from './usePolling'
+import { useActivity } from './useActivity'
 
 export interface ConversationSummary {
   id: string
@@ -18,10 +18,10 @@ export interface ConversationSummary {
   brand: { id: string; company_name: string; logo_url: string | null; contact_name: string | null } | null
 }
 
-const POLL_INTERVAL_MS = 10_000
-
-// Conversation list + unread badge, polled every 10s (paused when the tab is
-// hidden, refetched immediately on refocus — see usePolling).
+// Conversation list + unread badge. The full list (4 queries, with names
+// and avatars) loads once; after that it reloads only when the shared
+// once-a-minute activity check (useActivity) reports a new message or an
+// unread change, so an unchanged inbox costs one tiny request a minute.
 export function useConversationsList(
   userType: 'brand' | 'creator' | null,
   profileId: string | null,
@@ -53,7 +53,16 @@ export function useConversationsList(
   }, [profileId, userType])
 
   useEffect(() => { fetchList() }, [fetchList])
-  usePolling(fetchList, POLL_INTERVAL_MS, { enabled: Boolean(profileId && userType) })
+
+  const { activity } = useActivity(profileId && userType ? token : null)
+  const messagesVersion = activity?.messages.version ?? null
+  const seenVersionRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (messagesVersion === null) {return}
+    // The first answer only records the version: the list was just loaded.
+    if (seenVersionRef.current !== null && seenVersionRef.current !== messagesVersion) {void fetchList()}
+    seenVersionRef.current = messagesVersion
+  }, [messagesVersion, fetchList])
 
   const unreadTotal = conversations.reduce((sum, c) => {
     const count = userType === 'brand' ? c.brand_unread : c.creator_unread

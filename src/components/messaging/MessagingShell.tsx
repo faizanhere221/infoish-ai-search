@@ -11,6 +11,7 @@ import { ChatThread } from './ChatThread'
 import { MessageInput } from './MessageInput'
 import { useConversationsList } from '@/hooks/useConversationsList'
 import { useConversationThread } from '@/hooks/useConversationThread'
+import { useActivity } from '@/hooks/useActivity'
 import { cn } from '@/lib/utils'
 import type { Attachment } from '@/types/marketplace'
 
@@ -101,8 +102,11 @@ export function MessagingShell({ conversationId }: MessagingShellProps) {
     if (conversationId) {loadConversationMeta()}
   }, [conversationId, loadConversationMeta])
 
+  // After a read receipt, refresh the shared activity check right away so
+  // the header badge and the list clear without waiting for the next poll.
+  const { refresh: refreshActivity } = useActivity(token)
   useEffect(() => {
-    if (conversationId && token) {markAsRead()}
+    if (conversationId && token) {void markAsRead().then(() => refreshActivity())}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, token])
 
