@@ -3,12 +3,14 @@ import { createServerSupabase } from '@/lib/db'
 import { isCreatorPublic } from '@/lib/creators/visibility'
 import { getProfileCompleteness } from '@/lib/profile-completion'
 
-// Every request reads live rows. Without these, Next caches the Supabase
-// fetches in its Data Cache (which survives rebuilds), so a creator hidden
-// after the last cache fill stayed in the sitemap while their profile
-// already returned 404.
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
+// ISR: built once, served from cache, rebuilt at most once an hour (it
+// used to run five queries on every crawler hit). Changes show up at once:
+// revalidateCreatorPublicSurfaces() and revalidateCampaignPublicSurfaces()
+// call revalidatePath('/sitemap.xml') on every hide/unhide, delete,
+// suspend, profile edit and campaign publish/close/edit. That purge also
+// drops the Supabase fetches cached while rendering this route (they carry
+// its path tag), so a hidden creator can't come back from the Data Cache.
+export const revalidate = 3600
 
 const baseUrl = 'https://infoishai.com'
 
