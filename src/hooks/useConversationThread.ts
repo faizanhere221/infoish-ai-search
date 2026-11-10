@@ -21,7 +21,7 @@ export interface ThreadMessage {
   pendingStatus?: 'sending' | 'failed'
 }
 
-const POLL_INTERVAL_MS = 3000
+const POLL_INTERVAL_MS = 10_000
 const PAGE_SIZE = 50
 
 function cursorOf(message: { created_at: string; id: string }): string {
