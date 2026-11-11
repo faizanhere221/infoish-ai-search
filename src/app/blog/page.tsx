@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '35',
+    title: 'Influencer Marketing for AI Startups: How to Earn Trust Without the Hype',
+    excerpt: 'How AI startups work with creators: pick credible demo-focused voices, brief for honesty, track trials, and avoid the hype behind lost trust.',
+    date: '2026-11-11',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '10 min read',
+    slug: 'influencer-marketing-for-ai-startups',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '34',
     title: 'Marketplace, Agency or Freelancer? How Tech Brands Should Buy Influencer Marketing',
     excerpt: 'Compare influencer marketplaces, agencies, freelancers and in-house teams for tech brands: costs, speed, control and when each delivery model makes sense.',
