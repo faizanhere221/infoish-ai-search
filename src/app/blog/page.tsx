@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '36',
+    title: 'Working with Tech YouTubers: Briefs, Deliverables and Realistic Timelines',
+    excerpt: 'A practical playbook for tech YouTuber campaigns: the brief, the deliverables to buy, review rounds, timelines and how to read the results.',
+    date: '2026-11-12',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '10 min read',
+    slug: 'tech-youtuber-campaign-playbook',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '35',
     title: 'Influencer Marketing for AI Startups: How to Earn Trust Without the Hype',
     excerpt: 'How AI startups work with creators: pick credible demo-focused voices, brief for honesty, track trials, and avoid the hype behind lost trust.',
