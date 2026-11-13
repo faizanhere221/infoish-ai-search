@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '37',
+    title: 'How to Budget a Tech Influencer Campaign: Pilot Plans from $5k to $50k',
+    excerpt: 'Three sample tech influencer pilots at $5k, $20k and $50k, a creator-tier split, and the hidden costs first-time brands forget.',
+    date: '2026-11-13',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '10 min read',
+    slug: 'tech-influencer-campaign-budget',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '36',
     title: 'Working with Tech YouTubers: Briefs, Deliverables and Realistic Timelines',
     excerpt: 'A practical playbook for tech YouTuber campaigns: the brief, the deliverables to buy, review rounds, timelines and how to read the results.',
