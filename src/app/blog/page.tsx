@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '38',
+    title: 'Tech Creator Brief Template: What to Include for Developer and B2B Audiences',
+    excerpt: 'A fill-in tech creator brief with technical accuracy and security fields, a good vs weak comparison, and a simple approval workflow.',
+    date: '2026-11-14',
+    author: 'Infoishai Team',
+    category: 'Guide',
+    readTime: '9 min read',
+    slug: 'tech-creator-brief-template',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '37',
     title: 'How to Budget a Tech Influencer Campaign: Pilot Plans from $5k to $50k',
     excerpt: 'Three sample tech influencer pilots at $5k, $20k and $50k, a creator-tier split, and the hidden costs first-time brands forget.',
