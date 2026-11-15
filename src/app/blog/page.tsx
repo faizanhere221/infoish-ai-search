@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '39',
+    title: 'How to Pitch Tech Brands as a Creator: Email Templates to Get Replies',
+    excerpt: 'Three pitch email templates for tech creators (cold, warm intro, follow-up), what B2B brands check first, how to quote and when to follow up.',
+    date: '2026-11-15',
+    author: 'Infoishai Team',
+    category: 'Guide',
+    readTime: '8 min read',
+    slug: 'pitch-tech-brands-creator-email-template',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '38',
     title: 'Tech Creator Brief Template: What to Include for Developer and B2B Audiences',
     excerpt: 'A fill-in tech creator brief with technical accuracy and security fields, a good vs weak comparison, and a simple approval workflow.',
