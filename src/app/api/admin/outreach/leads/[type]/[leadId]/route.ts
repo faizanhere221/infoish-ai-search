@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { editLead } from '@/lib/outreach/edit'
+import { outreachFeatures } from '@/lib/outreach/schema'
 import {
   adminOnly, getOutreachCaller, leadTable, leadTypeFromSegment, unauthorized, withDncFlags,
 } from '@/lib/outreach/server'
@@ -29,9 +30,11 @@ export async function GET(request: NextRequest, { params }: Params) {
     if (!data) {return NextResponse.json({ error: 'Lead not found' }, { status: 404 })}
 
     const [lead] = await withDncFlags(supabase, [data as OutreachLead])
+    // subject (first contact) after outreach_followups_migration.sql
+    const { followUps } = await outreachFeatures(supabase)
     const { data: activity } = await supabase
       .from('outreach_activity')
-      .select('id, user_id, action, mailbox_id, channel, changes, undone_at, created_at')
+      .select(`id, user_id, action, mailbox_id, channel, changes, undone_at, created_at${followUps ? ', subject' : ''}`)
       .eq('lead_type', leadType)
       .eq('lead_id', params.leadId)
       .order('created_at', { ascending: false })

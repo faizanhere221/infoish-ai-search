@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
-import { emailDomain, listsFor, type LeadType } from '@/lib/outreach/rules'
-import type { DuplicateMatch, OutreachLead, OutreachTeamMember } from '@/lib/outreach/types'
+import { emailDomain, karachiToday, listsFor, type LeadType } from '@/lib/outreach/rules'
+import type { ContactedInfo, DuplicateMatch, OutreachLead, OutreachTeamMember } from '@/lib/outreach/types'
 
 type Supabase = ReturnType<typeof createServerSupabase>
 
@@ -213,6 +213,7 @@ export interface LeadFilters {
   niche: string | null
   platform: string | null
   channel: string | null
+  mailbox: string | null // the mailbox of the lead's latest send (brands: of any contact's latest send)
   missingEmail: boolean
   deleted: boolean // true: only deleted leads (admin "Deleted" filter); false: deleted leads hidden
   list: string | null // needs the contacts/lists migration; routes clear it before then
@@ -241,6 +242,7 @@ export function parseLeadFilters(leadType: LeadType, params: URLSearchParams, ca
     niche: leadType === 'creator' ? params.get('niche') || null : null,
     platform: leadType === 'creator' ? params.get('platform') || null : null,
     channel: params.get('channel') || null,
+    mailbox: params.get('mailbox') || null,
     missingEmail: params.get('missing') === 'email',
     deleted: params.get('deleted') === '1',
     list: (listsFor(leadType) as readonly string[]).includes(params.get('list') ?? '') ? params.get('list') : null,
@@ -270,6 +272,7 @@ export function leadListQuery(
   if (f.niche) {query = query.ilike('niche', f.niche)}
   if (f.platform) {query = query.ilike('platform', f.platform)}
   if (f.channel) {query = query.eq('channel', f.channel)}
+  if (f.mailbox) {query = query.eq('mailbox_id', f.mailbox)}
   if (f.missingEmail) {query = query.is('email', null)}
   if (f.list) {query = query.eq('list', f.list)}
   query = f.deleted ? query.not('deleted_at', 'is', null) : query.is('deleted_at', null)
@@ -280,6 +283,52 @@ export function leadListQuery(
   return query
     .order(f.sort, { ascending: f.dir === 'asc', nullsFirst: false })
     .order('lead_id', { ascending: true })
+}
+
+// ─── Follow-ups: the latest "contacted" activity per lead / contact ─────────
+
+const CONTACTED_CHUNK = 200
+
+// Keys: contactedKey(leadId) for the lead itself (creators, brands without
+// contacts) and contactedKey(leadId, contactId) per brand contact. Reads
+// activity rows that already exist, so leads contacted before this feature
+// show too. Columns follow the schema: contact_id after the contacts
+// migration, subject after outreach_followups_migration.sql.
+export function contactedKey(leadId: string, contactId?: string | null): string {
+  return `${leadId}|${contactId ?? ''}`
+}
+
+export async function loadContactedInfo(
+  supabase: Supabase,
+  leadIds: string[],
+  features: { contacts: boolean; followUps: boolean },
+): Promise<Map<string, ContactedInfo>> {
+  const out = new Map<string, ContactedInfo>()
+  const ids = [...new Set(leadIds)]
+  const columns = `lead_id, user_id, mailbox_id, channel, created_at${features.contacts ? ', contact_id' : ''}${features.followUps ? ', subject' : ''}`
+  for (let i = 0; i < ids.length; i += CONTACTED_CHUNK) {
+    const chunk = ids.slice(i, i + CONTACTED_CHUNK)
+    const rows = await fetchAllRows<{
+      lead_id: string; contact_id?: string | null; user_id: string | null; mailbox_id: string | null
+      channel: string | null; created_at: string; subject?: string | null
+    }>((from, to) => supabase.from('outreach_activity').select(columns)
+      .in('lead_id', chunk).eq('action', 'contacted').is('undone_at', null)
+      .order('created_at', { ascending: false }).order('id', { ascending: false })
+      .range(from, to), 20_000)
+    for (const r of rows) {
+      const key = contactedKey(r.lead_id, r.contact_id)
+      if (out.has(key)) {continue} // newest first: keep the latest
+      out.set(key, {
+        at: r.created_at,
+        date: karachiToday(new Date(r.created_at)),
+        user_id: r.user_id,
+        mailbox_id: r.mailbox_id,
+        channel: r.channel,
+        subject: r.subject ?? null,
+      })
+    }
+  }
+  return out
 }
 
 export interface FilterValues {

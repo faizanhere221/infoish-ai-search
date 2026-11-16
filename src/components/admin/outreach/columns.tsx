@@ -1,7 +1,7 @@
 'use client'
 
 import { COUNTRIES, NICHES, PLATFORMS, platformName } from '@/utils/constants'
-import { CHANNEL_LABELS, CHANNELS, LINK_LABELS, LIST_LABELS, leadLinks, listsFor, primaryLink, type LeadType } from '@/lib/outreach/rules'
+import { CHANNEL_LABELS, CHANNELS, LINK_LABELS, LIST_LABELS, leadLinks, listsFor, primaryLink, viaLabel, type LeadType } from '@/lib/outreach/rules'
 import type { OutreachLeadRow, OutreachTeamMember } from '@/lib/outreach/types'
 import type { CellEditor } from '@/components/admin/outreach/EditableCell'
 import { ExternalLink, formatCount, LinkIcon, LinkIcons, StatusBadge } from '@/components/admin/outreach/ui'
@@ -12,7 +12,7 @@ import { ExternalLink, formatCount, LinkIcon, LinkIcons, StatusBadge } from '@/c
 
 export type ColumnKind =
   | 'text' | 'email' | 'url' | 'int' | 'number' | 'platform' | 'country' | 'niche' | 'channel'
-  | 'owner' | 'bool' | 'status' | 'date' | 'extra' | 'links' | 'list' | 'contacts'
+  | 'owner' | 'bool' | 'status' | 'date' | 'extra' | 'links' | 'list' | 'contacts' | 'via'
 
 export interface LeadColumn {
   id: string
@@ -28,7 +28,7 @@ export interface LeadColumn {
 }
 
 const col = (id: string, label: string, kind: ColumnKind, opts: Partial<LeadColumn> = {}): LeadColumn => ({
-  id, label, kind, field: kind === 'date' || kind === 'links' || kind === 'contacts' ? undefined : id, ...opts,
+  id, label, kind, field: kind === 'date' || kind === 'links' || kind === 'contacts' || kind === 'via' ? undefined : id, ...opts,
 })
 
 export const CREATOR_COLUMNS: LeadColumn[] = [
@@ -52,6 +52,8 @@ export const CREATOR_COLUMNS: LeadColumn[] = [
   col('owner_user_id', 'Owner', 'owner', { defaultVisible: true }),
   col('list', 'List', 'list', { defaultVisible: true }),
   col('channel', 'Channel', 'channel'),
+  // Read-only: the mailbox address of the latest send, or the DM platform.
+  col('contacted_via', 'Contacted via', 'via', { defaultVisible: true }),
   col('status', 'Status', 'status', { sort: 'status', defaultVisible: true, field: undefined }),
   col('date_contacted', 'Contacted', 'date', { sort: 'date_contacted', defaultVisible: true }),
   col('follow_up_date', 'Follow-up', 'date', { sort: 'follow_up_date', defaultVisible: true }),
@@ -79,6 +81,8 @@ export const BRAND_COLUMNS: LeadColumn[] = [
   col('owner_user_id', 'Owner', 'owner', { defaultVisible: true }),
   col('list', 'List', 'list', { defaultVisible: true }),
   col('channel', 'Channel', 'channel'),
+  // Read-only: the mailbox address of the latest send, or the DM platform.
+  col('contacted_via', 'Contacted via', 'via', { defaultVisible: true }),
   col('status', 'Status', 'status', { sort: 'status', defaultVisible: true, field: undefined }),
   col('date_contacted', 'Contacted', 'date', { sort: 'date_contacted', defaultVisible: true }),
   col('follow_up_date', 'Follow-up', 'date', { sort: 'follow_up_date', defaultVisible: true }),
@@ -109,6 +113,7 @@ export function cellDisplay(
   c: LeadColumn,
   ownerName: (id: string | null) => string,
   leadType: LeadType,
+  mailboxAddress: (id: string | null) => string | null = () => null,
 ): React.ReactNode {
   const v = cellValue(lead, c)
   const record = lead as unknown as Record<string, unknown>
@@ -143,6 +148,8 @@ export function cellDisplay(
         </span>
       )
     }
+    // Only once a send happened: the Channel column can be set by hand earlier.
+    case 'via': return (lead.date_contacted && viaLabel(lead.channel, mailboxAddress(lead.mailbox_id))) || <Empty />
     case 'owner': return ownerName(lead.owner_user_id)
     case 'platform': return v ? (platformName(v) === 'Other platform' ? v : platformName(v)) : <Empty />
     case 'channel': return v ? CHANNEL_LABELS[v as keyof typeof CHANNEL_LABELS] ?? v : <Empty />

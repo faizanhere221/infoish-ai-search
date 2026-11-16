@@ -6,7 +6,9 @@
 //     owner rule, follow-up/no-reply dates, mailbox limits, working-day
 //     pace, profile links, and the Creator / Client Database rules: price
 //     maths, rate age, shortlist text, "find matching creators", field and
-//     row validation, rating = admins only). Imports src/lib/outreach/rules.ts
+//     row validation, rating = admins only), and follow-ups (contacted via
+//     label, Gmail / webmail / profile quick-open, subject and webmail URL
+//     cleaning, the other-mailbox warning). Imports src/lib/outreach/rules.ts
 //     and database.ts directly; needs Node 22.18+ or 23.6+ (built-in
 //     TypeScript type stripping). Writes nothing.
 //
@@ -19,7 +21,9 @@
 //     already_in_sheet.txt), and the Database (add / restore, fields,
 //     rates, campaigns, search filters, export,
 //     remove, members can't set the rating or remove), brand contacts
-//     (soft removal, admin restore). WRITES DATA: creates leads tagged
+//     (soft removal, admin restore), follow-ups (subject on Mark contacted,
+//     mailbox webmail URL, mailbox filter, Today rows, follow-up defaults to
+//     the first mailbox). WRITES DATA: creates leads tagged
 //     source=outreach-check, a DNC entry and a mailbox with a 1/day limit,
 //     then soft-deletes the leads (their rows stay, as deleted), removes the
 //     DNC entry and pauses the mailbox. Needs ADMIN_TOKEN (an admin's
@@ -703,6 +707,89 @@ async function contactsListsChecks() {
   })
 }
 
+// ─── Pure logic: follow-ups (how we reached them, where to reply) ────────────
+
+async function followUpChecks() {
+  await check('viaLabel: mailbox address for email, "<Platform> DM" for DMs, null when never reached', () => {
+    assert.equal(rules.viaLabel('email', 'hello@acme.io'), 'hello@acme.io')
+    assert.equal(rules.viaLabel('email', null), 'Email')
+    assert.equal(rules.viaLabel('linkedin', 'ignored@acme.io'), 'LinkedIn DM')
+    assert.equal(rules.viaLabel('x', null), 'X DM')
+    assert.equal(rules.viaLabel('instagram', null), 'Instagram DM')
+    assert.equal(rules.viaLabel('tiktok', null), 'TikTok DM')
+    assert.equal(rules.viaLabel(null, null), null)
+    assert.equal(rules.viaLabel(null, 'old@acme.io'), 'old@acme.io')
+  })
+
+  await check('contactedLine: "Contacted <date> by <person> via <how>", missing parts left out', () => {
+    assert.equal(rules.contactedLine({ date: '2026-11-10', by: 'Faizan', via: 'hello@acme.io' }), 'Contacted 2026-11-10 by Faizan via hello@acme.io')
+    assert.equal(rules.contactedLine({ date: '2026-11-10', by: null, via: 'X DM' }), 'Contacted 2026-11-10 via X DM')
+    assert.equal(rules.contactedLine({ date: null }), 'Contacted')
+  })
+
+  await check('cleanSubject: one trimmed line, capped at 300, empty = null', () => {
+    assert.equal(rules.cleanSubject('  Quick   question\nabout your  channel '), 'Quick question about your channel')
+    assert.equal(rules.cleanSubject('   '), null)
+    assert.equal(rules.cleanSubject(null), null)
+    assert.equal(rules.cleanSubject(42), null)
+    assert.equal(rules.cleanSubject('a'.repeat(500)).length, rules.SUBJECT_MAX_LENGTH)
+  })
+
+  await check('cleanWebmailUrl: https added, other schemes refused, empty clears', () => {
+    assert.deepEqual(rules.cleanWebmailUrl('mail.hostinger.com'), { ok: true, value: 'https://mail.hostinger.com' })
+    assert.deepEqual(rules.cleanWebmailUrl('https://webmail.acme.io/?_task=mail'), { ok: true, value: 'https://webmail.acme.io/?_task=mail' })
+    assert.deepEqual(rules.cleanWebmailUrl(''), { ok: true, value: null })
+    assert.deepEqual(rules.cleanWebmailUrl(null), { ok: true, value: null })
+    assert.equal(rules.cleanWebmailUrl('javascript:alert(1)').ok, false)
+    assert.equal(rules.cleanWebmailUrl('not a url').ok, false)
+    assert.equal(rules.cleanWebmailUrl('localhost').ok, false)
+  })
+
+  await check('Gmail search link opens the right account and searches for the lead', () => {
+    assert.equal(rules.isGmailMailbox({ address: 'me@acme.io', is_personal: true }), true)
+    assert.equal(rules.isGmailMailbox({ address: 'Me@GMAIL.com', is_personal: false }), true)
+    assert.equal(rules.isGmailMailbox({ address: 'out@acme.io', is_personal: false }), false)
+    assert.equal(
+      rules.gmailSearchUrl('faizan@acme.io', 'sam+yt@creator.co'),
+      'https://mail.google.com/mail/u/?authuser=faizan%40acme.io#search/sam%2Byt%40creator.co',
+    )
+  })
+
+  await check('followUpQuickOpen: webmail beats Gmail, Gmail for personal, copy otherwise, profile for DMs', () => {
+    const links = rules.leadLinks('creator', { profile_url: 'https://youtube.com/@sam', linkedin: 'linkedin.com/in/sam', x: 'x.com/sam' })
+    const hostinger = { address: 'out@acme.io', is_personal: false, webmail_url: 'https://mail.hostinger.com' }
+    const gmail = { address: 'me@acme.io', is_personal: true, webmail_url: null }
+    const plain = { address: 'out@acme.io', is_personal: false, webmail_url: null }
+
+    assert.deepEqual(rules.followUpQuickOpen({ channel: 'email', mailbox: hostinger, email: 'sam@c.co', links }),
+      { kind: 'webmail', url: 'https://mail.hostinger.com', copy: 'sam@c.co', label: 'Copy email + open webmail' })
+    const g = rules.followUpQuickOpen({ channel: 'email', mailbox: gmail, email: 'sam@c.co', links })
+    assert.equal(g.kind, 'gmail')
+    assert.equal(g.url, rules.gmailSearchUrl('me@acme.io', 'sam@c.co'))
+    assert.equal(rules.followUpQuickOpen({ channel: 'email', mailbox: { ...gmail, webmail_url: 'mail.acme.io' }, email: 'sam@c.co', links }).kind, 'webmail')
+    assert.deepEqual(rules.followUpQuickOpen({ channel: 'email', mailbox: plain, email: 'sam@c.co', links }), { kind: 'copy', copy: 'sam@c.co', label: 'Copy email' })
+    assert.equal(rules.followUpQuickOpen({ channel: 'email', mailbox: gmail, email: null, links }), null)
+    // A bad stored webmail URL never becomes a link: falls back to Gmail / copy.
+    assert.equal(rules.followUpQuickOpen({ channel: 'email', mailbox: { ...plain, webmail_url: 'javascript:alert(1)' }, email: 'sam@c.co', links }).kind, 'copy')
+
+    assert.deepEqual(rules.followUpQuickOpen({ channel: 'linkedin', mailbox: null, email: 'sam@c.co', links }),
+      { kind: 'profile', url: 'https://linkedin.com/in/sam', label: 'Open LinkedIn' })
+    assert.equal(rules.followUpQuickOpen({ channel: 'x', mailbox: null, email: null, links }).url, 'https://x.com/sam')
+    assert.equal(rules.followUpQuickOpen({ channel: 'tiktok', mailbox: null, email: null, links }), null, 'no TikTok link saved')
+    assert.equal(rules.followUpQuickOpen({ channel: null, mailbox: null, email: 'sam@c.co', links }), null, 'never reached')
+    // Old rows with a mailbox but no channel count as email.
+    assert.equal(rules.followUpQuickOpen({ channel: null, mailbox: gmail, email: 'sam@c.co', links }).kind, 'gmail')
+  })
+
+  await check('follow-up from another mailbox warns about the thread; same / none says nothing', () => {
+    assert.equal(rules.differentMailboxWarning('m1', 'm2', 'first@acme.io'),
+      'First email went from first@acme.io; reply from the same mailbox to keep the thread.')
+    assert.equal(rules.differentMailboxWarning('m1', 'm1', 'first@acme.io'), null)
+    assert.equal(rules.differentMailboxWarning(null, 'm2', null), null, 'first contact was a DM or unknown')
+    assert.equal(rules.differentMailboxWarning('m1', '', 'first@acme.io'), null, 'nothing picked yet')
+  })
+}
+
 // ─── HTTP (writes data) ──────────────────────────────────────────────────────
 
 function loadEnvFile(filePath) {
@@ -751,6 +838,7 @@ async function httpChecks() {
   const created = []
   let dncId = null
   let mailboxId = null
+  let fuMailboxId = null // follow-up checks
 
   try {
     const team = await call('GET', '/api/admin/outreach/team').catch(() => null)
@@ -1489,6 +1577,84 @@ async function httpChecks() {
       skip('database member checks (rating hidden, no remove)', 'OUTREACH_TOKEN not set in .env.test.local')
     }
 
+    // ── Follow-ups: subject, webmail URL, "contacted via" ──
+    const mbList = await call('GET', '/api/admin/outreach/mailboxes')
+    const v4 = mbList.json?.features?.webmailUrl === true
+    const meId = team.json?.me?.user_id ?? null
+    await check(`follow-ups: mailbox webmail URL is checked${v4 ? ' (https added, javascript: refused, empty clears)' : ' (409 before the migration)'}`, async () => {
+      const r = await call('POST', '/api/admin/outreach/mailboxes', {
+        address: `${tag}.fu@outreach-check.invalid`, start_date: '2026-01-01', is_personal: false, custom_limit: 5,
+        ...(v4 ? { webmail_url: 'mail.hostinger.com' } : {}),
+      })
+      assert.equal(r.status, 201, JSON.stringify(r.json))
+      fuMailboxId = r.json.mailbox.id
+      const bad = await call('PATCH', `/api/admin/outreach/mailboxes/${fuMailboxId}`, { webmail_url: 'javascript:alert(1)' })
+      assert.equal(bad.status, 400, JSON.stringify(bad.json))
+      if (v4) {
+        assert.equal(r.json.mailbox.webmail_url, 'https://mail.hostinger.com')
+        const cleared = await call('PATCH', `/api/admin/outreach/mailboxes/${fuMailboxId}`, { webmail_url: '' })
+        assert.equal(cleared.status, 200, JSON.stringify(cleared.json))
+        assert.equal(cleared.json.mailbox.webmail_url, null)
+      } else {
+        const early = await call('PATCH', `/api/admin/outreach/mailboxes/${fuMailboxId}`, { webmail_url: 'mail.hostinger.com' })
+        assert.equal(early.status, 409, JSON.stringify(early.json))
+        assert.equal(early.json.code, 'outreach_needs_migration')
+      }
+    })
+
+    let leadF = null
+    await check('follow-ups: add creator F', async () => {
+      const r = await call('POST', '/api/admin/outreach/leads/creators', {
+        name: `${tag} F`, email: `${tag}.f@outreach-check.invalid`, profile_url: `youtube.com/@${tag}F`, source: 'outreach-check',
+        ...(meId ? { owner_user_id: meId } : {}),
+      })
+      assert.equal(r.status, 201, JSON.stringify(r.json))
+      leadF = r.json.lead.lead_id
+      created.push(['creators', leadF])
+    })
+
+    await check(`follow-ups: Mark contacted ${v4 ? 'stores the subject as one trimmed line' : 'with a subject answers 409 before the migration'}`, async () => {
+      const body = { lead_id: leadF, action: 'contacted', channel: 'email', mailbox_id: fuMailboxId, subject: '  Quick  question\nfor you ' }
+      const r = await call('POST', '/api/admin/outreach/actions', body)
+      if (v4) {
+        assert.equal(r.status, 200, JSON.stringify(r.json))
+        const detail = (await call('GET', `/api/admin/outreach/leads/creators/${leadF}`)).json
+        const row = detail.activity.find((a) => a.id === r.json.result.activity_id)
+        assert.equal(row?.subject, 'Quick question for you')
+      } else {
+        assert.equal(r.status, 409, JSON.stringify(r.json))
+        assert.equal(r.json.code, 'outreach_needs_migration')
+        const plain = await call('POST', '/api/admin/outreach/actions', { ...body, subject: undefined })
+        assert.equal(plain.status, 200, JSON.stringify(plain.json))
+      }
+    })
+
+    await check('follow-ups: tables filter by the mailbox of the latest send', async () => {
+      const r = await call('GET', `/api/admin/outreach/leads/creators?q=${tag}&mailbox=${encodeURIComponent(fuMailboxId)}&limit=200`)
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      assert.ok(r.json.leads.some((l) => l.lead_id === leadF), 'lead F is in the mailbox filter')
+      assert.ok(r.json.leads.every((l) => l.mailbox_id === fuMailboxId && l.channel === 'email'))
+      const other = await call('GET', `/api/admin/outreach/leads/creators?q=${tag}&mailbox=${encodeURIComponent(mailboxId)}&limit=200`)
+      assert.ok(!other.json.leads.some((l) => l.lead_id === leadF), 'lead F is not under the other mailbox')
+      const dm = await call('GET', `/api/admin/outreach/leads/creators?q=${tag}&channel=linkedin&limit=200`)
+      assert.ok(dm.json.leads.every((l) => l.channel === 'linkedin'))
+    })
+
+    await check('follow-ups: Today answers 200 and every follow-up row says how the lead was reached', async () => {
+      const r = await call('GET', '/api/admin/outreach/today')
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      for (const row of [...r.json.followUps.creators, ...r.json.followUps.brands]) {
+        assert.ok('contacted' in row, `${row.lead_id} has no contacted info`)
+        for (const c of row.due_contacts ?? []) {assert.ok('contacted' in c, `${row.lead_id} contact ${c.id}`)}
+      }
+    })
+
+    await check('follow-ups: a follow-up with no mailbox given goes from the first mailbox', async () => {
+      const r = await call('POST', '/api/admin/outreach/actions', { lead_id: leadF, action: 'followed_up', channel: 'email' })
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      assert.equal(r.json.result.mailbox_id, fuMailboxId)
+    })
+
     await check('database: a deleted lead\'s entry is hidden and read-only (404 / 409, never 500)', async () => {
       assert.equal((await call('DELETE', `/api/admin/outreach/leads/creators/${dbC}`)).status, 200)
       assert.equal((await call('GET', `${dbApi}/creators/${dbC}`)).status, 404)
@@ -1524,13 +1690,15 @@ async function httpChecks() {
     }
     if (dncId) {await call('DELETE', `/api/admin/outreach/dnc/${dncId}`, { reason: 'outreach-check cleanup' })}
     if (mailboxId) {await call('PATCH', `/api/admin/outreach/mailboxes/${mailboxId}`, { is_active: false })}
-    console.log(`\nCleanup: soft-deleted ${created.length} test leads${dncId ? ' and the DNC entry' : ''}${mailboxId ? `, paused mailbox ${tag}@outreach-check.invalid` : ''}.`)
+    if (fuMailboxId) {await call('PATCH', `/api/admin/outreach/mailboxes/${fuMailboxId}`, { is_active: false })}
+    console.log(`\nCleanup: soft-deleted ${created.length} test leads${dncId ? ' and the DNC entry' : ''}${mailboxId ? `, paused mailbox ${tag}@outreach-check.invalid` : ''}${fuMailboxId ? ` and ${tag}.fu@outreach-check.invalid` : ''}.`)
   }
 }
 
 await pureChecks()
 await databaseChecks()
 await contactsListsChecks()
+await followUpChecks()
 const args = process.argv.slice(2)
 if (args.includes('--http')) {
   if (!args.includes('--confirm=outreach-check')) {

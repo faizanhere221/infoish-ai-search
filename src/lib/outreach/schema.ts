@@ -20,16 +20,24 @@ export interface OutreachFeatures {
   // outreach_contact_soft_delete_migration.sql (version 3): removing a
   // contact is a soft delete, restorable by admins
   contactRemoval: boolean
+  // outreach_followups_migration.sql (version 4): mailbox webmail URL and
+  // the subject / first line on "Mark contacted"
+  followUps: boolean
 }
 
 export async function outreachFeatures(supabase: Supabase): Promise<OutreachFeatures> {
   const v = await outreachSchemaVersion(supabase)
-  return { contacts: v >= 2, lists: v >= 2, mailboxWindow: v >= 2, contactRemoval: v >= 3 }
+  return { contacts: v >= 2, lists: v >= 2, mailboxWindow: v >= 2, contactRemoval: v >= 3, followUps: v >= 4 }
 }
 
 // PostgREST: function or column not there yet (the migration hasn't run).
 export function isMissingSchema(error: { code?: string } | null | undefined): boolean {
   return !!error && ['PGRST202', 'PGRST204', 'PGRST205', '42883', '42703', '42P01'].includes(error.code ?? '')
+}
+
+export const NEEDS_FOLLOWUPS_MIGRATION = {
+  error: 'Run supabase/outreach_followups_migration.sql in the Supabase SQL Editor first.',
+  code: 'outreach_needs_migration',
 }
 
 export const NEEDS_MIGRATION = {

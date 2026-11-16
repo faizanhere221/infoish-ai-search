@@ -4,16 +4,23 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Download } from 'lucide-react'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { CHANNEL_LABELS, karachiSlotLabel, mailboxState, type Pace } from '@/lib/outreach/rules'
-import type { OutreachBrand, OutreachCreator, OutreachLeadRow, OutreachMailboxWithUsage, OutreachTeamMember } from '@/lib/outreach/types'
+import {
+  CHANNEL_LABELS, contactedLine, contactName, followUpQuickOpen, karachiSlotLabel, leadLinks, mailboxState, viaLabel, withHttps,
+  type LeadLink, type Pace,
+} from '@/lib/outreach/rules'
+import type {
+  ContactedInfo, DueContact, FollowUpRow, OutreachBrand, OutreachCreator, OutreachLeadRow, OutreachMailboxWithUsage, OutreachTeamMember,
+} from '@/lib/outreach/types'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
-import { LeadActions } from '@/components/admin/outreach/LeadActions'
-import { Card, DncBadge, ExternalLink, formatCount, ghostButtonClass, mailboxStateClass, ProgressBar, StatusBadge } from '@/components/admin/outreach/ui'
+import { ActionDialog, LeadActions } from '@/components/admin/outreach/LeadActions'
+import {
+  Card, CopyButton, DncBadge, ExternalLink, formatCount, ghostButtonClass, mailboxStateClass, ProgressBar, QuickOpenButton, StatusBadge,
+} from '@/components/admin/outreach/ui'
 
 interface TodayData {
   today: string
   member: OutreachTeamMember | null
-  followUps: { creators: OutreachLeadRow[]; brands: OutreachLeadRow[] }
+  followUps: { creators: FollowUpRow[]; brands: FollowUpRow[] }
   newLeads: { creators: OutreachLeadRow[]; brands: OutreachLeadRow[]; totalCreators: number; totalBrands: number }
   sends: { total: number; contacted: number; followedUp: number; dailyTarget: number }
   pace: { creators: Pace; brands: Pace; dailyTarget: number } | null
@@ -30,7 +37,7 @@ function leadLabel(lead: OutreachLeadRow): { title: string; href: string | null;
   return { title: b.company || b.domain || '(no name)', href: b.website || b.domain, sub: [b.contact_name, b.country, b.score !== null ? `score ${b.score}` : null].filter(Boolean).join(' · ') }
 }
 
-function LeadList({ leads, empty, showDue }: { leads: OutreachLeadRow[]; empty: string; showDue?: boolean }) {
+function LeadList({ leads, empty }: { leads: OutreachLeadRow[]; empty: string }) {
   if (leads.length === 0) {return <p className="text-sm text-slate-500">{empty}</p>}
   return (
     <ul className="divide-y divide-slate-800">
@@ -47,11 +54,120 @@ function LeadList({ leads, empty, showDue }: { leads: OutreachLeadRow[]; empty: 
               <div className="truncate text-xs text-slate-500">
                 {sub}
                 {lead.email ? ` · ${lead.email}` : ''}
-                {showDue && lead.follow_up_date ? ` · due ${lead.follow_up_date}` : ''}
               </div>
             </div>
             <StatusBadge status={lead.status} />
             <LeadActions lead={lead} leadType={lead.lead_id.startsWith('C-') ? 'creator' : 'brand'} />
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+// How one lead or contact was reached, and where to go to reply:
+// "Contacted 2026-11-10 by Faizan via hello@acme.io", the subject, then the
+// email (or the profile link for a DM) with a copy button and quick open.
+// Leads contacted before activity was kept fall back to the row's own fields.
+function ReachedVia({ info, fallback, email, links }: {
+  info: ContactedInfo | null
+  fallback: { date_contacted: string | null; mailbox_id: string | null; channel: string | null }
+  email: string | null
+  links: LeadLink[]
+}) {
+  const { mailboxes, ownerName } = useOutreach()
+  const mailboxId = info?.mailbox_id ?? fallback.mailbox_id
+  const channel = info?.channel ?? fallback.channel
+  const mailbox = mailboxes.find((m) => m.id === mailboxId) ?? null
+  const via = viaLabel(channel, mailbox?.address ?? null)
+  const isDm = !!channel && channel !== 'email'
+  const profile = isDm ? links.find((l) => l.kind === channel) ?? null : null
+  const handle = isDm ? profile?.url ?? null : email
+  const open = followUpQuickOpen({ channel, mailbox, email, links })
+
+  return (
+    <div className="mt-0.5 space-y-0.5 text-xs text-slate-400">
+      <div>{contactedLine({ date: info?.date ?? fallback.date_contacted, by: info?.user_id ? ownerName(info.user_id) : null, via })}</div>
+      {info?.subject && <div className="truncate text-slate-300" title={info.subject}>Subject: {info.subject}</div>}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {handle ? (
+          <span className="inline-flex min-w-0 items-center gap-0.5">
+            {isDm
+              ? <ExternalLink href={handle} className="truncate">{handle.replace(/^https?:\/\/(www\.)?/i, '')}</ExternalLink>
+              : <span className="truncate text-slate-300">{handle}</span>}
+            <CopyButton text={handle} label={isDm ? 'Copy profile link' : 'Copy email'} />
+          </span>
+        ) : (
+          <span className="text-slate-500">{isDm ? `No ${CHANNEL_LABELS[channel as keyof typeof CHANNEL_LABELS] ?? channel} link saved` : 'No email saved'}</span>
+        )}
+        <QuickOpenButton open={open} />
+      </div>
+    </div>
+  )
+}
+
+function DueContactRow({ lead, contact }: { lead: FollowUpRow; contact: DueContact }) {
+  const [open, setOpen] = useState(false)
+  const linkedin = contact.linkedin ? withHttps(contact.linkedin) : null
+  const links: LeadLink[] = linkedin ? [{ kind: 'linkedin', url: linkedin }] : []
+  return (
+    <li className="flex items-start gap-3 py-1.5 pl-4">
+      <div className="min-w-0 flex-1">
+        <div className="text-sm text-slate-200">
+          {contactName(contact)}
+          {contact.title ? <span className="text-xs text-slate-500"> · {contact.title}</span> : null}
+          {contact.follow_up_date ? <span className="text-xs text-slate-500"> · due {contact.follow_up_date}</span> : null}
+        </div>
+        <ReachedVia info={contact.contacted} fallback={contact} email={contact.email} links={links} />
+      </div>
+      {!lead.dnc && (
+        <button onClick={() => setOpen(true)} className="whitespace-nowrap rounded-md bg-violet-600 px-2 py-1 text-xs font-medium text-white hover:bg-violet-700">
+          Followed up
+        </button>
+      )}
+      {open && <ActionDialog lead={lead} leadType="brand" action="followed_up" contact={contact} onClose={() => setOpen(false)} />}
+    </li>
+  )
+}
+
+// Follow-ups due. Creators and brands without contacts: one row each.
+// Brands with contacts: the brand, then each contact due, with its own
+// "Followed up" button (the dialog starts on that contact's first mailbox).
+function FollowUpList({ leads }: { leads: FollowUpRow[] }) {
+  if (leads.length === 0) {return <p className="text-sm text-slate-500">No follow-ups due today.</p>}
+  return (
+    <ul className="divide-y divide-slate-800">
+      {leads.map((lead) => {
+        const leadType = lead.lead_id.startsWith('C-') ? 'creator' : 'brand'
+        const { title, href, sub } = leadLabel(lead)
+        const due = lead.due_contacts ?? []
+        return (
+          <li key={lead.lead_id} className="py-2">
+            <div className="flex items-start gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-slate-500">{lead.lead_id}</span>
+                  <ExternalLink href={href} className="truncate text-sm">{title}</ExternalLink>
+                  {lead.dnc && <DncBadge />}
+                </div>
+                <div className="truncate text-xs text-slate-500">
+                  {sub}
+                  {due.length === 0 && lead.follow_up_date ? ` · due ${lead.follow_up_date}` : ''}
+                  {due.length > 0 ? ` · ${due.length} contact${due.length === 1 ? '' : 's'} due` : ''}
+                </div>
+                {due.length === 0 && (
+                  <ReachedVia info={lead.contacted} fallback={lead} email={lead.email}
+                    links={leadLinks(leadType, lead as unknown as Record<string, unknown>)} />
+                )}
+              </div>
+              <StatusBadge status={lead.status} />
+              <LeadActions lead={lead} leadType={leadType} />
+            </div>
+            {due.length > 0 && (
+              <ul className="mt-1 divide-y divide-slate-800/60 border-l border-slate-800">
+                {due.map((c) => <DueContactRow key={c.id} lead={lead} contact={c} />)}
+              </ul>
+            )}
           </li>
         )
       })}
@@ -170,7 +286,7 @@ export default function OutreachTodayPage() {
       </div>
 
       <Card title={`Follow-ups due (${followUps.length})`}>
-        <LeadList leads={followUps} showDue empty="No follow-ups due today." />
+        <FollowUpList leads={followUps} />
       </Card>
 
       <Card

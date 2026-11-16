@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction } from '@/lib/admin-action'
 import { karachiToday } from '@/lib/outreach/rules'
+import { isMissingSchema, NEEDS_FOLLOWUPS_MIGRATION, outreachFeatures } from '@/lib/outreach/schema'
 import { mailboxCreateSchema } from '@/lib/outreach/schemas'
 import { adminOnly, getOutreachCaller, loadTeam, unauthorized } from '@/lib/outreach/server'
 import { capacitySummary, loadMailboxesWithUsage, loadUserStats, memberPaces } from '@/lib/outreach/stats'
@@ -19,13 +20,15 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createServerSupabase()
     const today = karachiToday()
-    const [mailboxes, team, stats] = await Promise.all([
+    const [mailboxes, team, stats, features] = await Promise.all([
       loadMailboxesWithUsage(supabase, today),
       loadTeam(supabase),
       loadUserStats(supabase, today),
+      outreachFeatures(supabase),
     ])
     const capacity = capacitySummary(mailboxes, memberPaces(team, stats, today))
-    return NextResponse.json({ mailboxes, capacity, today })
+    // webmailUrl: the webmail_url column exists (outreach_followups_migration.sql).
+    return NextResponse.json({ mailboxes, capacity, today, features: { webmailUrl: features.followUps } })
   } catch (err) {
     captureError(err, { route: 'GET /api/admin/outreach/mailboxes' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -44,9 +47,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid input', fields: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
+    // webmail_url only when set, so adding a mailbox works before the follow-ups migration.
+    const { webmail_url, ...fields } = parsed.data
+    const row: Record<string, unknown> = webmail_url ? { ...fields, webmail_url } : fields
     const supabase = createServerSupabase()
-    const { data, error } = await supabase.from('outreach_mailboxes').insert(parsed.data).select('*').single()
+    const { data, error } = await supabase.from('outreach_mailboxes').insert(row).select('*').single()
     if (error) {
+      if (webmail_url && isMissingSchema(error)) {return NextResponse.json(NEEDS_FOLLOWUPS_MIGRATION, { status: 409 })}
       if (error.code === '23505') {return NextResponse.json({ error: 'This mailbox already exists' }, { status: 409 })}
       if (error.code === '23503') {return NextResponse.json({ error: 'Owner not found' }, { status: 400 })}
       captureError(error, { route: 'POST /api/admin/outreach/mailboxes' })

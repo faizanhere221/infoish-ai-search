@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react'
 import { Loader2, Send, X } from 'lucide-react'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import {
-  BRAND_ACTIONS, CHANNEL_LABELS, CHANNELS, CONTACT_ACTIONS, contactName, CREATOR_ACTIONS, karachiSlotLabel, mailboxState,
-  STATUS_LABELS, type Channel, type LeadType,
+  BRAND_ACTIONS, CHANNEL_LABELS, CHANNELS, CONTACT_ACTIONS, contactName, CREATOR_ACTIONS, differentMailboxWarning, karachiSlotLabel,
+  mailboxState, STATUS_LABELS, SUBJECT_MAX_LENGTH, type Channel, type LeadType,
 } from '@/lib/outreach/rules'
 import type { BrandContact, OutreachLeadRow, OutreachMailboxWithUsage } from '@/lib/outreach/types'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
-import { buttonClass, ghostButtonClass, mailboxStateClass, selectClass } from '@/components/admin/outreach/ui'
+import { buttonClass, ghostButtonClass, inputClass, mailboxStateClass, selectClass } from '@/components/admin/outreach/ui'
 
 const NEXT_ACTION: Record<LeadType, Record<string, string>> = {
   creator: { found: 'contacted', contacted: 'followed_up', followed_up: 'replied', replied: 'signed_up' },
@@ -69,6 +69,10 @@ interface ActionDialogProps {
 // One action that needs a choice: channel + mailbox for a send (mailboxes
 // show their usage, warn at 80% and are disabled when full; the server
 // enforces it too), and for brands with several contacts, which contact.
+// A follow-up starts on the mailbox and channel of the first contact and
+// warns when another mailbox is picked (the reply would start a new thread).
+// "Mark contacted" takes an optional subject / first line, shown later on
+// the follow-up row.
 export function ActionDialog({ lead, leadType, action, contact, onClose }: ActionDialogProps) {
   const { mailboxes, me, logAction } = useOutreach()
   useEscapeKey(onClose)
@@ -78,9 +82,17 @@ export function ActionDialog({ lead, leadType, action, contact, onClose }: Actio
   const active = mailboxes.filter((m) => m.is_active)
   const mine = active.filter((m) => m.owner_user_id === me?.user_id)
   const ordered = [...mine, ...active.filter((m) => m.owner_user_id !== me?.user_id)]
+  const isFollowUp = action === 'followed_up'
   const startChannel = (contact?.channel ?? lead.channel) as Channel | null
 
+  // Follow-up: the first contact's mailbox, even when it's full (the dialog
+  // then says when it frees up, and switching shows the thread warning).
+  const firstMailboxFor = (c: BrandContact | null | undefined) => (c ? c.mailbox_id : null) ?? lead.mailbox_id
   const pickDefaultMailbox = () => {
+    if (isFollowUp) {
+      const first = firstMailboxFor(contact)
+      if (first && ordered.some((m) => m.id === first)) {return first}
+    }
     const prefer = [contact?.mailbox_id, lead.mailbox_id, last?.mailboxId].find((id) => id && ordered.some((m) => m.id === id && m.sent_today < m.daily_limit))
     return prefer ?? ordered.find((m) => m.sent_today < m.daily_limit)?.id ?? ''
   }
@@ -89,6 +101,7 @@ export function ActionDialog({ lead, leadType, action, contact, onClose }: Actio
   const [mailboxId, setMailboxId] = useState<string>(pickDefaultMailbox)
   const [contacts, setContacts] = useState<BrandContact[]>([])
   const [contactId, setContactId] = useState(contact?.id ?? '')
+  const [subject, setSubject] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -108,6 +121,23 @@ export function ActionDialog({ lead, leadType, action, contact, onClose }: Actio
   const blocked = (isSend && channel === 'email' && (!selected || state === 'full')) || (needsContact && !contactId)
   const chosenContact = contact ?? contacts.find((c) => c.id === contactId) ?? null
 
+  // Several contacts: once one is picked, a follow-up moves to its first mailbox and channel.
+  const pickedContactId = needsContact ? chosenContact?.id ?? null : null
+  useEffect(() => {
+    if (!isFollowUp || !pickedContactId) {return}
+    const c = contacts.find((x) => x.id === pickedContactId)
+    if (!c) {return}
+    if (c.channel) {setChannel(c.channel as Channel)}
+    if (c.mailbox_id && ordered.some((m) => m.id === c.mailbox_id)) {setMailboxId(c.mailbox_id)}
+    // ordered is rebuilt each render from the same mailboxes; the contact is what changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFollowUp, pickedContactId, contacts])
+
+  const firstMailboxId = isFollowUp ? firstMailboxFor(chosenContact) : null
+  const threadWarning = isFollowUp && channel === 'email'
+    ? differentMailboxWarning(firstMailboxId, mailboxId, mailboxes.find((m) => m.id === firstMailboxId)?.address)
+    : null
+
   const submit = async () => {
     setSaving(true)
     const singleContact = leadType === 'brand' && lead.contacts?.count === 1 ? lead.contacts.primary?.id : undefined
@@ -117,6 +147,7 @@ export function ActionDialog({ lead, leadType, action, contact, onClose }: Actio
       channel: isSend ? channel : null,
       mailboxId: isSend && channel === 'email' ? mailboxId : null,
       contactId: contact?.id ?? (needsContact ? contactId : singleContact) ?? null,
+      subject: action === 'contacted' ? subject.trim() || null : null,
     })
     setSaving(false)
     if (result) {
@@ -189,7 +220,22 @@ export function ActionDialog({ lead, leadType, action, contact, onClose }: Actio
             ) : (
               <p className="text-xs text-slate-400">DMs don&apos;t use a mailbox. They count toward your daily target.</p>
             )}
+            {threadWarning && (
+              <p role="alert" className="mt-2 rounded-md border border-amber-800 bg-amber-950/40 px-2.5 py-1.5 text-xs text-amber-200">{threadWarning}</p>
+            )}
           </>
+        )}
+
+        {action === 'contacted' && (
+          <div className="mt-4">
+            <label htmlFor="outreach-subject" className="mb-1 block text-xs font-medium text-slate-400">
+              {channel === 'email' ? 'Subject' : 'First line'} <span className="font-normal text-slate-500">(optional, helps you find the thread)</span>
+            </label>
+            <input id="outreach-subject" value={subject} maxLength={SUBJECT_MAX_LENGTH} onChange={(e) => setSubject(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !saving && !blocked) {void submit()} }}
+              placeholder={channel === 'email' ? 'Quick question about your channel' : 'Hi Sam, loved your video on...'}
+              className={`${inputClass} w-full`} />
+          </div>
         )}
 
         <div className="mt-5 flex justify-end gap-2">
@@ -227,14 +273,8 @@ export function LeadActions({ lead, leadType, selectOnly, onDone }: LeadActionsP
   const run = async (action: string): Promise<boolean> => {
     const pickContact = contactCount > 1 && isContactAction(action)
     if (action === 'contacted' || action === 'followed_up') {
-      // A follow-up on the same mailbox/channel as the first contact is one click.
-      if (action === 'followed_up' && !pickContact && lead.channel && (lead.channel !== 'email' || lead.mailbox_id)) {
-        setBusy(true)
-        const r = await logAction({ leadId: lead.lead_id, action, channel: lead.channel, mailboxId: lead.mailbox_id, contactId: singleContact })
-        setBusy(false)
-        if (!r) {setDialog('followed_up')}
-        return !!r
-      }
+      // Both open the dialog: a follow-up starts on the first contact's
+      // mailbox and channel, and can still be changed there.
       setDialog(action)
       return false
     }

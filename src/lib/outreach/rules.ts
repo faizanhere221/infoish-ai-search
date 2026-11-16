@@ -1167,3 +1167,102 @@ export function previouslyLabel(d: { lead_id: string; deleted?: boolean; contact
   if (d.deleted) {return `Previously deleted: ${d.lead_id}`}
   return null
 }
+
+// ─── Follow-ups: how we reached them, and where to reply from ────────────────
+
+export const DM_LABELS: Record<Channel, string> = {
+  email: 'Email',
+  linkedin: 'LinkedIn DM',
+  x: 'X DM',
+  instagram: 'Instagram DM',
+  tiktok: 'TikTok DM',
+}
+
+export const SUBJECT_MAX_LENGTH = 300
+
+// "hello@acme.io" for an email send, "LinkedIn DM" for a DM, null when the
+// lead was never reached.
+export function viaLabel(channel: string | null | undefined, mailboxAddress: string | null | undefined): string | null {
+  if (!channel) {return mailboxAddress || null}
+  if (channel === 'email') {return mailboxAddress || 'Email'}
+  return DM_LABELS[channel as Channel] ?? channel
+}
+
+// "Contacted 2026-11-10 by Faizan via hello@acme.io"; parts with no value
+// are left out.
+export function contactedLine(c: { date: string | null; by?: string | null; via?: string | null }): string {
+  return ['Contacted', c.date, c.by ? `by ${c.by}` : null, c.via ? `via ${c.via}` : null].filter(Boolean).join(' ')
+}
+
+// Subject / first line typed on "Mark contacted": trimmed, one line, capped.
+export function cleanSubject(raw: unknown): string | null {
+  if (typeof raw !== 'string') {return null}
+  const s = raw.replace(/\s+/g, ' ').trim()
+  return s ? s.slice(0, SUBJECT_MAX_LENGTH) : null
+}
+
+// Mailbox webmail URL (admin field): an http(s) address, https:// added
+// when the scheme is missing. '' clears it. Anything else is refused.
+export function cleanWebmailUrl(raw: unknown): FieldResult {
+  if (raw === null || raw === undefined || (typeof raw === 'string' && !raw.trim())) {return { ok: true, value: null }}
+  if (typeof raw !== 'string' || raw.length > 2000) {return { ok: false, error: 'Enter a web address' }}
+  const url = withHttps(raw)
+  return url ? { ok: true, value: url } : { ok: false, error: 'Enter a web address (https://...)' }
+}
+
+// Personal mailboxes are Gmail / Google Workspace accounts; so is any
+// @gmail.com address.
+export function isGmailMailbox(m: { address: string; is_personal?: boolean | null }): boolean {
+  return !!m.is_personal || /@(gmail|googlemail)\.com$/i.test(m.address)
+}
+
+// Opens Gmail in the right signed-in account, searching for the lead.
+export function gmailSearchUrl(mailboxAddress: string, leadEmail: string): string {
+  return `https://mail.google.com/mail/u/?authuser=${encodeURIComponent(mailboxAddress)}#search/${encodeURIComponent(leadEmail)}`
+}
+
+export type QuickOpen =
+  | { kind: 'gmail'; url: string; label: string }
+  | { kind: 'webmail'; url: string; copy: string; label: string }
+  | { kind: 'copy'; copy: string; label: string }
+  | { kind: 'profile'; url: string; label: string }
+
+// The one-click "go reply" button on a follow-up row:
+// - email from a Gmail / Workspace mailbox: Gmail search in that account
+// - email from a mailbox with a webmail URL (Hostinger): copy the lead's
+//   email, then open the webmail (a set webmail URL wins over Gmail)
+// - email from another mailbox: copy the lead's email
+// - a DM: the lead's profile on that platform
+// null when there is nothing to open (no email, no profile link).
+export function followUpQuickOpen(args: {
+  channel: string | null | undefined
+  mailbox: { address: string; is_personal?: boolean | null; webmail_url?: string | null } | null | undefined
+  email: string | null | undefined
+  links: LeadLink[]
+}): QuickOpen | null {
+  const channel = args.channel || (args.mailbox ? 'email' : null)
+  if (!channel) {return null}
+  if (channel === 'email') {
+    const email = args.email?.trim()
+    if (!email) {return null}
+    const webmail = args.mailbox?.webmail_url ? withHttps(args.mailbox.webmail_url) : null
+    if (webmail) {return { kind: 'webmail', url: webmail, copy: email, label: 'Copy email + open webmail' }}
+    if (args.mailbox && isGmailMailbox(args.mailbox)) {
+      return { kind: 'gmail', url: gmailSearchUrl(args.mailbox.address, email), label: 'Open in Gmail' }
+    }
+    return { kind: 'copy', copy: email, label: 'Copy email' }
+  }
+  const link = args.links.find((l) => l.kind === channel)
+  return link ? { kind: 'profile', url: link.url, label: `Open ${LINK_LABELS[link.kind]}` } : null
+}
+
+// Shown in the follow-up dialog when the picked mailbox isn't the one the
+// first email went from.
+export function differentMailboxWarning(
+  firstMailboxId: string | null | undefined,
+  chosenMailboxId: string | null | undefined,
+  firstAddress: string | null | undefined,
+): string | null {
+  if (!firstMailboxId || !chosenMailboxId || firstMailboxId === chosenMailboxId) {return null}
+  return `First email went from ${firstAddress || 'another mailbox'}; reply from the same mailbox to keep the thread.`
+}

@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import {
-  BRAND_ACTIONS, CREATOR_ACTIONS, DM_CHANNELS, karachiDayStart, karachiSlotLabel, karachiToday, parseMailboxFullDetail, type Channel,
+  BRAND_ACTIONS, cleanSubject, CREATOR_ACTIONS, DM_CHANNELS, karachiDayStart, karachiSlotLabel, karachiToday, parseMailboxFullDetail, type Channel,
 } from '@/lib/outreach/rules'
-import { isMissingSchema, NEEDS_MIGRATION } from '@/lib/outreach/schema'
+import { isMissingSchema, NEEDS_FOLLOWUPS_MIGRATION, NEEDS_MIGRATION } from '@/lib/outreach/schema'
 import { DB_OFFER_ACTIONS } from '@/lib/outreach/database'
 import { dbMembership } from '@/lib/outreach/database-server'
 import { actionSchema } from '@/lib/outreach/schemas'
@@ -15,7 +15,8 @@ export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
 
 // POST /api/admin/outreach/actions: one-click action on a lead.
-// Body: { lead_id, action, mailbox_id?, channel?, contact_id? }. The status change,
+// Body: { lead_id, action, mailbox_id?, channel?, contact_id?, subject? }
+// (subject: "Mark contacted" only, after outreach_followups_migration.sql). The status change,
 // mailbox limit check and activity row all happen in outreach_log_action()
 // (one transaction, mailbox row locked). Response includes a DM warning
 // once the caller passes their soft daily limit for that platform, and
@@ -31,6 +32,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid input', fields: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
     const { lead_id, action, mailbox_id, channel, contact_id } = parsed.data
+    const subject = action === 'contacted' ? cleanSubject(parsed.data.subject) : null
     const leadType = leadTypeFromId(lead_id)
     if (!leadType) {return NextResponse.json({ error: 'Lead not found' }, { status: 404 })}
     const allowed: readonly string[] = leadType === 'creator' ? CREATOR_ACTIONS : BRAND_ACTIONS
@@ -48,8 +50,11 @@ export async function POST(request: NextRequest) {
       p_channel: channel ?? null,
       // Only sent when given, so this route works before the contacts migration.
       ...(contact_id ? { p_contact_id: contact_id } : {}),
+      // Same: only when typed, so the route works before the follow-ups migration.
+      ...(subject ? { p_subject: subject } : {}),
     })
     if (error) {
+      if (subject && isMissingSchema(error)) {return NextResponse.json(NEEDS_FOLLOWUPS_MIGRATION, { status: 409 })}
       if (contact_id && isMissingSchema(error)) {return NextResponse.json(NEEDS_MIGRATION, { status: 409 })}
       const mapped = mapDbError(error)
       if (mapped) {

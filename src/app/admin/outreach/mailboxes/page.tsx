@@ -4,12 +4,12 @@ import { useCallback, useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import {
-  karachiSlotLabel, karachiToday, mailboxState, MAILBOX_MAX_LIMIT, MAILBOX_WINDOW_MAX, MAILBOX_WINDOW_MIN,
+  isGmailMailbox, karachiSlotLabel, karachiToday, mailboxState, MAILBOX_MAX_LIMIT, MAILBOX_WINDOW_MAX, MAILBOX_WINDOW_MIN,
 } from '@/lib/outreach/rules'
 import type { OutreachMailboxWithUsage } from '@/lib/outreach/types'
 import type { Capacity } from '@/lib/outreach/stats'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
-import { buttonClass, Card, inputClass, mailboxStateClass, ProgressBar, selectClass } from '@/components/admin/outreach/ui'
+import { buttonClass, Card, ExternalLink, inputClass, mailboxStateClass, ProgressBar, selectClass } from '@/components/admin/outreach/ui'
 
 interface MailboxForm {
   address: string
@@ -39,15 +39,18 @@ export default function OutreachMailboxesPage() {
   // Hours a send counts against its mailbox (null before the contacts/lists migration).
   const [windowHours, setWindowHours] = useState<number | null>(null)
   const [windowDraft, setWindowDraft] = useState('')
+  // Webmail URL column (outreach_followups_migration.sql)
+  const [webmailReady, setWebmailReady] = useState(false)
 
   const load = useCallback(async () => {
     const res = await fetch('/api/admin/outreach/mailboxes')
-    const data = await readJson<{ mailboxes: OutreachMailboxWithUsage[]; capacity: Capacity; today: string }>(res)
+    const data = await readJson<{ mailboxes: OutreachMailboxWithUsage[]; capacity: Capacity; today: string; features?: { webmailUrl: boolean } }>(res)
     if (!res.ok) {
       toast('error', data.error ?? 'Failed to load mailboxes')
       return
     }
     setMailboxes(data.mailboxes)
+    setWebmailReady(!!data.features?.webmailUrl)
     setCapacity(data.capacity)
     setToday(data.today)
     const sr = await fetch('/api/admin/outreach/settings')
@@ -165,12 +168,13 @@ export default function OutreachMailboxesPage() {
               <th className="px-3 py-2">Mailbox</th><th className="px-3 py-2">Owner</th><th className="px-3 py-2">Start</th>
               <th className="px-3 py-2">Schedule</th><th className="w-56 px-3 py-2">{windowHours ? `Last ${windowHours} hours` : 'Today'}</th>
               {isAdmin && <th className="px-3 py-2">Custom limit</th>}
+              {webmailReady && <th className="px-3 py-2">Webmail</th>}
               <th className="px-3 py-2">Active</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/70">
             {mailboxes.length === 0 ? (
-              <tr><td colSpan={7} className="px-3 py-8 text-center text-slate-500">No mailboxes yet.</td></tr>
+              <tr><td colSpan={8} className="px-3 py-8 text-center text-slate-500">No mailboxes yet.</td></tr>
             ) : mailboxes.map((m) => {
               const state = mailboxState(m.sent_today, m.daily_limit)
               return (
@@ -201,6 +205,24 @@ export default function OutreachMailboxesPage() {
                           if (v !== m.custom_limit) {void save(m.id, { custom_limit: v })}
                         }}
                         className="w-20 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-xs text-white" />
+                    </td>
+                  )}
+                  {webmailReady && (
+                    <td className="px-3 py-2">
+                      {isAdmin ? (
+                        <input type="url" defaultValue={m.webmail_url ?? ''} key={m.webmail_url ?? ''}
+                          placeholder={isGmailMailbox(m) ? 'Gmail (automatic)' : 'https://mail.hostinger.com'}
+                          aria-label={`Webmail URL for ${m.address}`}
+                          onBlur={(e) => {
+                            const v = e.target.value.trim()
+                            if (v !== (m.webmail_url ?? '')) {void save(m.id, { webmail_url: v || null })}
+                          }}
+                          className="w-56 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-xs text-white" />
+                      ) : m.webmail_url ? (
+                        <ExternalLink href={m.webmail_url} className="text-xs">Open</ExternalLink>
+                      ) : (
+                        <span className="text-xs text-slate-500">{isGmailMailbox(m) ? 'Gmail' : '–'}</span>
+                      )}
                     </td>
                   )}
                   <td className="px-3 py-2">

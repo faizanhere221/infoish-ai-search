@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Check, Crown, Loader2, Pencil, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { CONTACT_ACTIONS, contactName, STATUS_LABELS } from '@/lib/outreach/rules'
+import { CONTACT_ACTIONS, contactName, STATUS_LABELS, viaLabel } from '@/lib/outreach/rules'
 import type { BrandContact, OutreachLeadRow } from '@/lib/outreach/types'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
 import { ActionDialog } from '@/components/admin/outreach/LeadActions'
@@ -35,7 +35,9 @@ interface ContactsEditorProps {
 }
 
 export function ContactsEditor({ lead, readOnly, compact }: ContactsEditorProps) {
-  const { me, toast, bump, version } = useOutreach()
+  const { me, mailboxes, toast, bump, version } = useOutreach()
+  // The contact's latest send: mailbox address, or the DM platform.
+  const viaOf = (c: BrandContact) => viaLabel(c.channel, mailboxes.find((m) => m.id === c.mailbox_id)?.address ?? null)
   const isAdmin = !!me?.is_admin
   const [contacts, setContacts] = useState<BrandContact[] | null>(null)
   const [migrated, setMigrated] = useState(true)
@@ -146,7 +148,7 @@ export function ContactsEditor({ lead, readOnly, compact }: ContactsEditorProps)
               <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
                 {c.email && <span>{c.email}</span>}
                 {c.linkedin && <ExternalLink href={c.linkedin}>LinkedIn</ExternalLink>}
-                {c.date_contacted && <span>Contacted {c.date_contacted}</span>}
+                {c.date_contacted && <span>Contacted {c.date_contacted}{viaOf(c) ? ` via ${viaOf(c)}` : ''}</span>}
                 {c.follow_up_date && c.status === 'contacted' && <span>Follow-up {c.follow_up_date}</span>}
                 {c.notes && <span className="truncate" title={c.notes}>{c.notes}</span>}
               </div>

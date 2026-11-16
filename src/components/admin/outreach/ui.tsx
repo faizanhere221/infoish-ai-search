@@ -1,9 +1,10 @@
 'use client'
 
-import { Ban, Globe, Instagram, Linkedin, Music2, Twitter, Youtube } from 'lucide-react'
+import { useState } from 'react'
+import { Ban, Check, Copy, ExternalLink as ExternalLinkIcon, Globe, Instagram, Linkedin, Mail, Music2, Twitter, Youtube } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  LINK_LABELS, STATUS_LABELS, withHttps, type LeadLink, type LinkKind, type MailboxState,
+  LINK_LABELS, STATUS_LABELS, withHttps, type LeadLink, type LinkKind, type MailboxState, type QuickOpen,
 } from '@/lib/outreach/rules'
 
 // Small shared pieces for the outreach admin pages.
@@ -87,6 +88,69 @@ export function ExternalLink({ href, children, className }: { href: string | nul
   return (
     <a href={url} target="_blank" rel="noopener noreferrer nofollow" className={cn('text-violet-300 hover:text-violet-200 hover:underline', className)}>
       {children}
+    </a>
+  )
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    return false // clipboard blocked: the text stays visible next to the button
+  }
+}
+
+// Small copy icon; shows a tick for 1.5 s after copying.
+export function CopyButton({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      type="button"
+      onClick={() => void copyText(text).then((ok) => {
+        if (!ok) {return}
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1500)
+      })}
+      title={copied ? 'Copied' : label}
+      aria-label={label}
+      className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-white"
+    >
+      {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+    </button>
+  )
+}
+
+// The "go reply" button of a follow-up row (see followUpQuickOpen()).
+// Webmail: copies the lead's email first, then opens the webmail tab.
+export function QuickOpenButton({ open }: { open: QuickOpen | null }) {
+  const [copied, setCopied] = useState(false)
+  if (!open) {return null}
+  const cls = 'inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-800'
+  if (open.kind === 'copy') {
+    return (
+      <button type="button" className={cls} onClick={() => void copyText(open.copy).then((ok) => {
+        if (!ok) {return}
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1500)
+      })}>
+        {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />} {copied ? 'Copied' : open.label}
+      </button>
+    )
+  }
+  const url = withHttps(open.url)
+  if (!url) {return null}
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cls}
+      // The copy runs on the same click, before the new tab takes focus.
+      onClick={open.kind === 'webmail' ? () => { void copyText(open.copy) } : undefined}
+      title={open.kind === 'webmail' ? `Copies ${open.copy}, then opens the webmail` : url}
+    >
+      {open.kind === 'profile' ? <ExternalLinkIcon className="h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />} {open.label}
     </a>
   )
 }

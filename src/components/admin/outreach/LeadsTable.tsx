@@ -83,7 +83,8 @@ function PlainHeader({ label }: { label: string }) {
 
 export function LeadsTable({ leadType }: { leadType: LeadType }) {
   const sp = useSearchParams()
-  const { me, team, ownerName, toast, version, bump, addToDatabase } = useOutreach()
+  const { me, team, mailboxes, ownerName, toast, version, bump, addToDatabase } = useOutreach()
+  const mailboxAddress = useCallback((id: string | null) => (id ? mailboxes.find((m) => m.id === id)?.address ?? null : null), [mailboxes])
   const segment = leadType === 'creator' ? 'creators' : 'brands'
   const statuses: readonly string[] = leadType === 'creator' ? CREATOR_STATUSES : BRAND_STATUSES
   const baseColumns = leadType === 'creator' ? CREATOR_COLUMNS : BRAND_COLUMNS
@@ -97,6 +98,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
   const [niche, setNiche] = useState('')
   const [platform, setPlatform] = useState('')
   const [channel, setChannel] = useState('')
+  const [mailbox, setMailbox] = useState('')
   const [list, setList] = useState(sp.get('list') ?? '')
   // What the database has (lists, brand contacts: outreach_contacts_lists_migration.sql).
   const [features, setFeatures] = useState<{ lists: boolean; contacts: boolean }>({ lists: false, contacts: false })
@@ -151,6 +153,16 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
           localStorage.setItem(columnsKey(leadType), JSON.stringify(saved))
           localStorage.setItem(v2Key, '1')
         }
+        // Saved before the Contacted via column existed: add it once, before Status.
+        const viaKey = `${columnsKey(leadType)}_via`
+        if (!localStorage.getItem(viaKey)) {
+          if (!saved.includes('contacted_via')) {
+            const at = saved.indexOf('status')
+            saved.splice(at === -1 ? saved.length : at, 0, 'contacted_via')
+          }
+          localStorage.setItem(columnsKey(leadType), JSON.stringify(saved))
+          localStorage.setItem(viaKey, '1')
+        }
         setVisibleIds(saved)
       }
     } catch {
@@ -168,7 +180,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     return () => clearTimeout(t)
   }, [q])
 
-  useEffect(() => { setOffset(0) }, [debouncedQ, owner, status, country, niche, platform, channel, list, missingEmail, showDeleted, sort, dir])
+  useEffect(() => { setOffset(0) }, [debouncedQ, owner, status, country, niche, platform, channel, mailbox, list, missingEmail, showDeleted, sort, dir])
 
   const filterParams = useMemo(() => {
     const p = new URLSearchParams()
@@ -179,13 +191,14 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     if (niche) {p.set('niche', niche)}
     if (platform) {p.set('platform', platform)}
     if (channel) {p.set('channel', channel)}
+    if (mailbox) {p.set('mailbox', mailbox)}
     if (list) {p.set('list', list)}
     if (missingEmail) {p.set('missing', 'email')}
     if (showDeleted && isAdmin) {p.set('deleted', '1')}
     p.set('sort', sort)
     p.set('dir', dir)
     return p
-  }, [debouncedQ, owner, status, country, niche, platform, channel, list, missingEmail, showDeleted, isAdmin, sort, dir])
+  }, [debouncedQ, owner, status, country, niche, platform, channel, mailbox, list, missingEmail, showDeleted, isAdmin, sort, dir])
   const inDeletedView = showDeleted && isAdmin
 
   const load = useCallback(async () => {
@@ -462,6 +475,11 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
           <option value="">All channels</option>
           {CHANNELS.map((c) => <option key={c} value={c}>{CHANNEL_LABELS[c]}</option>)}
         </select>
+        {/* The mailbox of the lead's latest send (a brand: of its contacts' latest send). */}
+        <select value={mailbox} onChange={(e) => setMailbox(e.target.value)} className={selectClass} aria-label="Contacted from mailbox">
+          <option value="">All mailboxes</option>
+          {mailboxes.map((m) => <option key={m.id} value={m.id}>{m.address}{m.is_active ? '' : ' (paused)'}</option>)}
+        </select>
         {features.lists && (
           <select value={list} onChange={(e) => setList(e.target.value)} className={selectClass} aria-label="List">
             <option value="">All lists</option>
@@ -643,7 +661,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                   if (inDeletedView) {
                     return (
                       <td key={c.id} className="max-w-[240px] truncate px-3 py-2 opacity-70">
-                        {cellDisplay(lead, c, ownerName, leadType)}
+                        {cellDisplay(lead, c, ownerName, leadType, mailboxAddress)}
                       </td>
                     )
                   }
@@ -657,7 +675,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                           title={open ? 'Hide contacts' : 'Show and edit contacts'}
                         >
                           {open ? <ChevronUp className="h-3.5 w-3.5 flex-shrink-0" /> : <ChevronDown className="h-3.5 w-3.5 flex-shrink-0" />}
-                          {cellDisplay(lead, c, ownerName, leadType)}
+                          {cellDisplay(lead, c, ownerName, leadType, mailboxAddress)}
                         </button>
                       </td>
                     )
@@ -669,7 +687,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                       </td>
                     ) : (
                       <td key={c.id} className="cursor-pointer px-3 py-2" onClick={() => setEditing({ leadId: lead.lead_id, colId: c.id })}>
-                        {cellDisplay(lead, c, ownerName, leadType)}
+                        {cellDisplay(lead, c, ownerName, leadType, mailboxAddress)}
                       </td>
                     )
                   }
@@ -678,7 +696,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                   return (
                     <EditableCell
                       key={c.id}
-                      display={cellDisplay(lead, c, ownerName, leadType)}
+                      display={cellDisplay(lead, c, ownerName, leadType, mailboxAddress)}
                       editIcon={hasLink}
                       value={cellValue(lead, c)}
                       editor={cellEditor(c, editorCtx)}

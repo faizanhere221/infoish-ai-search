@@ -66,6 +66,22 @@ export interface ContactSummary {
 
 export type OutreachLeadRow = OutreachLead & { dnc: boolean; in_db?: boolean; contacts?: ContactSummary }
 
+// The latest (not undone) "contacted" activity of a lead or brand contact:
+// when, who, how and the subject. Read on the Today follow-up rows.
+export interface ContactedInfo {
+  at: string
+  date: string // Karachi day of `at`
+  user_id: string | null
+  mailbox_id: string | null
+  channel: string | null
+  subject: string | null
+}
+
+export type DueContact = BrandContact & { contacted: ContactedInfo | null }
+
+// A Today follow-up row. Brands with contacts list the contacts due.
+export type FollowUpRow = OutreachLeadRow & { contacted: ContactedInfo | null; due_contacts?: DueContact[] }
+
 export interface OutreachMailbox {
   id: string
   address: string
@@ -74,6 +90,7 @@ export interface OutreachMailbox {
   is_personal: boolean
   is_active: boolean
   custom_limit: number | null
+  webmail_url?: string | null // after outreach_followups_migration.sql
   created_at: string
 }
 
@@ -134,6 +151,7 @@ export interface OutreachActivityRow {
   channel: string | null
   changes: Record<string, FieldChange> | null
   contact_id?: string | null
+  subject?: string | null // after outreach_followups_migration.sql
   undone_at: string | null
   created_at: string
 }

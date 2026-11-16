@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction } from '@/lib/admin-action'
+import { isMissingSchema, NEEDS_FOLLOWUPS_MIGRATION } from '@/lib/outreach/schema'
 import { mailboxUpdateSchema } from '@/lib/outreach/schemas'
 import { adminOnly, getOutreachCaller, unauthorized } from '@/lib/outreach/server'
 
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
 
 // PATCH (admin): edit a mailbox (owner, start date, personal, active,
-// custom limit). Mailboxes are paused, not deleted, so history stays.
+// custom limit, webmail URL). Mailboxes are paused, not deleted, so history stays.
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const caller = getOutreachCaller(request)
   if (!caller) {return unauthorized()}
@@ -32,6 +33,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       .maybeSingle()
     if (error) {
       if (error.code === '23505') {return NextResponse.json({ error: 'This mailbox already exists' }, { status: 409 })}
+      if ('webmail_url' in updates && isMissingSchema(error)) {return NextResponse.json(NEEDS_FOLLOWUPS_MIGRATION, { status: 409 })}
       captureError(error, { route: 'PATCH /api/admin/outreach/mailboxes/[id]' })
       return NextResponse.json({ error: 'Failed to update mailbox' }, { status: 500 })
     }

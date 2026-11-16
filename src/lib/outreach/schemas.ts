@@ -1,5 +1,7 @@
 import { z } from 'zod'
-import { CHANNELS, parseNumber, parseBool, BRAND_STATUSES, CREATOR_STATUSES, DNC_KEY_TYPES, DNC_REASONS } from '@/lib/outreach/rules'
+import {
+  CHANNELS, cleanWebmailUrl, parseNumber, parseBool, BRAND_STATUSES, CREATOR_STATUSES, DNC_KEY_TYPES, DNC_REASONS,
+} from '@/lib/outreach/rules'
 
 // Empty strings from forms and CSVs become null.
 const text = (max: number) =>
@@ -95,6 +97,9 @@ export const actionSchema = z.object({
   channel,
   // Brands with contacts: which contact this was (else the obvious one).
   contact_id: z.string().min(1).max(255).nullable().optional(),
+  // "Mark contacted" only: subject or first line, to find the thread later.
+  // Cleaned (one line, 300 chars) by cleanSubject() in the route.
+  subject: z.string().max(2000).nullable().optional(),
 })
 
 export const undoSchema = z.object({ activity_id: z.string().min(1).max(255) })
@@ -125,6 +130,16 @@ export const mailboxCreateSchema = z.object({
   is_personal: z.boolean().default(false),
   is_active: z.boolean().default(true),
   custom_limit: z.number().int().min(1).max(40).nullable().optional(),
+  // Where "Open webmail" goes on follow-up rows (Hostinger). '' clears it.
+  webmail_url: z.unknown().optional().transform((v, ctx) => {
+    if (v === undefined) {return undefined}
+    const r = cleanWebmailUrl(v)
+    if (!r.ok) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: r.error })
+      return z.NEVER
+    }
+    return r.value as string | null
+  }),
 })
 
 export const mailboxUpdateSchema = mailboxCreateSchema.partial()

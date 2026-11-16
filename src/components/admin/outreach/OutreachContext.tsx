@@ -37,7 +37,7 @@ interface OutreachContextValue {
   refreshTeam: () => Promise<void>
   refreshMailboxes: () => Promise<void>
   toast: (kind: Toast['kind'], message: string) => void
-  logAction: (input: { leadId: string; action: string; mailboxId?: string | null; channel?: string | null; contactId?: string | null }) => Promise<ActionResult | null>
+  logAction: (input: { leadId: string; action: string; mailboxId?: string | null; channel?: string | null; contactId?: string | null; subject?: string | null }) => Promise<ActionResult | null>
   // Bumped after every action/undo so pages reload their data.
   version: number
   bump: () => void
@@ -115,11 +115,11 @@ export function OutreachProvider({ children }: { children: React.ReactNode }) {
     [team],
   )
 
-  const logAction = useCallback<OutreachContextValue['logAction']>(async ({ leadId, action, mailboxId, channel, contactId }) => {
+  const logAction = useCallback<OutreachContextValue['logAction']>(async ({ leadId, action, mailboxId, channel, contactId, subject }) => {
     const res = await fetch('/api/admin/outreach/actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lead_id: leadId, action, mailbox_id: mailboxId ?? null, channel: channel ?? null, ...(contactId ? { contact_id: contactId } : {}) }),
+      body: JSON.stringify({ lead_id: leadId, action, mailbox_id: mailboxId ?? null, channel: channel ?? null, ...(contactId ? { contact_id: contactId } : {}), ...(subject ? { subject } : {}) }),
     })
     const data = await readJson<{ result: ActionResult; dmWarning: { channel: string; sent: number; limit: number } | null; dbOffer?: boolean }>(res)
     if (!res.ok) {
