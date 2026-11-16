@@ -35,8 +35,11 @@ try {
       }),
     ],
 
-    // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-    tracesSampleRate: 0.1,
+    // 1% of page loads send a performance trace. Each trace reaches Sentry
+    // through the /monitoring tunnel, which is a Vercel function call, so
+    // this stays low to save CPU. Errors are not sampled: every error is
+    // still reported (sampleRate defaults to 1.0).
+    tracesSampleRate: 0.01,
 
     // No ambient session replay — only capture around an actual error.
     replaysSessionSampleRate: 0,
