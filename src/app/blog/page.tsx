@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '40',
+    title: 'Best Influencer Marketing Platforms for SaaS and Tech Brands (2026 Comparison)',
+    excerpt: 'Six influencer platforms scored for SaaS and tech brands: LinkedIn and X coverage, published pricing, contracts, and where each falls short.',
+    date: '2026-11-16',
+    author: 'Infoishai Team',
+    category: 'Industry',
+    readTime: '12 min read',
+    slug: 'best-influencer-platforms-saas-tech-brands',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '39',
     title: 'How to Pitch Tech Brands as a Creator: Email Templates to Get Replies',
     excerpt: 'Three pitch email templates for tech creators (cold, warm intro, follow-up), what B2B brands check first, how to quote and when to follow up.',
