@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '41',
+    title: 'LinkedIn Influencer Marketing for B2B Tech: Formats, Creators and Measurement',
+    excerpt: 'A LinkedIn playbook for B2B tech brands: pick operator-creators, match formats to funnel stage, brief for credibility and measure reach and pipeline honestly.',
+    date: '2026-11-17',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '11 min read',
+    slug: 'linkedin-influencer-marketing-b2b-tech',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '40',
     title: 'Best Influencer Marketing Platforms for SaaS and Tech Brands (2026 Comparison)',
     excerpt: 'Six influencer platforms scored for SaaS and tech brands: LinkedIn and X coverage, published pricing, contracts, and where each falls short.',
