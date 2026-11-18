@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '43',
+    title: 'DevRel vs Influencer Marketing: How Developer Tool Companies Should Combine Them',
+    excerpt: 'DevRel and influencer marketing solve different problems. How dev-tool companies combine advocates, docs and paid creators without losing developer trust.',
+    date: '2026-11-18',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '10 min read',
+    slug: 'devrel-vs-influencer-marketing',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '42',
     title: 'Using X for Developer Marketing: Working with Creators on Launches',
     excerpt: 'Is X still worth it for dev-tool launches? How to work with developer creators on X, which formats to sponsor, a launch-week timeline and honest measurement.',
