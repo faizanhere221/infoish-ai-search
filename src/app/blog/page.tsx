@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '42',
+    title: 'Using X for Developer Marketing: Working with Creators on Launches',
+    excerpt: 'Is X still worth it for dev-tool launches? How to work with developer creators on X, which formats to sponsor, a launch-week timeline and honest measurement.',
+    date: '2026-11-18',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '9 min read',
+    slug: 'x-developer-influencers-dev-tools',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '41',
     title: 'LinkedIn Influencer Marketing for B2B Tech: Formats, Creators and Measurement',
     excerpt: 'A LinkedIn playbook for B2B tech brands: pick operator-creators, match formats to funnel stage, brief for credibility and measure reach and pipeline honestly.',
