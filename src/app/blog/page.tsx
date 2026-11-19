@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '45',
+    title: 'Micro vs Macro Tech Influencers: Which Tier Fits Your B2B Goal?',
+    excerpt: 'Compare nano, micro, mid-tier and macro tech influencers for B2B goals. See cost, reach, trust and risk trade-offs with a simple decision table.',
+    date: '2026-11-19',
+    author: 'Infoishai Team',
+    category: 'Guide',
+    readTime: '9 min read',
+    slug: 'micro-vs-macro-tech-influencers',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '44',
     title: 'Cybersecurity Influencer Marketing: Earning Trust from Sceptical Practitioners',
     excerpt: 'How security vendors work with creators and researchers: choose credible voices, brief for accuracy, handle sceptical audiences and keep disclosures clean.',
