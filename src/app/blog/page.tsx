@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '44',
+    title: 'Cybersecurity Influencer Marketing: Earning Trust from Sceptical Practitioners',
+    excerpt: 'How security vendors work with creators and researchers: choose credible voices, brief for accuracy, handle sceptical audiences and keep disclosures clean.',
+    date: '2026-11-19',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '10 min read',
+    slug: 'cybersecurity-influencer-marketing',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '43',
     title: 'DevRel vs Influencer Marketing: How Developer Tool Companies Should Combine Them',
     excerpt: 'DevRel and influencer marketing solve different problems. How dev-tool companies combine advocates, docs and paid creators without losing developer trust.',
