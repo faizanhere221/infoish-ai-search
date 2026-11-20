@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '46',
+    title: 'B2B Influencer Marketing ROI: How to Prove Impact to Finance',
+    excerpt: 'Measure B2B influencer marketing ROI with pipeline metrics, assisted conversions and self-reported attribution, and see why EMV alone fails finance.',
+    date: '2026-11-20',
+    author: 'Infoishai Team',
+    category: 'Guide',
+    readTime: '10 min read',
+    slug: 'b2b-influencer-marketing-roi',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '45',
     title: 'Micro vs Macro Tech Influencers: Which Tier Fits Your B2B Goal?',
     excerpt: 'Compare nano, micro, mid-tier and macro tech influencers for B2B goals. See cost, reach, trust and risk trade-offs with a simple decision table.',
