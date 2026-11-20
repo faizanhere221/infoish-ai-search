@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '47',
+    title: 'Sponsoring Tech Newsletters and Podcasts: How B2B Brands Buy and Measure',
+    excerpt: 'How to buy tech newsletter and podcast sponsorships: vetting audiences, pricing models, ad formats and how to measure demo requests and sign-ups.',
+    date: '2026-11-20',
+    author: 'Infoishai Team',
+    category: 'Guide',
+    readTime: '9 min read',
+    slug: 'tech-newsletter-podcast-sponsorships',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '46',
     title: 'B2B Influencer Marketing ROI: How to Prove Impact to Finance',
     excerpt: 'Measure B2B influencer marketing ROI with pipeline metrics, assisted conversions and self-reported attribution, and see why EMV alone fails finance.',
