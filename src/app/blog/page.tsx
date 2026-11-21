@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '48',
+    title: 'TikTok vs Reels vs Shorts for Tech Brands: Where Short Video Pays Off',
+    excerpt: 'Compare TikTok, Instagram Reels and YouTube Shorts for tech brands: audience fit, formats, creator pricing logic and when short video helps B2B.',
+    date: '2026-11-21',
+    author: 'Infoishai Team',
+    category: 'Industry',
+    readTime: '8 min read',
+    slug: 'tiktok-reels-shorts-tech-brands',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '47',
     title: 'Sponsoring Tech Newsletters and Podcasts: How B2B Brands Buy and Measure',
     excerpt: 'How to buy tech newsletter and podcast sponsorships: vetting audiences, pricing models, ad formats and how to measure demo requests and sign-ups.',
