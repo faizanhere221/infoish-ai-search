@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '49',
+    title: 'DevOps and Cloud Influencer Marketing: Reaching Engineers Through Tutorials',
+    excerpt: 'Reach DevOps and cloud engineers through creator tutorials: formats engineers trust, how to brief for technical depth and how to track trials and installs.',
+    date: '2026-11-21',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '9 min read',
+    slug: 'devops-cloud-influencer-marketing',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '48',
     title: 'TikTok vs Reels vs Shorts for Tech Brands: Where Short Video Pays Off',
     excerpt: 'Compare TikTok, Instagram Reels and YouTube Shorts for tech brands: audience fit, formats, creator pricing logic and when short video helps B2B.',
