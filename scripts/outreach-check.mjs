@@ -1628,10 +1628,13 @@ async function httpChecks() {
     })
 
     let leadF = null
+    // Owners must be active team members; ADMIN_TOKEN's account may not be
+    // on the team, and then the lead takes the API's default owner.
+    const meOnTeam = !!meId && (team.json?.team ?? []).some((t) => t.user_id === meId && t.is_active)
     await check('follow-ups: add creator F', async () => {
       const r = await call('POST', '/api/admin/outreach/leads/creators', {
         name: `${tag} F`, email: `${tag}.f@outreach-check.invalid`, profile_url: `youtube.com/@${tag}F`, source: 'outreach-check',
-        ...(meId ? { owner_user_id: meId } : {}),
+        ...(meOnTeam ? { owner_user_id: meId } : {}),
       })
       assert.equal(r.status, 201, JSON.stringify(r.json))
       leadF = r.json.lead.lead_id
