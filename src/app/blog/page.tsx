@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '50',
+    title: 'Fintech Influencer Marketing: Working with Creators Under Regulatory Scrutiny',
+    excerpt: 'Fintech brands work with creators safely when compliance leads the process. Learn review workflows, disclosure habits and how to choose credible fintech voices.',
+    date: '2026-11-22',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '9 min read',
+    slug: 'fintech-influencer-marketing-compliance',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '49',
     title: 'DevOps and Cloud Influencer Marketing: Reaching Engineers Through Tutorials',
     excerpt: 'Reach DevOps and cloud engineers through creator tutorials: formats engineers trust, how to brief for technical depth and how to track trials and installs.',
