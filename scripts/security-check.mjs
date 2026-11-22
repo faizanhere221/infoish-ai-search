@@ -1216,8 +1216,11 @@ async function main() {
       const adminOnlyWrites = [
         ['POST', '/api/admin/outreach/mailboxes', { address: 'security-check@outreach-check.invalid', start_date: '2026-01-01' }],
         ['POST', '/api/admin/outreach/dnc', { key_type: 'email', value: 'security-check@outreach-check.invalid', reason: 'other' }],
-        ['POST', '/api/admin/outreach/team', { email: 'security-check@outreach-check.invalid', display_name: 'x', role: 'outreach', temp_password: 'xxxxxxxxxxxx', reason: 'security check' }],
+        ['POST', '/api/admin/outreach/team', { email: 'security-check@outreach-check.invalid', display_name: 'x', reason: 'security check' }],
+        ['DELETE', '/api/admin/outreach/team/security-check-user', { reason: 'security check' }],
+        ['PATCH', '/api/admin/outreach/team/security-check-user', { role: 'admin', reason: 'security check' }],
         ['POST', '/api/admin/outreach/leads/creators/bulk', { lead_ids: ['C-0000'], status: 'found', reason: 'security check' }],
+        ['POST', '/api/admin/outreach/leads/creators/assign', { mode: 'ids', lead_ids: ['C-0000'], owner_user_id: null }],
         ['DELETE', '/api/admin/outreach/leads/creators/C-0000', { reason: 'security check' }],
       ]
       for (const [method, urlPath, body] of adminOnlyWrites) {

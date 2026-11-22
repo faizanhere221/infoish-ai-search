@@ -29,6 +29,14 @@
 //     DNC entry and pauses the mailbox. Needs ADMIN_TOKEN (an admin's
 //     auth_token cookie, see .env.test.example) in .env.test.local;
 //     OUTREACH_TOKEN adds the member 403 checks. Run the migrations first.
+//     Lead assignment: with OUTREACH_TOKEN (member 1) and
+//     TEST_OUTREACH_TOKEN_2 (member 2) also set, checks a member can't
+//     read, edit, act on, export or reassign the other member's lead
+//     (404 / 403), can't call the assign routes, and an admin can
+//     (assign, owner_changed log, auto-split preview + save).
+//
+//   Pure checks also cover assignment rules: round-robin split, Interested,
+//   Stale, import owner.
 //
 // Outreach role access (403 outside the section) lives in
 // scripts/security-check.mjs (OUTREACH_TOKEN).
@@ -1526,8 +1534,20 @@ async function httpChecks() {
       })
     }
 
+    // Members only reach leads they own (outreach_assignment_migration.sql):
+    // hand a test lead to the OUTREACH_TOKEN member before acting as them.
+    // Before that migration members reach every lead, so nothing is needed.
+    const giveToMember = async (segment, leadId) => {
+      const meRes = await fetch(`${BASE_URL}/api/admin/outreach/team`, { headers: { Cookie: `auth_token=${OUTREACH_TOKEN}` } })
+      const memberId = (await meRes.json().catch(() => null))?.me?.user_id
+      if (!memberId) {throw new Error(`OUTREACH_TOKEN: GET /team returned ${meRes.status}`)}
+      const r = await call('POST', `/api/admin/outreach/leads/${segment}/assign`, { mode: 'ids', lead_ids: [leadId], owner_user_id: memberId })
+      if (r.status !== 200 && r.status !== 409) {throw new Error(`assigning ${leadId} to the member: ${r.status} ${JSON.stringify(r.json)}`)}
+    }
+
     if (OUTREACH_TOKEN && v2 && contactBrand) {
       await check('members: edit and add contacts, but only admins change a lead\'s list or the mailbox window', async () => {
+        await giveToMember('brands', contactBrand)
         const m = (method, p, body) => fetch(`${BASE_URL}${p}`, {
           method, headers: { Cookie: `auth_token=${OUTREACH_TOKEN}`, 'Content-Type': 'application/json' },
           body: body ? JSON.stringify(body) : undefined,
@@ -1557,6 +1577,7 @@ async function httpChecks() {
         return { status: res.status, json, text }
       }
       await check('members: never see the quality rating, cannot set it or remove entries; can edit the rest', async () => {
+        await giveToMember('creators', dbDirect)
         assert.equal((await call('PATCH', `${dbApi}/creators/${dbDirect}`, { quality_rating: 4 })).status, 200)
         const adminRow = await call('GET', `${dbApi}/creators?q=${encodeURIComponent(dbDirect)}`)
         assert.equal(adminRow.json.rows[0].quality_rating, 4)
@@ -1695,10 +1716,212 @@ async function httpChecks() {
   }
 }
 
+// ─── Lead assignment (outreach_assignment_migration.sql) ─────────────────────
+
+async function assignmentChecks() {
+  console.log('\nAssignment checks (pure)\n')
+
+  await check('roundRobin: even split in member order, differs by at most one', () => {
+    const split = rules.roundRobin(['a', 'b', 'c', 'd', 'e'], ['m1', 'm2'])
+    assert.deepEqual(split.get('m1'), ['a', 'c', 'e'])
+    assert.deepEqual(split.get('m2'), ['b', 'd'])
+    assert.deepEqual(rules.roundRobin([], ['m1']).get('m1'), [])
+    assert.equal(rules.roundRobin(['a'], []).size, 0)
+  })
+
+  await check('isInterested: creators replied; brands replied or call booked', () => {
+    assert.equal(rules.isInterested('creator', 'replied'), true)
+    assert.equal(rules.isInterested('creator', 'signed_up'), false)
+    assert.equal(rules.isInterested('brand', 'call_booked'), true)
+    assert.equal(rules.isInterested('brand', 'won'), false)
+    assert.equal(rules.isInterested('brand', null), false)
+  })
+
+  await check('isStale: open status and no activity for 7+ days', () => {
+    const now = new Date('2026-11-22T12:00:00Z')
+    const days = (n) => new Date(now.getTime() - n * 86_400_000).toISOString()
+    assert.equal(rules.isStale({ status: 'contacted', last_activity_at: days(8) }, now), true)
+    assert.equal(rules.isStale({ status: 'found', last_activity_at: days(7.01) }, now), true)
+    assert.equal(rules.isStale({ status: 'contacted', last_activity_at: days(6) }, now), false)
+    assert.equal(rules.isStale({ status: 'won', last_activity_at: days(30) }, now), false)
+    assert.equal(rules.isStale({ status: 'no_reply', last_activity_at: days(30) }, now), false)
+    assert.equal(rules.isStale({ status: 'contacted', last_activity_at: null }, now), false)
+  })
+
+  await check('importOwner: members always themselves; admins row owner, else the default', () => {
+    const defaults = { creator: 'ahtasham', brand: 'aima' }
+    assert.equal(rules.importOwner('creator', 'someone', defaults, { userId: 'm', isAdmin: false }), 'm')
+    assert.equal(rules.importOwner('creator', '', defaults, { userId: 'a', isAdmin: true }), 'ahtasham')
+    assert.equal(rules.importOwner('brand', null, defaults, { userId: 'a', isAdmin: true }), 'aima')
+    assert.equal(rules.importOwner('brand', 'x', defaults, { userId: 'a', isAdmin: true }), 'x')
+    assert.equal(rules.importOwner('brand', null, { creator: null, brand: null }, { userId: 'a', isAdmin: true }), null)
+  })
+}
+
+// Members only reach their own leads; only admins assign. Needs ADMIN_TOKEN,
+// OUTREACH_TOKEN (member 1) and TEST_OUTREACH_TOKEN_2 (member 2, a second
+// outreach account), both members active on the team, and the assignment
+// migration. WRITES DATA: test leads (source=outreach-check), soft-deleted
+// at the end.
+async function assignmentHttpChecks() {
+  const fileEnv = loadEnvFile(path.join(REPO_ROOT, '.env.test.local'))
+  const getEnv = (k) => process.env[k] ?? fileEnv[k] ?? ''
+  const BASE_URL = getEnv('BASE_URL') || 'http://localhost:3000'
+  const tokens = { admin: getEnv('ADMIN_TOKEN'), m1: getEnv('OUTREACH_TOKEN'), m2: getEnv('TEST_OUTREACH_TOKEN_2') }
+  console.log(`\nAssignment HTTP checks against ${BASE_URL} (writes data)\n`)
+  const missing = Object.entries({ ADMIN_TOKEN: tokens.admin, OUTREACH_TOKEN: tokens.m1, TEST_OUTREACH_TOKEN_2: tokens.m2 }).filter(([, v]) => !v).map(([k]) => k)
+  if (missing.length > 0) {
+    skip('assignment access checks', `${missing.join(', ')} not set in .env.test.local`)
+    return
+  }
+
+  const as = (who) => async (method, urlPath, body) => {
+    const res = await fetch(`${BASE_URL}${urlPath}`, {
+      method, headers: { Cookie: `auth_token=${tokens[who]}`, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    })
+    const text = await res.text()
+    let json = null
+    try { json = JSON.parse(text) } catch { /* CSV or empty */ }
+    return { status: res.status, json, text }
+  }
+  const admin = as('admin')
+  const m1 = as('m1')
+  const m2 = as('m2')
+
+  const settings = await admin('GET', '/api/admin/outreach/settings').catch(() => null)
+  if (!settings) {
+    skip('assignment access checks', `no server at ${BASE_URL}; start the dev server first`)
+    return
+  }
+  if (settings.status !== 200 || settings.json?.assignment !== true) {
+    skip('assignment access checks', 'run supabase/outreach_assignment_migration.sql first (or ADMIN_TOKEN expired)')
+    return
+  }
+
+  const ids = {}
+  for (const who of ['admin', 'm1', 'm2']) {
+    const r = await as(who)('GET', '/api/admin/outreach/team')
+    if (r.status !== 200) {
+      skip('assignment access checks', `GET /team as ${who} returned ${r.status}; token expired? Ask for a fresh one.`)
+      return
+    }
+    ids[who] = r.json.me.user_id
+    const role = r.json.me.role
+    if (who !== 'admin' && role !== 'outreach') {
+      skip('assignment access checks', `${who === 'm1' ? 'OUTREACH_TOKEN' : 'TEST_OUTREACH_TOKEN_2'} is role ${role}, not outreach`)
+      return
+    }
+    if (who !== 'admin' && !r.json.team.some((t) => t.user_id === ids[who] && t.is_active)) {
+      skip('assignment access checks', `${who} is not an active team member`)
+      return
+    }
+  }
+  if (ids.m1 === ids.m2) {
+    skip('assignment access checks', 'OUTREACH_TOKEN and TEST_OUTREACH_TOKEN_2 belong to the same account')
+    return
+  }
+
+  const tag = `oa${Date.now()}`
+  const created = []
+  const api = '/api/admin/outreach/leads/creators'
+  try {
+    let lead = null
+    await check('admin adds a creator lead owned by member 1', async () => {
+      const r = await admin('POST', api, { name: `${tag} owned`, profile_url: `https://www.youtube.com/@${tag}owned`, owner_user_id: ids.m1, source: 'outreach-check' })
+      assert.equal(r.status, 201, JSON.stringify(r.json))
+      lead = r.json.lead.lead_id
+      created.push(lead)
+      assert.equal(r.json.lead.owner_user_id, ids.m1)
+    })
+    if (!lead) {return}
+
+    await check('member 1 reads their own lead', async () => {
+      assert.equal((await m1('GET', `${api}/${lead}`)).status, 200)
+    })
+
+    await check("member 2 can't read, edit, act on, export or add another member's lead (404)", async () => {
+      assert.equal((await m2('GET', `${api}/${lead}`)).status, 404, 'GET')
+      assert.equal((await m2('PATCH', `${api}/${lead}`, { notes: 'not mine' })).status, 404, 'PATCH')
+      assert.equal((await m2('POST', '/api/admin/outreach/actions', { lead_id: lead, action: 'contacted', channel: 'linkedin' })).status, 404, 'action')
+      assert.equal((await m2('POST', '/api/admin/outreach/database/creators', { lead_id: lead })).status, 404, 'add to Database')
+      const list = await m2('GET', `${api}?owner=${encodeURIComponent(ids.m1)}&q=${tag}`)
+      assert.equal(list.status, 200)
+      assert.equal(list.json.total, 0, 'owner filter for someone else must be ignored for members')
+      const csv = await m2('GET', `${api}/export?owner=${encodeURIComponent(ids.m1)}&q=${tag}`)
+      assert.equal(csv.status, 200)
+      assert.ok(!csv.text.includes(lead), 'export must not contain the other member\'s lead')
+    })
+
+    await check("members can't assign: assign route, auto-split, bulk owner (403), owner edit (403)", async () => {
+      assert.equal((await m1('POST', `${api}/assign`, { mode: 'ids', lead_ids: [lead], owner_user_id: ids.m2 })).status, 403, 'assign ids')
+      assert.equal((await m2('POST', `${api}/assign`, { mode: 'ids', lead_ids: [lead], owner_user_id: ids.m2 })).status, 403, 'assign to self')
+      assert.equal((await m1('POST', `${api}/assign`, { mode: 'split', filter: `q=${tag}`, member_ids: [ids.m1], commit: false })).status, 403, 'split')
+      assert.equal((await m1('POST', `${api}/bulk`, { lead_ids: [lead], owner_user_id: ids.m2, reason: 'outreach-check' })).status, 403, 'bulk')
+      assert.equal((await m1('PATCH', `${api}/${lead}`, { owner_user_id: ids.m2 })).status, 403, 'owner edit')
+      assert.equal((await admin('GET', `${api}/${lead}`)).json.lead.owner_user_id, ids.m1, 'owner unchanged')
+    })
+
+    await check('admin reassigns to member 2: logged with who, from, to, when', async () => {
+      const r = await admin('POST', `${api}/assign`, { mode: 'ids', lead_ids: [lead], owner_user_id: ids.m2 })
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      assert.equal(r.json.updated, 1)
+      const got = await admin('GET', `${api}/${lead}`)
+      assert.equal(got.json.lead.owner_user_id, ids.m2)
+      assert.equal(got.json.lead.assigned_by, ids.admin)
+      assert.ok(got.json.lead.assigned_at, 'assigned_at set')
+      const row = got.json.activity.find((a) => a.action === 'owner_changed')
+      assert.ok(row, 'owner_changed activity row')
+      assert.equal(row.user_id, ids.admin)
+      assert.deepEqual(row.changes.owner_user_id, { old: ids.m1, new: ids.m2 })
+      assert.ok(row.created_at)
+      const again = await admin('POST', `${api}/assign`, { mode: 'ids', lead_ids: [lead], owner_user_id: ids.m2 })
+      assert.equal(again.json.updated, 0, 'assigning to the same owner changes nothing')
+    })
+
+    await check('after the reassign: member 1 gets 404, member 2 reads it', async () => {
+      assert.equal((await m1('GET', `${api}/${lead}`)).status, 404)
+      assert.equal((await m2('GET', `${api}/${lead}`)).status, 200)
+    })
+
+    await check('auto-split: preview writes nothing, save deals round-robin', async () => {
+      for (const n of [1, 2, 3]) {
+        const r = await admin('POST', api, { name: `${tag} pool ${n}`, profile_url: `https://www.youtube.com/@${tag}pool${n}`, source: 'outreach-check' })
+        assert.equal(r.status, 201, JSON.stringify(r.json))
+        created.push(r.json.lead.lead_id)
+      }
+      const pool = created.slice(-3)
+      const un = await admin('POST', `${api}/assign`, { mode: 'ids', lead_ids: pool, owner_user_id: null })
+      assert.equal(un.json.updated, 3, 'unassigned the pool')
+      const body = { mode: 'split', filter: `q=${tag}`, member_ids: [ids.m1, ids.m2] }
+      const preview = await admin('POST', `${api}/assign`, { ...body, commit: false })
+      assert.equal(preview.status, 200, JSON.stringify(preview.json))
+      assert.equal(preview.json.total, 3)
+      assert.deepEqual(preview.json.split.map((s) => s.count), [2, 1])
+      assert.equal((await admin('GET', `${api}?owner=none&q=${tag}`)).json.total, 3, 'preview wrote nothing')
+      const save = await admin('POST', `${api}/assign`, { ...body, commit: true })
+      assert.equal(save.status, 200, JSON.stringify(save.json))
+      assert.equal(save.json.updated, 3)
+      assert.equal((await admin('GET', `${api}?owner=none&q=${tag}`)).json.total, 0)
+      assert.equal((await m1('GET', `${api}?q=${tag}%20pool`)).json.total, 2, 'member 1 sees 2')
+    })
+
+    await check('stale filter: fresh leads are not stale', async () => {
+      const r = await admin('GET', `${api}?stale=1&q=${tag}`)
+      assert.equal(r.status, 200)
+      assert.equal(r.json.total, 0)
+    })
+  } finally {
+    for (const id of created) {await admin('DELETE', `${api}/${id}`)}
+    console.log(`\nCleanup: soft-deleted ${created.length} assignment test leads.`)
+  }
+}
+
 await pureChecks()
 await databaseChecks()
 await contactsListsChecks()
 await followUpChecks()
+await assignmentChecks()
 const args = process.argv.slice(2)
 if (args.includes('--http')) {
   if (!args.includes('--confirm=outreach-check')) {
@@ -1706,6 +1929,7 @@ if (args.includes('--http')) {
     process.exit(1)
   }
   await httpChecks()
+  await assignmentHttpChecks()
 }
 
 console.log(`\n${passCount} passed, ${failCount} failed, ${skipCount} skipped`)
