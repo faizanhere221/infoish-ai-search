@@ -21,6 +21,9 @@ interface AdminSessionValue {
   loading: boolean
   isSuperAdmin: boolean
   isOutreach: boolean
+  // The live staff check failed (/api/admin/auth/me): 'gone' = removed,
+  // demoted or suspended; 'retry' = the check itself couldn't run.
+  noAccess: false | 'gone' | 'retry'
   refresh: () => Promise<void>
 }
 
@@ -29,6 +32,7 @@ const AdminSessionContext = createContext<AdminSessionValue>({
   loading: true,
   isSuperAdmin: false,
   isOutreach: false,
+  noAccess: false,
   refresh: async () => {},
 })
 
@@ -61,15 +65,20 @@ export function storeAdminSession(user: { email: string; role: string }): void {
 export function AdminSessionProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AdminSessionUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const [noAccess, setNoAccess] = useState<false | 'gone' | 'retry'>(false)
 
   const refresh = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/auth/me', { cache: 'no-store' })
       if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as { code?: string } | null
+        if (body?.code === 'no_staff_access') {setNoAccess('gone')}
+        else if (body?.code === 'staff_check_failed') {setNoAccess('retry')}
         clearAdminStorage()
         setUser(null)
         return
       }
+      setNoAccess(false)
       const data = (await res.json()) as { user: AdminSessionUser }
       setUser(data.user)
       // The cookie belongs to someone other than what this browser stored:
@@ -90,6 +99,15 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => { void refresh() }, [refresh])
 
+  // Access can be taken away while a page is open: check again whenever the
+  // tab comes back (every API call is checked live anyway, this only
+  // swaps the page for the "no longer have access" message sooner).
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === 'visible') {void refresh()} }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [refresh])
+
   return (
     <AdminSessionContext.Provider
       value={{
@@ -97,6 +115,7 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
         loading,
         isSuperAdmin: user?.role === 'super_admin',
         isOutreach: user?.role === 'outreach',
+        noAccess,
         refresh,
       }}
     >

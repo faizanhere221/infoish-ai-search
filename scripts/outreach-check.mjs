@@ -2137,6 +2137,10 @@ async function teamPromotionHttpChecks() {
   }
   const userId = acct.user_id
   let onTeam = false
+  // Tokens issued WHILE promoted: after removal the same tokens must lose
+  // staff access at once (live role check), with no re-login.
+  let promotedToken = null
+  let promotedAdminToken = null
 
   try {
     await check('a brand account with a profile can be promoted; user_type and profile stay', async () => {
@@ -2156,6 +2160,7 @@ async function teamPromotionHttpChecks() {
 
     await check('promoted: normal login works, brand area and public profile as before, outreach section open, rest of admin closed', async () => {
       const token = await userLogin()
+      promotedToken = token
       const c = claimsOf(token)
       assert.equal(c.role, 'outreach')
       assert.equal(c.userType, 'brand')
@@ -2174,6 +2179,7 @@ async function teamPromotionHttpChecks() {
       const r = await call('POST', '/api/admin/auth/login', { body: { email, password } })
       if (r.status === 429) {throw new Error('admin login rate limited; wait and run again')}
       assert.equal(r.status, 200, JSON.stringify(r.json))
+      promotedAdminToken = r.json.token
       const c = claimsOf(r.json.token)
       assert.equal(c.role, 'outreach')
       assert.ok(c.profileId, 'admin session carries the brand profile id')
@@ -2182,7 +2188,7 @@ async function teamPromotionHttpChecks() {
       assert.ok(redirectedToOutreach(await call('GET', '/admin/dashboard', { cookie: r.json.token, manual: true })), 'admin pages outside outreach redirect')
     })
 
-    await check('removed: a normal brand again (role user, still active, brand works, outreach closed)', async () => {
+    await check('removed: tokens issued while promoted lose staff access on the next request; a normal brand again', async () => {
       const r = await call('DELETE', `/api/admin/outreach/team/${encodeURIComponent(userId)}`, { cookie: SUPER, body: { reason: 'outreach-check promotion test cleanup' } })
       assert.equal(r.status, 200, JSON.stringify(r.json))
       onTeam = false
@@ -2192,6 +2198,30 @@ async function teamPromotionHttpChecks() {
       assert.equal(after.user_type, 'brand')
       assert.equal(after.is_active, true)
       assert.equal(after.has_brand_profile, true)
+
+      // The SAME tokens issued while promoted (their JWT still says
+      // role=outreach): staff access is gone on the very next request,
+      // the brand area still works.
+      for (const [label, t, how] of [['7-day login token', promotedToken, 'bearer'], ['admin-login session', promotedAdminToken, 'cookie']]) {
+        if (!t) {continue}
+        assert.equal(claimsOf(t).role, 'outreach', `${label} still claims outreach`)
+        const auth = how === 'bearer' ? { bearer: t } : { cookie: t }
+        for (const p of ['/api/admin/outreach/team', '/api/admin/outreach/leads/creators?limit=1', '/api/admin/outreach/claim?type=creator']) {
+          const res = await call('GET', p, auth)
+          assert.equal(res.status, 403, `${label} on ${p}: ${res.status}`)
+          assert.equal(res.json?.code, 'no_staff_access', `${label} on ${p}`)
+        }
+        assert.equal((await call('GET', '/api/dashboard/action-needed', auth)).status, 200, `${label}: brand API still works`)
+      }
+      if (promotedAdminToken) {
+        const page = await call('GET', '/admin/outreach', { cookie: promotedAdminToken, manual: true })
+        assert.ok(page.status >= 300 && page.status < 400 && page.location.includes('/admin/no-access'), `admin page → no-access, got ${page.status} ${page.location}`)
+        const me = await call('GET', '/api/admin/auth/me', { cookie: promotedAdminToken })
+        assert.equal(me.status, 403)
+        assert.equal(me.json?.code, 'no_staff_access')
+        assert.ok(!redirectedToOutreach(await call('GET', '/dashboard/brand', { cookie: promotedAdminToken, manual: true })), 'brand dashboard still opens')
+      }
+
       const token = await userLogin()
       assert.equal(claimsOf(token).role, 'user')
       assert.equal((await call('GET', '/api/dashboard/action-needed', { bearer: token })).status, 200)

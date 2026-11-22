@@ -83,7 +83,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({
       member: data,
       message: role !== undefined
-        ? `Role set to ${role}. It applies from their next sign-in (sessions last up to 4 hours).`
+        ? `Role set to ${role}. It applies on their next request.`
         : 'Saved',
     })
   } catch (err) {

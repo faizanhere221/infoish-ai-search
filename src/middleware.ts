@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
+import { isStaffRole, loadLiveAccess } from '@/lib/staff-access'
 
 function isPublicApiRoute(pathname: string, method: string): boolean {
   if (pathname.startsWith('/api/auth/')) {return true}
@@ -56,6 +57,16 @@ const AUTH_HEADER_NAMES = ['x-user-id', 'x-user-type', 'x-profile-id', 'x-user-r
 //   2. mustChangePassword (team accounts created with a temporary
 //      password): only the change-password page and route until it is set.
 // admin and super_admin tokens without the flag are unaffected.
+//
+// LIVE ROLE: the JWT role is only the first gate. On every /api/admin/*
+// request, every /admin/* page and any request whose token claims a staff
+// role, loadLiveAccess() (src/lib/staff-access.ts) reads users.role,
+// is_active and deleted_at from the database, and that live role is what
+// the rules above use and what x-user-role carries to the route. Someone
+// removed from the team, demoted or suspended loses staff access on their
+// next request, without signing in again. A failed lookup never grants
+// staff access (503 on staff APIs, the no-access page on admin pages).
+const NO_ACCESS_PAGE = '/admin/no-access'
 const ADMIN_ROLES = ['admin', 'super_admin']
 const OUTREACH_ROLE = 'outreach'
 const USER_AREA_TYPES = ['brand', 'creator']
@@ -130,29 +141,39 @@ export async function middleware(request: NextRequest) {
 
   // ── Admin page routes ───────────────────────────────────────────────────────
   if (pathname.startsWith('/admin/')) {
-    if (pathname === '/admin/login') {return withSecurityHeaders(passThrough())}
+    if (pathname === '/admin/login' || pathname === NO_ACCESS_PAGE) {return withSecurityHeaders(passThrough())}
 
     if (!secret) {return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))}
 
     const cookieToken = request.cookies.get('auth_token')?.value
     if (!cookieToken) {return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))}
 
+    let verified: Awaited<ReturnType<typeof jwtVerify>>['payload']
     try {
-      const { payload } = await jwtVerify(cookieToken, new TextEncoder().encode(secret))
-      const role = String(payload.role ?? '')
-      if (!ADMIN_ROLES.includes(role) && role !== OUTREACH_ROLE) {
-        return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))
-      }
-      if (payload.mustChangePassword === true && pathname !== CHANGE_PASSWORD_PAGE) {
-        return withSecurityHeaders(NextResponse.redirect(new URL(CHANGE_PASSWORD_PAGE, request.url)))
-      }
-      if (role === OUTREACH_ROLE && !isUnder(pathname, '/admin/outreach') && pathname !== CHANGE_PASSWORD_PAGE) {
-        return withSecurityHeaders(NextResponse.redirect(new URL('/admin/outreach', request.url)))
-      }
-      return withSecurityHeaders(passThrough())
+      verified = (await jwtVerify(cookieToken, new TextEncoder().encode(secret))).payload
     } catch {
       return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))
     }
+    const payload = verified
+    // First gate: the token claims a staff role.
+    if (!isStaffRole(String(payload.role ?? ''))) {
+      return withSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)))
+    }
+    // The real check: the role in the database right now.
+    const live = await loadLiveAccess(String(payload.userId ?? ''))
+    if (!live || !live.isStaff) {
+      const target = new URL(NO_ACCESS_PAGE, request.url)
+      if (!live) {target.searchParams.set('retry', '1')}
+      return withSecurityHeaders(NextResponse.redirect(target))
+    }
+    const role = live.role
+    if (payload.mustChangePassword === true && pathname !== CHANGE_PASSWORD_PAGE) {
+      return withSecurityHeaders(NextResponse.redirect(new URL(CHANGE_PASSWORD_PAGE, request.url)))
+    }
+    if (role === OUTREACH_ROLE && !isUnder(pathname, '/admin/outreach') && pathname !== CHANGE_PASSWORD_PAGE) {
+      return withSecurityHeaders(NextResponse.redirect(new URL('/admin/outreach', request.url)))
+    }
+    return withSecurityHeaders(passThrough())
   }
 
   // ── API routes ──────────────────────────────────────────────────────────────
@@ -173,9 +194,45 @@ export async function middleware(request: NextRequest) {
       return withSecurityHeaders(NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 }))
     }
 
+    let payload: Awaited<ReturnType<typeof jwtVerify>>['payload']
     try {
-      const { payload } = await jwtVerify(token, new TextEncoder().encode(secret))
-      const role = String(payload.role ?? '')
+      payload = (await jwtVerify(token, new TextEncoder().encode(secret))).payload
+    } catch {
+      if (optionalAuth) {
+        return withSecurityHeaders(passThrough())
+      }
+      return withSecurityHeaders(NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 }))
+    }
+
+    {
+      const isStaffApi = pathname.startsWith('/api/admin/')
+      const tokenRole = String(payload.role ?? '')
+      // First gate: staff APIs need a token that claims a staff role.
+      if (isStaffApi && !isStaffRole(tokenRole)) {
+        return withSecurityHeaders(NextResponse.json({ error: 'Admin access required' }, { status: 403 }))
+      }
+      // The real check: the live role. Only looked up when staff powers are
+      // in play (a staff API, or a token claiming a staff role); a plain
+      // user token costs nothing extra.
+      let role = tokenRole || 'user'
+      if (isStaffApi || isStaffRole(tokenRole)) {
+        const live = await loadLiveAccess(String(payload.userId ?? ''))
+        if (isStaffApi && !live) {
+          return withSecurityHeaders(NextResponse.json({ error: 'Could not check your access. Try again.', code: 'staff_check_failed' }, { status: 503 }))
+        }
+        if (isStaffApi && !live?.isStaff) {
+          return withSecurityHeaders(NextResponse.json({ error: 'You no longer have access.', code: 'no_staff_access' }, { status: 403 }))
+        }
+        // A suspended / deleted account (incl. an outreach-only account
+        // deactivated when it left the team) gets nothing at all.
+        if (live && !live.active) {
+          if (optionalAuth) {return withSecurityHeaders(passThrough())}
+          return withSecurityHeaders(NextResponse.json({ error: 'Account is deactivated' }, { status: 401 }))
+        }
+        // Elsewhere a failed lookup or a lost role just means no staff
+        // powers: the account keeps its normal brand / creator access.
+        role = live?.isStaff ? live.role : 'user'
+      }
 
       if (payload.mustChangePassword === true && pathname !== CHANGE_PASSWORD_API) {
         return withSecurityHeaders(NextResponse.json({ error: 'Set a new password first' }, { status: 403 }))
@@ -208,14 +265,10 @@ export async function middleware(request: NextRequest) {
       requestHeaders.set('x-user-id', String(payload.userId ?? ''))
       requestHeaders.set('x-user-type', String(payload.userType ?? ''))
       requestHeaders.set('x-profile-id', String(payload.profileId ?? ''))
-      requestHeaders.set('x-user-role', String(payload.role ?? 'user'))
+      // The LIVE role (see loadLiveAccess above), never the token's own claim.
+      requestHeaders.set('x-user-role', role)
 
       return withSecurityHeaders(NextResponse.next({ request: { headers: requestHeaders } }))
-    } catch {
-      if (optionalAuth) {
-        return withSecurityHeaders(passThrough())
-      }
-      return withSecurityHeaders(NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 }))
     }
   }
 

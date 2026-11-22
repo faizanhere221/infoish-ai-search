@@ -394,8 +394,8 @@ export default function OutreachTeamPage() {
           description={pending.kind === 'remove'
             ? `Their leads stay and become unassigned, ready to reassign or auto-split.${pending.member.role === 'outreach' ? ' Their role goes back to user. A brand or creator account keeps working as before; an account with no brand or creator profile is deactivated (adding them again here brings it back).' : ' Their admin role stays.'} Default owner rules pointing at them switch off.`
             : pending.role === 'outreach'
-              ? 'Outreach members see and work only their own leads, and only in the outreach section. They lose admin pages, deleting leads, assigning and mailbox settings. It applies from their next sign-in.'
-              : 'Admins see every lead and every admin page. It applies from their next sign-in.'}
+              ? 'Outreach members see and work only their own leads, and only in the outreach section. They lose admin pages, deleting leads, assigning and mailbox settings. It applies on their next click.'
+              : 'Admins see every lead and every admin page. It applies on their next click.'}
           confirmLabel={pending.kind === 'remove' ? 'Remove' : 'Change role'}
           onConfirm={runPending}
           onClose={() => setPending(null)}

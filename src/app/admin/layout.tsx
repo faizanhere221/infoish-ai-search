@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import { AdminSessionProvider, clearAdminStorage, useAdminSession } from '@/components/admin/AdminSession'
+import { NoAccess } from '@/components/admin/NoAccess'
 import {
   LayoutDashboard, Users, UserSquare, Building2, Handshake,
   FileText, Mail, LogOut, Menu, X,
@@ -295,7 +296,7 @@ function NavEntry({
 // ─── Layout ──────────────────────────────────────────────────────────────────
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  if (pathname === '/admin/login' || pathname === '/admin/change-password') {return <>{children}</>}
+  if (pathname === '/admin/login' || pathname === '/admin/change-password' || pathname === '/admin/no-access') {return <>{children}</>}
   return (
     <AdminSessionProvider>
       <AdminShell>{children}</AdminShell>
@@ -308,7 +309,7 @@ const ROLE_LABELS: Record<string, string> = { super_admin: 'Super admin', admin:
 function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router   = useRouter()
-  const { user, loading, isSuperAdmin, isOutreach: isOutreachRole } = useAdminSession()
+  const { user, loading, isSuperAdmin, isOutreach: isOutreachRole, noAccess } = useAdminSession()
   const [collapsed, setCollapsed]     = useState(false)
   const [showProfile, setShowProfile] = useState(false)
 
@@ -329,6 +330,10 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       router.push('/admin/login')
     }
   }
+
+  // The live staff check failed while the page was open (removed, demoted
+  // or suspended): no menu, no page, only the way back.
+  if (noAccess) {return <NoAccess retry={noAccess === 'retry'} />}
 
   return (
     <div className="flex h-screen bg-slate-950 overflow-hidden">
