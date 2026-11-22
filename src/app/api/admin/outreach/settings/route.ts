@@ -3,8 +3,12 @@ import { z } from 'zod'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
-import { ASSIGN_SETTING_KEYS, MAILBOX_WINDOW_MAX, MAILBOX_WINDOW_MIN, mailboxWindowHours, type AssignRule } from '@/lib/outreach/rules'
-import { isMissingSchema, NEEDS_ASSIGNMENT_MIGRATION, NEEDS_MIGRATION, outreachFeatures } from '@/lib/outreach/schema'
+import {
+  ASSIGN_SETTING_KEYS, CLAIM_DAILY_CAP_MAX, claimDailyCap, MAILBOX_WINDOW_MAX, MAILBOX_WINDOW_MIN, mailboxWindowHours, type AssignRule,
+} from '@/lib/outreach/rules'
+import {
+  isMissingSchema, NEEDS_ASSIGNMENT_MIGRATION, NEEDS_CLAIM_MIGRATION, NEEDS_MIGRATION, outreachFeatures,
+} from '@/lib/outreach/schema'
 import { adminOnly, getOutreachCaller, loadAssignDefaults, loadTeam, unauthorized } from '@/lib/outreach/server'
 
 export const dynamic = 'force-dynamic'
@@ -18,6 +22,8 @@ const patchSchema = z.object({
   assign_creator_owner: ownerId,
   assign_brand_owner: ownerId,
   assign_interested_owner: ownerId,
+  // Leads one member claims per Karachi day (outreach_claim_migration.sql).
+  claim_daily_cap: z.number().int().min(1).max(CLAIM_DAILY_CAP_MAX).optional(),
 })
 
 // GET /api/admin/outreach/settings: { mailbox_window_hours, assign } (mailbox
@@ -36,12 +42,20 @@ export async function GET(request: NextRequest) {
       }
       throw error
     }
-    const [assign, features] = await Promise.all([loadAssignDefaults(supabase), outreachFeatures(supabase)])
+    const [assign, features, capRow] = await Promise.all([
+      loadAssignDefaults(supabase),
+      outreachFeatures(supabase),
+      supabase.from('outreach_settings').select('value').eq('key', 'claim_daily_cap').maybeSingle(),
+    ])
     return NextResponse.json({
-      settings: { mailbox_window_hours: mailboxWindowHours(data?.value) },
+      settings: {
+        mailbox_window_hours: mailboxWindowHours(data?.value),
+        claim_daily_cap: features.claim ? claimDailyCap(capRow.data?.value) : null,
+      },
       assign,
       migrated: true,
       assignment: features.assignment,
+      claim: features.claim,
     })
   } catch (err) {
     captureError(err, { route: 'GET /api/admin/outreach/settings' })
@@ -84,6 +98,11 @@ export async function PATCH(request: NextRequest) {
         rows.push({ key: ASSIGN_SETTING_KEYS[r], value: v, updated_by: caller.userId, updated_at: now })
       }
     }
+    const claimCap = parsed.data.claim_daily_cap
+    if (claimCap !== undefined) {
+      if (!(await outreachFeatures(supabase)).claim) {return NextResponse.json(NEEDS_CLAIM_MIGRATION, { status: 409 })}
+      rows.push({ key: 'claim_daily_cap', value: claimCap, updated_by: caller.userId, updated_at: now })
+    }
     if (rows.length === 0) {return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })}
 
     const { error } = await supabase.from('outreach_settings').upsert(rows)
@@ -97,10 +116,10 @@ export async function PATCH(request: NextRequest) {
       entityType: 'outreach_settings',
       details: Object.fromEntries(rows.map((r) => [r.key, r.value])),
     })
-    const message = hours !== undefined && rules.length === 0 ? `A send now counts for ${hours} hours` : 'Settings saved'
+    const message = hours !== undefined && rules.length === 0 && claimCap === undefined ? `A send now counts for ${hours} hours` : 'Settings saved'
     return NextResponse.json({
       message,
-      settings: { mailbox_window_hours: hours ?? null },
+      settings: { mailbox_window_hours: hours ?? null, claim_daily_cap: claimCap ?? null },
       assign: await loadAssignDefaults(supabase),
     })
   } catch (err) {

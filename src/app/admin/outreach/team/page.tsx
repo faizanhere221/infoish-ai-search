@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Search, UserMinus, UserPlus } from 'lucide-react'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import type { AssignDefaults, AssignRule } from '@/lib/outreach/rules'
+import { CLAIM_DAILY_CAP_MAX, CLAIM_MAX_PER_REQUEST, type AssignDefaults, type AssignRule } from '@/lib/outreach/rules'
 import type { OutreachTeamMember } from '@/lib/outreach/types'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
@@ -67,17 +67,36 @@ function DefaultOwnerRules() {
   const { team, toast } = useOutreach()
   const [assign, setAssign] = useState<AssignDefaults | null>(null)
   const [migrated, setMigrated] = useState(true)
+  // null before outreach_claim_migration.sql
+  const [claimCap, setClaimCap] = useState<number | null>(null)
   const active = team.filter((t) => t.is_active)
 
   const load = useCallback(async () => {
     const res = await fetch('/api/admin/outreach/settings')
-    const data = await readJson<{ assign: AssignDefaults; assignment: boolean }>(res)
+    const data = await readJson<{ assign: AssignDefaults; assignment: boolean; settings: { claim_daily_cap: number | null } }>(res)
     if (res.ok) {
       setAssign(data.assign)
       setMigrated(data.assignment)
+      setClaimCap(data.settings?.claim_daily_cap ?? null)
     }
   }, [])
   useEffect(() => { void load() }, [load])
+
+  const saveCap = async (v: number) => {
+    if (!Number.isInteger(v) || v < 1 || v > CLAIM_DAILY_CAP_MAX || v === claimCap) {return}
+    const res = await fetch('/api/admin/outreach/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ claim_daily_cap: v }),
+    })
+    const data = await readJson<Record<string, unknown>>(res)
+    if (!res.ok) {
+      toast('error', data.error ?? 'Save failed')
+      return
+    }
+    setClaimCap(v)
+    toast('success', `Members claim up to ${v} leads a day`)
+  }
 
   const save = async (rule: AssignRule, userId: string) => {
     const key = rule === 'creator' ? 'assign_creator_owner' : rule === 'brand' ? 'assign_brand_owner' : 'assign_interested_owner'
@@ -114,6 +133,15 @@ function DefaultOwnerRules() {
             </label>
           ))}
         </div>
+      )}
+      {claimCap !== null && (
+        <label className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-300">
+          Members claim up to
+          <input key={claimCap} type="number" min={1} max={CLAIM_DAILY_CAP_MAX} defaultValue={claimCap}
+            onBlur={(e) => void saveCap(Number(e.target.value))}
+            className="w-24 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-right text-sm text-white" aria-label="Daily claim limit per member" />
+          unassigned leads a day (Karachi), {CLAIM_MAX_PER_REQUEST} per claim.
+        </label>
       )}
       <p className="mt-3 text-xs text-slate-500">
         Outreach members always own the leads they add or import themselves. An Interested lead moves when the status is set; undoing that action moves it back.

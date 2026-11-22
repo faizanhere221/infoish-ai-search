@@ -339,6 +339,24 @@ export function roundRobin(ids: readonly string[], memberIds: readonly string[])
   return out
 }
 
+// "Claim next N" (supabase/outreach_claim_migration.sql): members take the
+// oldest unassigned open leads. Mirrored in outreach_claim_leads() /
+// outreach_claim_daily_cap(): change both.
+export const CLAIM_MAX_PER_REQUEST = 25
+export const CLAIM_DAILY_CAP_DEFAULT = 100
+export const CLAIM_DAILY_CAP_MAX = 1000
+
+// The stored setting, or the default when missing / unreadable / out of range.
+export function claimDailyCap(v: unknown): number {
+  const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN
+  return Number.isInteger(n) && n >= 1 && n <= CLAIM_DAILY_CAP_MAX ? n : CLAIM_DAILY_CAP_DEFAULT
+}
+
+// How many a claim of `asked` gets before the pool size is known.
+export function claimAllowance(asked: number, usedToday: number, cap: number): number {
+  return Math.max(0, Math.min(asked, CLAIM_MAX_PER_REQUEST, cap - usedToday))
+}
+
 // outreach_settings keys holding a users.id (or null).
 export const ASSIGN_SETTING_KEYS = {
   creator: 'assign_creator_owner',

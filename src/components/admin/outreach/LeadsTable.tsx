@@ -22,6 +22,7 @@ import { LeadForm } from '@/components/admin/outreach/LeadForm'
 import { ContactsEditor } from '@/components/admin/outreach/ContactsEditor'
 import { EditableCell } from '@/components/admin/outreach/EditableCell'
 import { AutoSplitDialog } from '@/components/admin/outreach/AutoSplitDialog'
+import { ClaimBar } from '@/components/admin/outreach/ClaimBar'
 import {
   BRAND_COLUMNS, CREATOR_COLUMNS, cellDisplay, cellEditor, cellValue, extraColumn, KNOWN_EXTRAS, type LeadColumn,
 } from '@/components/admin/outreach/columns'
@@ -507,6 +508,8 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
           </button>
         )}
       </div>
+
+      {!isAdmin && me && view === 'mine' && <ClaimBar defaultType={leadType} />}
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[240px] flex-1">

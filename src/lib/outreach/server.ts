@@ -171,6 +171,8 @@ const RPC_ERRORS: Record<string, [number, string]> = {
   outreach_contact_not_found: [404, 'Contact not found. Reload the page.'],
   outreach_db_item_not_found: [404, 'This row no longer exists. Reload the page.'],
   outreach_bad_owner: [400, 'Pick an active team member.'],
+  outreach_claim_too_many: [400, 'Claim 1 to 25 leads at a time.'],
+  outreach_claim_cap: [409, "You reached today's claim limit. Ask an admin for more leads or claim again tomorrow."],
 }
 
 export interface MappedDbError {

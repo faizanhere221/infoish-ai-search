@@ -35,8 +35,12 @@
 //     (404 / 403), can't call the assign routes, and an admin can
 //     (assign, owner_changed log, auto-split preview + save).
 //
+//     Claims ("Claim next N", same tokens): two concurrent claims never get
+//     the same lead, the per-claim max and the daily cap hold, admins still
+//     reassign claimed leads. Skipped when real unassigned leads exist.
+//
 //   Pure checks also cover assignment rules: round-robin split, Interested,
-//   Stale, import owner.
+//   Stale, import owner, claim cap and allowance.
 //
 // Outreach role access (403 outside the section) lives in
 // scripts/security-check.mjs (OUTREACH_TOKEN).
@@ -1748,6 +1752,20 @@ async function assignmentChecks() {
     assert.equal(rules.isStale({ status: 'contacted', last_activity_at: null }, now), false)
   })
 
+  await check('claim: daily cap setting falls back to 100; allowance = min(asked, 25, cap left)', () => {
+    assert.equal(rules.claimDailyCap(40), 40)
+    assert.equal(rules.claimDailyCap('60'), 60)
+    assert.equal(rules.claimDailyCap(0), 100)
+    assert.equal(rules.claimDailyCap(5000), 100)
+    assert.equal(rules.claimDailyCap(null), 100)
+    assert.equal(rules.claimDailyCap(2.5), 100)
+    assert.equal(rules.claimAllowance(10, 0, 100), 10)
+    assert.equal(rules.claimAllowance(40, 0, 100), 25)
+    assert.equal(rules.claimAllowance(10, 95, 100), 5)
+    assert.equal(rules.claimAllowance(10, 100, 100), 0)
+    assert.equal(rules.claimAllowance(10, 120, 100), 0)
+  })
+
   await check('importOwner: members always themselves; admins row owner, else the default', () => {
     const defaults = { creator: 'ahtasham', brand: 'aima' }
     assert.equal(rules.importOwner('creator', 'someone', defaults, { userId: 'm', isAdmin: false }), 'm')
@@ -1917,6 +1935,151 @@ async function assignmentHttpChecks() {
   }
 }
 
+// "Claim next N" (outreach_claim_migration.sql). Same tokens as the
+// assignment checks. SKIPPED when real unassigned open creator leads exist,
+// so a test claim never takes a real lead. WRITES DATA: test leads
+// (source=outreach-check, soft-deleted at the end) and, for a moment, the
+// claim_daily_cap setting (restored at the end).
+async function claimHttpChecks() {
+  const fileEnv = loadEnvFile(path.join(REPO_ROOT, '.env.test.local'))
+  const getEnv = (k) => process.env[k] ?? fileEnv[k] ?? ''
+  const BASE_URL = getEnv('BASE_URL') || 'http://localhost:3000'
+  const tokens = { admin: getEnv('ADMIN_TOKEN'), m1: getEnv('OUTREACH_TOKEN'), m2: getEnv('TEST_OUTREACH_TOKEN_2') }
+  console.log(`\nClaim HTTP checks against ${BASE_URL} (writes data)\n`)
+  const missing = Object.entries({ ADMIN_TOKEN: tokens.admin, OUTREACH_TOKEN: tokens.m1, TEST_OUTREACH_TOKEN_2: tokens.m2 }).filter(([, v]) => !v).map(([k]) => k)
+  if (missing.length > 0) {
+    skip('claim checks', `${missing.join(', ')} not set in .env.test.local`)
+    return
+  }
+  const as = (who) => async (method, urlPath, body) => {
+    const res = await fetch(`${BASE_URL}${urlPath}`, {
+      method, headers: { Cookie: `auth_token=${tokens[who]}`, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    })
+    let json = null
+    try { json = await res.json() } catch { /* empty */ }
+    return { status: res.status, json }
+  }
+  const admin = as('admin')
+  const m1 = as('m1')
+  const m2 = as('m2')
+  const api = '/api/admin/outreach/leads/creators'
+
+  const pool = await admin('GET', '/api/admin/outreach/claim?type=creator').catch(() => null)
+  if (!pool) {
+    skip('claim checks', `no server at ${BASE_URL}; start the dev server first`)
+    return
+  }
+  if (pool.status === 409) {
+    skip('claim checks', 'run supabase/outreach_claim_migration.sql first')
+    return
+  }
+  if (pool.status !== 200) {
+    skip('claim checks', `GET /claim as admin returned ${pool.status}; ADMIN_TOKEN expired?`)
+    return
+  }
+  if (pool.json.available > 0) {
+    skip('claim checks', `${pool.json.available} real unassigned creator leads exist; a test claim would take them`)
+    return
+  }
+  const ids = {}
+  for (const [who, call] of [['m1', m1], ['m2', m2]]) {
+    const r = await call('GET', '/api/admin/outreach/team')
+    if (r.status !== 200 || r.json?.me?.role !== 'outreach') {
+      skip('claim checks', `${who} token is not a working outreach account (status ${r.status})`)
+      return
+    }
+    ids[who] = r.json.me.user_id
+    const s = await call('GET', '/api/admin/outreach/claim?type=creator')
+    if (s.status !== 200 || s.json.remaining_today < 4) {
+      skip('claim checks', `${who} has fewer than 4 claims left today`)
+      return
+    }
+  }
+
+  const settings = await admin('GET', '/api/admin/outreach/settings')
+  const originalCap = settings.json?.settings?.claim_daily_cap ?? 100
+  const tag = `ocl${Date.now()}`
+  const created = []
+  const makePool = async (n, label) => {
+    const made = []
+    for (let i = 1; i <= n; i += 1) {
+      const r = await admin('POST', api, { name: `${tag} ${label} ${i}`, profile_url: `https://www.youtube.com/@${tag}${label}${i}`, source: 'outreach-check' })
+      assert.equal(r.status, 201, JSON.stringify(r.json))
+      created.push(r.json.lead.lead_id)
+      made.push(r.json.lead.lead_id)
+    }
+    const un = await admin('POST', `${api}/assign`, { mode: 'ids', lead_ids: made, owner_user_id: null })
+    assert.equal(un.json?.updated, n, `unassigning the pool: ${JSON.stringify(un.json)}`)
+    return made
+  }
+
+  try {
+    await check('members see a count of the pool, never the leads', async () => {
+      const r = await m1('GET', '/api/admin/outreach/claim?type=creator')
+      assert.equal(r.status, 200)
+      assert.deepEqual(Object.keys(r.json).sort(), ['available', 'cap', 'claimed_today', 'enabled', 'max_per_claim', 'remaining_today'])
+      assert.equal((await m1('GET', `${api}?owner=none&q=${tag}`)).json?.total ?? 0, 0, 'the unassigned list is never theirs')
+    })
+
+    await check('two concurrent claims never get the same lead', async () => {
+      const poolIds = await makePool(6, 'race')
+      const [a, b] = await Promise.all([
+        m1('POST', '/api/admin/outreach/claim', { lead_type: 'creator', count: 4 }),
+        m2('POST', '/api/admin/outreach/claim', { lead_type: 'creator', count: 4 }),
+      ])
+      assert.equal(a.status, 200, JSON.stringify(a.json))
+      assert.equal(b.status, 200, JSON.stringify(b.json))
+      const overlap = a.json.lead_ids.filter((id) => b.json.lead_ids.includes(id))
+      assert.deepEqual(overlap, [], 'no lead claimed twice')
+      assert.equal(a.json.claimed + b.json.claimed, 6, `claimed ${a.json.claimed} + ${b.json.claimed}`)
+      assert.deepEqual([...a.json.lead_ids, ...b.json.lead_ids].sort(), [...poolIds].sort())
+      for (const [res, owner] of [[a, ids.m1], [b, ids.m2]]) {
+        for (const id of res.json.lead_ids) {
+          const got = await admin('GET', `${api}/${id}`)
+          assert.equal(got.json.lead.owner_user_id, owner, `${id} owner`)
+          assert.equal(got.json.lead.assigned_by, owner, `${id} assigned_by = the member`)
+          const row = got.json.activity.find((x) => x.action === 'owner_changed' && x.changes?.rule?.new === 'claim')
+          assert.ok(row, `${id}: owner_changed row with rule claim`)
+          assert.equal(row.user_id, owner)
+        }
+      }
+    })
+
+    await check('the per-claim max holds (26 refused) and admins claim nothing', async () => {
+      assert.equal((await m1('POST', '/api/admin/outreach/claim', { lead_type: 'creator', count: 26 })).status, 400)
+      assert.equal((await m1('POST', '/api/admin/outreach/claim', { lead_type: 'creator', count: 0 })).status, 400)
+      assert.equal((await admin('POST', '/api/admin/outreach/claim', { lead_type: 'creator', count: 1 })).status, 403)
+    })
+
+    await check('the daily cap holds: a claim is cut to what is left, then refused', async () => {
+      const used = (await m1('GET', '/api/admin/outreach/claim?type=creator')).json.claimed_today
+      const set = await admin('PATCH', '/api/admin/outreach/settings', { claim_daily_cap: used + 1 })
+      assert.equal(set.status, 200, JSON.stringify(set.json))
+      await makePool(2, 'cap')
+      const first = await m1('POST', '/api/admin/outreach/claim', { lead_type: 'creator', count: 2 })
+      assert.equal(first.status, 200, JSON.stringify(first.json))
+      assert.equal(first.json.claimed, 1, 'only 1 left under the cap')
+      const second = await m1('POST', '/api/admin/outreach/claim', { lead_type: 'creator', count: 1 })
+      assert.equal(second.status, 409, JSON.stringify(second.json))
+      assert.equal(second.json.code, 'outreach_claim_cap')
+    })
+
+    await check('admins still reassign a claimed lead', async () => {
+      const claimed = (await admin('GET', `${api}?owner=${encodeURIComponent(ids.m1)}&q=${tag}`)).json.leads[0]?.lead_id
+      assert.ok(claimed, 'a lead member 1 claimed')
+      const r = await admin('POST', `${api}/assign`, { mode: 'ids', lead_ids: [claimed], owner_user_id: ids.m2 })
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      assert.equal((await admin('GET', `${api}/${claimed}`)).json.lead.owner_user_id, ids.m2)
+      assert.equal((await m1('GET', `${api}/${claimed}`)).status, 404, 'member 1 no longer reaches it')
+    })
+  } finally {
+    await admin('PATCH', '/api/admin/outreach/settings', { claim_daily_cap: originalCap })
+    for (const id of created) {await admin('DELETE', `${api}/${id}`)}
+    console.log(`\nCleanup: soft-deleted ${created.length} claim test leads, daily cap back to ${originalCap}.`)
+  }
+}
+
 await pureChecks()
 await databaseChecks()
 await contactsListsChecks()
@@ -1930,6 +2093,7 @@ if (args.includes('--http')) {
   }
   await httpChecks()
   await assignmentHttpChecks()
+  await claimHttpChecks()
 }
 
 console.log(`\n${passCount} passed, ${failCount} failed, ${skipCount} skipped`)
