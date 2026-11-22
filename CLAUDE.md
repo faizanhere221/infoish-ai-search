@@ -32,6 +32,8 @@ Three standalone black-box scripts cover authorization, concurrency, and creator
 
 `npm run test:outreach` (`scripts/outreach-check.mjs`) covers the outreach rules (normalisation, CSV mapping incl. extra fields, field validation, owner rule, dates, mailbox limits) with no writes; add `--http --confirm=outreach-check` for its data-writing API checks.
 
+Expired test tokens: `npm run test:tokens` (`scripts/refresh-test-tokens.mjs`) signs in at `/api/auth/login` with the `TEST_*_EMAIL` / `TEST_*_PASSWORD` accounts in `.env.test.local` and rewrites `BRAND_A_TOKEN`, `CREATOR_A_TOKEN`, `CREATOR_B_TOKEN`, `TEST_CREATOR_TOKEN` there (only tokens missing or expiring within 24 h; `--force` for all). `npm run test:security:fresh` = refresh, then `test:security`. It never prints a token or password. This is a real login, not a minted token, so the rule below still holds. Admin cookies (`ADMIN_TOKEN`, `SUPER_ADMIN_TOKEN`, outreach tokens) are not refreshed by it.
+
 All three just make HTTP calls against `BASE_URL` (default `http://localhost:3000`) — run them against an already-running dev server, don't start a new one for them.
 
 **Never sign or mint JWTs with `JWT_SECRET`** (no `jwt.sign` in a scratch script, no forged admin/user tokens) to test an authenticated route, even locally. If a token in `.env.test.local` is missing or expired, stop and ask the user for a fresh one.

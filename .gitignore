@@ -29,6 +29,9 @@ yarn-error.log*
 .env*.local
 .env.development.local
 .env.test.local
+# Never commit test credentials or tokens, whichever name the file has.
+.env.test
+.env.test.local.tmp-*
 .env.production.local
 
 # Vercel

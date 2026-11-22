@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "test:security": "node scripts/security-check.mjs",
+    "test:security:fresh": "node scripts/refresh-test-tokens.mjs && npm run test:security",
+    "test:tokens": "node scripts/refresh-test-tokens.mjs",
     "test:outreach": "node scripts/outreach-check.mjs",
     "check:schema": "node scripts/check-schema.mjs"
   },
