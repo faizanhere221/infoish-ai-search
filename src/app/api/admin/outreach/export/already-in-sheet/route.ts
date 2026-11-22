@@ -8,7 +8,9 @@ export const fetchCache = 'force-no-store'
 
 // GET: already_in_sheet.txt, every normalised email, profile URL and domain
 // from both lead tables and the DNC list, one per line, sorted. Feed it to
-// the lead-finding scripts so they skip what's already here.
+// the lead-finding scripts so they skip what's already in the CRM. The name
+// is historical (the finder reads that file name); the CRM is the only lead
+// store, there is no sheet.
 export async function GET(request: NextRequest) {
   const caller = getOutreachCaller(request)
   if (!caller) {return unauthorized()}
