@@ -215,12 +215,17 @@ export default function ManagedServicePage() {
         </div>
       </section>
 
-      {/* Self-serve option */}
+      {/* Managed fees, then the self-serve option */}
       <section className="pb-20">
-        <p className="px-4 text-center text-sm text-gray-600">
+        <p className="mx-auto max-w-2xl px-4 text-center text-sm text-gray-600">
+          On a managed campaign, you pay the creator fee plus a 10% Infoishai fee. Infoishai also
+          keeps 10% of the creator fee at payout. We confirm every amount in writing before work
+          starts.
+        </p>
+        <p className="mt-3 px-4 text-center text-sm text-gray-600">
           Prefer to run campaigns yourself?{' '}
           <Link href="/signup/brand" className="font-medium text-brand-purple-dark hover:underline">
-            Infoishai is free for brands.
+            The self-serve platform is free.
           </Link>
         </p>
       </section>

@@ -8,6 +8,7 @@ import Header from '@/components/header'
 import NewsletterForm from '@/components/NewsletterForm'
 import { trackCTAClick } from '@/lib/analytics'
 import { COUNTRY_LANDING_PAGES, NICHES, PLATFORM_COUNT } from '@/utils/constants'
+import { YOUTUBE_TERMS_URL } from '@/config/legal'
 import {
   Sparkles, 
   Search, 
@@ -1116,6 +1117,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+              <li><a href={YOUTUBE_TERMS_URL} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">YouTube Terms of Service</a></li>
             </ul>
           </div>
 

@@ -4,6 +4,7 @@ import Logo from '@/components/Logo'
 import { MapPin, Mail, Phone, Linkedin } from 'lucide-react'
 import { useState } from 'react'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
+import { YOUTUBE_TERMS_URL } from '@/config/legal'
 
 export default function Footer() {
   // getUTCFullYear(), not getFullYear() — this renders on both server
@@ -278,6 +279,14 @@ export default function Footer() {
             <Link href="/terms" className="text-white/70 hover:text-green-400 transition-colors">
               Terms of Service
             </Link>
+            <a
+              href={YOUTUBE_TERMS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white/70 hover:text-green-400 transition-colors"
+            >
+              YouTube Terms of Service
+            </a>
           </div>
         </div>
       </div>
