@@ -43,6 +43,11 @@ export async function POST(request: NextRequest) {
     const teamIds = new Set(team.filter((t) => t.is_active).map((t) => t.user_id))
 
     const classified = await classifyImportRows(supabase, lead_type, rows)
+    // owner_set: true = the preview chose this row's owner, Unassigned included.
+    // (The row schema drops unknown keys, so it's read from the raw rows.)
+    const ownerSetRows = new Set(
+      rows.map((r, i) => (r.owner_set === true ? (typeof r._row === 'number' ? r._row : i + 2) : null)).filter((n): n is number => n !== null),
+    )
     const skipped: SkippedRow[] = []
     const toInsert: Record<string, unknown>[] = []
 
@@ -51,9 +56,10 @@ export async function POST(request: NextRequest) {
         skipped.push({ row: c.row, reason: c.reasons.join('; ') || c.status, lead_id: c.match?.lead_id ?? null })
         continue
       }
-      // Members import for themselves; admins keep the preview's owner, else
-      // the default owner for this lead type (Team page).
-      const owner = importOwner(lead_type, c.lead.owner_user_id, defaults, caller)
+      // Members import for themselves; admins keep the preview's choice
+      // (Unassigned too), else the Team page rules (priority creators, then
+      // the lead type), else unassigned.
+      const owner = importOwner(lead_type, c.lead, defaults, caller, ownerSetRows.has(c.row))
       if (owner && !teamIds.has(owner)) {
         skipped.push({ row: c.row, reason: 'Owner is not an active team member' })
         continue

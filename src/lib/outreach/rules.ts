@@ -278,25 +278,14 @@ export function mailboxState(sent: number, limit: number): MailboxState {
   return 'ok'
 }
 
-// ─── Owner rule ──────────────────────────────────────────────────────────────
-
-export interface OwnerRuleIds {
-  faizan: string | null
-  va: string | null
-}
-
-// Creators who do sponsorships or have 100K+ subscribers → Faizan, other
-// creators → VA, brands → Faizan.
-export function suggestOwner(
-  leadType: LeadType,
-  lead: { does_sponsorships?: boolean | null; subscribers?: number | null },
-  ids: OwnerRuleIds,
-): string | null {
-  if (leadType === 'brand') {return ids.faizan}
-  if (lead.does_sponsorships === true || (lead.subscribers ?? 0) >= OWNER_RULE_SUBSCRIBERS) {
-    return ids.faizan
-  }
-  return ids.va
+// ─── Priority creators ───────────────────────────────────────────────────────
+// Creators who do sponsorships or have 100K+ subscribers. The Team page's
+// "Priority creators" rule (assign_priority_creator_owner) sends them to one
+// person on import.
+export function isPriorityCreator(lead: { does_sponsorships?: unknown; subscribers?: unknown }): boolean {
+  if (lead.does_sponsorships === true) {return true}
+  const subs = typeof lead.subscribers === 'number' ? lead.subscribers : parseNumber(lead.subscribers)
+  return subs !== null && subs >= OWNER_RULE_SUBSCRIBERS
 }
 
 // ─── Assignment (supabase/outreach_assignment_migration.sql) ────────────────
@@ -357,8 +346,9 @@ export function claimAllowance(asked: number, usedToday: number, cap: number): n
   return Math.max(0, Math.min(asked, CLAIM_MAX_PER_REQUEST, cap - usedToday))
 }
 
-// outreach_settings keys holding a users.id (or null).
+// outreach_settings keys holding a users.id (or null = off). Set on the Team page.
 export const ASSIGN_SETTING_KEYS = {
+  priority: 'assign_priority_creator_owner',
   creator: 'assign_creator_owner',
   brand: 'assign_brand_owner',
   interested: 'assign_interested_owner',
@@ -366,17 +356,34 @@ export const ASSIGN_SETTING_KEYS = {
 export type AssignRule = keyof typeof ASSIGN_SETTING_KEYS
 export type AssignDefaults = Record<AssignRule, string | null>
 
-// Owner of an imported row: members always import for themselves; admins
-// keep the owner picked in the preview, else the default for the lead type.
+type ImportRuleDefaults = Pick<AssignDefaults, 'priority' | 'creator' | 'brand'>
+
+// What the Team page rules give one imported row: a priority creator goes to
+// the Priority rule's person (when on), then the rule for its lead type;
+// with the rules off, nobody (unassigned: the pool members claim from).
+export function ruleOwner(
+  leadType: LeadType,
+  lead: { does_sponsorships?: unknown; subscribers?: unknown },
+  defaults: ImportRuleDefaults,
+): string | null {
+  if (leadType === 'creator' && defaults.priority && isPriorityCreator(lead)) {return defaults.priority}
+  return defaults[leadType] ?? null
+}
+
+// Owner of an imported row. Members always import for themselves. Admins:
+// the owner picked in the preview, including an explicit Unassigned
+// (`ownerSet`: the preview sent its choice), else the Team page rules.
 export function importOwner(
   leadType: LeadType,
-  rowOwner: unknown,
-  defaults: Pick<AssignDefaults, 'creator' | 'brand'>,
+  row: { owner_user_id?: unknown; does_sponsorships?: unknown; subscribers?: unknown },
+  defaults: ImportRuleDefaults,
   caller: { userId: string; isAdmin: boolean },
+  ownerSet = false,
 ): string | null {
   if (!caller.isAdmin) {return caller.userId}
-  if (typeof rowOwner === 'string' && rowOwner.trim()) {return rowOwner.trim()}
-  return defaults[leadType] ?? null
+  const picked = typeof row.owner_user_id === 'string' && row.owner_user_id.trim() ? row.owner_user_id.trim() : null
+  if (picked || ownerSet) {return picked}
+  return ruleOwner(leadType, row, defaults)
 }
 
 // ─── Value parsing ───────────────────────────────────────────────────────────

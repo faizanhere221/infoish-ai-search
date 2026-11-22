@@ -30,11 +30,12 @@ interface Counts {
 // Last Name, Tittle, Email, Linkedin). Each row becomes a contact on the
 // brand it matches (domain, then website, then exact company name), filling
 // only empty brand fields; unknown companies become new brands, list Apollo.
-export function ApolloImport({ fileName, headers, rows, defaultOwner }: {
+export function ApolloImport({ fileName, headers, rows, defaultOwner, isMember }: {
   fileName: string
   headers: string[]
   rows: string[][]
   defaultOwner: string
+  isMember: boolean
 }) {
   const { team, toast, bump } = useOutreach()
   const [mapping, setMapping] = useState<Record<string, ApolloField | ''>>(() => apolloMapping(headers))
@@ -59,6 +60,7 @@ export function ApolloImport({ fileName, headers, rows, defaultOwner }: {
         source: fileName || 'apollo import',
         rows: mapped.filter((m) => m.errors.length === 0).map((m) => m.row),
         owner_user_id: owner || null,
+        owner_set: true, // the picker's choice is final, Unassigned included
         commit,
       }),
     })
@@ -104,8 +106,8 @@ export function ApolloImport({ fileName, headers, rows, defaultOwner }: {
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-300">
           <span>Owner of new brands</span>
-          <select value={owner} onChange={(e) => setOwner(e.target.value)} className={selectClass}>
-            <option value="">Me</option>
+          <select value={owner} onChange={(e) => setOwner(e.target.value)} disabled={isMember} className={`${selectClass} disabled:opacity-70`}>
+            <option value="">{isMember ? 'Me' : 'Unassigned'}</option>
             {team.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
           </select>
           <button disabled={busy} onClick={() => void run(false)} className={buttonClass}>

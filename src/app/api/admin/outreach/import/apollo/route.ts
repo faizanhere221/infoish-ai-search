@@ -14,6 +14,7 @@ const schema = z.object({
   source: z.string().trim().min(1).max(255),
   rows: z.array(z.record(z.unknown())).min(1).max(IMPORT_MAX_ROWS),
   owner_user_id: z.string().max(255).nullable().optional(), // owner of brands this file creates
+  owner_set: z.boolean().optional(), // true = owner_user_id is the admin's choice, null = Unassigned
   commit: z.boolean(),
 })
 
@@ -41,13 +42,13 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: `Send 1 to ${IMPORT_MAX_ROWS.toLocaleString()} rows`, fields: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
-    const { source, rows, owner_user_id, commit } = parsed.data
+    const { source, rows, owner_user_id, owner_set, commit } = parsed.data
     const supabase = createServerSupabase()
     if (!(await outreachFeatures(supabase)).contacts) {return NextResponse.json(NEEDS_MIGRATION, { status: 409 })}
 
     // Owner of the brands this file creates: members always themselves;
     // admins the one picked, else the default brand owner (Team page).
-    const owner = importOwner('brand', owner_user_id, await loadAssignDefaults(supabase), caller)
+    const owner = importOwner('brand', { owner_user_id }, await loadAssignDefaults(supabase), caller, owner_set === true)
     if (owner && !(await loadTeam(supabase)).some((t) => t.user_id === owner && t.is_active)) {
       return NextResponse.json({ error: 'Owner must be an active team member' }, { status: 400 })
     }

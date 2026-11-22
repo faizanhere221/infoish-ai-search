@@ -19,6 +19,7 @@ const ownerId = z.string().min(1).max(255).nullable().optional()
 const patchSchema = z.object({
   mailbox_window_hours: z.number().int().min(MAILBOX_WINDOW_MIN).max(MAILBOX_WINDOW_MAX).optional(),
   // Default owner rules (user id, or null to switch the rule off).
+  assign_priority_creator_owner: ownerId,
   assign_creator_owner: ownerId,
   assign_brand_owner: ownerId,
   assign_interested_owner: ownerId,

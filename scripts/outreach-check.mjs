@@ -365,13 +365,24 @@ async function pureChecks() {
     assert.ok(rules.validateLeadUpdates('brand', { why_them: 'x' }).errors.why_them === undefined)
   })
 
-  await check('owner rule: sponsorships or 100K+ → Faizan, other creators → VA, brands → Faizan', () => {
-    const ids = { faizan: 'F', va: 'V' }
-    assert.equal(rules.suggestOwner('creator', { does_sponsorships: true, subscribers: 500 }, ids), 'F')
-    assert.equal(rules.suggestOwner('creator', { does_sponsorships: false, subscribers: 100_000 }, ids), 'F')
-    assert.equal(rules.suggestOwner('creator', { does_sponsorships: false, subscribers: 99_999 }, ids), 'V')
-    assert.equal(rules.suggestOwner('creator', { does_sponsorships: null, subscribers: null }, ids), 'V')
-    assert.equal(rules.suggestOwner('brand', {}, ids), 'F')
+  await check('priority creators: sponsorships or 100K+ from a raw "subscribers" CSV column', () => {
+    const headers = ['channel_name', 'channel_url', 'subscribers', 'does_sponsorships']
+    const mapping = rules.defaultMapping('creator', headers)
+    assert.equal(mapping.subscribers, 'subscribers')
+    const lead = (subs, sponsors) => rules.mapRow('creator', headers, ['X', 'https://www.youtube.com/@x', subs, sponsors], mapping, 2, {}).lead
+    const d = { priority: 'P', creator: 'C', brand: 'B' }
+    assert.equal(rules.ruleOwner('creator', lead('150000', 'No'), d), 'P')
+    assert.equal(rules.ruleOwner('creator', lead('100,000', 'No'), d), 'P')
+    assert.equal(rules.ruleOwner('creator', lead('1.2M', ''), d), 'P')
+    assert.equal(rules.ruleOwner('creator', lead('5000', 'Yes'), d), 'P')
+    assert.equal(rules.ruleOwner('creator', lead('99999', 'No'), d), 'C')
+    assert.equal(rules.ruleOwner('creator', lead('', ''), d), 'C')
+    // rule off: priority creators fall through to the creator rule, then nobody
+    assert.equal(rules.ruleOwner('creator', lead('150000', 'Yes'), { ...d, priority: null }), 'C')
+    assert.equal(rules.ruleOwner('creator', lead('150000', 'Yes'), { priority: null, creator: null, brand: null }), null)
+    // brands never use the priority rule, and go nowhere unless the brand rule says so
+    assert.equal(rules.ruleOwner('brand', { subscribers: 500_000, does_sponsorships: true }, d), 'B')
+    assert.equal(rules.ruleOwner('brand', {}, { priority: 'P', creator: 'C', brand: null }), null)
   })
 
   await check('follow-up = contacted + 4 days, no-reply = followed up + 7 days', () => {
@@ -1769,13 +1780,20 @@ async function assignmentChecks() {
     assert.equal(rules.claimAllowance(10, 120, 100), 0)
   })
 
-  await check('importOwner: members always themselves; admins row owner, else the default', () => {
-    const defaults = { creator: 'ahtasham', brand: 'aima' }
-    assert.equal(rules.importOwner('creator', 'someone', defaults, { userId: 'm', isAdmin: false }), 'm')
-    assert.equal(rules.importOwner('creator', '', defaults, { userId: 'a', isAdmin: true }), 'ahtasham')
-    assert.equal(rules.importOwner('brand', null, defaults, { userId: 'a', isAdmin: true }), 'aima')
-    assert.equal(rules.importOwner('brand', 'x', defaults, { userId: 'a', isAdmin: true }), 'x')
-    assert.equal(rules.importOwner('brand', null, { creator: null, brand: null }, { userId: 'a', isAdmin: true }), null)
+  await check('importOwner: members always themselves; admins the preview choice (Unassigned too), else the rules', () => {
+    const defaults = { priority: 'faizan', creator: 'ahtasham', brand: 'aima' }
+    const admin = { userId: 'a', isAdmin: true }
+    assert.equal(rules.importOwner('creator', { owner_user_id: 'someone' }, defaults, { userId: 'm', isAdmin: false }), 'm')
+    assert.equal(rules.importOwner('creator', { owner_user_id: null }, defaults, { userId: 'm', isAdmin: false }, true), 'm')
+    assert.equal(rules.importOwner('creator', { owner_user_id: '' }, defaults, admin), 'ahtasham')
+    assert.equal(rules.importOwner('creator', { subscribers: 200_000 }, defaults, admin), 'faizan')
+    assert.equal(rules.importOwner('brand', { owner_user_id: null }, defaults, admin), 'aima')
+    assert.equal(rules.importOwner('brand', { owner_user_id: 'x' }, defaults, admin), 'x')
+    // an explicit Unassigned in the preview stays unassigned, whatever the rules say
+    assert.equal(rules.importOwner('creator', { owner_user_id: null, subscribers: 200_000 }, defaults, admin, true), null)
+    assert.equal(rules.importOwner('brand', { owner_user_id: '' }, defaults, admin, true), null)
+    // rules off: unassigned
+    assert.equal(rules.importOwner('brand', {}, { priority: null, creator: null, brand: null }, admin), null)
   })
 }
 
@@ -2083,6 +2101,115 @@ async function claimHttpChecks() {
   }
 }
 
+// Import owner routing follows the Team page rules. Needs ADMIN_TOKEN and
+// OUTREACH_TOKEN (an active outreach member, used as the Priority person).
+// WRITES DATA: changes the Team page owner rules for the run (restored at the
+// end) and imports test leads (source=outreach-check), soft-deleted after.
+async function importOwnerHttpChecks() {
+  const fileEnv = loadEnvFile(path.join(REPO_ROOT, '.env.test.local'))
+  const getEnv = (k) => process.env[k] ?? fileEnv[k] ?? ''
+  const BASE_URL = getEnv('BASE_URL') || 'http://localhost:3000'
+  const tokens = { admin: getEnv('ADMIN_TOKEN'), m1: getEnv('OUTREACH_TOKEN') }
+  console.log(`\nImport owner HTTP checks against ${BASE_URL} (writes data)\n`)
+  const missing = Object.entries({ ADMIN_TOKEN: tokens.admin, OUTREACH_TOKEN: tokens.m1 }).filter(([, v]) => !v).map(([k]) => k)
+  if (missing.length > 0) {
+    skip('import owner checks', `${missing.join(', ')} not set in .env.test.local`)
+    return
+  }
+  const as = (who) => async (method, urlPath, body) => {
+    const res = await fetch(`${BASE_URL}${urlPath}`, {
+      method, headers: { Cookie: `auth_token=${tokens[who]}`, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    })
+    let json = null
+    try { json = await res.json() } catch { /* empty */ }
+    return { status: res.status, json }
+  }
+  const admin = as('admin')
+  const m1 = as('m1')
+
+  const settings = await admin('GET', '/api/admin/outreach/settings').catch(() => null)
+  if (!settings) {
+    skip('import owner checks', `no server at ${BASE_URL}; start the dev server first`)
+    return
+  }
+  if (settings.status !== 200 || !settings.json?.assignment) {
+    skip('import owner checks', `GET /settings returned ${settings.status}; run outreach_assignment_migration.sql (or ADMIN_TOKEN expired)`)
+    return
+  }
+  const me1 = await m1('GET', '/api/admin/outreach/team')
+  if (me1.status !== 200 || me1.json?.me?.role !== 'outreach') {
+    skip('import owner checks', `OUTREACH_TOKEN is not a working outreach account (status ${me1.status})`)
+    return
+  }
+  const memberId = me1.json.me.user_id
+  const original = settings.json.assign ?? {}
+  const setRules = (r) => admin('PATCH', '/api/admin/outreach/settings', {
+    assign_priority_creator_owner: r.priority ?? null, assign_creator_owner: r.creator ?? null, assign_brand_owner: r.brand ?? null,
+  })
+
+  const tag = `oio${Date.now()}`
+  const created = []
+  // Rows as the import page builds them from a finder file's raw columns.
+  const headers = ['channel_name', 'channel_url', 'subscribers', 'does_sponsorships']
+  const mapping = rules.defaultMapping('creator', headers)
+  const creatorRows = (label, owner) => [
+    ['big', '150000', 'No'], ['sponsor', '5000', 'Yes'], ['small', '5000', 'No'],
+  ].map(([kind, subs, sp], i) => ({
+    ...rules.mapRow('creator', headers, [`${tag} ${label} ${kind}`, `https://www.youtube.com/@${tag}${label}${kind}`, subs, sp], mapping, i + 2, { platform: 'youtube' }).lead,
+    ...(owner ? owner : {}),
+  }))
+  const importAs = async (call, leadType, rows) => {
+    const r = await call('POST', '/api/admin/outreach/import/commit', { lead_type: leadType, source: 'outreach-check', rows })
+    assert.equal(r.status, 200, JSON.stringify(r.json))
+    assert.equal(r.json.inserted, rows.length, JSON.stringify(r.json.skipped))
+  }
+  // Owner by lead name, read as the admin.
+  const owners = async (segment, q) => {
+    const r = await admin('GET', `/api/admin/outreach/leads/${segment}?q=${encodeURIComponent(q)}&limit=50`)
+    assert.equal(r.status, 200, JSON.stringify(r.json))
+    const out = {}
+    for (const l of r.json.leads) {
+      created.push([segment, l.lead_id])
+      out[(l.name ?? l.company ?? '').split(' ').pop()] = l.owner_user_id ?? null
+    }
+    return out
+  }
+
+  try {
+    await check('admin import, every rule off: creators and brands stay unassigned', async () => {
+      assert.equal((await setRules({})).status, 200)
+      await importAs(admin, 'creator', creatorRows('off'))
+      await importAs(admin, 'brand', [{ _row: 2, company: `${tag} off brand`, domain: `${tag}-off.example` }])
+      assert.deepEqual(await owners('creators', `${tag} off`), { big: null, sponsor: null, small: null })
+      assert.deepEqual(await owners('brands', `${tag} off`), { brand: null })
+    })
+
+    await check('priority rule on: 100K+ and sponsorship creators go to that person, others stay unassigned', async () => {
+      assert.equal((await setRules({ priority: memberId })).status, 200)
+      await importAs(admin, 'creator', creatorRows('prio'))
+      await importAs(admin, 'brand', [{ _row: 2, company: `${tag} prio brand`, domain: `${tag}-prio.example` }])
+      assert.deepEqual(await owners('creators', `${tag} prio`), { big: memberId, sponsor: memberId, small: null })
+      assert.deepEqual(await owners('brands', `${tag} prio`), { brand: null }, 'brands never use the priority rule')
+    })
+
+    await check('explicit Unassigned in the preview stays unassigned (priority rule on)', async () => {
+      await importAs(admin, 'creator', creatorRows('pick', { owner_user_id: null, owner_set: true }))
+      assert.deepEqual(await owners('creators', `${tag} pick`), { big: null, sponsor: null, small: null })
+    })
+
+    await check('member import: every row is theirs, whatever the preview or the rules say', async () => {
+      assert.equal((await setRules({})).status, 200)
+      await importAs(m1, 'creator', creatorRows('member', { owner_user_id: null, owner_set: true }))
+      assert.deepEqual(await owners('creators', `${tag} member`), { big: memberId, sponsor: memberId, small: memberId })
+    })
+  } finally {
+    const restored = await setRules(original)
+    for (const [segment, id] of created) {await admin('DELETE', `/api/admin/outreach/leads/${segment}/${id}`, { reason: 'outreach-check cleanup' })}
+    console.log(`\nCleanup: soft-deleted ${created.length} import test leads, owner rules restored (${restored.status}).`)
+  }
+}
+
 // Team membership never depends on, or changes, a brand / creator account.
 // Needs SUPER_ADMIN_TOKEN plus TEST_TEAM_BRAND_EMAIL / TEST_TEAM_BRAND_PASSWORD:
 // a DISPOSABLE brand account with a completed brand profile, role 'user',
@@ -2252,6 +2379,7 @@ if (args.includes('--http')) {
   await httpChecks()
   await assignmentHttpChecks()
   await claimHttpChecks()
+  await importOwnerHttpChecks()
   await teamPromotionHttpChecks()
 }
 

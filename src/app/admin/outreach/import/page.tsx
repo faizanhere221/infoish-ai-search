@@ -7,7 +7,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { PLATFORMS } from '@/utils/constants'
 import {
   BRAND_IMPORT_FIELDS, CREATOR_IMPORT_FIELDS, defaultMapping, detectFileType, EXTRA, headerKey, IGNORED_COLUMNS,
-  IMPORT_FILE_TYPES, IMPORT_MAX_ROWS, isApolloHeaders, isSpreadsheetFile, mapRow, parseCsv, suggestOwner,
+  IMPORT_FILE_TYPES, IMPORT_MAX_ROWS, isApolloHeaders, isSpreadsheetFile, mapRow, parseCsv, ruleOwner,
   type ImportFileType, type ImportLead, type ImportMapping,
 } from '@/lib/outreach/rules'
 import type { DuplicateMatch } from '@/lib/outreach/types'
@@ -29,17 +29,25 @@ interface CommitResult {
   skipped: { row: number | null; reason: string; lead_id?: string | null }[]
 }
 
-const OWNER_PREF_KEY = 'outreach_owner_rule'
-const VIEW_PAGE = 100
+// The old browser-only Faizan / VA owner pickers were saved here; the Team
+// page rules replaced them. Cleared on load so nothing stale lingers.
+const OLD_OWNER_PREF_KEY = 'outreach_owner_rule'
 
-function readOwnerPref(): { faizan: string; va: string } {
-  try {
-    const v = JSON.parse(localStorage.getItem(OWNER_PREF_KEY) ?? 'null')
-    return { faizan: v?.faizan ?? '', va: v?.va ?? '' }
-  } catch {
-    return { faizan: '', va: '' }
-  }
+type RuleDefaults = { priority: string | null; creator: string | null; brand: string | null }
+
+// "Owner rules (Team page): ..." for the preview step, admins only.
+function ownerRuleText(leadType: 'creator' | 'brand', d: RuleDefaults, team: { user_id: string; display_name: string }[]): string {
+  const name = (id: string | null) => (id ? team.find((t) => t.user_id === id)?.display_name ?? 'a removed member' : null)
+  const kind = leadType === 'creator' ? 'creators' : 'brands'
+  const parts: string[] = []
+  if (leadType === 'creator' && d.priority) {parts.push(`creators who do sponsorships or have 100K+ subscribers go to ${name(d.priority)}`)}
+  const other = parts.length > 0 ? 'other ' : ''
+  const typeOwner = name(d[leadType])
+  parts.push(typeOwner ? `${other}${kind} go to ${typeOwner}` : `${other}${kind} stay unassigned (members claim them)`)
+  return `Owner rules (Team page): ${parts.join('; ')}. Change any row in the preview.`
 }
+
+const VIEW_PAGE = 100
 
 const STATUS_TEXT: Record<RowStatus, string> = { new: 'New', duplicate: 'Duplicate', dnc: 'Do not contact', error: 'Error' }
 const STATUS_CLASS: Record<RowStatus, string> = {
@@ -52,12 +60,15 @@ export default function OutreachImportPage() {
   const isMember = !!me && !me.is_admin
   const activeTeam = team.filter((t) => t.is_active)
   // Default owner rules from the Team page (null = off, or before the migration).
-  const [assignDefaults, setAssignDefaults] = useState<{ creator: string | null; brand: string | null }>({ creator: null, brand: null })
+  const [assignDefaults, setAssignDefaults] = useState<RuleDefaults>({ priority: null, creator: null, brand: null })
   useEffect(() => {
+    try { localStorage.removeItem(OLD_OWNER_PREF_KEY) } catch { /* storage blocked */ }
     void (async () => {
       const res = await fetch('/api/admin/outreach/settings')
-      const data = await readJson<{ assign?: { creator: string | null; brand: string | null } }>(res)
-      if (res.ok && data.assign) {setAssignDefaults({ creator: data.assign.creator, brand: data.assign.brand })}
+      const data = await readJson<{ assign?: Partial<RuleDefaults> }>(res)
+      if (res.ok && data.assign) {
+        setAssignDefaults({ priority: data.assign.priority ?? null, creator: data.assign.creator ?? null, brand: data.assign.brand ?? null })
+      }
     })()
   }, [])
 
@@ -67,8 +78,6 @@ export default function OutreachImportPage() {
   const [dataRows, setDataRows] = useState<string[][]>([])
   const [mapping, setMapping] = useState<ImportMapping>({})
   const [defaultPlatform, setDefaultPlatform] = useState('youtube')
-  const [ownerPref, setOwnerPref] = useState({ faizan: '', va: '' })
-  useEffect(() => { setOwnerPref(readOwnerPref()) }, [])
 
   const [mapped, setMapped] = useState<ImportLead[]>([])
   const [preview, setPreview] = useState<PreviewRow[] | null>(null)
@@ -142,13 +151,6 @@ export default function OutreachImportPage() {
     setMapping(t ? defaultMapping(IMPORT_FILE_TYPES[t].leadType, headers) : {})
   }
 
-  const setOwnerRule = (key: 'faizan' | 'va', userId: string) => {
-    const next = { ...ownerPref, [key]: userId }
-    setOwnerPref(next)
-    try { localStorage.setItem(OWNER_PREF_KEY, JSON.stringify(next)) } catch { /* storage blocked */ }
-    resetPreview()
-  }
-
   const runPreview = async () => {
     if (!leadType) {return}
     if (dataRows.length > IMPORT_MAX_ROWS) {
@@ -177,15 +179,12 @@ export default function OutreachImportPage() {
       const local = byRow.get(r.row) ?? []
       return local.length > 0 ? { ...r, status: 'error' as const, reasons: [...local, ...r.reasons.filter((x) => !local.includes(x))] } : r
     })
-    // Members: their own (the server enforces it). Admins: the default owner
-    // rule for this lead type when set, else the old Faizan / VA rule.
-    const ids = { faizan: ownerPref.faizan || null, va: ownerPref.va || null }
-    const ruleOwner = assignDefaults[leadType]
+    // Members: their own (the server enforces it). Admins: the Team page
+    // rules (priority creators, then the lead type), else Unassigned. The
+    // server applies the same ruleOwner() to a row sent without a choice.
     const initialOwners: Record<number, string> = {}
     for (const l of leads) {
-      initialOwners[l._row] = isMember
-        ? me?.user_id ?? ''
-        : ruleOwner ?? suggestOwner(leadType, l as { does_sponsorships?: boolean | null; subscribers?: number | null }, ids) ?? ''
+      initialOwners[l._row] = isMember ? me?.user_id ?? '' : ruleOwner(leadType, l as { does_sponsorships?: unknown; subscribers?: unknown }, assignDefaults) ?? ''
     }
     setMapped(leads)
     setOwners(initialOwners)
@@ -204,7 +203,8 @@ export default function OutreachImportPage() {
     if (!leadType || !preview) {return}
     setBusy(true)
     const newRows = new Set(preview.filter((r) => r.status === 'new').map((r) => r.row))
-    const rows = mapped.filter((l) => newRows.has(l._row)).map((l) => ({ ...l, owner_user_id: owners[l._row] || null }))
+    // owner_set: the preview's choice is final, Unassigned included.
+    const rows = mapped.filter((l) => newRows.has(l._row)).map((l) => ({ ...l, owner_user_id: owners[l._row] || null, owner_set: true }))
     const res = await fetch('/api/admin/outreach/import/commit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -257,7 +257,7 @@ export default function OutreachImportPage() {
 
       {apollo && (
         <ApolloImport key={fileName} fileName={fileName} headers={apollo.headers} rows={apollo.rows}
-          defaultOwner={isMember ? me?.user_id ?? '' : assignDefaults.brand ?? ownerPref.faizan} />
+          defaultOwner={isMember ? me?.user_id ?? '' : assignDefaults.brand ?? ''} isMember={isMember} />
       )}
 
       {leadType && headers.length > 0 && (
@@ -321,36 +321,12 @@ export default function OutreachImportPage() {
                 </select>
               </label>
             )}
-            {!isMember && !assignDefaults[leadType] && (
-              <>
-                <label className="flex items-center gap-2 text-slate-300">
-                  Faizan
-                  <select value={ownerPref.faizan} onChange={(e) => setOwnerRule('faizan', e.target.value)} className={selectClass}>
-                    <option value="">Pick</option>
-                    {activeTeam.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
-                  </select>
-                </label>
-                {leadType === 'creator' && (
-                  <label className="flex items-center gap-2 text-slate-300">
-                    VA
-                    <select value={ownerPref.va} onChange={(e) => setOwnerRule('va', e.target.value)} className={selectClass}>
-                      <option value="">Pick</option>
-                      {activeTeam.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
-                    </select>
-                  </label>
-                )}
-              </>
-            )}
             <button onClick={runPreview} disabled={busy} className={buttonClass}>
               {busy && !preview ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Preview
             </button>
           </div>
           <p className="mt-2 text-xs text-slate-500">
-            {isMember
-              ? 'Leads you import are assigned to you.'
-              : assignDefaults[leadType]
-                ? `Owner rule (Team page): new ${leadType} leads go to ${team.find((t) => t.user_id === assignDefaults[leadType])?.display_name ?? 'the default owner'}. Change any row in the preview.`
-                : `Owner rule: ${leadType === 'creator' ? 'creators who do sponsorships or have 100K+ subscribers go to Faizan, other creators go to the VA.' : 'brands go to Faizan.'} Change any row in the preview, or set a default owner on the Team page.`}
+            {isMember ? 'Leads you import are assigned to you.' : ownerRuleText(leadType, assignDefaults, team)}
           </p>
         </Card>
       )}

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Search, UserMinus, UserPlus } from 'lucide-react'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { CLAIM_DAILY_CAP_MAX, CLAIM_MAX_PER_REQUEST, type AssignDefaults, type AssignRule } from '@/lib/outreach/rules'
+import { ASSIGN_SETTING_KEYS, CLAIM_DAILY_CAP_MAX, CLAIM_MAX_PER_REQUEST, type AssignDefaults, type AssignRule } from '@/lib/outreach/rules'
 import type { OutreachTeamMember } from '@/lib/outreach/types'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
@@ -44,8 +44,9 @@ interface NewMember {
 const EMPTY: NewMember = { display_name: '', works_saturday: false, creators_monthly_target: '1000', brands_monthly_target: '0', reason: '' }
 
 const RULES: { rule: AssignRule; label: string; help: string }[] = [
-  { rule: 'creator', label: 'New creator imports go to', help: 'Rows without an owner picked in the import preview.' },
-  { rule: 'brand', label: 'New brand imports go to', help: 'CSV and Apollo imports, rows without an owner picked.' },
+  { rule: 'priority', label: 'Priority creators go to', help: 'Creator imports with sponsorships or 100K+ subscribers. Checked before the creator rule.' },
+  { rule: 'creator', label: 'New creator imports go to', help: 'Off: they stay unassigned for members to claim. Change any row in the import preview.' },
+  { rule: 'brand', label: 'New brand imports go to', help: 'CSV and Apollo imports. Off: they stay unassigned for members to claim.' },
   { rule: 'interested', label: 'Interested leads go to', help: 'Creators marked Replied, brands marked Replied or Call booked.' },
 ]
 
@@ -100,7 +101,7 @@ function DefaultOwnerRules() {
   }
 
   const save = async (rule: AssignRule, userId: string) => {
-    const key = rule === 'creator' ? 'assign_creator_owner' : rule === 'brand' ? 'assign_brand_owner' : 'assign_interested_owner'
+    const key = ASSIGN_SETTING_KEYS[rule]
     const res = await fetch('/api/admin/outreach/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -122,7 +123,7 @@ function DefaultOwnerRules() {
       ) : !assign ? (
         <p className="text-sm text-slate-500">Loading…</p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {RULES.map(({ rule, label, help }) => (
             <label key={rule} className="flex flex-col gap-1 text-xs text-slate-400">
               {label}

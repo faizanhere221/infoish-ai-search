@@ -118,7 +118,7 @@ export async function assignLeads(
 // Default owner rules (Team page). null for a rule nobody picked, and for
 // every rule before the migration.
 export async function loadAssignDefaults(supabase: Supabase): Promise<AssignDefaults> {
-  const out: AssignDefaults = { creator: null, brand: null, interested: null }
+  const out: AssignDefaults = { priority: null, creator: null, brand: null, interested: null }
   const { data, error } = await supabase.from('outreach_settings').select('key, value').in('key', Object.values(ASSIGN_SETTING_KEYS))
   if (error) {return out}
   for (const [rule, key] of Object.entries(ASSIGN_SETTING_KEYS) as [keyof AssignDefaults, string][]) {
