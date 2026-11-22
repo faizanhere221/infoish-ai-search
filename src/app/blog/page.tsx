@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '51',
+    title: 'Flat Fee, CPM, Affiliate or Retainer: How to Structure a Tech Creator Deal',
+    excerpt: 'Compare flat fee, CPM, affiliate and retainer deals for tech creators. See when each model fits B2B goals and how to combine them without confusing creators.',
+    date: '2026-11-22',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '9 min read',
+    slug: 'influencer-pricing-models-compared',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '50',
     title: 'Fintech Influencer Marketing: Working with Creators Under Regulatory Scrutiny',
     excerpt: 'Fintech brands work with creators safely when compliance leads the process. Learn review workflows, disclosure habits and how to choose credible fintech voices.',
