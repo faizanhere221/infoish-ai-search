@@ -40,16 +40,25 @@ function isOptionalAuthApiRoute(pathname: string, method: string): boolean {
 const AUTH_HEADER_NAMES = ['x-user-id', 'x-user-type', 'x-profile-id', 'x-user-role']
 
 // ── Restricted tokens ─────────────────────────────────────────────────────────
-// Two kinds of admin-login token only work on a short allowlist:
-//   1. role 'outreach' (outreach team members): only the outreach section,
-//      /admin/outreach/* and /api/admin/outreach/*. Every other admin page
-//      redirects there, every other API route returns 403, and user-area
-//      pages (dashboards, settings, messages) redirect there too.
+// Staff access comes from `role` only, never from user_type.
+//   1. role 'outreach' (outreach team members): inside the staff area, only
+//      the outreach section, /admin/outreach/* and /api/admin/outreach/*.
+//      Every other admin page redirects there and every other
+//      /api/admin/* route returns 403.
+//      Outside the staff area the role changes nothing for a brand or
+//      creator account (user_type 'brand' / 'creator'): their dashboard,
+//      settings, messages and APIs work exactly as before. An outreach-only
+//      account (no brand / creator account) has nothing there, so user-area
+//      pages redirect to /admin/outreach, other API routes return 403 and
+//      optional-auth routes treat it as logged out. user_type is used here
+//      only to keep a brand's / creator's own area working, never to grant
+//      staff access.
 //   2. mustChangePassword (team accounts created with a temporary
 //      password): only the change-password page and route until it is set.
 // admin and super_admin tokens without the flag are unaffected.
 const ADMIN_ROLES = ['admin', 'super_admin']
 const OUTREACH_ROLE = 'outreach'
+const USER_AREA_TYPES = ['brand', 'creator']
 const CHANGE_PASSWORD_PAGE = '/admin/change-password'
 const CHANGE_PASSWORD_API = '/api/admin/account/password'
 const USER_AREA_PAGE_PREFIXES = ['/dashboard', '/settings', '/messages', '/notifications']
@@ -173,9 +182,18 @@ export async function middleware(request: NextRequest) {
       }
 
       if (role === OUTREACH_ROLE && !isUnder(pathname, '/api/admin/outreach') && pathname !== CHANGE_PASSWORD_API) {
-        // Optional-auth routes still work, as a logged-out visitor would see them.
-        if (optionalAuth) {return withSecurityHeaders(passThrough())}
-        return withSecurityHeaders(NextResponse.json({ error: 'Not available for outreach accounts' }, { status: 403 }))
+        // Never the rest of the staff API.
+        if (pathname.startsWith('/api/admin/')) {
+          return withSecurityHeaders(NextResponse.json({ error: 'Not available for outreach accounts' }, { status: 403 }))
+        }
+        // A brand / creator on the outreach team: the rest of the app as
+        // that brand / creator (falls through to the normal header injection).
+        if (!USER_AREA_TYPES.includes(String(payload.userType ?? ''))) {
+          // Outreach-only account. Optional-auth routes still work, as a
+          // logged-out visitor would see them.
+          if (optionalAuth) {return withSecurityHeaders(passThrough())}
+          return withSecurityHeaders(NextResponse.json({ error: 'Not available for outreach accounts' }, { status: 403 }))
+        }
       }
 
       // Admin-only API routes require admin or super_admin role. Outreach
@@ -202,13 +220,15 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Everything else (pages) ─────────────────────────────────────────────────
-  // Outreach accounts never see brand/creator areas. Only checked when an
-  // auth cookie is present on a user-area page, so public pages skip it.
+  // Outreach-only accounts have no brand/creator area: send them to their
+  // section. A brand or creator on the outreach team keeps its own pages.
+  // Only checked when an auth cookie is present on a user-area page, so
+  // public pages skip it.
   const pageToken = request.cookies.get('auth_token')?.value
   if (pageToken && secret && USER_AREA_PAGE_PREFIXES.some((p) => isUnder(pathname, p))) {
     try {
       const { payload } = await jwtVerify(pageToken, new TextEncoder().encode(secret))
-      if (String(payload.role ?? '') === OUTREACH_ROLE) {
+      if (String(payload.role ?? '') === OUTREACH_ROLE && !USER_AREA_TYPES.includes(String(payload.userType ?? ''))) {
         return withSecurityHeaders(NextResponse.redirect(new URL('/admin/outreach', request.url)))
       }
     } catch {

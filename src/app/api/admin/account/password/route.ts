@@ -5,7 +5,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { rateLimit } from '@/lib/rate-limit'
 import { logActivity } from '@/lib/activity'
-import { setAdminSessionCookie, signAdminSession } from '@/lib/admin-session'
+import { loadProfileId, setAdminSessionCookie, signAdminSession } from '@/lib/admin-session'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -73,7 +73,8 @@ export async function POST(request: NextRequest) {
       details: { email: user.email },
     })
 
-    const token = signAdminSession({ ...user, must_change_password: false })
+    const profileId = await loadProfileId(supabase, user.id, user.user_type)
+    const token = signAdminSession({ ...user, must_change_password: false, profileId })
     const response = NextResponse.json({ message: 'Password updated', role: user.role })
     setAdminSessionCookie(response, token)
     return response

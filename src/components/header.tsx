@@ -19,12 +19,14 @@ function readViewer(): Viewer {
     const userStr = localStorage.getItem('auth_user')
     if (!userStr || !localStorage.getItem('auth_token')) {return { kind: 'guest' }}
     const user = JSON.parse(userStr)
-    const isAdmin = user.role === 'admin' || user.role === 'super_admin'
+    // Staff link from the role only (/admin sends each role to its home).
+    // A brand or creator with a staff role keeps its member header.
+    const isAdmin = user.role === 'admin' || user.role === 'super_admin' || user.role === 'outreach'
     if (user.user_type === 'brand' || user.user_type === 'creator') {
       const profileStr = localStorage.getItem('auth_profile')
       return { kind: 'member', userType: user.user_type, profile: profileStr ? JSON.parse(profileStr) : null, isAdmin }
     }
-    return isAdmin || user.user_type === 'admin' ? { kind: 'admin' } : { kind: 'guest' }
+    return isAdmin ? { kind: 'admin' } : { kind: 'guest' }
   } catch {
     // malformed localStorage: treat as logged out
     return { kind: 'guest' }

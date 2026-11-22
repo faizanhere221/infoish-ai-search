@@ -77,9 +77,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Outreach team accounts sign in through the admin login only. Checked
-    // after the password so this message never reveals an account exists.
-    if (user.role === 'outreach') {
+    // Outreach-only team accounts (no brand / creator account behind them)
+    // sign in through the admin login only. A brand or creator who is also
+    // on the outreach team signs in here as usual. Checked after the
+    // password so this message never reveals an account exists.
+    if (user.role === 'outreach' && user.user_type !== 'brand' && user.user_type !== 'creator') {
       return NextResponse.json(
         { error: 'This is an Infoishai team account. Sign in at /admin/login.' },
         { status: 403 }

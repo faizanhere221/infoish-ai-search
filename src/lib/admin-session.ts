@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import type { NextResponse } from 'next/server'
+import type { createServerSupabase } from '@/lib/db'
 
 // Admin-login sessions (admin, super_admin, outreach). Shared by
 // /api/admin/auth/login and /api/admin/account/password, which re-issues the
@@ -15,6 +16,21 @@ interface SessionUser {
   user_type: string
   role: string
   must_change_password?: boolean | null
+  // Set for brand / creator accounts that also hold a staff role, so their
+  // own dashboard keeps working while this cookie is the active session.
+  profileId?: string | null
+}
+
+type Supabase = ReturnType<typeof createServerSupabase>
+
+// The brand / creator profile id of an account, or null (admin-only
+// accounts, or a brand / creator that hasn't created its profile yet).
+// Same lookup as /api/auth/login.
+export async function loadProfileId(supabase: Supabase, userId: string, userType: string): Promise<string | null> {
+  const table = userType === 'creator' ? 'creators' : userType === 'brand' ? 'brands' : null
+  if (!table) {return null}
+  const { data } = await supabase.from(table).select('id').eq('user_id', userId).maybeSingle()
+  return (data?.id as string | undefined) ?? null
 }
 
 function getJwtSecret(): string {
@@ -31,6 +47,7 @@ export function signAdminSession(user: SessionUser): string {
     role: user.role,
   }
   if (user.must_change_password) {claims.mustChangePassword = true}
+  if (user.profileId) {claims.profileId = user.profileId}
   return jwt.sign(claims, getJwtSecret(), { expiresIn: SESSION_SECONDS })
 }
 

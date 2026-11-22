@@ -94,8 +94,11 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
 // DELETE (super admin): remove from the team, softly.
 //   - the team row stays, is_active = false
-//   - an outreach account: role 'user' and deactivated (it has no other use;
-//     re-adding it on the Team page brings it back). An admin keeps its role.
+//   - an outreach account: role back to 'user'. Its brand / creator account
+//     and profile are untouched and keep working. Only an account with no
+//     brand / creator profile at all is also deactivated (re-adding it on
+//     the Team page brings it back). An admin / super admin keeps its role:
+//     leaving the outreach team isn't leaving the admin.
 //   - their leads stay and become unassigned (one owner_changed row each,
 //     rule 'member_removed'), for an admin to reassign or auto-split
 //   - default owner rules pointing at them are switched off
@@ -141,14 +144,28 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       .update({ is_active: false, updated_at: new Date().toISOString() }).eq('user_id', params.userId)
     if (teamError) {throw teamError}
 
+    // The outreach role goes back to 'user'. A brand / creator account keeps
+    // working exactly as before (user_type and profile rows are never
+    // touched). Only an account with NO brand / creator profile is also
+    // deactivated: it has nothing left to sign in to; re-adding it on the
+    // Team page reactivates it.
+    let deactivated = false
     if (user?.role === 'outreach') {
+      const [creator, brand] = await Promise.all([
+        supabase.from('creators').select('id').eq('user_id', params.userId).limit(1),
+        supabase.from('brands').select('id').eq('user_id', params.userId).limit(1),
+      ])
+      if (creator.error) {throw creator.error}
+      if (brand.error) {throw brand.error}
+      deactivated = (creator.data ?? []).length === 0 && (brand.data ?? []).length === 0
       const { error: roleError } = await supabase.from('users')
-        .update({ role: 'user', is_active: false, updated_at: new Date().toISOString() })
+        .update({ role: 'user', ...(deactivated ? { is_active: false } : {}), updated_at: new Date().toISOString() })
         .eq('id', params.userId).eq('role', 'outreach')
       if (roleError) {throw roleError}
       logAdminAction({
         request, adminId: caller.userId, action: 'outreach_role_changed', targetType: 'user', targetId: params.userId,
-        reason: parsed.data.reason, before: { role: 'outreach', is_active: user.is_active }, after: { role: 'user', is_active: false },
+        reason: parsed.data.reason, before: { role: 'outreach', is_active: user.is_active },
+        after: { role: 'user', is_active: deactivated ? false : user.is_active },
       })
     }
 
@@ -164,11 +181,15 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     logAdminAction({
       request, adminId: caller.userId, action: 'outreach_team_member_removed', targetType: 'user', targetId: params.userId,
       reason: parsed.data.reason, before: { is_active: member.is_active, role: user?.role ?? null },
-      after: { is_active: false, leads_unassigned: unassigned, rules_cleared: pointing },
+      after: { is_active: false, leads_unassigned: unassigned, rules_cleared: pointing, account_deactivated: deactivated },
     })
+    const accountNote = user?.role !== 'outreach'
+      ? ` Their ${user?.role ?? ''} role stays.`
+      : deactivated ? ' Their account had no brand or creator profile, so it was deactivated.' : ' Their brand / creator account keeps working as before.'
     return NextResponse.json({
-      message: `${member.display_name} removed. ${unassigned} leads are now unassigned.${pointing.length > 0 ? ' Their default owner rules were switched off.' : ''}`,
+      message: `${member.display_name} removed. ${unassigned} leads are now unassigned.${pointing.length > 0 ? ' Their default owner rules were switched off.' : ''}${accountNote}`,
       unassigned,
+      account_deactivated: deactivated,
     })
   } catch (err) {
     captureError(err, { route: 'DELETE /api/admin/outreach/team/[userId]' })

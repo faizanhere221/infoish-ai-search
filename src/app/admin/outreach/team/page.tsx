@@ -11,7 +11,7 @@ import { buttonClass, Card, ghostButtonClass, inputClass, selectClass } from '@/
 
 // Shown wherever someone new is added: nobody's account or password is
 // created here.
-const SIGN_UP_FIRST = 'Ask them to sign up at /signup and stop before completing their profile, then promote them here.'
+const SIGN_UP_FIRST = 'Ask them to sign up at /signup, then promote them here. A brand or creator account works too, and keeps working as before.'
 
 interface Account {
   user_id: string
@@ -21,6 +21,7 @@ interface Account {
   is_active: boolean
   has_creator_profile: boolean
   has_brand_profile: boolean
+  account_label: string // information only, e.g. "brand account, profile complete"
   on_team: boolean
   team_active: boolean
 }
@@ -217,7 +218,7 @@ function AddMember() {
         <div className="mt-3 space-y-1 text-sm">
           {account && (
             <p className="text-slate-300">
-              {account.email} · role {account.role} · {account.user_type} account{account.is_active ? '' : ' · deactivated'}
+              {account.email} · role {account.role} · {account.account_label}{account.is_active ? '' : ' · deactivated'}
               {account.on_team ? (account.team_active ? ' · on the team' : ' · removed from the team earlier') : ''}
             </p>
           )}
@@ -225,7 +226,8 @@ function AddMember() {
           {lookup.can_add && (
             <p className="text-emerald-300">
               {lookup.promote
-                ? 'This account becomes an outreach team account: it sees only its own leads and signs in at /admin/login with its own password.'
+                ? `This account gets the outreach role: in the outreach section it sees only its own leads, at /admin/login with its own password.${
+                  account?.user_type === 'brand' || account?.user_type === 'creator' ? ` Its ${account.user_type} account, profile and dashboard stay exactly as they are.` : ''}`
                 : `This account joins the team as ${account?.role}.`}
             </p>
           )}
@@ -390,7 +392,7 @@ export default function OutreachTeamPage() {
             ? `Remove ${pending.member.display_name} from the team?`
             : `Make ${pending.member.display_name} ${pending.role === 'outreach' ? 'an outreach member' : 'an admin'}?`}
           description={pending.kind === 'remove'
-            ? `Their leads stay and become unassigned, ready to reassign or auto-split.${pending.member.role === 'outreach' ? ' Their outreach account is deactivated; adding them again here brings it back.' : ' Their admin role stays.'} Default owner rules pointing at them switch off.`
+            ? `Their leads stay and become unassigned, ready to reassign or auto-split.${pending.member.role === 'outreach' ? ' Their role goes back to user. A brand or creator account keeps working as before; an account with no brand or creator profile is deactivated (adding them again here brings it back).' : ' Their admin role stays.'} Default owner rules pointing at them switch off.`
             : pending.role === 'outreach'
               ? 'Outreach members see and work only their own leads, and only in the outreach section. They lose admin pages, deleting leads, assigning and mailbox settings. It applies from their next sign-in.'
               : 'Admins see every lead and every admin page. It applies from their next sign-in.'}

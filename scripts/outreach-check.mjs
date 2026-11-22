@@ -2080,6 +2080,131 @@ async function claimHttpChecks() {
   }
 }
 
+// Team membership never depends on, or changes, a brand / creator account.
+// Needs SUPER_ADMIN_TOKEN plus TEST_TEAM_BRAND_EMAIL / TEST_TEAM_BRAND_PASSWORD:
+// a DISPOSABLE brand account with a completed brand profile, role 'user',
+// not on the team. It signs in (fresh tokens carry the new role) 3 times
+// at /api/auth/login and once at /api/admin/auth/login: both allow 5 per
+// 15 minutes per IP, so wait between runs. WRITES DATA: promotes the
+// account to outreach, then removes it from the team again (role 'user',
+// brand untouched, an inactive outreach_team row stays behind).
+async function teamPromotionHttpChecks() {
+  const fileEnv = loadEnvFile(path.join(REPO_ROOT, '.env.test.local'))
+  const getEnv = (k) => process.env[k] ?? fileEnv[k] ?? ''
+  const BASE_URL = getEnv('BASE_URL') || 'http://localhost:3000'
+  const SUPER = getEnv('SUPER_ADMIN_TOKEN')
+  const email = getEnv('TEST_TEAM_BRAND_EMAIL').trim().toLowerCase()
+  const password = getEnv('TEST_TEAM_BRAND_PASSWORD')
+  console.log(`\nTeam promotion HTTP checks against ${BASE_URL} (writes data)\n`)
+  const missing = Object.entries({ SUPER_ADMIN_TOKEN: SUPER, TEST_TEAM_BRAND_EMAIL: email, TEST_TEAM_BRAND_PASSWORD: password }).filter(([, v]) => !v).map(([k]) => k)
+  if (missing.length > 0) {
+    skip('team promotion checks', `${missing.join(', ')} not set in .env.test.local`)
+    return
+  }
+
+  const call = async (method, urlPath, { body, bearer, cookie, manual } = {}) => {
+    const headers = { 'Content-Type': 'application/json' }
+    if (bearer) {headers.Authorization = `Bearer ${bearer}`}
+    if (cookie) {headers.Cookie = `auth_token=${cookie}`}
+    const res = await fetch(`${BASE_URL}${urlPath}`, { method, headers, body: body ? JSON.stringify(body) : undefined, redirect: manual ? 'manual' : 'follow' })
+    let json = null
+    try { json = await res.clone().json() } catch { /* page or empty */ }
+    return { status: res.status, json, location: res.headers.get('location') ?? '' }
+  }
+  const claimsOf = (token) => JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'))
+  const lookup = () => call('GET', `/api/admin/outreach/team/lookup?email=${encodeURIComponent(email)}`, { cookie: SUPER })
+  const userLogin = async () => {
+    const r = await call('POST', '/api/auth/login', { body: { email, password } })
+    if (r.status === 429) {throw new Error('login rate limited (5 per 15 minutes); wait and run again')}
+    assert.equal(r.status, 200, `login: ${r.status} ${JSON.stringify(r.json)}`)
+    return r.json.token
+  }
+  const redirectedToOutreach = (r) => r.status >= 300 && r.status < 400 && r.location.endsWith('/admin/outreach')
+
+  const before = await lookup().catch(() => null)
+  if (!before) {
+    skip('team promotion checks', `no server at ${BASE_URL}; start the dev server first`)
+    return
+  }
+  if (before.status !== 200) {
+    skip('team promotion checks', `lookup returned ${before.status}; SUPER_ADMIN_TOKEN expired?`)
+    return
+  }
+  const acct = before.json.account
+  if (!acct || acct.user_type !== 'brand' || !acct.has_brand_profile || acct.role !== 'user' || acct.team_active || !acct.is_active) {
+    skip('team promotion checks', `TEST_TEAM_BRAND_EMAIL must be an active brand with a profile, role user, not on the team (got ${acct ? `${acct.account_label}, role ${acct.role}${acct.team_active ? ', on the team' : ''}` : before.json.error})`)
+    return
+  }
+  const userId = acct.user_id
+  let onTeam = false
+
+  try {
+    await check('a brand account with a profile can be promoted; user_type and profile stay', async () => {
+      assert.equal(before.json.can_add, true, before.json.error ?? '')
+      assert.equal(before.json.promote, true)
+      assert.match(acct.account_label, /brand account, profile complete/)
+      const r = await call('POST', '/api/admin/outreach/team', { cookie: SUPER, body: { email, display_name: 'outreach-check brand', reason: 'outreach-check promotion test' } })
+      assert.equal(r.status, 201, JSON.stringify(r.json))
+      onTeam = true
+      const after = (await lookup()).json.account
+      assert.equal(after.role, 'outreach')
+      assert.equal(after.user_type, 'brand', 'user_type never changes')
+      assert.equal(after.has_brand_profile, true, 'brand profile untouched')
+      assert.equal(after.is_active, true)
+    })
+    if (!onTeam) {return}
+
+    await check('promoted: normal login works, brand area and public profile as before, outreach section open, rest of admin closed', async () => {
+      const token = await userLogin()
+      const c = claimsOf(token)
+      assert.equal(c.role, 'outreach')
+      assert.equal(c.userType, 'brand')
+      assert.ok(c.profileId, 'profileId in the token')
+      const area = await call('GET', '/api/dashboard/action-needed', { bearer: token })
+      assert.equal(area.status, 200, `brand API: ${area.status}`)
+      assert.ok(!redirectedToOutreach(await call('GET', '/dashboard/brand', { cookie: token, manual: true })), 'brand dashboard must not redirect')
+      assert.equal((await call('GET', `/api/brands/${c.profileId}`)).status, 200, 'public brand profile still there')
+      const section = await call('GET', '/api/admin/outreach/team', { bearer: token })
+      assert.equal(section.status, 200)
+      assert.equal(section.json.me.role, 'outreach')
+      assert.equal((await call('GET', '/api/admin/users?limit=1', { bearer: token })).status, 403, 'other admin APIs stay closed')
+    })
+
+    await check('promoted: an admin-login session also keeps the brand area working', async () => {
+      const r = await call('POST', '/api/admin/auth/login', { body: { email, password } })
+      if (r.status === 429) {throw new Error('admin login rate limited; wait and run again')}
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      const c = claimsOf(r.json.token)
+      assert.equal(c.role, 'outreach')
+      assert.ok(c.profileId, 'admin session carries the brand profile id')
+      assert.equal((await call('GET', '/api/dashboard/action-needed', { cookie: r.json.token })).status, 200)
+      assert.ok(!redirectedToOutreach(await call('GET', '/dashboard/brand', { cookie: r.json.token, manual: true })))
+      assert.ok(redirectedToOutreach(await call('GET', '/admin/dashboard', { cookie: r.json.token, manual: true })), 'admin pages outside outreach redirect')
+    })
+
+    await check('removed: a normal brand again (role user, still active, brand works, outreach closed)', async () => {
+      const r = await call('DELETE', `/api/admin/outreach/team/${encodeURIComponent(userId)}`, { cookie: SUPER, body: { reason: 'outreach-check promotion test cleanup' } })
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      onTeam = false
+      assert.equal(r.json.account_deactivated, false, 'a brand with a profile is never deactivated')
+      const after = (await lookup()).json.account
+      assert.equal(after.role, 'user')
+      assert.equal(after.user_type, 'brand')
+      assert.equal(after.is_active, true)
+      assert.equal(after.has_brand_profile, true)
+      const token = await userLogin()
+      assert.equal(claimsOf(token).role, 'user')
+      assert.equal((await call('GET', '/api/dashboard/action-needed', { bearer: token })).status, 200)
+      assert.equal((await call('GET', '/api/admin/outreach/team', { bearer: token })).status, 403, 'outreach section closed')
+    })
+  } finally {
+    if (onTeam) {
+      await call('DELETE', `/api/admin/outreach/team/${encodeURIComponent(userId)}`, { cookie: SUPER, body: { reason: 'outreach-check promotion test cleanup' } })
+      console.log('\nCleanup: removed the test brand from the team again.')
+    }
+  }
+}
+
 await pureChecks()
 await databaseChecks()
 await contactsListsChecks()
@@ -2094,6 +2219,7 @@ if (args.includes('--http')) {
   await httpChecks()
   await assignmentHttpChecks()
   await claimHttpChecks()
+  await teamPromotionHttpChecks()
 }
 
 console.log(`\n${passCount} passed, ${failCount} failed, ${skipCount} skipped`)

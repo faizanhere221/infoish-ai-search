@@ -3,7 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { rateLimit } from '@/lib/rate-limit'
 import { logActivity } from '@/lib/activity'
-import { ADMIN_LOGIN_ROLES, setAdminSessionCookie, signAdminSession } from '@/lib/admin-session'
+import { ADMIN_LOGIN_ROLES, loadProfileId, setAdminSessionCookie, signAdminSession } from '@/lib/admin-session'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -52,7 +52,8 @@ export async function POST(request: NextRequest) {
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', user.id)
 
-    const token = signAdminSession({ ...user, role })
+    const profileId = await loadProfileId(supabase, user.id, user.user_type)
+    const token = signAdminSession({ ...user, role, profileId })
 
     void logActivity({
       userId: user.id,

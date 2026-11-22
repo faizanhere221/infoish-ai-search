@@ -1199,9 +1199,12 @@ async function main() {
         })
       }
 
-      await check('Outreach token gets 403 on a user-area API (/api/dashboard/action-needed)', async () => {
+      // An outreach-only account has no user area (403). A brand / creator
+      // account that also holds the outreach role keeps its own (not 403).
+      const outreachHasUserArea = claims.userType === 'brand' || claims.userType === 'creator'
+      await check(`Outreach token (${outreachHasUserArea ? `${claims.userType} account: keeps its user area` : 'outreach-only: 403'}) on a user-area API (/api/dashboard/action-needed)`, async () => {
         const res = await request('/api/dashboard/action-needed', { headers: outreachHeaders })
-        return { pass: res.status === 403, detail: `status ${res.status}` }
+        return { pass: outreachHasUserArea ? res.status !== 403 && res.status !== 401 : res.status === 403, detail: `status ${res.status}` }
       })
 
       for (const urlPath of ['/api/admin/outreach/team', '/api/admin/outreach/today', '/api/admin/outreach/leads/creators?limit=1', '/api/admin/outreach/mailboxes', '/api/admin/outreach/dnc?limit=1']) {
@@ -1230,13 +1233,20 @@ async function main() {
         })
       }
 
-      for (const pagePath of ['/admin/users', '/admin/dashboard', '/dashboard/brand']) {
+      for (const pagePath of ['/admin/users', '/admin/dashboard']) {
         await check(`Outreach cookie on ${pagePath} redirects to /admin/outreach`, async () => {
           const res = await request(pagePath, { headers: outreachHeaders, redirect: 'manual' })
           const location = res.headers.get('location') ?? ''
           return { pass: res.status >= 300 && res.status < 400 && location.endsWith('/admin/outreach'), detail: `status ${res.status} → ${location}` }
         })
       }
+      const ownDashboard = claims.userType === 'creator' ? '/dashboard/creator' : '/dashboard/brand'
+      await check(`Outreach cookie on ${ownDashboard}: ${outreachHasUserArea ? 'its own dashboard opens' : 'redirects to /admin/outreach'}`, async () => {
+        const res = await request(ownDashboard, { headers: outreachHeaders, redirect: 'manual' })
+        const location = res.headers.get('location') ?? ''
+        const redirected = res.status >= 300 && res.status < 400 && location.endsWith('/admin/outreach')
+        return { pass: outreachHasUserArea ? !redirected : redirected, detail: `status ${res.status}${location ? ` → ${location}` : ''}` }
+      })
     }
   } else {
     skip('Outreach role access checks', 'OUTREACH_TOKEN not set')
