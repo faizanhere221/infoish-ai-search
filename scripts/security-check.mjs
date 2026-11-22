@@ -1192,7 +1192,8 @@ async function main() {
     } else {
       const outreachHeaders = adminCookieHeaders(OUTREACH_TOKEN)
 
-      for (const urlPath of ['/api/admin/users?limit=1', '/api/admin/payments?limit=1', '/api/admin/settings', '/api/admin/search?q=ab']) {
+      // Super-admin only, inside the outreach section: the retention dry run.
+      for (const urlPath of ['/api/admin/users?limit=1', '/api/admin/payments?limit=1', '/api/admin/settings', '/api/admin/search?q=ab', '/api/admin/outreach/retention']) {
         await check(`Outreach token gets 403 on ${urlPath.split('?')[0]}`, async () => {
           const res = await request(urlPath, { headers: outreachHeaders })
           return { pass: res.status === 403, detail: `status ${res.status}` }

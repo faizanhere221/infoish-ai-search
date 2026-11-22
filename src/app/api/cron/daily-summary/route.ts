@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
-import { captureError } from '@/lib/error-tracking'
+import { captureError, captureMessage } from '@/lib/error-tracking'
 import { isAuthorizedCronRequest } from '@/lib/cron-auth'
 import { sendEmail } from '@/lib/email/send'
 import { dailySummaryTemplate } from '@/lib/email/templates/dailySummary'
 import { signUnsubscribeToken } from '@/lib/email/unsubscribeToken'
 import { processPendingFounderEmails } from '@/lib/founder-emails'
+import { retentionIsLive, retentionSummary, runOutreachRetention } from '@/lib/outreach/retention'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -130,7 +131,28 @@ export async function GET(request: NextRequest) {
       outreachNoReply = Number(noReplyCount ?? 0)
     }
 
-    return NextResponse.json({ usersConsidered: userIdsToProcess.length, summariesSent: sent, founderEmails, outreachNoReply })
+    // Outreach data retention (privacy policy): YouTube API data cleared at
+    // 28 days, leads with no contact for 12 months and soft-deleted leads
+    // after 30 days deleted for good. A dry run (counts only) unless
+    // OUTREACH_RETENTION_LIVE=1. Counts go to Sentry either way; a failure
+    // is reported but doesn't fail the summary run.
+    let outreachRetention: unknown = null
+    const retention = await runOutreachRetention(supabase, !retentionIsLive())
+    if (retention.ok) {
+      outreachRetention = retention.counts
+      captureMessage(`Outreach retention (${retentionSummary(retention.counts)})`, 'info', {
+        route: 'GET /api/cron/daily-summary', step: 'outreach_retention', counts: retention.counts,
+      })
+    } else if (retention.reason === 'needs_migration') {
+      outreachRetention = 'needs_migration'
+      captureMessage('Outreach retention skipped: run supabase/outreach_retention_migration.sql', 'warning', {
+        route: 'GET /api/cron/daily-summary', step: 'outreach_retention',
+      })
+    } else {
+      captureError(retention.error, { route: 'GET /api/cron/daily-summary', step: 'outreach_retention' })
+    }
+
+    return NextResponse.json({ usersConsidered: userIdsToProcess.length, summariesSent: sent, founderEmails, outreachNoReply, outreachRetention })
   } catch (error) {
     captureError(error, { route: 'GET /api/cron/daily-summary' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
