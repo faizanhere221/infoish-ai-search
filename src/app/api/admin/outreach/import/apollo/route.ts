@@ -3,9 +3,9 @@ import { z } from 'zod'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
-import { cleanApolloRow, IMPORT_MAX_ROWS } from '@/lib/outreach/rules'
+import { cleanApolloRow, IMPORT_MAX_ROWS, importOwner } from '@/lib/outreach/rules'
 import { isMissingSchema, NEEDS_MIGRATION, outreachFeatures } from '@/lib/outreach/schema'
-import { getOutreachCaller, loadTeam, mapDbError, unauthorized } from '@/lib/outreach/server'
+import { getOutreachCaller, loadAssignDefaults, loadTeam, mapDbError, unauthorized } from '@/lib/outreach/server'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -45,11 +45,12 @@ export async function POST(request: NextRequest) {
     const supabase = createServerSupabase()
     if (!(await outreachFeatures(supabase)).contacts) {return NextResponse.json(NEEDS_MIGRATION, { status: 409 })}
 
-    let owner = owner_user_id || null
-    if (owner && !(await loadTeam(supabase)).some((t) => t.user_id === owner)) {
-      return NextResponse.json({ error: 'Owner must be a team member' }, { status: 400 })
+    // Owner of the brands this file creates: members always themselves;
+    // admins the one picked, else the default brand owner (Team page).
+    const owner = importOwner('brand', owner_user_id, await loadAssignDefaults(supabase), caller)
+    if (owner && !(await loadTeam(supabase)).some((t) => t.user_id === owner && t.is_active)) {
+      return NextResponse.json({ error: 'Owner must be an active team member' }, { status: 400 })
     }
-    if (!caller.isAdmin) {owner = owner ?? caller.userId}
 
     // Re-check every row on the server; invalid rows are reported, not sent.
     const errors: ImportReport['errors'] = []
@@ -59,6 +60,28 @@ export async function POST(request: NextRequest) {
       if (rowErrors.length > 0) {errors.push({ row: row._row, reason: rowErrors.join('; ') })}
       else {valid.push({ ...row, owner_user_id: owner })}
     })
+
+    // Members add contacts only to brands they own: a file matching anyone
+    // else's brand is refused as a whole (an admin imports it instead).
+    if (!caller.isAdmin && valid.length > 0) {
+      const { data: dry, error: dryError } = await supabase.rpc('outreach_import_contacts', {
+        p_rows: valid, p_source: source, p_user_id: caller.userId, p_commit: false,
+      })
+      if (dryError) {throw dryError}
+      const matched = ((dry ?? {}) as ImportReport).existing.map((b) => b.lead_id)
+      if (matched.length > 0) {
+        const { data: owners, error: ownersError } = await supabase
+          .from('outreach_brands').select('lead_id, owner_user_id').in('lead_id', matched)
+        if (ownersError) {throw ownersError}
+        const foreign = (owners ?? []).filter((b) => b.owner_user_id !== caller.userId).map((b) => b.lead_id as string)
+        if (foreign.length > 0) {
+          return NextResponse.json({
+            error: `This file adds contacts to brands you don't own (${foreign.slice(0, 10).join(', ')}${foreign.length > 10 ? ', ...' : ''}). Ask an admin to import it.`,
+            foreign,
+          }, { status: 403 })
+        }
+      }
+    }
 
     let report: ImportReport = { existing: [], created: [], duplicates: [], dnc: [], errors: [] }
     if (valid.length > 0) {

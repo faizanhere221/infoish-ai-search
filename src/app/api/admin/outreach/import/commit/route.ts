@@ -4,8 +4,8 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logActivity } from '@/lib/activity'
 import { classifyImportRows } from '@/lib/outreach/import'
-import { IMPORT_MAX_ROWS } from '@/lib/outreach/rules'
-import { getOutreachCaller, loadTeam, mapDbError, unauthorized } from '@/lib/outreach/server'
+import { IMPORT_MAX_ROWS, importOwner } from '@/lib/outreach/rules'
+import { getOutreachCaller, loadAssignDefaults, loadTeam, mapDbError, unauthorized } from '@/lib/outreach/server'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
     const { lead_type, source, rows } = parsed.data
 
     const supabase = createServerSupabase()
-    const team = await loadTeam(supabase)
-    const teamIds = new Set(team.map((t) => t.user_id))
+    const [team, defaults] = await Promise.all([loadTeam(supabase), loadAssignDefaults(supabase)])
+    const teamIds = new Set(team.filter((t) => t.is_active).map((t) => t.user_id))
 
     const classified = await classifyImportRows(supabase, lead_type, rows)
     const skipped: SkippedRow[] = []
@@ -51,12 +51,14 @@ export async function POST(request: NextRequest) {
         skipped.push({ row: c.row, reason: c.reasons.join('; ') || c.status, lead_id: c.match?.lead_id ?? null })
         continue
       }
-      const owner = c.lead.owner_user_id
-      if (owner && !teamIds.has(String(owner))) {
-        skipped.push({ row: c.row, reason: 'Owner is not a team member' })
+      // Members import for themselves; admins keep the preview's owner, else
+      // the default owner for this lead type (Team page).
+      const owner = importOwner(lead_type, c.lead.owner_user_id, defaults, caller)
+      if (owner && !teamIds.has(owner)) {
+        skipped.push({ row: c.row, reason: 'Owner is not an active team member' })
         continue
       }
-      toInsert.push({ ...c.lead, _row: c.row })
+      toInsert.push({ ...c.lead, owner_user_id: owner, _row: c.row })
     }
 
     let inserted = 0

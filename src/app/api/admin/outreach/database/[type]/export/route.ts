@@ -6,7 +6,7 @@ import {
 } from '@/lib/outreach/database'
 import { searchBrandDb, searchCreatorDb } from '@/lib/outreach/database-server'
 import { karachiToday, primaryLink, toCsv } from '@/lib/outreach/rules'
-import { getOutreachCaller, leadTypeFromSegment, loadTeam, teamNameMap, unauthorized } from '@/lib/outreach/server'
+import { getOutreachCaller, leadTypeFromSegment, loadTeam, scopeToCaller, teamNameMap, unauthorized } from '@/lib/outreach/server'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest, { params }: Params) {
     let headers: string[]
     let rows: Record<string, unknown>[]
     if (leadType === 'creator') {
-      const { rows: entries } = await searchCreatorDb(supabase, caller, creatorDbFilters(sp, { isAdmin: caller.isAdmin, callerId: caller.userId }), MAX_ROWS, 0)
+      const { rows: entries } = await searchCreatorDb(supabase, caller, scopeToCaller(creatorDbFilters(sp, { isAdmin: caller.isAdmin, callerId: caller.userId }), caller), MAX_ROWS, 0)
       headers = caller.isAdmin ? [...CREATOR_COLUMNS.slice(0, -1), 'quality_rating', 'notes'] : CREATOR_COLUMNS
       rows = entries.map((e) => ({
         ...e,
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest, { params }: Params) {
         notes: e.db_notes ?? '',
       }))
     } else {
-      const { rows: entries } = await searchBrandDb(supabase, brandDbFilters(sp, { callerId: caller.userId }), MAX_ROWS, 0)
+      const { rows: entries } = await searchBrandDb(supabase, scopeToCaller(brandDbFilters(sp, { callerId: caller.userId }), caller), MAX_ROWS, 0)
       headers = BRAND_COLUMNS
       rows = entries.map((e) => ({
         ...e,

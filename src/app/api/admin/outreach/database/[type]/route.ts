@@ -4,7 +4,11 @@ import { captureError } from '@/lib/error-tracking'
 import { createLead } from '@/lib/outreach/create'
 import { brandDbFilters, creatorDbFilters } from '@/lib/outreach/database'
 import { creatorDbTags, searchBrandDb, searchCreatorDb } from '@/lib/outreach/database-server'
-import { filterValues, getOutreachCaller, leadTypeFromSegment, mapDbError, unauthorized } from '@/lib/outreach/server'
+import { outreachFeatures } from '@/lib/outreach/schema'
+import {
+  applyInterestedRule, filterValues, getOutreachCaller, leadAccess, leadNotFound, leadTypeFromSegment, mapDbError, scopeToCaller,
+  unauthorized,
+} from '@/lib/outreach/server'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -30,9 +34,10 @@ export async function GET(request: NextRequest, { params }: Params) {
     const offset = Math.max(parseInt(sp.get('offset') ?? '0', 10) || 0, 0)
     const supabase = createServerSupabase()
 
+    // Members: entries for their own leads only.
     const result = leadType === 'creator'
-      ? await searchCreatorDb(supabase, caller, creatorDbFilters(sp, { isAdmin: caller.isAdmin, callerId: caller.userId }), limit, offset)
-      : await searchBrandDb(supabase, brandDbFilters(sp, { callerId: caller.userId }), limit, offset)
+      ? await searchCreatorDb(supabase, caller, scopeToCaller(creatorDbFilters(sp, { isAdmin: caller.isAdmin, callerId: caller.userId }), caller), limit, offset)
+      : await searchBrandDb(supabase, scopeToCaller(brandDbFilters(sp, { callerId: caller.userId }), caller), limit, offset)
 
     let meta: Record<string, string[]> | undefined
     if (sp.get('meta') === '1') {
@@ -84,6 +89,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     let created = false
     if (typeof body.lead_id === 'string' && body.lead_id.trim()) {
       leadId = body.lead_id.trim().slice(0, 255)
+      if (!(await leadAccess(supabase, caller, leadType, leadId))) {return leadNotFound()}
     } else if (body.lead && typeof body.lead === 'object') {
       status = typeof body.status === 'string' ? body.status : 'replied'
       if (!DIRECT_STATUS[leadType].includes(status)) {
@@ -112,6 +118,16 @@ export async function POST(request: NextRequest, { params }: Params) {
       if (mapped) {return NextResponse.json({ error: mapped.message }, { status: mapped.status })}
       captureError(error, { route: 'POST /api/admin/outreach/database' })
       return NextResponse.json({ error: 'Failed to add to the Database' }, { status: 500 })
+    }
+
+    // A lead added directly starts as replied / call booked: the Interested
+    // rule hands it to its owner. Best effort: the entry exists either way.
+    if (created && (await outreachFeatures(supabase)).assignment) {
+      try {
+        await applyInterestedRule(supabase, leadType, [leadId], status, caller.userId)
+      } catch (ruleError) {
+        captureError(ruleError, { route: 'POST /api/admin/outreach/database', step: 'interested rule', leadId })
+      }
     }
 
     const r = (data ?? {}) as { added?: boolean; restored?: boolean; already?: boolean }

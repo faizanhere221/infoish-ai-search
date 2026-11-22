@@ -4,7 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { validateDbFields } from '@/lib/outreach/database'
 import { forCaller, infoishaiProfiles, loadDbEntry } from '@/lib/outreach/database-server'
 import {
-  adminOnly, getOutreachCaller, leadTypeFromSegment, mapDbError, unauthorized, withDncFlags,
+  adminOnly, getOutreachCaller, leadAccess, leadNotFound, leadTypeFromSegment, mapDbError, unauthorized, withDncFlags,
 } from '@/lib/outreach/server'
 import type { OutreachLead } from '@/lib/outreach/types'
 
@@ -25,6 +25,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 
   try {
     const supabase = createServerSupabase()
+    if (!(await leadAccess(supabase, caller, leadType, params.leadId))) {return leadNotFound()}
     const found = await loadDbEntry(supabase, leadType, params.leadId)
     if (!found) {return NextResponse.json({ error: 'Lead not found' }, { status: 404 })}
     if (!found.entry) {
@@ -106,6 +107,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     }
 
     const supabase = createServerSupabase()
+    if (!(await leadAccess(supabase, caller, leadType, params.leadId))) {return leadNotFound()}
     const { data, error } = await supabase.rpc('outreach_db_update', {
       p_lead_type: leadType, p_lead_id: params.leadId, p_user_id: caller.userId, p_fields: values,
     })

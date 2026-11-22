@@ -4,7 +4,7 @@ import { captureError } from '@/lib/error-tracking'
 import { editLead } from '@/lib/outreach/edit'
 import { outreachFeatures } from '@/lib/outreach/schema'
 import {
-  adminOnly, getOutreachCaller, leadTable, leadTypeFromSegment, unauthorized, withDncFlags,
+  adminOnly, getOutreachCaller, leadAccess, leadNotFound, leadTable, leadTypeFromSegment, unauthorized, withDncFlags,
 } from '@/lib/outreach/server'
 import type { OutreachLead } from '@/lib/outreach/types'
 
@@ -13,7 +13,8 @@ export const fetchCache = 'force-no-store'
 
 type Params = { params: { type: string; leadId: string } }
 
-// GET: one lead with its DNC flag and last 50 activity rows.
+// GET: one lead with its DNC flag and last 50 activity rows. Members: their
+// own leads only (anyone else's answers 404).
 export async function GET(request: NextRequest, { params }: Params) {
   const caller = getOutreachCaller(request)
   if (!caller) {return unauthorized()}
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 
   try {
     const supabase = createServerSupabase()
+    if (!(await leadAccess(supabase, caller, leadType, params.leadId))) {return leadNotFound()}
     const { data, error } = await supabase.from(leadTable(leadType)).select('*').eq('lead_id', params.leadId).maybeSingle()
     if (error) {
       captureError(error, { route: 'GET /api/admin/outreach/leads/[leadId]' })
@@ -60,6 +62,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   try {
     const body = await request.json().catch(() => null)
     const supabase = createServerSupabase()
+    if (!(await leadAccess(supabase, caller, leadType, params.leadId))) {return leadNotFound()}
     const outcome = await editLead(supabase, caller, leadType, params.leadId, body)
     return NextResponse.json(outcome.body, { status: outcome.status })
   } catch (err) {

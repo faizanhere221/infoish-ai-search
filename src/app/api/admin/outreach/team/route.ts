@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction } from '@/lib/admin-action'
 import { teamCreateSchema } from '@/lib/outreach/schemas'
 import { getOutreachCaller, loadTeam, superAdminOnly, unauthorized } from '@/lib/outreach/server'
+import { checkAccount } from '@/lib/outreach/team'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -28,10 +28,14 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST (super admin): add a team member. A new email gets a users row
-// (user_type 'admin', role 'outreach' or 'admin') with a temporary password
-// and must_change_password = true. An existing admin/outreach account is
-// added to the team as is (its role stays; change roles in /admin/admins).
+// POST (super admin): add a team member. Only an EXISTING account, found by
+// email; no account or password is ever created here (see
+// src/lib/outreach/team.ts). A plain account with no creator or brand
+// profile is promoted to role 'outreach', user_type 'admin' (signs in at
+// /admin/login with its own password). An admin / super admin / outreach
+// account joins with its role unchanged. A removed member comes back the
+// same way (their team row is reactivated). Role changes go to the admin
+// activity log.
 export async function POST(request: NextRequest) {
   const caller = getOutreachCaller(request)
   if (!caller) {return unauthorized()}
@@ -42,64 +46,57 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid input', fields: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
-    const { email, display_name, role, temp_password, works_saturday, creators_monthly_target, brands_monthly_target, reason } = parsed.data
+    const { email, display_name, works_saturday, creators_monthly_target, brands_monthly_target, reason } = parsed.data
 
     const supabase = createServerSupabase()
-    const { data: existing } = await supabase.from('users').select('id, role').eq('email', email).maybeSingle()
+    const check = await checkAccount(supabase, email)
+    if (!check.ok) {return NextResponse.json({ error: check.error, account: check.account ?? null }, { status: check.status })}
+    const { account, promote } = check
 
-    let userId: string
-    let created = false
-    if (existing) {
-      if (!['admin', 'super_admin', 'outreach'].includes(existing.role)) {
-        return NextResponse.json({ error: 'This email belongs to a creator or brand account. Use a different email.' }, { status: 409 })
-      }
-      const { data: member } = await supabase.from('outreach_team').select('user_id').eq('user_id', existing.id).maybeSingle()
-      if (member) {return NextResponse.json({ error: 'Already on the team' }, { status: 409 })}
-      userId = existing.id
-    } else {
-      if (!temp_password) {
-        return NextResponse.json({ error: 'Set a temporary password (at least 10 characters) for the new account' }, { status: 400 })
-      }
-      const password_hash = await bcrypt.hash(temp_password, 12)
-      const { data: user, error } = await supabase
+    if (promote) {
+      // Guarded on the current role, so a concurrent change can't be overwritten.
+      const { data: promoted, error: promoteError } = await supabase
         .from('users')
-        .insert({
-          email,
-          password_hash,
-          user_type: 'admin',
-          role,
-          is_active: true,
-          email_verified: true,
-          must_change_password: true,
-        })
+        .update({ role: 'outreach', user_type: 'admin', is_active: true, updated_at: new Date().toISOString() })
+        .eq('id', account.user_id)
+        .eq('role', account.role)
         .select('id')
-        .single()
-      if (error || !user) {
-        captureError(error ?? new Error('team create: no user row'), { route: 'POST /api/admin/outreach/team' })
-        return NextResponse.json({ error: 'Failed to create the account' }, { status: 500 })
+      if (promoteError) {throw promoteError}
+      if (!promoted || promoted.length === 0) {
+        return NextResponse.json({ error: 'This account changed while you were adding it. Reload and try again.' }, { status: 409 })
       }
-      userId = user.id
-      created = true
     }
 
-    const { error: teamError } = await supabase.from('outreach_team').insert({
-      user_id: userId, display_name, works_saturday, creators_monthly_target, brands_monthly_target,
-    })
+    const team = { display_name, works_saturday, creators_monthly_target, brands_monthly_target, is_active: true, updated_at: new Date().toISOString() }
+    const { error: teamError } = account.on_team
+      ? await supabase.from('outreach_team').update(team).eq('user_id', account.user_id)
+      : await supabase.from('outreach_team').insert({ user_id: account.user_id, ...team })
     if (teamError) {
-      if (created) {await supabase.from('users').delete().eq('id', userId)}
+      if (promote) {
+        await supabase.from('users')
+          .update({ role: account.role, user_type: account.user_type, is_active: account.is_active })
+          .eq('id', account.user_id)
+      }
       captureError(teamError, { route: 'POST /api/admin/outreach/team' })
       return NextResponse.json({ error: 'Failed to add team member' }, { status: 500 })
     }
 
+    if (promote) {
+      logAdminAction({
+        request, adminId: caller.userId, action: 'outreach_role_changed', targetType: 'user', targetId: account.user_id, reason,
+        before: { role: account.role, user_type: account.user_type, is_active: account.is_active },
+        after: { role: 'outreach', user_type: 'admin', is_active: true },
+      })
+    }
     logAdminAction({
-      request, adminId: caller.userId, action: 'outreach_team_member_added', targetType: 'user', targetId: userId,
-      reason, before: null, after: { email, display_name, role: created ? role : existing?.role, new_account: created },
+      request, adminId: caller.userId, action: 'outreach_team_member_added', targetType: 'user', targetId: account.user_id,
+      reason, before: null, after: { email: account.email, display_name, role: promote ? 'outreach' : account.role, rejoined: account.on_team },
     })
     return NextResponse.json({
-      message: created
-        ? 'Team member added. Share the temporary password with them. They set a new one on first login.'
-        : 'Existing account added to the team.',
-      user_id: userId,
+      message: promote
+        ? `${display_name} is now an outreach team member. They sign in at /admin/login with their own password.`
+        : `${display_name} joined the team as ${account.role}.`,
+      user_id: account.user_id,
     }, { status: 201 })
   } catch (err) {
     captureError(err, { route: 'POST /api/admin/outreach/team' })

@@ -23,11 +23,20 @@ export interface OutreachFeatures {
   // outreach_followups_migration.sql (version 4): mailbox webmail URL and
   // the subject / first line on "Mark contacted"
   followUps: boolean
+  // outreach_assignment_migration.sql (version 5): assigned_at/by,
+  // last_activity_at (stale), outreach_assign_leads(), owner stats, default
+  // owner rules
+  assignment: boolean
 }
 
 export async function outreachFeatures(supabase: Supabase): Promise<OutreachFeatures> {
   const v = await outreachSchemaVersion(supabase)
-  return { contacts: v >= 2, lists: v >= 2, mailboxWindow: v >= 2, contactRemoval: v >= 3, followUps: v >= 4 }
+  return { contacts: v >= 2, lists: v >= 2, mailboxWindow: v >= 2, contactRemoval: v >= 3, followUps: v >= 4, assignment: v >= 5 }
+}
+
+export const NEEDS_ASSIGNMENT_MIGRATION = {
+  error: 'Run supabase/outreach_assignment_migration.sql in the Supabase SQL Editor first.',
+  code: 'outreach_needs_migration',
 }
 
 // PostgREST: function or column not there yet (the migration hasn't run).

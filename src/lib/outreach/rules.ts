@@ -299,6 +299,68 @@ export function suggestOwner(
   return ids.va
 }
 
+// ─── Assignment (supabase/outreach_assignment_migration.sql) ────────────────
+// Mirrored in SQL: outreach_owner_stats() (interested, stale). Change both.
+
+export const STALE_AFTER_DAYS = 7
+// Open statuses: a lead in an end state (or won / signed up) is never stale.
+export const STALE_STATUSES = ['found', 'contacted', 'followed_up', 'replied', 'call_booked'] as const
+// No "interested" status exists: replied counts for creators, replied or
+// call booked for brands.
+export const INTERESTED_STATUSES: Record<LeadType, readonly string[]> = {
+  creator: ['replied'],
+  brand: ['replied', 'call_booked'],
+}
+
+export function isInterested(leadType: LeadType, status: string | null | undefined): boolean {
+  return !!status && INTERESTED_STATUSES[leadType].includes(status)
+}
+
+// The time before which a lead's last activity makes it stale.
+export function staleCutoff(now: Date = new Date(), days: number = STALE_AFTER_DAYS): Date {
+  return new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+}
+
+export function isStale(
+  lead: { status: string; last_activity_at?: string | null },
+  now: Date = new Date(),
+): boolean {
+  if (!(STALE_STATUSES as readonly string[]).includes(lead.status) || !lead.last_activity_at) {return false}
+  const at = new Date(lead.last_activity_at)
+  return !Number.isNaN(at.getTime()) && at < staleCutoff(now)
+}
+
+// Auto-split: deal ids out one by one in member order (round-robin), so
+// counts differ by at most one. Same input, same split.
+export function roundRobin(ids: readonly string[], memberIds: readonly string[]): Map<string, string[]> {
+  const out = new Map<string, string[]>(memberIds.map((m) => [m, []]))
+  if (memberIds.length === 0) {return out}
+  ids.forEach((id, i) => out.get(memberIds[i % memberIds.length])?.push(id))
+  return out
+}
+
+// outreach_settings keys holding a users.id (or null).
+export const ASSIGN_SETTING_KEYS = {
+  creator: 'assign_creator_owner',
+  brand: 'assign_brand_owner',
+  interested: 'assign_interested_owner',
+} as const
+export type AssignRule = keyof typeof ASSIGN_SETTING_KEYS
+export type AssignDefaults = Record<AssignRule, string | null>
+
+// Owner of an imported row: members always import for themselves; admins
+// keep the owner picked in the preview, else the default for the lead type.
+export function importOwner(
+  leadType: LeadType,
+  rowOwner: unknown,
+  defaults: Pick<AssignDefaults, 'creator' | 'brand'>,
+  caller: { userId: string; isAdmin: boolean },
+): string | null {
+  if (!caller.isAdmin) {return caller.userId}
+  if (typeof rowOwner === 'string' && rowOwner.trim()) {return rowOwner.trim()}
+  return defaults[leadType] ?? null
+}
+
 // ─── Value parsing ───────────────────────────────────────────────────────────
 
 // "5,076" → 5076, "5k" → 5000, "1.2M" → 1200000, "12%" → 12. null if not a number.

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { restoreContact } from '@/lib/outreach/contacts'
-import { getOutreachCaller, unauthorized } from '@/lib/outreach/server'
+import { getOutreachCaller, leadAccess, leadNotFound, unauthorized } from '@/lib/outreach/server'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -17,6 +17,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   if (params.type !== 'brands') {return NextResponse.json({ error: 'Not found' }, { status: 404 })}
   try {
     const supabase = createServerSupabase()
+    if (!(await leadAccess(supabase, caller, 'brand', params.leadId))) {return leadNotFound()}
     const outcome = await restoreContact(supabase, caller, params.leadId, params.contactId, 'POST /api/admin/outreach/leads/[leadId]/contacts/[contactId]/restore')
     return NextResponse.json(outcome.body, { status: outcome.status })
   } catch (err) {

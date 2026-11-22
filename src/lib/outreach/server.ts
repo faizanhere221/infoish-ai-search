@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
-import { emailDomain, karachiToday, listsFor, type LeadType } from '@/lib/outreach/rules'
+import {
+  ASSIGN_SETTING_KEYS, emailDomain, isInterested, karachiToday, listsFor, staleCutoff, STALE_STATUSES,
+  type AssignDefaults, type LeadType,
+} from '@/lib/outreach/rules'
 import type { ContactedInfo, DuplicateMatch, OutreachLead, OutreachTeamMember } from '@/lib/outreach/types'
 
 type Supabase = ReturnType<typeof createServerSupabase>
@@ -8,9 +11,11 @@ type Supabase = ReturnType<typeof createServerSupabase>
 // ─── Caller / permissions ────────────────────────────────────────────────────
 // middleware.ts only lets admin, super_admin and outreach tokens reach
 // /api/admin/outreach/*. Inside the section:
-//   outreach      view + edit leads, log actions, import
-//   admin         + delete/restore, bulk changes, mailboxes, targets, DNC, erase
-//   super_admin   + add team members
+//   outreach      view + edit + act on the leads THEY OWN (leadAccess() /
+//                 scopeToCaller() below), add leads (owned by them), import
+//   admin         every lead, + assign, delete/restore, bulk changes,
+//                 mailboxes, targets, DNC, erase
+//   super_admin   + add / remove team members, change their role
 
 export interface OutreachCaller {
   userId: string
@@ -34,6 +39,7 @@ export function getOutreachCaller(request: NextRequest): OutreachCaller | null {
 export const unauthorized = () => NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 export const adminOnly = () => NextResponse.json({ error: 'Admin access required' }, { status: 403 })
 export const superAdminOnly = () => NextResponse.json({ error: 'Super admin only' }, { status: 403 })
+export const leadNotFound = () => NextResponse.json({ error: 'Lead not found' }, { status: 404 })
 
 export function leadTable(leadType: LeadType): 'outreach_creators' | 'outreach_brands' {
   return leadType === 'creator' ? 'outreach_creators' : 'outreach_brands'
@@ -54,6 +60,89 @@ export function leadTypeFromId(leadId: string): LeadType | null {
   if (/^C-\d+$/.test(leadId)) {return 'creator'}
   if (/^B-\d+$/.test(leadId)) {return 'brand'}
   return null
+}
+
+// ─── Lead access ─────────────────────────────────────────────────────────────
+// Admins reach every lead. An outreach member reaches only leads they own;
+// anyone else's lead (or an unassigned one) answers 404, the same as a lead
+// that doesn't exist, so ids of other people's leads reveal nothing.
+export async function leadAccess(
+  supabase: Supabase,
+  caller: OutreachCaller,
+  leadType: LeadType,
+  leadId: string,
+): Promise<boolean> {
+  if (caller.isAdmin) {return true}
+  const { data, error } = await supabase.from(leadTable(leadType)).select('owner_user_id').eq('lead_id', leadId).maybeSingle()
+  if (error) {throw error}
+  return !!data && data.owner_user_id === caller.userId
+}
+
+// Lists, counts and exports: a member only ever sees their own leads,
+// whatever owner filter they send.
+export function scopeToCaller<T extends { owner?: unknown }>(filters: T, caller: OutreachCaller): T {
+  if (!caller.isAdmin) {(filters as { owner?: unknown }).owner = caller.userId}
+  return filters
+}
+
+// ─── Assignment ──────────────────────────────────────────────────────────────
+
+const ASSIGN_CHUNK = 1000 // outreach_assign_leads() max per call
+
+// Changes the owner (null = unassign) through outreach_assign_leads(): one
+// owner_changed activity row per lead that actually changed. Needs
+// features.assignment. Throws the RPC error (map it with mapDbError).
+export async function assignLeads(
+  supabase: Supabase,
+  leadType: LeadType,
+  leadIds: string[],
+  owner: string | null,
+  actorId: string,
+  rule: 'interested' | 'member_removed' | null = null,
+): Promise<{ updated: number; leadIds: string[] }> {
+  const changed: string[] = []
+  for (let i = 0; i < leadIds.length; i += ASSIGN_CHUNK) {
+    const { data, error } = await supabase.rpc('outreach_assign_leads', {
+      p_lead_type: leadType,
+      p_lead_ids: leadIds.slice(i, i + ASSIGN_CHUNK),
+      p_owner: owner,
+      p_user_id: actorId,
+      p_rule: rule,
+    })
+    if (error) {throw error}
+    changed.push(...(((data ?? {}) as { lead_ids?: string[] }).lead_ids ?? []))
+  }
+  return { updated: changed.length, leadIds: changed }
+}
+
+// Default owner rules (Team page). null for a rule nobody picked, and for
+// every rule before the migration.
+export async function loadAssignDefaults(supabase: Supabase): Promise<AssignDefaults> {
+  const out: AssignDefaults = { creator: null, brand: null, interested: null }
+  const { data, error } = await supabase.from('outreach_settings').select('key, value').in('key', Object.values(ASSIGN_SETTING_KEYS))
+  if (error) {return out}
+  for (const [rule, key] of Object.entries(ASSIGN_SETTING_KEYS) as [keyof AssignDefaults, string][]) {
+    const v = (data ?? []).find((r) => r.key === key)?.value
+    out[rule] = typeof v === 'string' && v ? v : null
+  }
+  return out
+}
+
+// "Anything set to Interested goes to <person>": after a status change,
+// hands the leads to the Interested owner (when one is set and they aren't
+// theirs already). Returns the new owner id, or null when nothing moved.
+export async function applyInterestedRule(
+  supabase: Supabase,
+  leadType: LeadType,
+  leadIds: string[],
+  status: string | null | undefined,
+  actorId: string,
+): Promise<string | null> {
+  if (!isInterested(leadType, status) || leadIds.length === 0) {return null}
+  const owner = (await loadAssignDefaults(supabase)).interested
+  if (!owner) {return null}
+  const { updated } = await assignLeads(supabase, leadType, leadIds, owner, actorId, 'interested')
+  return updated > 0 ? owner : null
 }
 
 // ─── RPC / trigger errors ────────────────────────────────────────────────────
@@ -81,6 +170,7 @@ const RPC_ERRORS: Record<string, [number, string]> = {
   outreach_contact_required: [409, 'Pick which contact this was. Every contact of this brand is past this step.'],
   outreach_contact_not_found: [404, 'Contact not found. Reload the page.'],
   outreach_db_item_not_found: [404, 'This row no longer exists. Reload the page.'],
+  outreach_bad_owner: [400, 'Pick an active team member.'],
 }
 
 export interface MappedDbError {
@@ -216,6 +306,7 @@ export interface LeadFilters {
   mailbox: string | null // the mailbox of the lead's latest send (brands: of any contact's latest send)
   missingEmail: boolean
   deleted: boolean // true: only deleted leads (admin "Deleted" filter); false: deleted leads hidden
+  stale: boolean // open status, no activity for STALE_AFTER_DAYS (assignment migration; routes clear it before then)
   list: string | null // needs the contacts/lists migration; routes clear it before then
   q: string | null
   sort: string
@@ -223,8 +314,8 @@ export interface LeadFilters {
 }
 
 const SORTABLE: Record<LeadType, string[]> = {
-  creator: ['lead_id', 'name', 'platform', 'country', 'niche', 'subscribers', 'avg_views', 'engagement_pct', 'status', 'date_contacted', 'follow_up_date', 'created_at', 'updated_at'],
-  brand: ['lead_id', 'company', 'country', 'score', 'team_size', 'status', 'date_contacted', 'follow_up_date', 'created_at', 'updated_at'],
+  creator: ['due', 'lead_id', 'name', 'platform', 'country', 'niche', 'subscribers', 'avg_views', 'engagement_pct', 'status', 'date_contacted', 'follow_up_date', 'created_at', 'updated_at'],
+  brand: ['due', 'lead_id', 'company', 'country', 'score', 'team_size', 'status', 'date_contacted', 'follow_up_date', 'created_at', 'updated_at'],
 }
 
 const SEARCH_COLUMNS: Record<LeadType, string[]> = {
@@ -245,6 +336,7 @@ export function parseLeadFilters(leadType: LeadType, params: URLSearchParams, ca
     mailbox: params.get('mailbox') || null,
     missingEmail: params.get('missing') === 'email',
     deleted: params.get('deleted') === '1',
+    stale: params.get('stale') === '1',
     list: (listsFor(leadType) as readonly string[]).includes(params.get('list') ?? '') ? params.get('list') : null,
     // PostgREST's or() syntax treats , ( ) as separators; strip them and the
     // ilike wildcards so a search term can't change the filter itself.
@@ -276,9 +368,18 @@ export function leadListQuery(
   if (f.missingEmail) {query = query.is('email', null)}
   if (f.list) {query = query.eq('list', f.list)}
   query = f.deleted ? query.not('deleted_at', 'is', null) : query.is('deleted_at', null)
+  if (f.stale) {query = query.in('status', [...STALE_STATUSES]).lt('last_activity_at', staleCutoff().toISOString())}
   if (f.q) {
     const term = f.q
     query = query.or(SEARCH_COLUMNS[leadType].map((c) => `${c}.ilike.%${term}%`).join(','))
+  }
+  // 'due': follow-ups due today or overdue first (earliest first), then the
+  // ones scheduled later, then leads with no follow-up, newest first.
+  if (f.sort === 'due') {
+    return query
+      .order('follow_up_date', { ascending: true, nullsFirst: false })
+      .order('created_at', { ascending: false })
+      .order('lead_id', { ascending: true })
   }
   return query
     .order(f.sort, { ascending: f.dir === 'asc', nullsFirst: false })

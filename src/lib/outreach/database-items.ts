@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { DB_ITEM_SQL_KIND, isDbItemKind, validateDbItem, type DbItemKind } from '@/lib/outreach/database'
-import { getOutreachCaller, leadTypeFromSegment, mapDbError, unauthorized } from '@/lib/outreach/server'
+import { getOutreachCaller, leadAccess, leadNotFound, leadTypeFromSegment, mapDbError, unauthorized } from '@/lib/outreach/server'
 
 // Shared handler for rate / campaign rows:
 //   POST   /api/admin/outreach/database/[type]/[leadId]/[kind]           add
@@ -29,6 +29,8 @@ export async function handleDbItem(request: NextRequest, params: ItemParams, op:
 
   try {
     const supabase = createServerSupabase()
+    // Members: rates / campaigns of their own leads only.
+    if (!(await leadAccess(supabase, caller, leadType, params.leadId))) {return leadNotFound()}
     let row: Record<string, unknown> | null = null
 
     if (op !== 'delete') {

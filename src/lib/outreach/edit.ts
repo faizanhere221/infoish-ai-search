@@ -4,7 +4,9 @@ import {
   dncKeys, leadKeys, LIST_LABELS, listsFor, previouslyLabel, splitName, STATUS_LABELS, validateLeadUpdates, type LeadKey, type LeadType,
 } from '@/lib/outreach/rules'
 import { NEEDS_MIGRATION, outreachFeatures } from '@/lib/outreach/schema'
-import { findDncHits, findDuplicates, leadTable, loadTeam, type OutreachCaller, withDncFlags } from '@/lib/outreach/server'
+import {
+  assignLeads, findDncHits, findDuplicates, leadTable, loadTeam, mapDbError, type OutreachCaller, withDncFlags,
+} from '@/lib/outreach/server'
 import type { OutreachLead } from '@/lib/outreach/types'
 
 type Supabase = ReturnType<typeof createServerSupabase>
@@ -129,9 +131,34 @@ async function editLeadFields(
     if (!caller.isAdmin) {return fieldError(403, 'owner_user_id', 'Only admins change the owner')}
     if (values.owner_user_id) {
       const team = await loadTeam(supabase)
-      if (!team.some((t) => t.user_id === values.owner_user_id)) {
-        return fieldError(400, 'owner_user_id', 'Owner must be a team member')
+      if (!team.some((t) => t.user_id === values.owner_user_id && t.is_active)) {
+        return fieldError(400, 'owner_user_id', 'Owner must be an active team member')
       }
+    }
+    // After the assignment migration an owner change goes through
+    // outreach_assign_leads() (assigned_at / assigned_by, owner_changed row
+    // with old -> new), not through the generic edit.
+    if ((await outreachFeatures(supabase)).assignment) {
+      try {
+        await assignLeads(supabase, leadType, [leadId], (values.owner_user_id as string | null) ?? null, caller.userId)
+      } catch (err) {
+        const mapped = mapDbError(err as { message?: string; code?: string })
+        if (mapped) {return fieldError(mapped.status, 'owner_user_id', mapped.message)}
+        throw err
+      }
+      delete values.owner_user_id
+      if (Object.keys(values).length === 0) {
+        const { data: fresh, error: freshError } = await supabase.from(leadTable(leadType)).select('*').eq('lead_id', leadId).maybeSingle()
+        if (freshError) {throw freshError}
+        const [lead] = await withDncFlags(supabase, [fresh as OutreachLead])
+        return { status: 200, body: { lead, changed: true, changes: { owner_user_id: { old: current.owner_user_id, new: lead.owner_user_id } } } }
+      }
+    }
+  } else if ('owner_user_id' in values) {
+    delete values.owner_user_id // unchanged
+    if (Object.keys(values).length === 0) {
+      const [lead] = await withDncFlags(supabase, [current as OutreachLead])
+      return { status: 200, body: { lead, changed: false, changes: {} } }
     }
   }
 

@@ -7,7 +7,7 @@ import { outreachFeatures } from '@/lib/outreach/schema'
 import { withDbFlags } from '@/lib/outreach/database-server'
 import {
   adminOnly, fetchAllRows, filterValues, getOutreachCaller, leadListQuery, leadTypeFromSegment,
-  parseLeadFilters, unauthorized, withDncFlags,
+  parseLeadFilters, scopeToCaller, unauthorized, withDncFlags,
 } from '@/lib/outreach/server'
 import type { OutreachLead } from '@/lib/outreach/types'
 
@@ -19,8 +19,9 @@ type Params = { params: { type: string } }
 const MAX_IDS = 50_000
 
 // GET /api/admin/outreach/leads/creators|brands
+// Members only ever get their own leads (the owner filter is forced to them).
 // Filters: owner (user id | me | none), status (comma list), country, niche,
-// platform, channel, missing=email, q, deleted=1 (admins: deleted leads only;
+// platform, channel, missing=email, stale=1, q, deleted=1 (admins: deleted leads only;
 // otherwise deleted leads are hidden). Sort: sort + dir. Paging: limit (max
 // 200) + offset. meta=1 adds the filter dropdown values. ids=1 (admins)
 // returns every matching lead id instead, for "select all N matching".
@@ -36,13 +37,16 @@ export async function GET(request: NextRequest, { params }: Params) {
     const sp = request.nextUrl.searchParams
     const limit = Math.min(Math.max(parseInt(sp.get('limit') ?? '50', 10) || 50, 1), 200)
     const offset = Math.max(parseInt(sp.get('offset') ?? '0', 10) || 0, 0)
-    const filters = parseLeadFilters(leadType, sp, caller.userId)
+    // Members: their own leads only, whatever owner they ask for.
+    const filters = scopeToCaller(parseLeadFilters(leadType, sp, caller.userId), caller)
     if (filters.deleted && !caller.isAdmin) {return adminOnly()}
 
     const supabase = createServerSupabase()
-    // Lists and contacts exist once outreach_contacts_lists_migration.sql ran.
+    // Lists and contacts exist once outreach_contacts_lists_migration.sql ran;
+    // the stale filter once outreach_assignment_migration.sql ran.
     const features = await outreachFeatures(supabase)
     if (!features.lists) {filters.list = null}
+    if (!features.assignment) {filters.stale = false}
 
     if (sp.get('ids') === '1') {
       if (!caller.isAdmin) {return adminOnly()}

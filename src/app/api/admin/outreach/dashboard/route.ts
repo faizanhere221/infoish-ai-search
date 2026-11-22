@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
-import { addDays, BOUNCE_RATE_FLAG, karachiDayStart, karachiToday } from '@/lib/outreach/rules'
+import { addDays, BOUNCE_RATE_FLAG, karachiDayStart, karachiToday, STALE_AFTER_DAYS } from '@/lib/outreach/rules'
+import { outreachFeatures } from '@/lib/outreach/schema'
 import { getOutreachCaller, loadTeam, unauthorized } from '@/lib/outreach/server'
+import type { OwnerCard } from '@/lib/outreach/types'
 import { capacitySummary, loadListStats, loadMailboxesWithUsage, loadUserStats, memberPaces } from '@/lib/outreach/stats'
 
 export const dynamic = 'force-dynamic'
@@ -54,6 +56,30 @@ export async function GET(request: NextRequest) {
       return { user_id: t.user_id, display_name: t.display_name, works_saturday: t.works_saturday, is_active: t.is_active, counts }
     })
 
+    // Admins: one card per owner (assigned, contacted today / this week,
+    // replies this week, interested, stale), after the assignment migration.
+    let owners: OwnerCard[] | null = null
+    if (caller.isAdmin && (await outreachFeatures(supabase)).assignment) {
+      const { data: ownerRows, error: ownerError } = await supabase.rpc('outreach_owner_stats', { p_stale_days: STALE_AFTER_DAYS })
+      if (ownerError) {throw ownerError}
+      const rows = (ownerRows ?? []) as Record<string, string | number | null>[]
+      const n = (v: string | number | null | undefined) => Number(v ?? 0)
+      const card = (userId: string | null, name: string, isActive: boolean): OwnerCard => {
+        const r = rows.find((x) => (x.user_id ?? null) === userId)
+        return {
+          user_id: userId, display_name: name, is_active: isActive,
+          creators: n(r?.creators), brands: n(r?.brands), assigned: n(r?.creators) + n(r?.brands),
+          contacted_today: n(r?.contacted_today), contacted_week: n(r?.contacted_week), replies_week: n(r?.replies_week),
+          interested: n(r?.interested), stale: n(r?.stale),
+        }
+      }
+      owners = [
+        ...team.filter((t) => t.is_active || rows.some((r) => r.user_id === t.user_id && n(r.creators) + n(r.brands) > 0))
+          .map((t) => card(t.user_id, t.display_name, t.is_active)),
+        card(null, 'Unassigned', true),
+      ]
+    }
+
     const paces = memberPaces(team, stats, today)
     const rateRows = ((ratesRes.data ?? []) as RateRow[]).map((r) => ({
       ...r,
@@ -92,6 +118,8 @@ export async function GET(request: NextRequest) {
       rateWindowDays: RATE_WINDOW_DAYS,
       capacity: capacitySummary(mailboxes, paces),
       lists, // per list results (null before the contacts/lists migration)
+      owners, // per owner cards (admins, after the assignment migration; else null)
+      staleDays: STALE_AFTER_DAYS,
     })
   } catch (err) {
     captureError(err, { route: 'GET /api/admin/outreach/dashboard' })

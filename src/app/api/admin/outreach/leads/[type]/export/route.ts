@@ -3,7 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { karachiToday, toCsv } from '@/lib/outreach/rules'
 import {
-  fetchAllRows, getOutreachCaller, leadListQuery, leadTypeFromSegment, loadTeam, parseLeadFilters,
+  fetchAllRows, getOutreachCaller, leadListQuery, leadTypeFromSegment, loadTeam, parseLeadFilters, scopeToCaller,
   storedLeadDncKeys, teamNameMap, unauthorized,
 } from '@/lib/outreach/server'
 import { outreachFeatures } from '@/lib/outreach/schema'
@@ -38,8 +38,10 @@ export async function GET(request: NextRequest, { params }: { params: { type: st
     const supabase = createServerSupabase()
     // Deleted leads never go into an export.
     const features = await outreachFeatures(supabase)
-    const filters = { ...parseLeadFilters(leadType, request.nextUrl.searchParams, caller.userId), deleted: false }
+    // Members export their own leads only, whatever owner filter they send.
+    const filters = scopeToCaller({ ...parseLeadFilters(leadType, request.nextUrl.searchParams, caller.userId), deleted: false }, caller)
     if (!features.lists) {filters.list = null}
+    if (!features.assignment) {filters.stale = false}
     const leads = await fetchAllRows<OutreachLead>(
       (from, to) => leadListQuery(supabase, leadType, filters, false).range(from, to),
       MAX_EXPORT_ROWS,

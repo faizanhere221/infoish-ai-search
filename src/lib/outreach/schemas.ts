@@ -144,12 +144,12 @@ export const mailboxCreateSchema = z.object({
 
 export const mailboxUpdateSchema = mailboxCreateSchema.partial()
 
+// Add a team member: an EXISTING account, found by email. Nobody's password
+// is ever created or set here. A plain account (signed up at /signup, no
+// creator or brand profile) becomes role 'outreach'; an admin keeps its role.
 export const teamCreateSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(255),
   display_name: z.string().trim().min(1).max(255),
-  role: z.enum(['outreach', 'admin']),
-  // Required only when the email has no account yet.
-  temp_password: z.string().min(10).max(200).optional(),
   works_saturday: z.boolean().default(false),
   creators_monthly_target: z.number().int().min(0).max(100000).default(0),
   brands_monthly_target: z.number().int().min(0).max(100000).default(0),
@@ -162,5 +162,13 @@ export const teamUpdateSchema = z.object({
   creators_monthly_target: z.number().int().min(0).max(100000).optional(),
   brands_monthly_target: z.number().int().min(0).max(100000).optional(),
   dm_daily_warning: z.number().int().min(1).max(500).optional(),
-  is_active: z.boolean().optional(),
+  // Super admin only: switch between the outreach role (own leads, this
+  // section only) and admin. Never touches a super_admin.
+  role: z.enum(['outreach', 'admin']).optional(),
+  reason: z.string().trim().min(3).max(500).optional(),
+})
+
+// Remove a team member (super admin): soft. Their leads stay, unassigned.
+export const teamRemoveSchema = z.object({
+  reason: z.string().trim().min(3).max(500),
 })

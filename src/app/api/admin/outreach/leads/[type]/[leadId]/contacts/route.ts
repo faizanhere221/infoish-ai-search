@@ -3,7 +3,7 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { loadContacts, saveContact } from '@/lib/outreach/contacts'
 import { outreachFeatures } from '@/lib/outreach/schema'
-import { getOutreachCaller, unauthorized } from '@/lib/outreach/server'
+import { getOutreachCaller, leadAccess, leadNotFound, unauthorized } from '@/lib/outreach/server'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -19,6 +19,7 @@ export async function GET(request: NextRequest, { params }: Params) {
   if (params.type !== 'brands') {return NextResponse.json({ error: 'Not found' }, { status: 404 })}
   try {
     const supabase = createServerSupabase()
+    if (!(await leadAccess(supabase, caller, 'brand', params.leadId))) {return leadNotFound()}
     const features = await outreachFeatures(supabase)
     if (!features.contacts) {return NextResponse.json({ contacts: [], migrated: false, removal: false })}
     const removed = request.nextUrl.searchParams.get('removed') === '1'
@@ -41,6 +42,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   if (params.type !== 'brands') {return NextResponse.json({ error: 'Not found' }, { status: 404 })}
   try {
     const supabase = createServerSupabase()
+    if (!(await leadAccess(supabase, caller, 'brand', params.leadId))) {return leadNotFound()}
     const body = await request.json().catch(() => null)
     const outcome = await saveContact(supabase, caller, params.leadId, null, body, 'POST /api/admin/outreach/leads/[leadId]/contacts')
     return NextResponse.json(outcome.body, { status: outcome.status })

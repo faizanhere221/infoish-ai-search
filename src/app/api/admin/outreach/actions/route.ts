@@ -4,11 +4,13 @@ import { captureError } from '@/lib/error-tracking'
 import {
   BRAND_ACTIONS, cleanSubject, CREATOR_ACTIONS, DM_CHANNELS, karachiDayStart, karachiSlotLabel, karachiToday, parseMailboxFullDetail, type Channel,
 } from '@/lib/outreach/rules'
-import { isMissingSchema, NEEDS_FOLLOWUPS_MIGRATION, NEEDS_MIGRATION } from '@/lib/outreach/schema'
+import { isMissingSchema, NEEDS_FOLLOWUPS_MIGRATION, NEEDS_MIGRATION, outreachFeatures } from '@/lib/outreach/schema'
 import { DB_OFFER_ACTIONS } from '@/lib/outreach/database'
 import { dbMembership } from '@/lib/outreach/database-server'
 import { actionSchema } from '@/lib/outreach/schemas'
-import { getOutreachCaller, leadTypeFromId, loadTeam, mapDbError, unauthorized } from '@/lib/outreach/server'
+import {
+  applyInterestedRule, getOutreachCaller, leadAccess, leadNotFound, leadTypeFromId, loadTeam, mapDbError, unauthorized,
+} from '@/lib/outreach/server'
 import type { ActionResult } from '@/lib/outreach/types'
 
 export const dynamic = 'force-dynamic'
@@ -41,6 +43,8 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createServerSupabase()
+    // Members act on their own leads only.
+    if (!(await leadAccess(supabase, caller, leadType, lead_id))) {return leadNotFound()}
     const { data, error } = await supabase.rpc('outreach_log_action', {
       p_lead_type: leadType,
       p_lead_id: lead_id,
@@ -70,6 +74,18 @@ export async function POST(request: NextRequest) {
     }
     const result = data as ActionResult
 
+    // Interested (creators: replied; brands: replied or call booked) hands
+    // the lead to the Interested owner. Best effort: the action itself is
+    // saved either way. Undo puts the old owner back (undo route).
+    let reassignedTo: string | null = null
+    if ((await outreachFeatures(supabase)).assignment) {
+      try {
+        reassignedTo = await applyInterestedRule(supabase, leadType, [lead_id], result.status, caller.userId)
+      } catch (ruleError) {
+        captureError(ruleError, { route: 'POST /api/admin/outreach/actions', step: 'interested rule', lead_id })
+      }
+    }
+
     let dmWarning: { channel: Channel; sent: number; limit: number } | null = null
     const usedChannel = (channel ?? null) as Channel | null
     if ((action === 'contacted' || action === 'followed_up') && usedChannel && DM_CHANNELS.includes(usedChannel)) {
@@ -89,7 +105,10 @@ export async function POST(request: NextRequest) {
     const dbOffer = DB_OFFER_ACTIONS[leadType].includes(action)
       && !(await dbMembership(supabase, leadType, [lead_id])).has(lead_id)
 
-    return NextResponse.json({ result, dmWarning, dbOffer })
+    const reassigned = reassignedTo
+      ? { user_id: reassignedTo, display_name: (await loadTeam(supabase)).find((t) => t.user_id === reassignedTo)?.display_name ?? null }
+      : null
+    return NextResponse.json({ result, dmWarning, dbOffer, reassigned })
   } catch (err) {
     captureError(err, { route: 'POST /api/admin/outreach/actions' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

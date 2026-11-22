@@ -21,8 +21,27 @@ export interface OutreachLeadBase {
   list?: string // after outreach_contacts_lists_migration.sql
   deleted_at: string | null // soft delete: hidden everywhere, keys still block duplicates
   deleted_by: string | null
+  // after outreach_assignment_migration.sql
+  assigned_at?: string | null
+  assigned_by?: string | null
+  last_activity_at?: string
   created_at: string
   updated_at: string
+}
+
+// Dashboard card per owner (user_id null = unassigned leads).
+export interface OwnerCard {
+  user_id: string | null
+  display_name: string
+  is_active: boolean
+  creators: number
+  brands: number
+  assigned: number
+  contacted_today: number
+  contacted_week: number
+  replies_week: number
+  interested: number
+  stale: number
 }
 
 export interface OutreachCreator extends OutreachLeadBase {

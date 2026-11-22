@@ -3,7 +3,10 @@ import { createServerSupabase } from '@/lib/db'
 import { captureError } from '@/lib/error-tracking'
 import { logAdminAction } from '@/lib/admin-action'
 import { bulkSchema, brandStatusSchema, creatorStatusSchema } from '@/lib/outreach/schemas'
-import { adminOnly, getOutreachCaller, leadTable, leadTypeFromSegment, loadTeam, unauthorized } from '@/lib/outreach/server'
+import { outreachFeatures } from '@/lib/outreach/schema'
+import {
+  adminOnly, applyInterestedRule, assignLeads, getOutreachCaller, leadTable, leadTypeFromSegment, loadTeam, mapDbError, unauthorized,
+} from '@/lib/outreach/server'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -38,13 +41,35 @@ export async function POST(request: NextRequest, { params }: Params) {
     const supabase = createServerSupabase()
     if (owner_user_id) {
       const team = await loadTeam(supabase)
-      if (!team.some((t) => t.user_id === owner_user_id)) {
-        return NextResponse.json({ error: 'Owner must be a team member' }, { status: 400 })
+      if (!team.some((t) => t.user_id === owner_user_id && t.is_active)) {
+        return NextResponse.json({ error: 'Owner must be an active team member' }, { status: 400 })
+      }
+    }
+    const { assignment } = await outreachFeatures(supabase)
+
+    // After the assignment migration the owner moves through
+    // outreach_assign_leads() (assigned_at / assigned_by, one owner_changed
+    // row per lead with old -> new). Before it, the old plain update below.
+    let assigned: number | null = null
+    if (owner_user_id !== undefined && assignment) {
+      try {
+        assigned = (await assignLeads(supabase, leadType, lead_ids, owner_user_id ?? null, caller.userId)).updated
+      } catch (assignError) {
+        const mapped = mapDbError(assignError as { message?: string; code?: string })
+        if (mapped) {return NextResponse.json({ error: mapped.message }, { status: mapped.status })}
+        throw assignError
+      }
+      if (status === undefined) {
+        logAdminAction({
+          request, adminId: caller.userId, action: 'outreach_bulk_update', targetType: `outreach_${leadType}`,
+          targetId: `${assigned} leads`, reason, before: null, after: { owner_user_id, lead_ids },
+        })
+        return NextResponse.json({ message: `${assigned} leads updated`, updated: assigned })
       }
     }
 
     const updates: Record<string, unknown> = {}
-    if (owner_user_id !== undefined) {updates.owner_user_id = owner_user_id}
+    if (owner_user_id !== undefined && !assignment) {updates.owner_user_id = owner_user_id}
     if (status !== undefined) {
       updates.status = status
       if (status !== 'contacted') {updates.follow_up_date = null}
@@ -64,7 +89,7 @@ export async function POST(request: NextRequest, { params }: Params) {
 
     const activity = updated.flatMap((l) => [
       ...(status !== undefined ? [{ lead_type: leadType, lead_id: l.lead_id, user_id: caller.userId, action: 'status_changed' }] : []),
-      ...(owner_user_id !== undefined ? [{ lead_type: leadType, lead_id: l.lead_id, user_id: caller.userId, action: 'owner_changed' }] : []),
+      ...(owner_user_id !== undefined && !assignment ? [{ lead_type: leadType, lead_id: l.lead_id, user_id: caller.userId, action: 'owner_changed' }] : []),
     ])
     if (activity.length > 0) {await supabase.from('outreach_activity').insert(activity)}
 
@@ -79,12 +104,20 @@ export async function POST(request: NextRequest, { params }: Params) {
       }
     }
 
+    // Set to Interested in bulk: the Interested rule applies too, unless an
+    // owner was picked in the same change.
+    if (status !== undefined && owner_user_id === undefined && assignment) {
+      await applyInterestedRule(supabase, leadType, updated.map((l) => l.lead_id), status, caller.userId)
+    }
+
     logAdminAction({
       request, adminId: caller.userId, action: 'outreach_bulk_update', targetType: `outreach_${leadType}`,
-      targetId: `${updated.length} leads`, reason, before: null, after: { ...updates, lead_ids: updated.map((l) => l.lead_id) },
+      targetId: `${updated.length} leads`, reason, before: null,
+      after: { ...updates, ...(owner_user_id !== undefined ? { owner_user_id } : {}), lead_ids: updated.map((l) => l.lead_id) },
     })
 
-    return NextResponse.json({ message: `${updated.length} leads updated`, updated: updated.length })
+    const count = Math.max(updated.length, assigned ?? 0)
+    return NextResponse.json({ message: `${count} leads updated`, updated: count })
   } catch (err) {
     captureError(err, { route: 'POST /api/admin/outreach/leads/bulk' })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
