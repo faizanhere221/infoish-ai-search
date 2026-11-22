@@ -121,7 +121,12 @@ export function OutreachProvider({ children }: { children: React.ReactNode }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ lead_id: leadId, action, mailbox_id: mailboxId ?? null, channel: channel ?? null, ...(contactId ? { contact_id: contactId } : {}), ...(subject ? { subject } : {}) }),
     })
-    const data = await readJson<{ result: ActionResult; dmWarning: { channel: string; sent: number; limit: number } | null; dbOffer?: boolean }>(res)
+    const data = await readJson<{
+      result: ActionResult
+      dmWarning: { channel: string; sent: number; limit: number } | null
+      dbOffer?: boolean
+      reassigned?: { user_id: string; display_name: string | null } | null
+    }>(res)
     if (!res.ok) {
       toast('error', data.error ?? 'Action failed')
       return null
@@ -136,11 +141,15 @@ export function OutreachProvider({ children }: { children: React.ReactNode }) {
     if (data.dmWarning) {
       toast('warn', `${data.dmWarning.sent} ${data.dmWarning.channel} messages today. Your soft limit is ${data.dmWarning.limit}.`)
     }
+    // The Interested rule handed the lead on (undo hands it back).
+    if (data.reassigned && data.reassigned.user_id !== me?.user_id) {
+      toast('success', `${leadId} is Interested, so it now belongs to ${data.reassigned.display_name ?? 'its new owner'}.`)
+    }
     setDbOffer(data.dbOffer ? leadId : null)
     bump()
     void refreshMailboxes()
     return r
-  }, [toast, bump, refreshMailboxes])
+  }, [toast, bump, refreshMailboxes, me])
 
   const addToDatabase = useCallback(async (leadId: string) => {
     const segment = leadId.startsWith('B-') ? 'brands' : 'creators'

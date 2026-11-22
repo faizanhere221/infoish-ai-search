@@ -5,11 +5,13 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import {
   ArrowDown, ArrowUp, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Columns3, Database, Download, Eraser, MailWarning, PanelRight, Plus, RotateCcw,
-  Search, SkipForward, Trash2,
+  Search, Shuffle, SkipForward, Trash2,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { platformName } from '@/utils/constants'
 import {
-  BRAND_STATUSES, CHANNEL_LABELS, CHANNELS, CREATOR_STATUSES, LIST_LABELS, listsFor, primaryLink, STATUS_LABELS, type LeadType,
+  BRAND_STATUSES, CHANNEL_LABELS, CHANNELS, CREATOR_STATUSES, isStale, LIST_LABELS, listsFor, primaryLink, STALE_AFTER_DAYS, STATUS_LABELS,
+  type LeadType,
 } from '@/lib/outreach/rules'
 import type { OutreachLeadRow } from '@/lib/outreach/types'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
@@ -19,6 +21,7 @@ import { LeadActions } from '@/components/admin/outreach/LeadActions'
 import { LeadForm } from '@/components/admin/outreach/LeadForm'
 import { ContactsEditor } from '@/components/admin/outreach/ContactsEditor'
 import { EditableCell } from '@/components/admin/outreach/EditableCell'
+import { AutoSplitDialog } from '@/components/admin/outreach/AutoSplitDialog'
 import {
   BRAND_COLUMNS, CREATOR_COLUMNS, cellDisplay, cellEditor, cellValue, extraColumn, KNOWN_EXTRAS, type LeadColumn,
 } from '@/components/admin/outreach/columns'
@@ -77,6 +80,24 @@ function SortHeader({ label, field, sort, dir, onSort }: { label: string; field:
   )
 }
 
+// Tabs over the owner filter. "My leads" is the default for everyone;
+// admins also get All / Unassigned. Stale works on top of the owner.
+type View = 'mine' | 'all' | 'unassigned'
+
+function viewFromOwner(owner: string): View {
+  if (owner === 'me') {return 'mine'}
+  if (owner === 'none') {return 'unassigned'}
+  return 'all'
+}
+
+function StaleBadge() {
+  return (
+    <span className="rounded bg-amber-900/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-200" title={`No activity for ${STALE_AFTER_DAYS}+ days`}>
+      Stale
+    </span>
+  )
+}
+
 function PlainHeader({ label }: { label: string }) {
   return <th className="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</th>
 }
@@ -92,7 +113,11 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
 
   const [q, setQ] = useState(sp.get('q') ?? '')
   const [debouncedQ, setDebouncedQ] = useState(q)
-  const [owner, setOwner] = useState(sp.get('owner') ?? '')
+  // "My leads" by default. Members only ever see their own (the API
+  // enforces it); admins switch tabs or pick a person.
+  const [owner, setOwner] = useState(sp.get('owner') ?? 'me')
+  const [stale, setStale] = useState(sp.get('stale') === '1')
+  const [splitOpen, setSplitOpen] = useState(false)
   const [status, setStatus] = useState(sp.get('status') ?? '')
   const [country, setCountry] = useState('')
   const [niche, setNiche] = useState('')
@@ -101,12 +126,14 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
   const [mailbox, setMailbox] = useState('')
   const [list, setList] = useState(sp.get('list') ?? '')
   // What the database has (lists, brand contacts: outreach_contacts_lists_migration.sql).
-  const [features, setFeatures] = useState<{ lists: boolean; contacts: boolean }>({ lists: false, contacts: false })
+  // assignment: stale filter, auto-split (outreach_assignment_migration.sql).
+  const [features, setFeatures] = useState<{ lists: boolean; contacts: boolean; assignment?: boolean }>({ lists: false, contacts: false })
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [missingEmail, setMissingEmail] = useState(sp.get('missing') === 'email')
   const [showDeleted, setShowDeleted] = useState(sp.get('deleted') === '1')
-  const [sort, setSort] = useState('created_at')
-  const [dir, setDir] = useState<'asc' | 'desc'>('desc')
+  // 'due': follow-ups due today (and overdue) first.
+  const [sort, setSort] = useState('due')
+  const [dir, setDir] = useState<'asc' | 'desc'>('asc')
   const [offset, setOffset] = useState(0)
 
   const [leads, setLeads] = useState<OutreachLeadRow[]>([])
@@ -180,12 +207,13 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     return () => clearTimeout(t)
   }, [q])
 
-  useEffect(() => { setOffset(0) }, [debouncedQ, owner, status, country, niche, platform, channel, mailbox, list, missingEmail, showDeleted, sort, dir])
+  useEffect(() => { setOffset(0) }, [debouncedQ, owner, stale, status, country, niche, platform, channel, mailbox, list, missingEmail, showDeleted, sort, dir])
 
   const filterParams = useMemo(() => {
     const p = new URLSearchParams()
     if (debouncedQ) {p.set('q', debouncedQ)}
     if (owner) {p.set('owner', owner)}
+    if (stale) {p.set('stale', '1')}
     if (status) {p.set('status', status)}
     if (country) {p.set('country', country)}
     if (niche) {p.set('niche', niche)}
@@ -198,7 +226,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     p.set('sort', sort)
     p.set('dir', dir)
     return p
-  }, [debouncedQ, owner, status, country, niche, platform, channel, mailbox, list, missingEmail, showDeleted, isAdmin, sort, dir])
+  }, [debouncedQ, owner, stale, status, country, niche, platform, channel, mailbox, list, missingEmail, showDeleted, isAdmin, sort, dir])
   const inDeletedView = showDeleted && isAdmin
 
   const load = useCallback(async () => {
@@ -208,7 +236,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
     p.set('offset', String(offset))
     if (offset === 0) {p.set('meta', '1')}
     const res = await fetch(`/api/admin/outreach/leads/${segment}?${p}`)
-    const data = await readJson<{ leads: OutreachLeadRow[]; total: number; filterValues?: FilterValues; missingEmailCount: number; features?: { lists: boolean; contacts: boolean } }>(res)
+    const data = await readJson<{ leads: OutreachLeadRow[]; total: number; filterValues?: FilterValues; missingEmailCount: number; features?: { lists: boolean; contacts: boolean; assignment?: boolean } }>(res)
     setLoading(false)
     if (!res.ok) {
       toast('error', data.error ?? 'Failed to load leads')
@@ -436,20 +464,64 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
   const exportHref = `/api/admin/outreach/leads/${segment}/export?${filterParams}`
   const colCount = shownColumns.length + 2 + (isAdmin ? 1 : 0)
 
+  const view = viewFromOwner(isAdmin ? owner : 'me')
+  const setView = (v: View) => {
+    setEditing(null)
+    setOwner(v === 'mine' ? 'me' : v === 'unassigned' ? 'none' : '')
+    if (v === 'mine') {
+      setSort('due')
+      setDir('asc')
+    }
+  }
+  const tabClass = (active: boolean) => cn(
+    'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+    active ? 'bg-violet-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white',
+  )
+
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Which leads">
+        <button role="tab" aria-selected={view === 'mine'} onClick={() => setView('mine')} className={tabClass(view === 'mine')}>My leads</button>
+        {isAdmin && (
+          <>
+            <button role="tab" aria-selected={view === 'all'} onClick={() => setView('all')} className={tabClass(view === 'all')}>All leads</button>
+            <button role="tab" aria-selected={view === 'unassigned'} onClick={() => setView('unassigned')} className={tabClass(view === 'unassigned')}>Unassigned</button>
+          </>
+        )}
+        {features.assignment && (
+          <button
+            onClick={() => setStale(!stale)}
+            aria-pressed={stale}
+            title={`Open leads with no activity for ${STALE_AFTER_DAYS}+ days`}
+            className={stale
+              ? 'inline-flex items-center gap-1.5 rounded-lg border border-amber-600 bg-amber-950/50 px-3 py-1.5 text-sm text-amber-200'
+              : 'inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800'}
+          >
+            Stale ({STALE_AFTER_DAYS}+ days)
+          </button>
+        )}
+        <div className="flex-1" />
+        {isAdmin && features.assignment && !inDeletedView && (
+          <button onClick={() => setSplitOpen(true)} className={ghostButtonClass} title="Share the unassigned leads in this filter between team members">
+            <Shuffle className="h-4 w-4" /> Auto-split unassigned
+          </button>
+        )}
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[240px] flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={leadType === 'creator' ? 'Search id, name, email, URL, notes, extra' : 'Search id, company, domain, email, notes, extra'}
             className={`${inputClass} pl-9`} />
         </div>
-        <select value={owner} onChange={(e) => setOwner(e.target.value)} className={selectClass} aria-label="Owner">
-          <option value="">All owners</option>
-          <option value="me">Mine</option>
-          <option value="none">Unassigned</option>
-          {team.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
-        </select>
+        {isAdmin && (
+          <select value={owner} onChange={(e) => setOwner(e.target.value)} className={selectClass} aria-label="Owner">
+            <option value="">All owners</option>
+            <option value="me">Mine</option>
+            <option value="none">Unassigned</option>
+            {team.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}{t.is_active ? '' : ' (removed)'}</option>)}
+          </select>
+        )}
         <select value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass} aria-label="Status">
           <option value="">All statuses</option>
           <option value="found,contacted,followed_up,replied">Open</option>
@@ -570,10 +642,10 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
             </button>
           ) : (
             <>
-          <select value={bulkOwner} onChange={(e) => setBulkOwner(e.target.value)} className={selectClass}>
-            <option value="">Set owner</option>
+          <select value={bulkOwner} onChange={(e) => setBulkOwner(e.target.value)} className={selectClass} aria-label="Assign to">
+            <option value="">Assign to</option>
             <option value="__none">Unassigned</option>
-            {team.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
+            {team.filter((t) => t.is_active).map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
           </select>
           <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} className={selectClass}>
             <option value="">Set status</option>
@@ -645,6 +717,7 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
                   <div className="flex items-center gap-1.5">
                     <span className="font-mono text-xs text-slate-300">{lead.lead_id}</span>
                     {lead.dnc && <DncBadge />}
+                    {!inDeletedView && isStale(lead) && <StaleBadge />}
                     {lead.in_db && !inDeletedView && (
                       <Link
                         href={`/admin/outreach/database/${leadType === 'creator' ? 'creators' : 'brands'}/${lead.lead_id}`}
@@ -804,6 +877,15 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
           confirmLabel={pending.kind === 'erase' ? 'Delete personal data' : 'Apply'}
           onConfirm={runPending}
           onClose={() => setPending(null)}
+        />
+      )}
+
+      {splitOpen && (
+        <AutoSplitDialog
+          leadType={leadType}
+          filter={filterParams.toString()}
+          onClose={() => setSplitOpen(false)}
+          onDone={() => { setSplitOpen(false); afterBatch() }}
         />
       )}
 

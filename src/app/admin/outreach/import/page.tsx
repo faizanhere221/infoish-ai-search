@@ -48,7 +48,18 @@ const STATUS_CLASS: Record<RowStatus, string> = {
 
 export default function OutreachImportPage() {
   useDocumentTitle('Outreach import')
-  const { team, toast, bump } = useOutreach()
+  const { team, me, toast, bump } = useOutreach()
+  const isMember = !!me && !me.is_admin
+  const activeTeam = team.filter((t) => t.is_active)
+  // Default owner rules from the Team page (null = off, or before the migration).
+  const [assignDefaults, setAssignDefaults] = useState<{ creator: string | null; brand: string | null }>({ creator: null, brand: null })
+  useEffect(() => {
+    void (async () => {
+      const res = await fetch('/api/admin/outreach/settings')
+      const data = await readJson<{ assign?: { creator: string | null; brand: string | null } }>(res)
+      if (res.ok && data.assign) {setAssignDefaults({ creator: data.assign.creator, brand: data.assign.brand })}
+    })()
+  }, [])
 
   const [fileName, setFileName] = useState('')
   const [fileType, setFileType] = useState<ImportFileType | ''>('')
@@ -166,9 +177,16 @@ export default function OutreachImportPage() {
       const local = byRow.get(r.row) ?? []
       return local.length > 0 ? { ...r, status: 'error' as const, reasons: [...local, ...r.reasons.filter((x) => !local.includes(x))] } : r
     })
+    // Members: their own (the server enforces it). Admins: the default owner
+    // rule for this lead type when set, else the old Faizan / VA rule.
     const ids = { faizan: ownerPref.faizan || null, va: ownerPref.va || null }
+    const ruleOwner = assignDefaults[leadType]
     const initialOwners: Record<number, string> = {}
-    for (const l of leads) {initialOwners[l._row] = suggestOwner(leadType, l as { does_sponsorships?: boolean | null; subscribers?: number | null }, ids) ?? ''}
+    for (const l of leads) {
+      initialOwners[l._row] = isMember
+        ? me?.user_id ?? ''
+        : ruleOwner ?? suggestOwner(leadType, l as { does_sponsorships?: boolean | null; subscribers?: number | null }, ids) ?? ''
+    }
     setMapped(leads)
     setOwners(initialOwners)
     setPreview(rows)
@@ -238,7 +256,8 @@ export default function OutreachImportPage() {
       </Card>
 
       {apollo && (
-        <ApolloImport key={fileName} fileName={fileName} headers={apollo.headers} rows={apollo.rows} defaultOwner={ownerPref.faizan} />
+        <ApolloImport key={fileName} fileName={fileName} headers={apollo.headers} rows={apollo.rows}
+          defaultOwner={isMember ? me?.user_id ?? '' : assignDefaults.brand ?? ownerPref.faizan} />
       )}
 
       {leadType && headers.length > 0 && (
@@ -302,28 +321,36 @@ export default function OutreachImportPage() {
                 </select>
               </label>
             )}
-            <label className="flex items-center gap-2 text-slate-300">
-              Faizan
-              <select value={ownerPref.faizan} onChange={(e) => setOwnerRule('faizan', e.target.value)} className={selectClass}>
-                <option value="">Pick</option>
-                {team.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
-              </select>
-            </label>
-            {leadType === 'creator' && (
-              <label className="flex items-center gap-2 text-slate-300">
-                VA
-                <select value={ownerPref.va} onChange={(e) => setOwnerRule('va', e.target.value)} className={selectClass}>
-                  <option value="">Pick</option>
-                  {team.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
-                </select>
-              </label>
+            {!isMember && !assignDefaults[leadType] && (
+              <>
+                <label className="flex items-center gap-2 text-slate-300">
+                  Faizan
+                  <select value={ownerPref.faizan} onChange={(e) => setOwnerRule('faizan', e.target.value)} className={selectClass}>
+                    <option value="">Pick</option>
+                    {activeTeam.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
+                  </select>
+                </label>
+                {leadType === 'creator' && (
+                  <label className="flex items-center gap-2 text-slate-300">
+                    VA
+                    <select value={ownerPref.va} onChange={(e) => setOwnerRule('va', e.target.value)} className={selectClass}>
+                      <option value="">Pick</option>
+                      {activeTeam.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
+                    </select>
+                  </label>
+                )}
+              </>
             )}
             <button onClick={runPreview} disabled={busy} className={buttonClass}>
               {busy && !preview ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Preview
             </button>
           </div>
           <p className="mt-2 text-xs text-slate-500">
-            Owner rule: {leadType === 'creator' ? 'creators who do sponsorships or have 100K+ subscribers go to Faizan, other creators go to the VA.' : 'brands go to Faizan.'} Change any row in the preview.
+            {isMember
+              ? 'Leads you import are assigned to you.'
+              : assignDefaults[leadType]
+                ? `Owner rule (Team page): new ${leadType} leads go to ${team.find((t) => t.user_id === assignDefaults[leadType])?.display_name ?? 'the default owner'}. Change any row in the preview.`
+                : `Owner rule: ${leadType === 'creator' ? 'creators who do sponsorships or have 100K+ subscribers go to Faizan, other creators go to the VA.' : 'brands go to Faizan.'} Change any row in the preview, or set a default owner on the Team page.`}
           </p>
         </Card>
       )}
@@ -380,9 +407,10 @@ export default function OutreachImportPage() {
                       </td>
                       <td className="px-2 py-1.5">
                         {r.status === 'new' ? (
-                          <select value={owners[r.row] ?? ''} onChange={(e) => setOwners({ ...owners, [r.row]: e.target.value })} className="rounded-md border border-slate-700 bg-slate-800 px-1.5 py-1 text-xs text-slate-200">
+                          <select value={owners[r.row] ?? ''} onChange={(e) => setOwners({ ...owners, [r.row]: e.target.value })} disabled={isMember}
+                            className="rounded-md border border-slate-700 bg-slate-800 px-1.5 py-1 text-xs text-slate-200 disabled:opacity-70">
                             <option value="">Unassigned</option>
-                            {team.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
+                            {activeTeam.map((t) => <option key={t.user_id} value={t.user_id}>{t.display_name}</option>)}
                           </select>
                         ) : null}
                       </td>

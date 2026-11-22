@@ -1,10 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { CHANNEL_LABELS, LIST_LABELS, STATUS_LABELS, type Channel, type Pace } from '@/lib/outreach/rules'
 import type { Capacity, ListCounts, ListResult, MemberPace } from '@/lib/outreach/stats'
+import type { OwnerCard } from '@/lib/outreach/types'
 import { readJson, useOutreach } from '@/components/admin/outreach/OutreachContext'
 import { Card, formatPct, ProgressBar } from '@/components/admin/outreach/ui'
 
@@ -36,6 +38,51 @@ interface DashboardData {
   rateWindowDays: number
   capacity: Capacity
   lists: ListResult[] | null // null before the contacts/lists migration
+  owners: OwnerCard[] | null // admins, after the assignment migration
+  staleDays: number
+}
+
+// One card per person: what they own and how it moves. Links open the
+// table already filtered to that owner (and to stale leads).
+function OwnerCards({ owners, staleDays }: { owners: OwnerCard[]; staleDays: number }) {
+  const ownerParam = (o: OwnerCard) => (o.user_id ? encodeURIComponent(o.user_id) : 'none')
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {owners.map((o) => (
+        <Card key={o.user_id ?? 'none'} title={o.display_name} className={o.is_active ? '' : 'opacity-60'}>
+          <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
+            <dt className="text-slate-400">Assigned</dt>
+            <dd className="text-right font-medium text-white">
+              {o.assigned.toLocaleString()} <span className="text-xs font-normal text-slate-500">({o.creators.toLocaleString()} C · {o.brands.toLocaleString()} B)</span>
+            </dd>
+            {o.user_id && (
+              <>
+                <dt className="text-slate-400">Contacted today</dt>
+                <dd className="text-right text-white">{o.contacted_today.toLocaleString()}</dd>
+                <dt className="text-slate-400">Contacted this week</dt>
+                <dd className="text-right text-white">{o.contacted_week.toLocaleString()}</dd>
+                <dt className="text-slate-400">Replies this week</dt>
+                <dd className="text-right text-white">{o.replies_week.toLocaleString()}</dd>
+              </>
+            )}
+            <dt className="text-slate-400">Interested</dt>
+            <dd className="text-right text-white">{o.interested.toLocaleString()}</dd>
+            <dt className="text-slate-400">Stale ({staleDays}+ days)</dt>
+            <dd className={`text-right ${o.stale > 0 ? 'font-medium text-amber-300' : 'text-white'}`}>{o.stale.toLocaleString()}</dd>
+          </dl>
+          <div className="mt-3 flex flex-wrap gap-3 text-xs">
+            <Link href={`/admin/outreach/creators?owner=${ownerParam(o)}`} className="text-violet-300 hover:text-violet-200">Creators</Link>
+            <Link href={`/admin/outreach/brands?owner=${ownerParam(o)}`} className="text-violet-300 hover:text-violet-200">Brands</Link>
+            {o.stale > 0 && (
+              <Link href={`/admin/outreach/${o.brands > o.creators ? 'brands' : 'creators'}?owner=${ownerParam(o)}&stale=1`} className="text-amber-300 hover:text-amber-200">
+                Stale leads
+              </Link>
+            )}
+          </div>
+        </Card>
+      ))}
+    </div>
+  )
 }
 
 // Results per list (and per person within a list), to compare lists.
@@ -183,6 +230,8 @@ export default function OutreachDashboardPage() {
           ))}
         </div>
       </div>
+
+      {data.owners && <OwnerCards owners={data.owners} staleDays={data.staleDays} />}
 
       <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900">
         <table className="w-full text-sm">
