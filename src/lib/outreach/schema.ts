@@ -29,13 +29,21 @@ export interface OutreachFeatures {
   assignment: boolean
   // outreach_claim_migration.sql (version 6): members "Claim next N"
   claim: boolean
+  // outreach_purge_migration.sql (version 8): super admins permanently
+  // delete soft-deleted brands so they import again
+  purge: boolean
 }
 
 export async function outreachFeatures(supabase: Supabase): Promise<OutreachFeatures> {
   const v = await outreachSchemaVersion(supabase)
   return {
-    contacts: v >= 2, lists: v >= 2, mailboxWindow: v >= 2, contactRemoval: v >= 3, followUps: v >= 4, assignment: v >= 5, claim: v >= 6,
+    contacts: v >= 2, lists: v >= 2, mailboxWindow: v >= 2, contactRemoval: v >= 3, followUps: v >= 4, assignment: v >= 5, claim: v >= 6, purge: v >= 8,
   }
+}
+
+export const NEEDS_PURGE_MIGRATION = {
+  error: 'Run supabase/outreach_purge_migration.sql in the Supabase SQL Editor first.',
+  code: 'outreach_needs_migration',
 }
 
 export const NEEDS_CLAIM_MIGRATION = {

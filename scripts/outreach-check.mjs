@@ -2210,6 +2210,127 @@ async function importOwnerHttpChecks() {
   }
 }
 
+// "Permanently delete (allow re-import)": a purged soft-deleted brand's
+// domain imports again; a do-not-contact domain stays blocked. Needs
+// SUPER_ADMIN_TOKEN (ADMIN_TOKEN adds the plain-admin 403) and
+// outreach_purge_migration.sql. WRITES DATA: two test brands and one DNC
+// domain; the re-imported brand is purged and the DNC entry removed after.
+async function purgeHttpChecks() {
+  const fileEnv = loadEnvFile(path.join(REPO_ROOT, '.env.test.local'))
+  const getEnv = (k) => process.env[k] ?? fileEnv[k] ?? ''
+  const BASE_URL = getEnv('BASE_URL') || 'http://localhost:3000'
+  const tokens = { super: getEnv('SUPER_ADMIN_TOKEN'), admin: getEnv('ADMIN_TOKEN') }
+  console.log(`\nPurge HTTP checks against ${BASE_URL} (writes data)\n`)
+  if (!tokens.super) {
+    skip('purge checks', 'SUPER_ADMIN_TOKEN not set in .env.test.local')
+    return
+  }
+  const as = (who) => async (method, urlPath, body) => {
+    const res = await fetch(`${BASE_URL}${urlPath}`, {
+      method, headers: { Cookie: `auth_token=${tokens[who]}`, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    })
+    let json = null
+    try { json = await res.json() } catch { /* empty */ }
+    return { status: res.status, json }
+  }
+  const sup = as('super')
+  const api = '/api/admin/outreach/leads/brands'
+  const purge = (ids, commit) => sup('POST', `${api}/purge`, { lead_ids: ids, commit })
+
+  const probe = await purge(['B-0000'], false).catch(() => null)
+  if (!probe) {
+    skip('purge checks', `no server at ${BASE_URL}; start the dev server first`)
+    return
+  }
+  if (probe.status === 409) {
+    skip('purge checks', 'run supabase/outreach_purge_migration.sql first')
+    return
+  }
+  if (probe.status !== 200) {
+    skip('purge checks', `purge dry run as super admin returned ${probe.status}; SUPER_ADMIN_TOKEN expired?`)
+    return
+  }
+
+  const tag = `opg${Date.now()}`
+  const domainA = `${tag}-a.example`
+  const domainB = `${tag}-dnc.example`
+  let dncId = null
+  const leftovers = [] // purged at the end
+  const makeBrand = async (company, domain) => {
+    const r = await sup('POST', api, { company, domain, source: 'outreach-check' })
+    assert.equal(r.status, 201, JSON.stringify(r.json))
+    return r.json.lead.lead_id
+  }
+
+  try {
+    let idA = null
+    let idB = null
+    await check('purge setup: two brands, one domain on the do-not-contact list, both soft-deleted', async () => {
+      idA = await makeBrand(`${tag} A`, domainA)
+      idB = await makeBrand(`${tag} B`, domainB)
+      const d = await sup('POST', '/api/admin/outreach/dnc', { key_type: 'domain', value: domainB, reason: 'other' })
+      assert.equal(d.status, 201, JSON.stringify(d.json))
+      dncId = d.json.entry.id
+      const del = await sup('POST', `${api}/delete`, { lead_ids: [idA, idB] })
+      assert.equal(del.status, 200, JSON.stringify(del.json))
+      const pre = await sup('POST', '/api/admin/outreach/import/preview', { lead_type: 'brand', rows: [{ _row: 2, company: `${tag} A again`, domain: domainA }] })
+      assert.equal(pre.json.rows[0].status, 'duplicate', 'a soft-deleted brand still blocks its domain')
+    })
+
+    await check('purge: plain admins and live (not deleted) brands are refused or skipped', async () => {
+      if (tokens.admin) {
+        const r = await as('admin')('POST', `${api}/purge`, { lead_ids: [idA], commit: false })
+        assert.equal(r.status, 403, `plain admin got ${r.status}`)
+      }
+      const live = await makeBrand(`${tag} live`, `${tag}-live.example`)
+      leftovers.push(live)
+      const r = await purge([live], true)
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      assert.equal(r.json.purge.brands, 0)
+      assert.equal(r.json.purge.skipped_not_deleted, 1)
+      assert.equal((await sup('GET', `${api}/${live}`)).status, 200, 'a live brand is never purged')
+    })
+
+    await check('purge dry run counts and changes nothing; commit deletes both', async () => {
+      const dry = await purge([idA, idB], false)
+      assert.equal(dry.status, 200, JSON.stringify(dry.json))
+      assert.equal(dry.json.purge.brands, 2)
+      assert.equal(dry.json.purge.dnc_blocked, 1)
+      assert.ok(dry.json.purge.activity_unlinked >= 2, 'one deleted row per brand')
+      assert.equal((await sup('GET', `${api}/${idA}`)).status, 200, 'still there after the dry run')
+      const done = await purge([idA, idB], true)
+      assert.equal(done.status, 200, JSON.stringify(done.json))
+      assert.equal(done.json.purge.brands, 2)
+      assert.equal((await sup('GET', `${api}/${idA}`)).status, 404, 'gone after the purge')
+    })
+
+    await check('after the purge the same domain imports again; the do-not-contact domain stays blocked', async () => {
+      const rows = [
+        { _row: 2, company: `${tag} A again`, domain: domainA },
+        { _row: 3, company: `${tag} B again`, domain: domainB },
+      ]
+      const r = await sup('POST', '/api/admin/outreach/import/commit', { lead_type: 'brand', source: 'outreach-check', rows })
+      assert.equal(r.status, 200, JSON.stringify(r.json))
+      assert.equal(r.json.inserted, 1, JSON.stringify(r.json.skipped))
+      assert.equal(r.json.skipped.length, 1)
+      assert.equal(r.json.skipped[0].row, 3)
+      assert.match(r.json.skipped[0].reason, /do-not-contact|do not contact|dnc/i)
+      const found = await sup('GET', `${api}?q=${encodeURIComponent(`${tag} A again`)}`)
+      const lead = found.json.leads.find((l) => l.domain_norm === domainA || (l.domain ?? '').includes(domainA))
+      assert.ok(lead, 're-imported brand not found')
+      leftovers.push(lead.lead_id)
+    })
+  } finally {
+    if (leftovers.length > 0) {
+      await sup('POST', `${api}/delete`, { lead_ids: leftovers })
+      await purge(leftovers, true)
+    }
+    if (dncId) {await sup('DELETE', `/api/admin/outreach/dnc/${dncId}`, { reason: 'outreach-check cleanup' })}
+    console.log(`\nCleanup: purged ${leftovers.length} test brands${dncId ? ', removed the test DNC domain' : ''}.`)
+  }
+}
+
 // Team membership never depends on, or changes, a brand / creator account.
 // Needs SUPER_ADMIN_TOKEN plus TEST_TEAM_BRAND_EMAIL / TEST_TEAM_BRAND_PASSWORD:
 // a DISPOSABLE brand account with a completed brand profile, role 'user',
@@ -2380,6 +2501,7 @@ if (args.includes('--http')) {
   await assignmentHttpChecks()
   await claimHttpChecks()
   await importOwnerHttpChecks()
+  await purgeHttpChecks()
   await teamPromotionHttpChecks()
 }
 

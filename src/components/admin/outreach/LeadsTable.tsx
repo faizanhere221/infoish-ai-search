@@ -23,6 +23,7 @@ import { ContactsEditor } from '@/components/admin/outreach/ContactsEditor'
 import { EditableCell } from '@/components/admin/outreach/EditableCell'
 import { AutoSplitDialog } from '@/components/admin/outreach/AutoSplitDialog'
 import { ClaimBar } from '@/components/admin/outreach/ClaimBar'
+import { PurgeDialog } from '@/components/admin/outreach/PurgeDialog'
 import {
   BRAND_COLUMNS, CREATOR_COLUMNS, cellDisplay, cellEditor, cellValue, extraColumn, KNOWN_EXTRAS, type LeadColumn,
 } from '@/components/admin/outreach/columns'
@@ -146,6 +147,8 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
   const [panel, setPanel] = useState<OutreachLeadRow | null | 'new'>(null)
   const [pending, setPending] = useState<Pending | null>(null)
   const [confirming, setConfirming] = useState<Confirming | null>(null)
+  // Super admins, deleted brands: permanently delete so they import again.
+  const [purging, setPurging] = useState(false)
   const [progress, setProgress] = useState<string | null>(null)
   // "Select all N matching this filter": the selection is every lead the
   // filters match, not only this page. Ids are fetched when an action runs.
@@ -640,9 +643,17 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
           )}
           {allMatching && <span className="text-xs text-slate-400">(every lead matching this filter)</span>}
           {inDeletedView ? (
-            <button onClick={() => setConfirming({ kind: 'restore' })} className={buttonClass}>
-              <RotateCcw className="h-4 w-4" /> Restore selected ({selectedCount.toLocaleString()})
-            </button>
+            <>
+              <button onClick={() => setConfirming({ kind: 'restore' })} className={buttonClass}>
+                <RotateCcw className="h-4 w-4" /> Restore selected ({selectedCount.toLocaleString()})
+              </button>
+              {leadType === 'brand' && me?.is_super_admin && (
+                <button onClick={() => setPurging(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-800 bg-red-950/60 px-3 py-1.5 text-sm font-medium text-red-200 hover:bg-red-900/60">
+                  <Trash2 className="h-4 w-4" /> Permanently delete (allow re-import)
+                </button>
+              )}
+            </>
           ) : (
             <>
           <select value={bulkOwner} onChange={(e) => setBulkOwner(e.target.value)} className={selectClass} aria-label="Assign to">
@@ -889,6 +900,15 @@ export function LeadsTable({ leadType }: { leadType: LeadType }) {
           filter={filterParams.toString()}
           onClose={() => setSplitOpen(false)}
           onDone={() => { setSplitOpen(false); afterBatch() }}
+        />
+      )}
+
+      {purging && (
+        <PurgeDialog
+          resolveIds={resolveSelection}
+          toast={toast}
+          onClose={() => setPurging(false)}
+          onDone={() => { setPurging(false); afterBatch() }}
         />
       )}
 
