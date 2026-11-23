@@ -1249,7 +1249,8 @@ export function cleanApolloRow(input: Partial<Record<keyof ApolloRow, unknown>>)
 
 // "Previously removed contact of B-0012" / "Previously deleted: C-0123" for a
 // duplicate whose holder was removed or deleted; null for a live one.
-export function previouslyLabel(d: { lead_id: string; deleted?: boolean; contact_removed?: boolean }): string | null {
+export function previouslyLabel(d: { lead_id: string; deleted?: boolean; contact_removed?: boolean; removed?: boolean }): string | null {
+  if (d.removed) {return 'Previously contacted, removed from the CRM'}
   if (d.contact_removed) {return `Previously removed contact of ${d.lead_id}`}
   if (d.deleted) {return `Previously deleted: ${d.lead_id}`}
   return null

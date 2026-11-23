@@ -173,6 +173,9 @@ const RPC_ERRORS: Record<string, [number, string]> = {
   outreach_bad_owner: [400, 'Pick an active team member.'],
   outreach_claim_too_many: [400, 'Claim 1 to 25 leads at a time.'],
   outreach_claim_cap: [409, "You reached today's claim limit. Ask an admin for more leads or claim again tomorrow."],
+  // outreach_retention_v2_migration.sql: a key the retention job removed
+  // (kept as a hash for 12 months) is added again.
+  outreach_previously_removed: [409, 'Previously contacted and removed from the CRM. This email, URL or domain is not added again.'],
 }
 
 export interface MappedDbError {
@@ -243,6 +246,8 @@ export async function matchKeys(supabase: Supabase, keys: { type: string; value:
   const payload = (data ?? {}) as {
     leads?: { key_type: string; key_value: string; lead_type: LeadType; lead_id: string; owner_user_id: string | null; status: string | null; deleted?: boolean; contact_removed?: boolean; contact_id?: string | null }[]
     dnc?: { key_type: string; key_value: string }[]
+    // Keys the retention job removed, kept as hashes (outreach_retention_v2_migration.sql)
+    removed?: { key_type: string; key_value: string; lead_type: LeadType }[]
   }
 
   const wanted = new Set(keys.map((k) => `${k.type}:${k.value}`))
@@ -259,6 +264,14 @@ export async function matchKeys(supabase: Supabase, keys: { type: string; value:
       deleted: h.deleted === true,
       contact_removed: h.contact_removed === true,
       contact_id: h.contact_id ?? null,
+    })
+  }
+  for (const h of payload.removed ?? []) {
+    const key = `${h.key_type}:${h.key_value}`
+    if (!wanted.has(key) || result.duplicates.has(key)) {continue}
+    result.duplicates.set(key, {
+      key_type: h.key_type, key_value: h.key_value, lead_type: h.lead_type, lead_id: '',
+      owner_name: null, status: null, deleted: false, removed: true,
     })
   }
   for (const d of payload.dnc ?? []) {

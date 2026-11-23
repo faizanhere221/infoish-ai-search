@@ -184,7 +184,7 @@ export function AddDirectDialog({ leadType, onClose }: { leadType: LeadType; onC
     router.push(`${dbPath(leadType)}/${data.lead_id}`)
   }
 
-  const existing = duplicates.find((d) => d.lead_type === leadType && !d.deleted)
+  const existing = duplicates.find((d) => d.lead_type === leadType && !d.deleted && !d.removed)
   const addExisting = async () => {
     if (!existing) {return}
     if (await addToDatabase(existing.lead_id)) {router.push(`${dbPath(leadType)}/${existing.lead_id}`)}

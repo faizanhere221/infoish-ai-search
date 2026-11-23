@@ -69,7 +69,11 @@ export function DuplicateNotice({ duplicates }: { duplicates: DuplicateMatch[] }
       {duplicates.map((d) => (
         <div key={`${d.key_type}:${d.key_value}`} className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-          {d.contact_removed ? (
+          {d.removed ? (
+            <span>
+              Previously contacted and removed from the CRM (same {d.key_type.replace('_', ' ')}). It is not added again.
+            </span>
+          ) : d.contact_removed ? (
             <span>
               Previously removed contact of{' '}
               <Link href={`/admin/outreach/brands?q=${encodeURIComponent(d.lead_id)}`} className="font-semibold underline">{d.lead_id}</Link>{' '}

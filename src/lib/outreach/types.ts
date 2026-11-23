@@ -155,6 +155,7 @@ export interface DuplicateMatch {
   deleted: boolean // the lead holding the key was deleted (admin restores it)
   contact_removed?: boolean // the key belongs to a removed brand contact (admin restores it)
   contact_id?: string | null // the brand contact holding the key (after the soft-delete migration)
+  removed?: boolean // the retention job removed a lead with this key; only its hash is kept (no lead_id)
 }
 
 export interface FieldChange {

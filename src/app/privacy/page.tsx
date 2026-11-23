@@ -176,7 +176,7 @@ export default function PrivacyPolicy() {
               account.
             </p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
-              <li><strong>Source:</strong> contact details creators and companies publish themselves, such as on their website, link pages, and business profiles, and B2B contact databases such as Apollo. We collect these separately from YouTube API Services.</li>
+              <li><strong>Source:</strong> contact details creators and companies publish themselves, such as on their website, link pages, and business profiles, and B2B contact databases such as Apollo. We collect these separately from YouTube API Services. Before November 2026, some contact details came from public YouTube channel descriptions. We keep these only for people we have already contacted.</li>
               <li><strong>What we keep:</strong> your name, business email, role, company, public profile links, and notes on our conversation with you.</li>
               <li><strong>Purpose:</strong> B2B outreach about creator partnerships and the Infoishai marketplace. Under UK and EU data protection law, our legal basis is our legitimate interest in business outreach.</li>
               <li><strong>Sharing:</strong> we never sell your details or share them with other companies for their own marketing.</li>

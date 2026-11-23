@@ -1780,6 +1780,12 @@ async function assignmentChecks() {
     assert.equal(rules.claimAllowance(10, 120, 100), 0)
   })
 
+  await check('previouslyLabel: a key the retention job removed (hash only) reads "previously contacted, removed"', () => {
+    assert.equal(rules.previouslyLabel({ lead_id: '', removed: true }), 'Previously contacted, removed from the CRM')
+    assert.equal(rules.previouslyLabel({ lead_id: 'B-0001', deleted: true }), 'Previously deleted: B-0001')
+    assert.equal(rules.previouslyLabel({ lead_id: 'B-0001' }), null)
+  })
+
   await check('importOwner: members always themselves; admins the preview choice (Unassigned too), else the rules', () => {
     const defaults = { priority: 'faizan', creator: 'ahtasham', brand: 'aima' }
     const admin = { userId: 'a', isAdmin: true }
@@ -2331,6 +2337,141 @@ async function purgeHttpChecks() {
   }
 }
 
+// Retention v2 (outreach_retention_v2_migration.sql): dashboard list stats
+// survive a purge (tombstones), and keys the retention job removed are
+// remembered as SHA-256 hashes that block imports and manual adds. Retention
+// only runs live from the cron, so the hash rows are planted directly with
+// the service-role key from .env.local (SUPABASE_SERVICE_ROLE_KEY) and
+// removed after. Needs SUPER_ADMIN_TOKEN. WRITES DATA.
+async function retentionV2HttpChecks() {
+  const fileEnv = { ...loadEnvFile(path.join(REPO_ROOT, '.env.local')), ...loadEnvFile(path.join(REPO_ROOT, '.env.test.local')) }
+  const getEnv = (k) => process.env[k] ?? fileEnv[k] ?? ''
+  const BASE_URL = getEnv('BASE_URL') || 'http://localhost:3000'
+  console.log(`\nRetention v2 HTTP checks against ${BASE_URL} (writes data)\n`)
+  const SUPER = getEnv('SUPER_ADMIN_TOKEN')
+  if (!SUPER) {
+    skip('retention v2 checks', 'SUPER_ADMIN_TOKEN not set in .env.test.local')
+    return
+  }
+  const sup = async (method, urlPath, body) => {
+    const res = await fetch(`${BASE_URL}${urlPath}`, {
+      method, headers: { Cookie: `auth_token=${SUPER}`, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    })
+    let json = null
+    try { json = await res.json() } catch { /* empty */ }
+    return { status: res.status, json }
+  }
+  const dry = await sup('GET', '/api/admin/outreach/retention').catch(() => null)
+  if (!dry) {
+    skip('retention v2 checks', `no server at ${BASE_URL}; start the dev server first`)
+    return
+  }
+  if (dry.status !== 200 || dry.json?.retention?.activity_unlinked === undefined) {
+    skip('retention v2 checks', `run supabase/outreach_retention_v2_migration.sql first (dry run answered ${dry.status})`)
+    return
+  }
+
+  await check('retention dry run reports unlinked activity and expiring key hashes, writes nothing', async () => {
+    assert.equal(dry.json.retention.dry_run, true)
+    assert.equal(typeof dry.json.retention.activity_unlinked, 'number')
+    assert.equal(typeof dry.json.retention.key_hashes_expired, 'number')
+  })
+
+  const api = '/api/admin/outreach/leads/brands'
+  const tag = `orv${Date.now()}`
+  const leftovers = []
+  const brandLeads = async () => {
+    const r = await sup('GET', '/api/admin/outreach/dashboard')
+    assert.equal(r.status, 200, JSON.stringify(r.json))
+    const res = (r.json.lists ?? []).find((x) => x.lead_type === 'brand' && x.list === 'manual')
+    return res ? res.totals.month.leads : 0
+  }
+
+  try {
+    await check('dashboard list stats do not change when a deleted brand is permanently deleted', async () => {
+      const before = await brandLeads()
+      const made = await sup('POST', api, { company: `${tag} stats`, domain: `${tag}-stats.example`, source: 'outreach-check' })
+      assert.equal(made.status, 201, JSON.stringify(made.json))
+      const id = made.json.lead.lead_id
+      assert.equal((await sup('POST', `${api}/delete`, { lead_ids: [id] })).status, 200)
+      const withLead = await brandLeads()
+      assert.equal(withLead, before + 1, 'a new brand counts as added this month')
+      const purged = await sup('POST', `${api}/purge`, { lead_ids: [id], commit: true })
+      assert.equal(purged.status, 200, JSON.stringify(purged.json))
+      assert.equal(purged.json.purge.brands, 1)
+      assert.equal(await brandLeads(), withLead, 'the purged brand still counts (tombstone)')
+    })
+
+    const url = getEnv('NEXT_PUBLIC_SUPABASE_URL')
+    const key = getEnv('SUPABASE_SERVICE_ROLE_KEY')
+    if (!url || !key) {
+      skip('hashed key checks', 'NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not in .env.local')
+      return
+    }
+    const { createClient } = await import('@supabase/supabase-js')
+    const db = createClient(url, key, { auth: { persistSession: false } })
+    const { createHash } = await import('node:crypto')
+    const sha = (v) => createHash('sha256').update(v, 'utf8').digest('hex')
+    const blocked = `${tag}-gone.example`
+    const expired = `${tag}-old.example`
+    const planted = [
+      { key_type: 'domain', key_hash: sha(blocked), lead_type: 'brand', expires_at: new Date(Date.now() + 86_400_000).toISOString() },
+      { key_type: 'domain', key_hash: sha(expired), lead_type: 'brand', expires_at: new Date(Date.now() - 86_400_000).toISOString() },
+    ]
+    try {
+      await check('hashed key: plant two removed domains (one expired)', async () => {
+        const { error } = await db.from('outreach_key_hashes').insert(planted)
+        assert.equal(error, null, error?.message)
+      })
+
+      await check('hashed key: import preview and commit treat it as "previously contacted, removed"', async () => {
+        const rows = [{ _row: 2, company: `${tag} gone`, domain: blocked }]
+        const pre = await sup('POST', '/api/admin/outreach/import/preview', { lead_type: 'brand', rows })
+        assert.equal(pre.status, 200, JSON.stringify(pre.json))
+        assert.equal(pre.json.rows[0].status, 'duplicate')
+        assert.match(pre.json.rows[0].reasons.join(' '), /previously contacted, removed/i)
+        const com = await sup('POST', '/api/admin/outreach/import/commit', { lead_type: 'brand', source: 'outreach-check', rows })
+        assert.equal(com.status, 200, JSON.stringify(com.json))
+        assert.equal(com.json.inserted, 0)
+      })
+
+      await check('hashed key: manual add answers 409; the database refuses a direct insert too', async () => {
+        const r = await sup('POST', api, { company: `${tag} gone`, domain: blocked, source: 'outreach-check' })
+        assert.equal(r.status, 409, JSON.stringify(r.json))
+        assert.match(r.json.error, /previously contacted/i)
+        const { error } = await db.from('outreach_brands').insert({ company: `${tag} gone`, domain: blocked, source: 'outreach-check' })
+        assert.ok(error, 'the guard trigger refused it')
+        assert.equal(error.message, 'outreach_previously_removed')
+      })
+
+      await check('hashed key: an expired hash no longer blocks', async () => {
+        const r = await sup('POST', api, { company: `${tag} old`, domain: expired, source: 'outreach-check' })
+        assert.equal(r.status, 201, JSON.stringify(r.json))
+        leftovers.push(r.json.lead.lead_id)
+      })
+
+      await check('"allow re-import" purge writes no key hash', async () => {
+        const made = await sup('POST', api, { company: `${tag} nohash`, domain: `${tag}-nohash.example`, source: 'outreach-check' })
+        assert.equal(made.status, 201, JSON.stringify(made.json))
+        const id = made.json.lead.lead_id
+        await sup('POST', `${api}/delete`, { lead_ids: [id] })
+        assert.equal((await sup('POST', `${api}/purge`, { lead_ids: [id], commit: true })).json.purge.brands, 1)
+        const { data } = await db.from('outreach_key_hashes').select('key_hash').eq('key_hash', sha(`${tag}-nohash.example`))
+        assert.equal((data ?? []).length, 0)
+      })
+    } finally {
+      await db.from('outreach_key_hashes').delete().in('key_hash', planted.map((p) => p.key_hash))
+    }
+  } finally {
+    if (leftovers.length > 0) {
+      await sup('POST', `${api}/delete`, { lead_ids: leftovers })
+      await sup('POST', `${api}/purge`, { lead_ids: leftovers, commit: true })
+    }
+    console.log(`\nCleanup: planted hashes removed, ${leftovers.length + 2} test brands purged (re-import purge, no hashes).`)
+  }
+}
+
 // Team membership never depends on, or changes, a brand / creator account.
 // Needs SUPER_ADMIN_TOKEN plus TEST_TEAM_BRAND_EMAIL / TEST_TEAM_BRAND_PASSWORD:
 // a DISPOSABLE brand account with a completed brand profile, role 'user',
@@ -2502,6 +2643,7 @@ if (args.includes('--http')) {
   await claimHttpChecks()
   await importOwnerHttpChecks()
   await purgeHttpChecks()
+  await retentionV2HttpChecks()
   await teamPromotionHttpChecks()
 }
 
