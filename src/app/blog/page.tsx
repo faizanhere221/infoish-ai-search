@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '52',
+    title: 'What B2B Brands Look for in a Tech Creator (and How to Show It)',
+    excerpt: 'Brands vet tech creators on audience fit, content quality and reliability, not followers alone. Use this checklist to prepare your profile and pitch.',
+    date: '2026-11-23',
+    author: 'Infoishai Team',
+    category: 'Guide',
+    readTime: '8 min read',
+    slug: 'what-b2b-brands-look-for-tech-creators',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '51',
     title: 'Flat Fee, CPM, Affiliate or Retainer: How to Structure a Tech Creator Deal',
     excerpt: 'Compare flat fee, CPM, affiliate and retainer deals for tech creators. See when each model fits B2B goals and how to combine them without confusing creators.',
