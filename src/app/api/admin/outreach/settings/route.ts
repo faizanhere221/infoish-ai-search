@@ -83,6 +83,9 @@ export async function PATCH(request: NextRequest) {
     const supabase = createServerSupabase()
     const now = new Date().toISOString()
     const rows: { key: string; value: unknown; updated_by: string; updated_at: string }[] = []
+    // A rule switched off is a deleted row (read back as null): `value` is
+    // JSONB NOT NULL, and PostgREST turns a JSON null into SQL NULL.
+    const offKeys: string[] = []
 
     const hours = parsed.data.mailbox_window_hours
     if (hours !== undefined) {rows.push({ key: 'mailbox_window_hours', value: hours, updated_by: caller.userId, updated_at: now })}
@@ -96,7 +99,8 @@ export async function PATCH(request: NextRequest) {
         if (v && !active.has(v)) {
           return NextResponse.json({ error: 'Pick an active team member for each rule', fields: { [ASSIGN_SETTING_KEYS[r]]: ['Not an active team member'] } }, { status: 400 })
         }
-        rows.push({ key: ASSIGN_SETTING_KEYS[r], value: v, updated_by: caller.userId, updated_at: now })
+        if (v) {rows.push({ key: ASSIGN_SETTING_KEYS[r], value: v, updated_by: caller.userId, updated_at: now })}
+        else {offKeys.push(ASSIGN_SETTING_KEYS[r])}
       }
     }
     const claimCap = parsed.data.claim_daily_cap
@@ -104,18 +108,24 @@ export async function PATCH(request: NextRequest) {
       if (!(await outreachFeatures(supabase)).claim) {return NextResponse.json(NEEDS_CLAIM_MIGRATION, { status: 409 })}
       rows.push({ key: 'claim_daily_cap', value: claimCap, updated_by: caller.userId, updated_at: now })
     }
-    if (rows.length === 0) {return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })}
+    if (rows.length === 0 && offKeys.length === 0) {return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })}
 
-    const { error } = await supabase.from('outreach_settings').upsert(rows)
-    if (error) {
-      if (isMissingSchema(error)) {return NextResponse.json(NEEDS_MIGRATION, { status: 409 })}
-      throw error
+    if (rows.length > 0) {
+      const { error } = await supabase.from('outreach_settings').upsert(rows)
+      if (error) {
+        if (isMissingSchema(error)) {return NextResponse.json(NEEDS_MIGRATION, { status: 409 })}
+        throw error
+      }
+    }
+    if (offKeys.length > 0) {
+      const { error } = await supabase.from('outreach_settings').delete().in('key', offKeys)
+      if (error) {throw error}
     }
     void logActivity({
       userId: caller.userId,
       action: 'outreach_settings_changed',
       entityType: 'outreach_settings',
-      details: Object.fromEntries(rows.map((r) => [r.key, r.value])),
+      details: { ...Object.fromEntries(rows.map((r) => [r.key, r.value])), ...Object.fromEntries(offKeys.map((k) => [k, null])) },
     })
     const message = hours !== undefined && rules.length === 0 && claimCap === undefined ? `A send now counts for ${hours} hours` : 'Settings saved'
     return NextResponse.json({

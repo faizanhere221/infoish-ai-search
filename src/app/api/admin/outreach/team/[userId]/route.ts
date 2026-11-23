@@ -173,9 +173,9 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     const { data: rules } = await supabase.from('outreach_settings').select('key, value').in('key', Object.values(ASSIGN_SETTING_KEYS))
     const pointing = (rules ?? []).filter((r) => r.value === params.userId).map((r) => r.key as string)
     if (pointing.length > 0) {
-      await supabase.from('outreach_settings').upsert(
-        pointing.map((key) => ({ key, value: null, updated_by: caller.userId, updated_at: new Date().toISOString() })),
-      )
+      // Off = no row (value is JSONB NOT NULL; a null upsert failed silently here).
+      const { error: rulesError } = await supabase.from('outreach_settings').delete().in('key', pointing)
+      if (rulesError) {captureError(rulesError, { route: 'DELETE /api/admin/outreach/team/[userId]', step: 'clear_owner_rules' })}
     }
 
     logAdminAction({
