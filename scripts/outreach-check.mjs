@@ -2472,6 +2472,126 @@ async function retentionV2HttpChecks() {
   }
 }
 
+// Fingerprints v3 (outreach_fingerprint_migration.sql): only contacted
+// leads / contacts get a key hash (outreach_fingerprint_keys(), read here
+// through the service-role key), and an expired hash goes even when its key
+// is on the do-not-contact list (seen in the retention dry run's count).
+// Needs SUPER_ADMIN_TOKEN and the service-role key in .env.local.
+// WRITES DATA: test leads (deleted after), one DNC domain and one planted
+// hash (removed after).
+async function fingerprintHttpChecks() {
+  const fileEnv = { ...loadEnvFile(path.join(REPO_ROOT, '.env.local')), ...loadEnvFile(path.join(REPO_ROOT, '.env.test.local')) }
+  const getEnv = (k) => process.env[k] ?? fileEnv[k] ?? ''
+  const BASE_URL = getEnv('BASE_URL') || 'http://localhost:3000'
+  console.log(`\nFingerprint HTTP checks against ${BASE_URL} (writes data)\n`)
+  const SUPER = getEnv('SUPER_ADMIN_TOKEN')
+  const url = getEnv('NEXT_PUBLIC_SUPABASE_URL')
+  const key = getEnv('SUPABASE_SERVICE_ROLE_KEY')
+  if (!SUPER || !url || !key) {
+    skip('fingerprint checks', 'needs SUPER_ADMIN_TOKEN (.env.test.local) and NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY (.env.local)')
+    return
+  }
+  const { createClient } = await import('@supabase/supabase-js')
+  const db = createClient(url, key, { auth: { persistSession: false } })
+  const { data: version } = await db.rpc('outreach_schema_version')
+  if (!(Number(version) >= 10)) {
+    skip('fingerprint checks', `run supabase/outreach_fingerprint_migration.sql first (schema ${version ?? 'unknown'})`)
+    return
+  }
+  const sup = async (method, urlPath, body) => {
+    const res = await fetch(`${BASE_URL}${urlPath}`, {
+      method, headers: { Cookie: `auth_token=${SUPER}`, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    })
+    let json = null
+    try { json = await res.json() } catch { /* empty */ }
+    return { status: res.status, json }
+  }
+  if (!(await sup('GET', '/api/admin/outreach/retention').catch(() => null))) {
+    skip('fingerprint checks', `no server at ${BASE_URL}; start the dev server first`)
+    return
+  }
+  const { createHash } = await import('node:crypto')
+  const sha = (v) => createHash('sha256').update(v, 'utf8').digest('hex')
+  const fingerprints = async (leadType, ids) => {
+    const { data, error } = await db.rpc('outreach_fingerprint_keys', { p_lead_type: leadType, p_lead_ids: ids })
+    assert.equal(error, null, error?.message)
+    return (data ?? []).map((k) => `${k.key_type}:${k.key_value}`).sort()
+  }
+  const keysOf = async (leadType, id) => {
+    const { data, error } = await db.from('outreach_keys').select('key_type, key_value, contact_id').eq('lead_type', leadType).eq('lead_id', id)
+    assert.equal(error, null, error?.message)
+    return data ?? []
+  }
+
+  const tag = `ofp${Date.now()}`
+  const creators = []
+  const brands = []
+  let dncId = null
+  const dncDomain = `${tag}-dnc.example`
+  const plantedHash = sha(dncDomain)
+  try {
+    await check('fingerprints: a never-contacted creator has none; a contacted one has its keys', async () => {
+      const a = await sup('POST', '/api/admin/outreach/leads/creators', { name: `${tag} quiet`, profile_url: `https://youtube.com/@${tag}quiet`, source: 'outreach-check' })
+      assert.equal(a.status, 201, JSON.stringify(a.json))
+      const b = await sup('POST', '/api/admin/outreach/leads/creators', { name: `${tag} reached`, profile_url: `https://youtube.com/@${tag}reached`, source: 'outreach-check' })
+      assert.equal(b.status, 201, JSON.stringify(b.json))
+      const quiet = a.json.lead.lead_id
+      const reached = b.json.lead.lead_id
+      creators.push(quiet, reached)
+      assert.ok((await keysOf('creator', quiet)).length > 0, 'the quiet creator holds keys')
+      assert.deepEqual(await fingerprints('creator', [quiet]), [])
+      const act = await sup('POST', '/api/admin/outreach/actions', { lead_id: reached, action: 'contacted', channel: 'linkedin' })
+      assert.equal(act.status, 200, JSON.stringify(act.json))
+      const expected = (await keysOf('creator', reached)).map((k) => `${k.key_type}:${k.key_value}`).sort()
+      assert.ok(expected.length > 0)
+      assert.deepEqual(await fingerprints('creator', creators), expected)
+    })
+
+    await check('fingerprints: a never-contacted brand has none; once one contact is reached, the domain and only that contact\'s email', async () => {
+      const domain = `${tag}-brand.example`
+      const made = await sup('POST', '/api/admin/outreach/leads/brands', { company: `${tag} Brand`, domain, contact_name: 'Ann Lee', email: `ann@${domain}`, source: 'outreach-check' })
+      assert.equal(made.status, 201, JSON.stringify(made.json))
+      const id = made.json.lead.lead_id
+      brands.push(id)
+      const bo = await sup('POST', `/api/admin/outreach/leads/brands/${id}/contacts`, { first_name: 'Bo', email: `bo@${domain}`, linkedin: `linkedin.com/in/${tag}bo` })
+      assert.equal(bo.status, 201, JSON.stringify(bo.json))
+      assert.deepEqual(await fingerprints('brand', [id]), [])
+      const act = await sup('POST', '/api/admin/outreach/actions', { lead_id: id, action: 'contacted', channel: 'linkedin', contact_id: bo.json.contact.id })
+      assert.equal(act.status, 200, JSON.stringify(act.json))
+      const got = await fingerprints('brand', [id])
+      assert.ok(got.includes(`domain:${domain}`), JSON.stringify(got))
+      assert.ok(got.includes(`email:bo@${domain}`), JSON.stringify(got))
+      assert.ok(!got.includes(`email:ann@${domain}`), 'Ann was never contacted')
+    })
+
+    await check('fingerprints: an expired hash counts as expiring in the retention dry run even when its key is on the DNC list', async () => {
+      const before = await sup('GET', '/api/admin/outreach/retention')
+      assert.equal(before.status, 200, JSON.stringify(before.json))
+      const d = await sup('POST', '/api/admin/outreach/dnc', { key_type: 'domain', value: dncDomain, reason: 'other' })
+      assert.equal(d.status, 201, JSON.stringify(d.json))
+      dncId = d.json.entry.id
+      const { error } = await db.from('outreach_key_hashes').insert({
+        key_type: 'domain', key_hash: plantedHash, lead_type: 'brand', expires_at: new Date(Date.now() - 86_400_000).toISOString(),
+      })
+      assert.equal(error, null, error?.message)
+      const after = await sup('GET', '/api/admin/outreach/retention')
+      assert.equal(after.json.retention.key_hashes_expired, before.json.retention.key_hashes_expired + 1)
+    })
+  } finally {
+    await db.from('outreach_key_hashes').delete().eq('key_hash', plantedHash)
+    if (dncId) {await sup('DELETE', `/api/admin/outreach/dnc/${dncId}`, { reason: 'outreach-check cleanup' })}
+    // Creators have no purge route: soft-deleted, so retention removes them
+    // after 30 days. Brands are purged now (re-import purge, no hashes).
+    if (creators.length > 0) {await sup('POST', '/api/admin/outreach/leads/creators/delete', { lead_ids: creators })}
+    if (brands.length > 0) {
+      await sup('POST', '/api/admin/outreach/leads/brands/delete', { lead_ids: brands })
+      await sup('POST', '/api/admin/outreach/leads/brands/purge', { lead_ids: brands, commit: true })
+    }
+    console.log(`\nCleanup: ${creators.length} test creators soft-deleted, ${brands.length} test brands purged, DNC entry and planted hash removed.`)
+  }
+}
+
 // Team membership never depends on, or changes, a brand / creator account.
 // Needs SUPER_ADMIN_TOKEN plus TEST_TEAM_BRAND_EMAIL / TEST_TEAM_BRAND_PASSWORD:
 // a DISPOSABLE brand account with a completed brand profile, role 'user',
@@ -2644,6 +2764,7 @@ if (args.includes('--http')) {
   await importOwnerHttpChecks()
   await purgeHttpChecks()
   await retentionV2HttpChecks()
+  await fingerprintHttpChecks()
   await teamPromotionHttpChecks()
 }
 

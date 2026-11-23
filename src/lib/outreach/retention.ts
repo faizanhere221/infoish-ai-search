@@ -33,6 +33,8 @@ export interface RetentionCounts {
   dnc_entries_kept: number
   // outreach_retention_v2_migration.sql: activity rows unlinked (kept for
   // the stats), keys kept as SHA-256 hashes, hashes past 12 months dropped.
+  // outreach_fingerprint_migration.sql: hashes only for contacted leads /
+  // contacts, and every hash goes at 12 months (no DNC exception).
   activity_unlinked?: number
   key_hashes_written?: number
   key_hashes_expired?: number
