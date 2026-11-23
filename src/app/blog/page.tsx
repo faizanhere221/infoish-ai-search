@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '53',
+    title: 'Free vs Enterprise Influencer Platforms: What Startups Need',
+    excerpt: 'Free influencer marketplaces and enterprise platforms solve different problems. See what startups need, what to skip and when to upgrade.',
+    date: '2026-11-23',
+    author: 'Infoishai Team',
+    category: 'Industry',
+    readTime: '8 min read',
+    slug: 'free-vs-enterprise-influencer-platforms',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '52',
     title: 'What B2B Brands Look for in a Tech Creator (and How to Show It)',
     excerpt: 'Brands vet tech creators on audience fit, content quality and reliability, not followers alone. Use this checklist to prepare your profile and pitch.',
