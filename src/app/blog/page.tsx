@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '55',
+    title: "How to Build a Tech Influencer Shortlist: From 100 Names to 10 Outreach Targets",
+    excerpt: "A repeatable workflow to turn a long list of tech creators into a ranked shortlist of ten outreach targets, with a spreadsheet layout and scoring tips.",
+    date: '2026-11-24',
+    author: 'Infoishai Team',
+    category: 'Guide',
+    readTime: '8 min read',
+    slug: 'build-tech-influencer-shortlist',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '54',
     title: "Product Seeding for Tech Creators: When Free Units Work and When They Do Not",
     excerpt: "Learn when sending free units to tech creators works, how to pick recipients, handle disclosure, and decide between seeding and paid sponsorships.",
