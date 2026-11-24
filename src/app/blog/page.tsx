@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '54',
+    title: "Product Seeding for Tech Creators: When Free Units Work and When They Do Not",
+    excerpt: "Learn when sending free units to tech creators works, how to pick recipients, handle disclosure, and decide between seeding and paid sponsorships.",
+    date: '2026-11-24',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '8 min read',
+    slug: 'product-seeding-tech-creators',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '53',
     title: 'Free vs Enterprise Influencer Platforms: What Startups Need',
     excerpt: 'Free influencer marketplaces and enterprise platforms solve different problems. See what startups need, what to skip and when to upgrade.',
