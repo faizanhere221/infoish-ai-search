@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '56',
+    title: "Managed Influencer Marketing for Tech Brands: What You Get and What It Costs",
+    excerpt: "What does a managed influencer marketing service include for tech brands? Scope, timeline, pricing logic and when outsourcing beats running campaigns in-house.",
+    date: '2026-11-25',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '8 min read',
+    slug: 'managed-influencer-marketing-tech-brands',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '55',
     title: "How to Build a Tech Influencer Shortlist: From 100 Names to 10 Outreach Targets",
     excerpt: "A repeatable workflow to turn a long list of tech creators into a ranked shortlist of ten outreach targets, with a spreadsheet layout and scoring tips.",
