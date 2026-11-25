@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '57',
+    title: "In-House vs Agency Influencer Marketing for B2B Tech: A Staffing Decision Guide",
+    excerpt: "Compare in-house influencer marketing with agencies for B2B tech: skills, tools, workload and cost drivers, plus a hybrid model suited to most small teams.",
+    date: '2026-11-25',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '8 min read',
+    slug: 'in-house-vs-agency-influencer-marketing-b2b',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '56',
     title: "Managed Influencer Marketing for Tech Brands: What You Get and What It Costs",
     excerpt: "What does a managed influencer marketing service include for tech brands? Scope, timeline, pricing logic and when outsourcing beats running campaigns in-house.",
