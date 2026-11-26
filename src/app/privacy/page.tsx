@@ -166,7 +166,7 @@ export default function PrivacyPolicy() {
             <h3 className="text-xl font-medium text-gray-800 mb-3 mt-6">Deletion requests</h3>
             <p className="text-gray-700 leading-relaxed">
               To have your YouTube channel data deleted, email{' '}
-              <a href="mailto:support@infoishai.com" className="text-brand-pink hover:underline">support@infoishai.com</a>.
+              <a href="mailto:hello@infoishai.com" className="text-brand-pink hover:underline">hello@infoishai.com</a>.
               We handle deletion requests within 7 days.
             </p>
           </section>
@@ -184,7 +184,7 @@ export default function PrivacyPolicy() {
               <li><strong>Purpose:</strong> B2B outreach about creator partnerships and the Infoishai marketplace. Under UK and EU data protection law, our legal basis is our legitimate interest in business outreach.</li>
               <li><strong>Sharing:</strong> we never sell your details or share them with other companies for their own marketing.</li>
               <li><strong>Opt out:</strong> reply to our email and ask us to stop. We stop contacting you.</li>
-              <li><strong>Deletion:</strong> email support@infoishai.com and we delete your details.</li>
+              <li><strong>Deletion:</strong> email hello@infoishai.com and we delete your details.</li>
               <li><strong>How long we keep it:</strong> up to 12 months after our last contact with you, then we delete it. Any YouTube data in these records follows the 30-day rule in &quot;YouTube API Services&quot; above. If you opt out, you stay on our do-not-contact list so we never email you again. For this list we keep your email address, and the profile link or company domain we used to contact you.</li>
             </ul>
           </section>
@@ -265,7 +265,7 @@ export default function PrivacyPolicy() {
             </p>
             <div className="mt-4 p-4 bg-gray-50 rounded-lg">
               <p className="text-gray-700">Infoishai is operated by {LEGAL_OPERATOR}</p>
-              <p className="text-gray-700">Email: support@infoishai.com</p>
+              <p className="text-gray-700">Email: hello@infoishai.com</p>
             </div>
           </section>
         </div>

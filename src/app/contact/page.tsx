@@ -288,7 +288,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-black mb-1">Email Us</h4>
-                    <p className="text-black/80 mb-1">infoishfounder@gmail.com</p>
+                    <p className="text-black/80 mb-1">hello@infoishai.com</p>
                     <p className="text-sm text-black/60">We typically respond within a day</p>
                   </div>
                 </div>
