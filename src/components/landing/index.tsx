@@ -8,7 +8,7 @@ import Header from '@/components/header'
 import NewsletterForm from '@/components/NewsletterForm'
 import { trackCTAClick } from '@/lib/analytics'
 import { COUNTRY_LANDING_PAGES, NICHES, PLATFORM_COUNT } from '@/utils/constants'
-import { YOUTUBE_TERMS_URL } from '@/config/legal'
+import { LEGAL_FOOTER_LINE, LEGAL_REGISTERED_OFFICE, YOUTUBE_TERMS_URL } from '@/config/legal'
 import {
   Sparkles, 
   Search, 
@@ -1158,6 +1158,8 @@ export function Footer() {
           </div>
           {/* getUTCFullYear(), not getFullYear() — avoids a one-year hydration mismatch near a UTC year boundary (server renders UTC, browser renders local). */}
           <p>© {new Date().getUTCFullYear()} Infoishai. All rights reserved. | Find Tech Influencers Marketplace</p>
+          <p className="mt-2 text-xs">{LEGAL_FOOTER_LINE}</p>
+          <p className="text-xs">Registered office: {LEGAL_REGISTERED_OFFICE}</p>
         </div>
       </div>
     </footer>

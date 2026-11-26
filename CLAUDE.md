@@ -350,7 +350,7 @@ scripts/                # security-check.mjs, race-check.mjs (see Commands above
 - **Do not use `console.log` for error handling.** Use `captureError()` for Sentry tracking.
 - **Do not recreate dead code** that was removed in the audit: Prisma, pg Pool, empty AI/social stubs, unused hooks, shadcn/ui config.
 - **Never claim the self-serve platform holds or protects funds**, and never describe Stripe or automatic payouts as a working feature, in any UI copy, email, metadata, or doc. On the self-serve platform, payments are made directly between brand and creator and Infoishai keeps the record. The managed service and managed deals are the one exception: Infoishai invoices the brand and pays creators as their agency, with a 10% + 10% fee (see **Payments**).
-- **Legal pages** (`/privacy`, `/terms`): the operator name and the YouTube/Google policy URLs live in `src/config/legal.ts`; change them there, not in the pages.
+- **Legal pages** (`/privacy`, `/terms`): the operator details (Infoishai Ltd, a company registered in England and Wales: name, company number, registered office, the operator line, the footer company line, the "Last updated" date) and the YouTube/Google policy URLs live in `src/config/legal.ts`; change them there, not in the pages or footers. Infoishai Ltd is the data controller in the privacy policy, and the Terms are governed by the laws and courts of England and Wales.
 
 ## Known Limitations (work around, do not "fix" the architecture)
 

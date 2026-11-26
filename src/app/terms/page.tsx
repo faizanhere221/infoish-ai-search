@@ -3,7 +3,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import Header from '@/components/header'
-import { LEGAL_OPERATOR, YOUTUBE_TERMS_URL } from '@/config/legal'
+import { LEGAL_COMPANY_NAME, LEGAL_LAST_UPDATED, LEGAL_OPERATOR, YOUTUBE_TERMS_URL } from '@/config/legal'
 
 export const metadata: Metadata = {
   title: { absolute: 'Terms of Service | Infoishai' },
@@ -26,14 +26,14 @@ export default function TermsOfService() {
       <div className="max-w-4xl mx-auto px-4 py-16">
         <div className="prose prose-lg max-w-none">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">Terms of Service</h1>
-          <p className="text-gray-600 mb-8">Last updated: November 2026</p>
+          <p className="text-gray-600 mb-8">Last updated: {LEGAL_LAST_UPDATED}</p>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Agreement to Terms</h2>
             <p className="text-gray-700 leading-relaxed">
               By using Infoishai (the &quot;Service&quot;), you agree to these Terms of Service
               (&quot;Terms&quot;). If you do not agree with any part of these Terms, do not use the
-              Service. Infoishai is operated by {LEGAL_OPERATOR}.
+              Service. Infoishai is operated by {LEGAL_OPERATOR}
             </p>
           </section>
 
@@ -99,7 +99,7 @@ export default function TermsOfService() {
               <li>The brand pays the creator fee plus a 10% Infoishai fee.</li>
               <li>Infoishai also keeps 10% of the creator fee at payout.</li>
               <li>Example: for a creator fee of $1,000, the brand pays $1,100 and the creator receives $900.</li>
-              <li>The brand pays Infoishai, and Infoishai pays the creator within 3 business days of each brand payment, by bank transfer, Wise, or Payoneer.</li>
+              <li>The brand pays {LEGAL_COMPANY_NAME}, and {LEGAL_COMPANY_NAME} pays the creator within 3 business days of each brand payment, by bank transfer, Wise, or Payoneer.</li>
               <li>Fees and amounts are confirmed in writing before work starts.</li>
               <li>No cryptocurrency. We do not accept or send payments in cryptocurrency.</li>
             </ul>
@@ -188,9 +188,10 @@ export default function TermsOfService() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Governing Law</h2>
             <p className="text-gray-700 leading-relaxed">
-              These Terms are governed by the laws of Pakistan, without regard to conflict-of-law
-              principles, except where local consumer-protection law in your country requires
-              otherwise.
+              These Terms are governed by the laws of England and Wales, without regard to
+              conflict-of-law principles. The courts of England and Wales have jurisdiction over any
+              dispute about these Terms or the Service. Both rules apply except where local
+              consumer-protection law in your country requires otherwise.
             </p>
           </section>
 
@@ -200,7 +201,7 @@ export default function TermsOfService() {
               If you have questions about these Terms of Service, contact us at:
             </p>
             <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <p className="text-gray-700">Infoishai is operated by {LEGAL_OPERATOR}.</p>
+              <p className="text-gray-700">Infoishai is operated by {LEGAL_OPERATOR}</p>
               <p className="text-gray-700">Email: support@infoishai.com</p>
             </div>
           </section>

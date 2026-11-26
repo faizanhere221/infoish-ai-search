@@ -2,7 +2,7 @@
 
 import { Metadata } from 'next'
 import Header from '@/components/header'
-import { GOOGLE_PRIVACY_URL, LEGAL_OPERATOR, YOUTUBE_TERMS_URL } from '@/config/legal'
+import { GOOGLE_PRIVACY_URL, LEGAL_COMPANY_NAME, LEGAL_LAST_UPDATED, LEGAL_OPERATOR, YOUTUBE_TERMS_URL } from '@/config/legal'
 
 export const metadata: Metadata = {
   title: { absolute: 'Privacy Policy | Infoishai' },
@@ -33,7 +33,7 @@ export default function PrivacyPolicy() {
       <div className="max-w-4xl mx-auto px-4 py-16">
         <div className="prose prose-lg max-w-none">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
-          <p className="text-gray-600 mb-8">Last updated: November 2026</p>
+          <p className="text-gray-600 mb-8">Last updated: {LEGAL_LAST_UPDATED}</p>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Introduction</h2>
@@ -44,7 +44,10 @@ export default function PrivacyPolicy() {
               explains what information we collect, why we collect it, and how we handle it. It
               covers people with an Infoishai account and people we contact for business outreach.
             </p>
-            <p className="text-gray-700 leading-relaxed mt-4">Infoishai is operated by {LEGAL_OPERATOR}.</p>
+            <p className="text-gray-700 leading-relaxed mt-4">
+              Infoishai is operated by {LEGAL_OPERATOR} {LEGAL_COMPANY_NAME} is the data controller for the personal data
+              described in this Privacy Policy.
+            </p>
           </section>
 
           <section className="mb-8">
@@ -261,7 +264,7 @@ export default function PrivacyPolicy() {
               contact us at:
             </p>
             <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <p className="text-gray-700">Infoishai is operated by {LEGAL_OPERATOR}.</p>
+              <p className="text-gray-700">Infoishai is operated by {LEGAL_OPERATOR}</p>
               <p className="text-gray-700">Email: support@infoishai.com</p>
             </div>
           </section>

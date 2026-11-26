@@ -4,7 +4,7 @@ import Logo from '@/components/Logo'
 import { MapPin, Mail, Phone, Linkedin } from 'lucide-react'
 import { useState } from 'react'
 import { COUNTRY_LANDING_PAGES } from '@/utils/constants'
-import { YOUTUBE_TERMS_URL } from '@/config/legal'
+import { LEGAL_FOOTER_LINE, LEGAL_REGISTERED_OFFICE, YOUTUBE_TERMS_URL } from '@/config/legal'
 
 export default function Footer() {
   // getUTCFullYear(), not getFullYear() — this renders on both server
@@ -238,6 +238,8 @@ export default function Footer() {
               <p className="text-white/50 text-xs mt-1">
                 Made with ❤️ in Pakistan for brands and creators
               </p>
+              <p className="text-white/50 text-xs mt-2">{LEGAL_FOOTER_LINE}</p>
+              <p className="text-white/50 text-xs">Registered office: {LEGAL_REGISTERED_OFFICE}</p>
             </div>
 
             {/* Social Links */}
