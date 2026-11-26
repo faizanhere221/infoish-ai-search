@@ -100,13 +100,9 @@ const CSP = [
   // Explicit worker-src so worker permissions don't rely on the script-src
   // fallback above.
   "worker-src 'self' blob:",
-  // https://www.website.show: the homepage footer's "Featured on
-  // website.show" directory badge — an external, unoptimized SVG served
-  // straight from their domain (next/image's `unoptimized` skips our own
-  // image optimizer, so the browser fetches it directly).
   // *.google-analytics.com / *.googletagmanager.com: GA4's <img> beacon
   // fallback for hits that can't go out via fetch/sendBeacon.
-  "img-src 'self' data: blob: https://lh3.googleusercontent.com https://ypdspiwxsojwjzbagaip.supabase.co https://www.website.show https://*.google-analytics.com https://*.googletagmanager.com",
+  "img-src 'self' data: blob: https://lh3.googleusercontent.com https://ypdspiwxsojwjzbagaip.supabase.co https://*.google-analytics.com https://*.googletagmanager.com",
   "font-src 'self'",
   // *.google-analytics.com / *.analytics.google.com: GA4 collect endpoints,
   // including regional ones (region1.* etc.). *.googletagmanager.com:
