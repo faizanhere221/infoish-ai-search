@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '58',
+    title: "How AI Influencer Matching Works and Where It Still Fails",
+    excerpt: "A plain-English look at how AI influencer matching works, which signals it uses, where it fails, and how marketers should combine it with human vetting.",
+    date: '2026-11-26',
+    author: 'Infoishai Team',
+    category: 'Tools',
+    readTime: '8 min read',
+    slug: 'how-ai-influencer-matching-works',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '57',
     title: "In-House vs Agency Influencer Marketing for B2B Tech: A Staffing Decision Guide",
     excerpt: "Compare in-house influencer marketing with agencies for B2B tech: skills, tools, workload and cost drivers, plus a hybrid model suited to most small teams.",
