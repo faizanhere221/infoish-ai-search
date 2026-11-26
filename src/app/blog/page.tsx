@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '59',
+    title: "Always-On Creator Programs: Why B2B Tech Brands Should Think Beyond One-Off Campaigns",
+    excerpt: "One-off sponsorships fade fast. See how B2B tech brands build always-on creator programs: cadence, renewals, budgets and the signals worth renewing for.",
+    date: '2026-11-26',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '9 min read',
+    slug: 'always-on-creator-programs-b2b',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '58',
     title: "How AI Influencer Matching Works and Where It Still Fails",
     excerpt: "A plain-English look at how AI influencer matching works, which signals it uses, where it fails, and how marketers should combine it with human vetting.",
