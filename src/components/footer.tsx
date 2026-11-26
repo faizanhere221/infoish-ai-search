@@ -130,14 +130,14 @@ export default function Footer() {
               <Logo size="lg" tone="dark" />
             </Link>
             <p className="text-white/70 mb-6 leading-relaxed">
-              Pakistan's leading AI-powered platform to discover and connect with top influencers and content creators. Free campaign management system included.
+              The marketplace connecting AI and SaaS brands with tech creators in 9 countries.
             </p>
             
             {/* Contact Info */}
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <MapPin className="w-5 h-5 text-green-500" />
-                <span className="text-sm text-white/80">Multan, Pakistan</span>
+                <span className="text-sm text-white/80">Team based in Multan, Pakistan</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-brand-purple" />

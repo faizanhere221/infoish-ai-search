@@ -816,7 +816,7 @@ export default function BlogPage() {
             Influencer Marketing Blog & Tools
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Expert insights, free AI tools, and proven strategies from Pakistan's leading influencer marketing platform
+            Expert insights, free AI tools, and proven strategies from the marketplace connecting AI and SaaS brands with tech creators in 9 countries
           </p>
           <div className="flex flex-wrap justify-center gap-8 mt-8 text-sm text-gray-500">
             <div className="flex items-center gap-2">
