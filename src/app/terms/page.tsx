@@ -202,7 +202,7 @@ export default function TermsOfService() {
             </p>
             <div className="mt-4 p-4 bg-gray-50 rounded-lg">
               <p className="text-gray-700">Infoishai is operated by {LEGAL_OPERATOR}</p>
-              <p className="text-gray-700">Email: support@infoishai.com</p>
+              <p className="text-gray-700">Email: hello@infoishai.com</p>
             </div>
           </section>
         </div>
