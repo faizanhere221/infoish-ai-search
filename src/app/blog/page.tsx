@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '61',
+    title: "Product Launch Influencer Campaign: A 12-Week Timeline for Tech Teams",
+    excerpt: "Plan a tech product launch with creators: a 12-week timeline covering shortlist, briefing, embargoes, launch-week content and post-launch reuse.",
+    date: '2026-11-27',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '9 min read',
+    slug: 'product-launch-influencer-campaign-timeline',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '60',
     title: "Turning Creator Content into B2B Paid Ads: Rights, Setup and Testing",
     excerpt: "Learn how B2B brands reuse creator content in paid campaigns: usage rights to secure, platform setup basics, testing plans and measurement pitfalls.",
