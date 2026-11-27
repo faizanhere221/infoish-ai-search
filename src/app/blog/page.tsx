@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '60',
+    title: "Turning Creator Content into B2B Paid Ads: Rights, Setup and Testing",
+    excerpt: "Learn how B2B brands reuse creator content in paid campaigns: usage rights to secure, platform setup basics, testing plans and measurement pitfalls.",
+    date: '2026-11-27',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '8 min read',
+    slug: 'repurpose-creator-content-paid-ads-b2b',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '59',
     title: "Always-On Creator Programs: Why B2B Tech Brands Should Think Beyond One-Off Campaigns",
     excerpt: "One-off sponsorships fade fast. See how B2B tech brands build always-on creator programs: cadence, renewals, budgets and the signals worth renewing for.",
