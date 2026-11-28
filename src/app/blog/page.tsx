@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '62',
+    title: "Why B2B Influencer Campaigns Fail: A Diagnostic Checklist",
+    excerpt: "Diagnose why a B2B influencer campaign underperformed: audience fit, brief, offer, tracking and timing. Includes a reusable post-mortem checklist.",
+    date: '2026-11-28',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '8 min read',
+    slug: 'why-b2b-influencer-campaigns-fail',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '61',
     title: "Product Launch Influencer Campaign: A 12-Week Timeline for Tech Teams",
     excerpt: "Plan a tech product launch with creators: a 12-week timeline covering shortlist, briefing, embargoes, launch-week content and post-launch reuse.",

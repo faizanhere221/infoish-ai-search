@@ -125,6 +125,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Blog
     { url: `${baseUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/blog/why-b2b-influencer-campaigns-fail`, lastModified: new Date('2026-11-28'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/product-launch-influencer-campaign-timeline`, lastModified: new Date('2026-11-27'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/repurpose-creator-content-paid-ads-b2b`, lastModified: new Date('2026-11-27'), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/blog/always-on-creator-programs-b2b`, lastModified: new Date('2026-11-26'), changeFrequency: 'monthly', priority: 0.7 },
