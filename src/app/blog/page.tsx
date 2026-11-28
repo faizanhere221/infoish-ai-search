@@ -24,6 +24,19 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
+    id: '63',
+    title: "Founder-Led Marketing Plus Creators: A Playbook for Seed-Stage Tech Startups",
+    excerpt: "Combine founder-led content with a few well-chosen creators at seed stage: split time and budget, pick nano creators and measure what matters before scaling.",
+    date: '2026-11-28',
+    author: 'Infoishai Team',
+    category: 'Strategy',
+    readTime: '8 min read',
+    slug: 'founder-led-marketing-plus-creators',
+    featured: true,
+    views: '0',
+    isNew: true
+  },
+  {
     id: '62',
     title: "Why B2B Influencer Campaigns Fail: A Diagnostic Checklist",
     excerpt: "Diagnose why a B2B influencer campaign underperformed: audience fit, brief, offer, tracking and timing. Includes a reusable post-mortem checklist.",
